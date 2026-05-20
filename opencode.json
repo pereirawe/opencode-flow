@@ -1,0 +1,23 @@
+{
+    "$schema": "https://opencode.ai/config.json",
+    "plugin": [
+        "@warp-dot-dev/opencode-warp"
+    ],
+    "instructions": [
+        "./.config/opencode/AGENTS.md",
+        "./.config/opencode/workflow.md",
+        "./.config/opencode/known_issues.md"
+    ],
+    "permission": {
+        "skill": {
+            "*": "allow"
+        }
+    },
+    "watcher": {
+        "ignore": [
+            ".git/**",
+            "bin/**",
+            "node_modules/**"
+        ]
+    }
+}
