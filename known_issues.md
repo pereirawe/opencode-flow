@@ -37,7 +37,7 @@ Single source of truth for tracked work in this project.
 - Suggested fix: Complete remaining cleanup: (a) remove node_modules/, (b) remove package.json/package-lock.json, (c) remove stale wip/list.md and wip/Plan.png, (d) remove self-referencing .gitignore entries for bun.lock and .gitignore itself, (e) ensure no project-specific references remain
 
 ### 2. Fix instruction paths in opencode.json
-- Status: backlog
+- Status: resolved
 - Type: bug
 - Severity: critical
 - Reported by: explore
@@ -48,7 +48,7 @@ Single source of truth for tracked work in this project.
 - Suggested fix: Change `./.config/opencode/...` to `./...` in opencode.json instructions array
 
 ### 3. Add missing entrypoint docs to AGENTS.md and README.md
-- Status: backlog
+- Status: resolved
 - Type: doc
 - Severity: medium
 - Reported by: explore
@@ -81,7 +81,7 @@ Single source of truth for tracked work in this project.
 - Suggested fix: Replace `"Commiter"` with `"Committer"` in the cSpell allowed words list
 
 ### 6. Scope down permissive skill permissions
-- Status: backlog
+- Status: resolved
 - Type: chore
 - Severity: low
 - Reported by: explore
@@ -90,3 +90,36 @@ Single source of truth for tracked work in this project.
 - Description: `"permission.skill": {"*": "allow"}` allows all skills to run without user confirmation
 - Impact: Security concern - excessive permission breadth could allow untrusted skills to execute without confirmation
 - Suggested fix: Narrow `"*"` wildcard to only specific trusted skills, or remove the override to use defaults
+
+### 7. Align global config with latest OpenCode documentation
+- Status: in-progress
+- Type: chore
+- Severity: high
+- Reported by: william.pereira@digitalup.intranet
+- Remote: -
+- Location: opencode.json, AGENTS.md, README.md
+- Description: Review and update all config files to match latest OpenCode docs patterns: fix instruction paths, add $schema, fix agent frontmatter format, update skill SKILL.md descriptions, remove stale references
+- Impact: Config will not load correctly if not aligned with schema; agents/skills may not be discoverable
+- Suggested fix: Fix instruction paths (critical), normalize agent frontmatter with proper description/mode fields, update skill descriptions with trigger context, clean up .gitignore and stale artifacts
+
+### 8. Create project bootstrap template
+- Status: in-progress
+- Type: feat
+- Severity: high
+- Reported by: william.pereira@digitalup.intranet
+- Remote: -
+- Location: .opencode/ (new), scripts/, README.md
+- Description: Create reusable `.opencode/` project template structure that can be copied into any project. Include project-level AGENTS.md, workflow.md, opencode.json, and subdirectories for agents/commands/skills overrides
+- Impact: Enables quick bootstrapping of new projects with the full OpenCode agent pipeline
+- Suggested fix: Create `.opencode/` directory with template files, add bootstrap script/Make target, document in README.md
+
+### 9. Clean up stale build artifacts and .gitignore
+- Status: resolved
+- Type: chore
+- Severity: medium
+- Reported by: william.pereira@digitalup.intranet
+- Remote: -
+- Location: node_modules/, package.json, package-lock.json, .gitignore
+- Description: Remove node_modules/ (58MB), package.json, package-lock.json as they are unused. Fix .gitignore to remove self-referencing entries (bun.lock, .gitignore)
+- Impact: Wastes disk space, unnecessary security risk from native addon build scripts
+- Suggested fix: Delete node_modules/, package.json, package-lock.json. Update .gitignore to only ignore node_modules
