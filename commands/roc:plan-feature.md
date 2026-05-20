@@ -10,3 +10,4 @@ Responsibilities:
 - Identify impacted layers
 - Register risks and planned work in `$PWD/.opencode/known_issues.md` (project issue tracker)
 - Add new entries with `Status: backlog` and the proper `Type`
+- Follow the issue entry format from `standards/issues.md`

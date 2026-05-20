@@ -1,6 +1,8 @@
 # Issue Tracking
 
-Single source of truth: `.config/opencode/known_issues.md`
+Two-tier issue tracking:
+- **Global**: `~/.config/opencode/known_issues.md` — opencode config-level issues
+- **Project**: `<project>/.opencode/known_issues.md` — project-specific issues
 
 ## Entry Format
 
