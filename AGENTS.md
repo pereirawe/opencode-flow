@@ -8,6 +8,10 @@ Entrypoints:
 - `skills/` — reusable skills (load via skill tool)
 - `scripts/` — shell helpers
 - `standards/` — development patterns
+- `architecture.md` — technical vision and structural decisions
+- `conventions.md` — development conventions and best practices
+- `decisions.md` — architecture decision records
+- `workflow.md` — development workflow pipeline
 
 ## Tracked Work
 
@@ -17,8 +21,17 @@ Entrypoints:
 ## Local Helpers
 
 ```
-make -f .config/opencode/Makefile scan-issues
-make -f .config/opencode/Makefile review
-make -f .config/opencode/Makefile promote id=<n>
-make -f .config/opencode/Makefile close-issue id=<n>
+make scan-issues
+make review
+make promote id=<n>
+make close-issue id=<n>
+make bootstrap target=<path>
 ```
+
+## Project Bootstrap
+
+To use this template in another project:
+```
+make bootstrap target=/path/to/project
+```
+Or manually copy `.opencode/` to the target project root.

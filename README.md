@@ -1,6 +1,7 @@
 # OpenCode Project Configuration
 
 Generic, language-agnostic configuration for AI-assisted development workflow.
+This config lives in `~/.config/opencode/` and is automatically loaded by OpenCode as the **global config**.
 
 ## Structure
 
@@ -8,21 +9,38 @@ Generic, language-agnostic configuration for AI-assisted development workflow.
 |------|---------|
 | `AGENTS.md` | Entrypoint instructions |
 | `opencode.json` | OpenCode configuration |
-| `agents/` | Subagent definitions (CTO, PO, PM, Dev, etc.) |
+| `workflow.md` | Development workflow pipeline |
+| `known_issues.md` | Tracked work register |
+| `architecture.md` | Technical vision and structural decisions |
+| `conventions.md` | Development conventions and best practices |
+| `decisions.md` | Architecture decision records |
+| `agents/` | Subagent definitions (CTO, PO, Dev, Committer, etc.) |
 | `commands/` | Slash command documentation |
-| `skills/` | Reusable skills (issue-manager, etc.) |
+| `skills/` | Reusable skills (issue-manager) |
 | `scripts/` | Shell helpers for issue lifecycle |
 | `standards/` | Development patterns (branching, commits, PR) |
-| `known_issues.md` | Tracked work register |
+| `.opencode/` | Project bootstrap template (copy to other projects) |
+| `wip/` | Planning artifacts |
+| `.vscode/` | Editor settings |
 | `Makefile` | Convenience targets |
 
 ## Usage
 
 ```
-make -f .config/opencode/Makefile scan-issues
-make -f .config/opencode/Makefile review
-make -f .config/opencode/Makefile promote id=<n>
-make -f .config/opencode/Makefile close-issue id=<n>
+make scan-issues
+make review
+make promote id=<n>
+make close-issue id=<n>
+make bootstrap target=<path>
 ```
+
+## Bootstrap a New Project
+
+```
+make bootstrap target=../my-project
+```
+
+This copies `.opencode/` template into the target project root.
+See `.opencode/README.md` for details.
 
 See individual directories for details.
