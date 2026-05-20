@@ -11,4 +11,4 @@ Responsibilities:
 - Validate:
   - tests exist
   - docs updated (if applicable)
-- Sync `$PWD/.config/opencode/known_issues.md`
+- Sync `$PWD/.opencode/known_issues.md` (project issue tracker)

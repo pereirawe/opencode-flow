@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
+source "$(dirname "$0")/config.sh"
 
-# Usage: .config/opencode/scripts/close_issue.sh <local_issue_id>
+# Usage: $SCRIPTS_DIR/close_issue.sh <local_issue_id>
 
 ID=${1:-}
 if [[ -z "$ID" ]]; then
@@ -9,7 +10,7 @@ if [[ -z "$ID" ]]; then
   exit 1
 fi
 
-FILE=".config/opencode/known_issues.md"
+FILE="$PROJECT_ISSUES_FILE"
 if [[ ! -f "$FILE" ]]; then
   echo "known_issues.md not found"
   exit 1

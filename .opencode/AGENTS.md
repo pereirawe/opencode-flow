@@ -10,6 +10,12 @@ Global config from `~/.config/opencode/` is loaded automatically.
 - `.opencode/commands/` — Project-specific commands
 - `.opencode/skills/` — Project-specific skills
 
+### Repository Context
+
+- Default branch: `__DEFAULT_BRANCH__`
+- Remotes:
+__REMOTES__
+
 ### Workflow
 
 See `.opencode/workflow.md` for project-specific workflow rules.

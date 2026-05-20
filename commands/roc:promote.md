@@ -2,8 +2,8 @@
 
 Promote a tracked backlog item inside `known_issues.md`.
 
-The working directory (`$PWD`) determines the target project. All paths are
-relative to the project root, **not** to the global opencode config.
+The project issue tracker is at `$PWD/.opencode/known_issues.md`.
+Shell scripts live at `$HOME/.config/opencode/scripts/`.
 
 Responsibilities:
 - Change `Status` from `backlog` or `ready` to `open`
@@ -16,9 +16,9 @@ Usage:
 ```
 
 Flow:
-1. Promote tracked item inside `$PWD/.config/opencode/known_issues.md`
+1. Promote tracked item inside `$PWD/.opencode/known_issues.md`
 2. Create remote issue:
-   `$PWD/.config/opencode/scripts/create_issue.sh 2`
+   `$HOME/.config/opencode/scripts/create_issue.sh 2`
 3. Start development on generated branch
 
 Status rules:

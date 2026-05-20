@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
+source "$(dirname "$0")/config.sh"
 
-# Usage: .config/opencode/scripts/promote.sh <local_issue_id>
+# Usage: $SCRIPTS_DIR/promote.sh <local_issue_id>
 
 ID=${1:-}
 if [[ -z "$ID" ]]; then
@@ -9,7 +10,7 @@ if [[ -z "$ID" ]]; then
   exit 1
 fi
 
-ISS_FILE=".config/opencode/known_issues.md"
+ISS_FILE="$PROJECT_ISSUES_FILE"
 
 if [[ ! -f "$ISS_FILE" ]]; then
   echo "known_issues.md not found"

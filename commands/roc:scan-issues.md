@@ -7,7 +7,8 @@ relative to the project root, **not** to the global opencode config.
 
 Responsibilities:
 - Detect new issues (security, concurrency, architecture, reliability)
-- Create (if absent) and update `$PWD/.config/opencode/known_issues.md`
+- Create (if absent) and update `$PWD/.opencode/known_issues.md` (project issue tracker)
+- For issues related to opencode config itself, update `$HOME/.config/opencode/known_issues.md` (global issue tracker)
 - Normalize `Status`, `Type`, `Severity`, and `Reported by`
 - Avoid duplication
 

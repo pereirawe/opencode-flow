@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
+source "$(dirname "$0")/config.sh"
 
 echo "[scan-issues] Running static scan..."
 
 # Basic heuristics — extend patterns for your project language
 PATTERN="TODO|FIXME|HACK|XXX|SECURITY|TODO|BUG|WORKAROUND"
-TARGETS=(./src ./cmd ./internal ./.config ./*.go ./*.py ./*.js ./*.ts ./*.rs 2>/dev/null || true)
+TARGETS=()
+for glob in ./src ./cmd ./internal ./*.go ./*.py ./*.js ./*.ts ./*.rs; do
+  [ -e "$glob" ] || [ -L "$glob" ] && TARGETS+=("$glob")
+done
 
 echo "[scan-issues] Searching risky patterns..."
 
@@ -17,4 +21,4 @@ else
   echo "[scan-issues] no text search tool available"
 fi
 
-echo "[scan-issues] Done. Run /scan-issues in the assistant to update .config/opencode/known_issues.md"
+echo "[scan-issues] Done. Run /roc:scan-issues in the assistant to update $PROJECT_ISSUES_FILE"

@@ -15,8 +15,11 @@ Entrypoints:
 
 ## Tracked Work
 
-- Register: `known_issues.md`
-- Status lifecycle: `backlog -> ready -> open -> in-progress -> resolved`
+Two-tier issue tracking:
+- **Global**: `known_issues.md` — opencode config-level issues
+- **Project**: `<project>/.opencode/known_issues.md` — project-specific issues
+
+Status lifecycle: `backlog -> ready -> open -> in-progress -> resolved`
 
 ## Local Helpers
 

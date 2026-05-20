@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+source "$(dirname "$0")/config.sh"
 
 echo "[pre-commit] Running checks..."
 
@@ -18,9 +19,9 @@ fi
 
 # Ensure known_issues was considered
 if git diff --cached --name-only 2>/dev/null | grep -q "known_issues.md"; then
-  echo "[pre-commit] known_issues updated"
+  echo "[pre-commit] $CONFIG_DIR/known_issues.md was updated"
 else
-  echo "[pre-commit] WARNING: known_issues not updated"
+  echo "[pre-commit] WARNING: $CONFIG_DIR/known_issues.md was not updated — update it if this change affects the project"
 fi
 
 echo "[pre-commit] OK"
