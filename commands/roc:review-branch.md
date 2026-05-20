@@ -1,0 +1,14 @@
+## /roc:review-branch
+
+Full PR/MR-style review.
+
+The working directory (`$PWD`) determines the target project. All paths are
+relative to the project root, **not** to the global opencode config.
+
+Responsibilities:
+- Analyze `git diff`
+- Detect bugs, regressions, missing tests
+- Validate:
+  - tests exist
+  - docs updated (if applicable)
+- Sync `$PWD/.config/opencode/known_issues.md`

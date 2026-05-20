@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Usage:
+# .config/opencode/scripts/create_issue.sh "Issue Title" "Issue Body"
+# .config/opencode/scripts/create_issue.sh <local_issue_number>
+
+INPUT=${1:-}
+TITLE=""
+BODY=""
+
+# If only a number is provided, fetch from known_issues
+if [[ "$INPUT" =~ ^[0-9]+$ ]]; then
+  FILE=".config/opencode/known_issues.md"
+  if [[ ! -f "$FILE" ]]; then
+    echo "known_issues.md not found"
+    exit 1
+  fi
+  SECTION=$(awk -v id="$INPUT" '
+    $0 ~ "^### " id "\\." {found=1}
+    found {
+      if ($0 ~ /^### [0-9]+\./ && $0 !~ "^### " id "\\.") {
+        exit
+      }
+      print
+    }
+  ' "$FILE")
+
+  if [[ -z "$SECTION" ]]; then
+    echo "Issue $INPUT not found"
+    exit 1
+  fi
+
+  STATUS=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Status:/ {print $2; exit}')
+  REMOTE_REF=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Remote:/ {print $2; exit}')
+
+  if [[ "$STATUS" != "open" ]]; then
+    echo "Issue $INPUT cannot create remote issue from status '$STATUS'"
+    exit 1
+  fi
+
+  if [[ "$REMOTE_REF" != "-" ]]; then
+    echo "Issue $INPUT already has remote reference '$REMOTE_REF'"
+    exit 1
+  fi
+
+  TITLE=$(printf '%s\n' "$SECTION" | sed -n '1s/^### [0-9]*\. //p')
+  BODY=$(printf '%s\n' "$SECTION" | awk 'NR == 1 {next} $0 !~ /^- Remote:/ {print}')
+else
+  TITLE=${1:-}
+  BODY=${2:-}
+fi
+
+if [[ -z "$TITLE" || -z "$BODY" ]]; then
+  echo "Usage: create_issue.sh \"title\" \"body\""
+  exit 1
+fi
+
+REMOTE_URL=$(git config --get remote.origin.url 2>/dev/null || echo "")
+echo "[issue] Remote: ${REMOTE_URL:-none}"
+
+CREATE_REMOTE=true
+if [[ -z "$REMOTE_URL" ]]; then
+  echo "[issue] No remote configured — skipping remote issue creation"
+  CREATE_REMOTE=false
+elif [[ "$REMOTE_URL" == *"github.com"* ]]; then
+  if ! command -v gh >/dev/null 2>&1; then
+    echo "[issue] GitHub CLI (gh) not installed — skipping remote creation"
+    CREATE_REMOTE=false
+  fi
+elif [[ "$REMOTE_URL" == *"gitlab"* ]]; then
+  if ! command -v glab >/dev/null 2>&1; then
+    echo "[issue] GitLab CLI (glab) not installed — skipping remote creation"
+    CREATE_REMOTE=false
+  fi
+else
+  echo "[issue] Unsupported or no remote — skipping remote issue creation"
+  CREATE_REMOTE=false
+fi
+
+ISSUE_ID=""
+if $CREATE_REMOTE; then
+  if [[ "$REMOTE_URL" == *"github.com"* ]]; then
+    ISSUE_URL=$(gh issue create --title "$TITLE" --body "$BODY")
+    ISSUE_ID=$(basename "$ISSUE_URL")
+  elif [[ "$REMOTE_URL" == *"gitlab"* ]]; then
+    ISSUE_URL=$(glab issue create --title "$TITLE" --description "$BODY" --yes | grep -Eo 'https?://[^ ]+')
+    ISSUE_ID=$(basename "$ISSUE_URL")
+  fi
+  echo "[issue] Created: $ISSUE_URL"
+else
+  ISSUE_ID="local"
+  echo "[issue] Local-only issue (no remote)"
+fi
+
+# Update known_issues with Remote ID and status
+FILE=".config/opencode/known_issues.md"
+if [[ -f "$FILE" && "$INPUT" =~ ^[0-9]+$ ]]; then
+  awk -v id="$INPUT" -v rid="$ISSUE_ID" '
+  BEGIN{found=0}
+  /^### [0-9]+\./{
+    if(found==1 && $0 !~ "^### "id"\\."){found=0}
+  }
+  $0 ~ "^### "id"\."{found=1}
+  {
+    if(found==1 && $0 ~ /^- Status:/){print "- Status: in-progress"; next}
+    if(found==1 && $0 ~ /^- Remote:/){print "- Remote: #"rid; next}
+    print
+  }' "$FILE" > "$FILE.tmp" && mv "$FILE.tmp" "$FILE"
+fi
+
+# Create branch
+SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9 ' | tr ' ' '-')
+BRANCH="issue-${ISSUE_ID}-${SLUG}"
+
+if git rev-parse --verify "$BRANCH" >/dev/null 2>&1; then
+  git checkout "$BRANCH"
+else
+  git checkout -b "$BRANCH" 2>/dev/null || true
+fi
+
+echo "[issue] Branch: $BRANCH"
+echo "$ISSUE_ID"
