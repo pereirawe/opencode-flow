@@ -14,8 +14,10 @@ Responsibilities:
 - Validate:
   - tests exist
   - docs updated (if applicable)
-- Sync `$PWD/.opencode/<branch>_issues.md` (project issue tracker)
+- Sync `$PWD/.opencode/(<model>)<branch>_issues.md` (project issue tracker)
 - Follow the issue entry format from `standards/issues.md`
 - Do not resolve issues, only create new ones
 - Do not delete or modify existing issues in the issue tracker
 - Do not create duplicate issues for the same code change
+- Create a 'Recommended priority' section in the issue entry with a clear recommendation for the priority level (Critical or Major) based on the severity of the issue and its potential impact on the project.
+
