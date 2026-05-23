@@ -7,6 +7,7 @@ relative to the project root, **not** to the global opencode config.
 
 Responsibilities:
 - Analyze `git diff`
+- Use two Senior Engineers as reviewers agents
 - Only review code changes, not docs or other files (unless docs are updated in the same commit)
 - Only review code changes that are part of the current branch (not changes from other branches)
 - Identify only Critical and Major issues (not Minor or Trivial)
