@@ -10,19 +10,19 @@ This config lives in `~/.config/opencode/` and is automatically loaded by OpenCo
 ### Quick install (curl | bash)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/anomalyco/opencode-config/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/pereirawe/opencode-flow/main/install.sh | bash
 ```
 
 With options:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/anomalyco/opencode-config/main/install.sh | bash -s -- --branch=v1.0.0 --dir=$HOME/.config/opencode
+curl -fsSL https://raw.githubusercontent.com/pereirawe/opencode-flow/main/install.sh | bash -s -- --branch=v1.0.0 --dir=$HOME/.config/opencode
 ```
 
 ### Manual
 
 ```bash
-git clone --depth 1 https://github.com/anomalyco/opencode-config ~/.config/opencode
+git clone --depth 1 https://github.com/pereirawe/opencode-flow ~/.config/opencode
 ```
 
 ## Updating

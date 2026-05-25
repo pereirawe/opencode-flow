@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # OpenCode Config — Installer
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/anomalyco/opencode-config/main/install.sh | bash
-#   curl -fsSL https://raw.githubusercontent.com/anomalyco/opencode-config/main/install.sh | bash -s -- --repo=https://github.com/user/repo --branch=v1.0.0
+#   curl -fsSL https://raw.githubusercontent.com/pereirawe/opencode-flow/refs/heads/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/pereirawe/opencode-flow/main/install.sh | bash -s -- --repo=https://github.com/user/repo --branch=v1.0.0
 set -euo pipefail
 
-REPO_URL="${REPO_URL:-https://github.com/anomalyco/opencode-config}"
+REPO_URL="${REPO_URL:-https://github.com/pereirawe/opencode-flow}"
 BRANCH="${BRANCH:-main}"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.config/opencode}"
 FORCE=false

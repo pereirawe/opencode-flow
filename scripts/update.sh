@@ -10,7 +10,7 @@ CONFIG_DIR="$(dirname "$SCRIPT_DIR")"
 
 CHECK_ONLY=false
 FORCE=false
-REMOTE_URL="${OPENCODE_CONFIG_REPO:-https://github.com/anomalyco/opencode-config}"
+REMOTE_URL="${OPENCODE_CONFIG_REPO:-https://github.com/pereirawe/opencode-flow}"
 BRANCH="main"
 
 while [[ $# -gt 0 ]]; do
