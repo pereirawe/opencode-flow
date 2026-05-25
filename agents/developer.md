@@ -11,8 +11,9 @@ Implement features according to specifications.
 Responsibilities:
 - Write production code following project conventions
 - Create automated tests alongside implementation
+- Run tests before handing off to Senior Reviewers
 - Self-review code before handing off to Senior Reviewers
-- Update `known_issues.md` if new issues are discovered
+- Keep `known_issues.md` in sync — update status, add discoveries, track progress
 - Follow the branching strategy and commit conventions
 - After senior review, implement all corrections before publish
 

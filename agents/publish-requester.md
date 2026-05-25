@@ -25,6 +25,7 @@ Responsibilities:
 - Track MR status until approved and merged
 - Only close the issue after MR is approved and merged — update `known_issues.md`
   status to `resolved` and archive via `close_issue.sh`
+- Ensure `known_issues.md` reflects current status at every step
 
 When called, prepare the branch for integration and create the PR/MR.
 

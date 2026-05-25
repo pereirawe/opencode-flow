@@ -8,7 +8,7 @@ Two-tier issue tracking:
 
 ```markdown
 ### <id>. <title>
-- Status: backlog | ready | open | in-progress | resolved
+- Status: backlog | ready | open | in-progress | in-review | resolved
 - Type: bug | feat | doc | chore
 - Severity: critical | high | medium | low
 - Reported by: <user-name> | <model-name>
@@ -16,10 +16,12 @@ Two-tier issue tracking:
 - Location: <file-path>:<line-numbers>
 - Description: <brief description>
 - Impact: <what or who is affected>
+- Acceptance criteria: <what must be true for the issue to be complete>
 - Suggested fix: <approach or next step>
 ```
 
 `Remote:` is required. Use `-` when no remote issue exists yet.
+`Acceptance criteria:` is optional but recommended for features and bugs.
 
 ## Lifecycle
 
