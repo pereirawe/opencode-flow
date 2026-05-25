@@ -40,7 +40,7 @@
             "description": "Archive resolved issue to compact format"
         },
         "roc:maintain": {
-            "template": "Run full maintenance on known_issues.md and wip/list.md. First run `$SCRIPTS_DIR/maintain.sh` to detect stale issues (local in-progress but remote closed) and status mismatches. Then for each stale issue, run `close_issue.sh <id>` to archive. Reindex remaining issues. Update wip/list.md issues table, remove stale sections, refresh order suggestion. Report what was archived/updated.",
+            "template": "Run full maintenance on known_issues.md and wip/list.md. First run `$SCRIPTS_DIR/maintain.sh` to detect stale issues (local in-progress but remote closed) and status mismatches. Then for each stale issue, run `close_issue.sh <id>` to archive. Reindex remaining issues. Update wip/list.md issues table (only pending/active items, no done sections), refresh order suggestion. Report what was archived/updated.",
             "description": "Maintain known_issues.md and wip/list.md"
         }
     },

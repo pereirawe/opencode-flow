@@ -52,8 +52,9 @@ Update issue references in `wip/list.md` table to match.
 
 #### 4. Sync wip/list.md
 
+- Keep `wip/list.md` strictly as a **to-do list** — only pending/active items
 - Update the issues table to reflect what's in `known_issues.md`
-- Remove implemented features (✅ sections) that are no longer relevant
+- Remove any "implemented" or "done" sections — they don't belong in a WIP list
 - Refresh the order suggestion at the bottom
 - Keep structural notes (Tech Lead, conceptual items)
 
