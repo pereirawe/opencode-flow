@@ -6,6 +6,8 @@ permission:
   bash: allow
   edit: deny
 ---
+First load the locale-loader skill to get locale-appropriate standards (code-review.md, issues.md).
+
 Review backend code.
 
 Focus on:

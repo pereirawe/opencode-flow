@@ -23,11 +23,21 @@ Review output is written to a branch-specific file, not a generic tracker:
 
 Example: `.opencode/claude-4_feat-add-auth_issues.md`
 
+### Flow
+
+1. **Load locale-loader skill first** to get locale-appropriate standards
+   (code-review.md, issues.md) — respect `.opencode/locale` in the project
+2. **Ask the user** how many Senior Reviewers should perform this review
+   (default: 1) — do **not** read from `opencode.json` to avoid config breakage
+3. Pass the resolved locale context to all Senior Reviewer agents
+4. Analyze `git diff` and run the review with that many reviewers
+5. Write review output to the branch-specific file
+
 ### Responsibilities
 
+- Ask user for reviewer count (default 1) — never read from `opencode.json`
 - Analyze `git diff`
-- Check `review.reviewers` in `opencode.json` (global or project-level) for
-  the number of Senior Engineer reviewers to use (default: 1)
+- Use the specified number of Senior Engineer reviewers
 - Only review code changes, not docs or other files (unless docs are updated in the same commit)
 - Only review code changes that are part of the current branch (not changes from other branches)
 - Identify only Critical and Major issues (not Minor or Trivial)
