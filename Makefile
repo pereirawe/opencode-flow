@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 CONFIG_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
-.PHONY: scan-issues review help promote close-issue bootstrap init
+.PHONY: scan-issues review help promote close-issue bootstrap init maintain update
 
 help:
 	@echo "Targets:"
@@ -9,6 +9,8 @@ help:
 	@echo "  make review             — show git diff + prompt /roc:review-branch"
 	@echo "  make promote id=<n>     — move known_issues entry to open"
 	@echo "  make close-issue id=<n> — mark known_issues entry resolved"
+	@echo "  make maintain           — scan known_issues for stale entries + prompt /roc:maintain"
+	@echo "  make update             — check and apply updates (git pull)"
 	@echo "  make bootstrap target=<path> — copy .opencode/ template to target project"
 	@echo "  make init target=<path> — init project with repo context (default: current dir)"
 
@@ -30,6 +32,16 @@ promote:
 
 close-issue:
 	@bash $(CONFIG_DIR)scripts/close_issue.sh $(id)
+
+maintain:
+	@echo "[make] maintain"
+	@chmod +x $(CONFIG_DIR)scripts/maintain.sh 2>/dev/null || true
+	@bash $(CONFIG_DIR)scripts/maintain.sh
+	@echo "Next: run /roc:maintain in assistant"
+
+update:
+	@echo "[make] update"
+	@bash $(CONFIG_DIR)scripts/update.sh
 
 bootstrap:
 	@if [ -z "$(target)" ]; then echo "Usage: make bootstrap target=/path/to/project"; exit 1; fi

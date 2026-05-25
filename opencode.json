@@ -26,6 +26,22 @@
         "roc:scan-issues": {
             "template": "Run a deep analysis of the codebase to detect new issues (security, concurrency, architecture, reliability). Create or update `.opencode/known_issues.md`. Follow the issue entry format from `standards/issues.md`.",
             "description": "Deep codebase analysis and issue detection"
+        },
+        "roc:commit": {
+            "template": "Create a structured commit with automatic status trailers. Detect the project known_issues.md, ask for type/description/issue-id, construct the commit with `Status:` and `Remote:` trailers, run `git commit`, and update known_issues.md status based on trailers.",
+            "description": "Create structured commit with status flags"
+        },
+        "roc:sync-issues": {
+            "template": "Scan known_issues.md entries with Remote: references, fetch remote issue state via gh/glab, sync status (close remote if local resolved, reopen if mismatch), create remote issues for open entries without remote, and report sync results.",
+            "description": "Sync known_issues with remote issue tracker"
+        },
+        "roc:archive-issue": {
+            "template": "Move a resolved issue from known_issues.md to resolved_issues.md in compact format. The issue must be Status: resolved. Use close_issue.sh which handles both closing and archiving in one step.",
+            "description": "Archive resolved issue to compact format"
+        },
+        "roc:maintain": {
+            "template": "Run full maintenance on known_issues.md and wip/list.md. First run `$SCRIPTS_DIR/maintain.sh` to detect stale issues (local in-progress but remote closed) and status mismatches. Then for each stale issue, run `close_issue.sh <id>` to archive. Reindex remaining issues. Update wip/list.md issues table, remove stale sections, refresh order suggestion. Report what was archived/updated.",
+            "description": "Maintain known_issues.md and wip/list.md"
         }
     },
     "permission": {
@@ -38,7 +54,8 @@
             "graphify": "allow"
         },
         "external_directory": {
-            "~/.config/opencode/**": "allow"
+            "~/.config/opencode/**": "allow",
+            "/temp/*": "allow"
         },
         "task": "allow"
     },

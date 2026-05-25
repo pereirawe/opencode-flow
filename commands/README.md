@@ -8,4 +8,8 @@ These commands are available in the assistant. Each file documents a slash comma
 | `roc:scan-issues` | Deep codebase analysis; detect and register new issues |
 | `roc:review-branch` | Full PR/MR-style code review |
 | `roc:plan-feature` | Feature breakdown with risk assessment |
-| `roc:promote <id>` | Promote backlog item to open for execution |
+| `roc:promote <id>` | Promote backlog item to open + create remote issue |
+| `roc:commit` | Create structured commit with `Status:` trailers |
+| `roc:sync-issues` | Sync known_issues with remote issue tracker |
+| `roc:archive-issue <id>` | Archive resolved issue to compact format |
+| `roc:maintain` | Full maintenance of known_issues.md + wip/list.md |
