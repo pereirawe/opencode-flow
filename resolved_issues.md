@@ -2,6 +2,14 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 9. Multi-locale standards system
+- Resolved: 2026-05-25
+- Type: feat
+- Reported by: william.pereira@digitalup.intranet
+- Remote: -
+- Severity: medium
+- Summary: Created standards/pt/ and standards/es/ with Portuguese and Spanish translations, locale-loader skill for locale resolution, locale file with pt, documented in conventions.md and architecture.md
+
 ### 11. Distinguish bugs from missing business rules in reviews
 - Resolved: 2026-05-25
 - Type: feat

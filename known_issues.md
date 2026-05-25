@@ -40,18 +40,6 @@ Single source of truth for tracked work in this project.
 - Impact: Config will not load correctly if not aligned with schema; agents/skills may not be discoverable
 - Suggested fix: Fix instruction paths (critical), normalize agent frontmatter with proper description/mode fields, update skill descriptions with trigger context, clean up .gitignore and stale artifacts
 
-### 9. Multi-locale standards system
-- Status: in-progress
-- Type: feat
-- Severity: medium
-- Reported by: william.pereira@digitalup.intranet
-- Remote: -
-- Location: standards/pt/, standards/es/, skills/locale-loader/, conventions.md, architecture.md
-- Description: Create locale-based standards system with Portuguese and Spanish translations of all review documents, plus a locale-loader skill that resolves the correct language based on locale setting in locale file
-- Impact: Enables per-project language configuration for review documents, making the config accessible to Portuguese and Spanish speakers
-- Business rules: Standards documents in pt/ and es/ must mirror the canonical English versions; locale-loader resolves language from locale file; project locale overrides global locale
-- Suggested fix: Create standards/pt/ and standards/es/ with translations, locale-loader skill, add locale to config, document in conventions.md and architecture.md
-
 ---
 
 Resolved issues move to `resolved_issues.md` (same directory as this file). See `standards/resolved-issue.md` for the archive format.
