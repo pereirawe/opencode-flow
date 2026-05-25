@@ -10,6 +10,11 @@ All senior reviewers must:
 - Confirm tests were written and pass
 - Register any new issues found in `known_issues.md`
 - Ensure `known_issues.md` status reflects current state
+- Distinguish bugs from missing business rules:
+  - **Bug** = code violates documented acceptance criteria or business rules
+  - **Missing business rule** = rule was never captured in the issue during discovery
+    → tag as `incomplete-spec`, do NOT register as bug. The fix is to refine the
+    issue through discovery (PO → TL), not to patch code against an incomplete spec
 
 ## Roles
 

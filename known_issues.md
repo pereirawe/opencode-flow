@@ -6,7 +6,7 @@ Single source of truth for tracked work in this project.
 
 ```markdown
 ### <id>. <title>
-- Status: backlog | ready | open | in-progress | resolved
+- Status: backlog | ready | open | in-progress | in-review | resolved
 - Type: bug | feat | doc | chore
 - Severity: critical | high | medium | low
 - Reported by: <user-name> | <model-name>
@@ -14,8 +14,11 @@ Single source of truth for tracked work in this project.
 - Location: <file-path>:<line-numbers>
 - Description: <brief>
 - Impact: <what or who is affected>
+- Business rules: <specific business logic, constraints, and domain rules>
 - Suggested fix: <approach or next step>
 ```
+
+`Business rules:` is required for `feat` type issues.
 
 ### Status Lifecycle
 
@@ -23,18 +26,8 @@ Single source of truth for tracked work in this project.
 - `ready`: item is clear enough to be picked up
 - `open`: item selected locally and awaiting remote issue creation
 - `in-progress`: remote issue exists and work has started
+- `in-review`: senior review done, QA verified, awaiting merge
 - `resolved`: completed or closed item (removed from active list)
-
-### 4. Add tech-lead agent role to pipeline
-- Status: backlog
-- Type: feat
-- Severity: low
-- Reported by: explore
-- Remote: -
-- Location: workflow.md:5-14, agents/
-- Description: wip/list.md step 5 describes a Tech Lead role providing technical guidance, but no agents/tech-lead.md exists and workflow.md pipeline steps skip this role
-- Impact: Missing architectural guidance layer between CTO (strategy) and Developer (implementation)
-- Suggested fix: Either create agents/tech-lead.md agent definition and add it to workflow.md pipeline, or update wip/list.md to remove the Tech Lead references
 
 ### 7. Align global config with latest OpenCode documentation
 - Status: in-progress
@@ -56,6 +49,7 @@ Single source of truth for tracked work in this project.
 - Location: standards/pt/, standards/es/, skills/locale-loader/, conventions.md, architecture.md
 - Description: Create locale-based standards system with Portuguese and Spanish translations of all review documents, plus a locale-loader skill that resolves the correct language based on locale setting in locale file
 - Impact: Enables per-project language configuration for review documents, making the config accessible to Portuguese and Spanish speakers
+- Business rules: Standards documents in pt/ and es/ must mirror the canonical English versions; locale-loader resolves language from locale file; project locale overrides global locale
 - Suggested fix: Create standards/pt/ and standards/es/ with translations, locale-loader skill, add locale to config, document in conventions.md and architecture.md
 
 ---

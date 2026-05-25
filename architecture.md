@@ -45,3 +45,7 @@
 - **Self-contained agents**: Each agent has its own frontmatter and permissions
 - **Multi-locale standards**: Standards documents are translated into `pt` and `es`, selected via `locale` file
 - **Locale resolution**: Project `.opencode/locale` overrides global `~/.config/opencode/locale`; falls back to English if not configured
+- **Discovery-to-issue flow**: CTO → PO → Tech Lead → PM → QA pipeline refines raw ideas into typed, tracked issues with acceptance criteria and tests
+- **Two-phase QA**: QA reviews stories for testability early (pre-dev), and verifies quality post-senior-review (pre-MR)
+- **Prioritization proposals**: PO registers proposals in `standards/prioritization.md` before promoting to `known_issues.md`
+- **Agent discovery protocol**: Each agent asks context-based questions (CTO: architecture, PO: value, TL: feasibility, QA: test scenarios) to progressively refine proposals

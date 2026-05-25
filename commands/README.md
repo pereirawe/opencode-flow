@@ -12,4 +12,4 @@ These commands are available in the assistant. Each file documents a slash comma
 | `roc:commit` | Create structured commit with `Status:` trailers |
 | `roc:sync-issues` | Sync known_issues with remote issue tracker |
 | `roc:archive-issue <id>` | Archive resolved issue to compact format |
-| `roc:maintain` | Full maintenance of known_issues.md + wip/list.md |
+| `roc:maintain` | Full maintenance of known_issues.md |

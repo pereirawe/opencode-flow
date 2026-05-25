@@ -15,5 +15,11 @@ Focus on:
 - Mock/stub appropriateness
 - Performance test coverage
 - Test readability and maintainability
+- Business rules are covered by tests
 
 When called, review test quality and coverage aspects of the code.
+
+Note on findings:
+- **Missing test for documented rule** → bug (spec exists, test missing)
+- **Missing test for undocumented rule** → incomplete-spec (rule was never
+  captured, needs discovery refinement, not a test fix)

@@ -82,22 +82,6 @@ for ((i = 0; i < TOTAL; i++)); do
   echo ""
 done
 
-# Check wip/list.md sync
-WIP_FILE="$CONFIG_DIR/wip/list.md"
-echo "=== WIP List Sync ==="
-if [[ -f "$WIP_FILE" ]]; then
-  WIP_ISSUES=$(grep -cE '^\| *[0-9]+ *\|' "$WIP_FILE" 2>/dev/null || echo 0)
-  echo "[maintain] wip/list.md has $WIP_ISSUES issue entries"
-  echo "[maintain] known_issues.md has $TOTAL active issues"
-  if [[ "$WIP_ISSUES" -ne "$TOTAL" ]]; then
-    echo "  ⚠️  MISMATCH: wip/list.md ($WIP_ISSUES) ≠ known_issues.md ($TOTAL)"
-  else
-    echo "  ✓ Counts match"
-  fi
-else
-  echo "[maintain] wip/list.md not found"
-fi
-
 echo ""
 echo "=== Summary ==="
 echo "  Total issues: $TOTAL"

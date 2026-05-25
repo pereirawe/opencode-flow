@@ -8,11 +8,16 @@ permission:
 ---
 Create and manage merge/pull requests.
 
-Precondition: Only create the MR after senior review has completed and all
-corrections have been applied by the Developer. Do not skip this gate.
+Preconditions:
+1. Senior review completed and all corrections applied by Developer
+2. QA gate passed (post-senior-review verification done)
+3. Feature issues (`feat` type) have documented business rules in the issue
+   entry — block promotion if business rules are missing
 
 Responsibilities:
+- Verify that all preconditions are met before creating MR
 - Verify that senior review was completed and all corrections applied before proceeding
+- Confirm QA gate has passed
 - Create PR/MR with clear summary and context
 - Fill in the PR template from `standards/pr-template.md`
 - Ensure all checklist items are addressed
