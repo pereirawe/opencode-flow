@@ -44,9 +44,6 @@
             "description": "Maintain known_issues.md and wip/list.md"
         }
     },
-    "review": {
-        "reviewers": 1
-    },
     "permission": {
         "edit": {
             "~/.config/opencode/**": "ask"
