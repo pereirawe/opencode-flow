@@ -11,14 +11,17 @@ Shell scripts live at `$HOME/.config/opencode/scripts/`.
 
 ### Flow
 
-1. Promote tracked item: change `Status` from `backlog` or `ready` to `open`
-2. Reset `Remote` to `-` (will be set by remote creation)
-3. Create remote issue via `$HOME/.config/opencode/scripts/create_issue.sh <id>`
+1. **Ask the user** how many Senior Reviewers should review after development (default: 1)
+   — do **not** read from `opencode.json` to avoid config breakage
+2. Promote tracked item: change `Status` from `backlog` or `ready` to `open`
+3. Reset `Remote` to `-` (will be set by remote creation)
+4. Create remote issue via `$HOME/.config/opencode/scripts/create_issue.sh <id>`
    - Detects GitHub (`gh`) or GitLab (`glab`) from `git remote`
    - Creates remote issue with title + body from `known_issues.md`
    - Updates `Remote: #<id>` and `Status: in-progress` in `known_issues.md`
    - Creates and checks out branch `issue-<remote-id>-<slug>`
-4. Development starts on the generated branch
+5. Note the reviewer count for branch review phase (used later by `/roc:review-branch`)
+6. Development starts on the generated branch
 
 ### Usage
 

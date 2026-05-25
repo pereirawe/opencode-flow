@@ -6,8 +6,8 @@ Entrypoints:
 - `agents/` — subagent definitions
 - `commands/` — slash command docs
 - `skills/` — reusable skills (load via skill tool)
-  - `locale-loader` — loads locale-appropriate standards based on `locale` in config
-- `locale` — active language setting (`pt`, `es`, `en`)
+  - `locale-loader` — loads locale-appropriate standards based on `.opencode/locale`
+- `.opencode/locale` — active language setting (`pt`, `es`, `en`) — **not** in `opencode.json`
 - `scripts/` — shell helpers
 - `standards/` — development patterns
 - `architecture.md` — technical vision and structural decisions

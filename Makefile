@@ -45,9 +45,14 @@ update:
 	@bash $(CONFIG_DIR)scripts/update.sh
 
 bootstrap:
-	@if [ -z "$(target)" ]; then echo "Usage: make bootstrap target=/path/to/project"; exit 1; fi
+	@if [ -z "$(target)" ]; then echo "Usage: make bootstrap target=/path/to/project [locale=en]"; exit 1; fi
 	@mkdir -p "$(target)/.opencode"
 	@cp -r $(CONFIG_DIR).opencode/. "$(target)/.opencode/"
+	@locale="$(locale)"; \
+	if [ -z "$$locale" ]; then \
+	  locale="en"; \
+	fi; \
+	echo "$$locale" > "$(target)/.opencode/locale"
 	@if command -v git >/dev/null 2>&1 && git -C "$(target)" rev-parse --git-dir >/dev/null 2>&1; then \
 	  origin_head=$$(git -C "$(target)" symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's#refs/remotes/origin/##' || true); \
 	  if [ -n "$$origin_head" ]; then \
@@ -68,6 +73,7 @@ bootstrap:
 	  sed -i '/^__REMOTES__$$/c\  <none>' "$(target)/.opencode/AGENTS.md"; \
 	fi
 	@echo "[make] Bootstrapped .opencode/ in $(target)"
+	@echo "Locale set to: $$(cat $(target)/.opencode/locale)"
 	@echo "Includes: AGENTS.md, workflow.md, opencode.json, known_issues.md"
 	@echo "Project issues go in .opencode/known_issues.md, config issues in ~/.config/opencode/known_issues.md"
 

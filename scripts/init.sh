@@ -2,16 +2,21 @@
 set -euo pipefail
 
 # Initialize opencode config in a project with repo context detection.
-# Usage: bash scripts/init.sh [target=/path/to/project]
+# Usage: bash scripts/init.sh [target=/path/to/project] [locale=en]
 # If target is omitted, uses current directory.
+# If locale is omitted, defaults to en.
 
 TARGET="${1:-$PWD}"
+LOCALE="${2:-en}"
 CONFIG_DIR="$(cd "$(dirname "$(dirname "$0")")" && pwd)"
 
 mkdir -p "$TARGET/.opencode"
 
 # Copy template files
 cp -r "$CONFIG_DIR/.opencode/." "$TARGET/.opencode/"
+
+# Write locale file
+echo "$LOCALE" > "$TARGET/.opencode/locale"
 
 # Detect git repo info and substitute into AGENTS.md
 if command -v git >/dev/null 2>&1 && git -C "$TARGET" rev-parse --git-dir >/dev/null 2>&1; then
@@ -47,5 +52,6 @@ else
 fi
 
 echo "[init] .opencode/ initialized in $TARGET"
+echo "[init] Locale set to: $LOCALE"
 echo "[init] Files include: AGENTS.md, workflow.md, opencode.json, known_issues.md"
 echo "[init] Project issues go in .opencode/known_issues.md, config issues in ~/.config/opencode/known_issues.md"

@@ -9,3 +9,4 @@ Project-wide conventions and patterns.
 | `issues.md` | Issue tracking and lifecycle |
 | `pr-template.md` | Pull request template |
 | `code-review.md` | Code review guidelines |
+| `locale.md` | Locale system — how to set project language |

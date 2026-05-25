@@ -29,17 +29,4 @@ Single source of truth for tracked work in this project.
 - `in-review`: senior review done, QA verified, awaiting merge
 - `resolved`: completed or closed item (removed from active list)
 
-### 7. Align global config with latest OpenCode documentation
-- Status: in-progress
-- Type: chore
-- Severity: high
-- Reported by: william.pereira@digitalup.intranet
-- Remote: -
-- Location: opencode.json, AGENTS.md, README.md
-- Description: Review and update all config files to match latest OpenCode docs patterns: fix instruction paths, add $schema, fix agent frontmatter format, update skill SKILL.md descriptions, remove stale references
-- Impact: Config will not load correctly if not aligned with schema; agents/skills may not be discoverable
-- Suggested fix: Fix instruction paths (critical), normalize agent frontmatter with proper description/mode fields, update skill descriptions with trigger context, clean up .gitignore and stale artifacts
-
----
-
 Resolved issues move to `resolved_issues.md` (same directory as this file). See `standards/resolved-issue.md` for the archive format.

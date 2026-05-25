@@ -1,6 +1,6 @@
 ---
 name: locale-loader
-description: Use when you need to access or reference standards documents (code-review, branching, commits, issues, PR template). Loads locale-appropriate versions from standards/{locale}/ based on the locale field in opencode.json.
+description: Use when you need to access or reference standards documents (code-review, branching, commits, issues, PR template). Loads locale-appropriate versions from standards/{locale}/ based on the locale file in .opencode/locale or ~/.config/opencode/locale.
 compatibility: opencode
 ---
 ## What I do

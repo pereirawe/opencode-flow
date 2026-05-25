@@ -8,19 +8,19 @@
     ],
     "command": {
         "init": {
-            "template": "Initialize the `.opencode/` project configuration in the current working directory by running the init script. Then review the generated files.",
-            "description": "Initialize opencode project config with repo context"
+            "template": "Ask the user which locale they want for this project (pt for Portuguese, es for Spanish, or en for English). Then initialize the `.opencode/` project configuration in the current working directory by running the init script with the chosen locale. After init completes, verify `.opencode/locale` contains the chosen language. Then review the generated files.",
+            "description": "Initialize opencode project config with repo context and locale"
         },
         "roc:plan-feature": {
             "template": "Break down the feature into steps, identify impacted layers, and register risks and planned work in `.opencode/known_issues.md`.",
             "description": "Feature planning with risk awareness"
         },
         "roc:promote": {
-            "template": "Promote a tracked backlog item inside `known_issues.md`. Change `Status` from `backlog` or `ready` to `open`. Then create a remote issue via the create_issue script and start development on the generated branch.",
+            "template": "Ask the user how many Senior Reviewers should review the work after development (default 1). Do NOT read reviewer count from opencode.json. Then promote a tracked backlog item inside `known_issues.md`. Change `Status` from `backlog` or `ready` to `open`. Then create a remote issue via the create_issue script and start development on the generated branch.",
             "description": "Promote backlog item to open and create remote issue"
         },
         "roc:review-branch": {
-            "template": "Run a full PR/MR-style review: analyze `git diff`, check `review.reviewers` config for reviewer count (default 1), use that many Senior Engineer reviewers, identify Critical and Major issues only, validate tests and docs, and register new issues.",
+            "template": "Ask the user how many Senior Reviewers should perform this review (default 1). Do NOT read reviewer count from opencode.json. Then run a full PR/MR-style review: analyze `git diff`, use that many Senior Engineer reviewers, identify Critical and Major issues only, validate tests and docs, and register new issues.",
             "description": "Full PR/MR-style code review"
         },
         "roc:scan-issues": {

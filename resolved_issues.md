@@ -2,6 +2,14 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 8. Move locale from opencode.json to .opencode/locale file
+- Resolved: 2026-05-25
+- Type: bug
+- Reported by: william.pereira@digitalup.intranet
+- Remote: -
+- Severity: critical
+- Summary: `"locale": "pt"` in opencode.json caused ConfigInvalidError. Moved locale to `.opencode/locale` file. Created `standards/locale.md` documentation. Updated `roc:init` to ask for locale and pass it to init script. Added reviewer count question to `roc:review-branch` and `roc:promote` (interactive, not from opencode.json). Updated locale-loader skill description and Makefile bootstrap target.
+
 ### 9. Multi-locale standards system
 - Resolved: 2026-05-25
 - Type: feat
@@ -25,6 +33,13 @@ Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for fo
 - Remote: -
 - Severity: medium
 - Summary: Created agents/tech-lead.md, standards/prioritization.md, updated workflow.md pipeline with TL and QA-after-review steps, marked wip/ as obsolete, updated opencode.json
+
+### 7. Align global config with latest OpenCode documentation
+- Resolved: 2026-05-25
+- Type: chore
+- Reported by: william.pereira@digitalup.intranet
+- Remote: -
+- Summary: Fixed instruction paths, added $schema, normalized agent frontmatter, updated locale-loader skill, added senior reviewer locale-awareness via locale-loader, added reviewer count question to roc:review-branch and roc:promote, updated roc:init with locale prompt, cleaned up .gitignore and stale artifacts
 
 ### 4. Add tech-lead agent role to pipeline
 - Resolved: 2026-05-25
