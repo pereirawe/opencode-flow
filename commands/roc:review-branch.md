@@ -26,7 +26,8 @@ Example: `.opencode/claude-4_feat-add-auth_issues.md`
 ### Responsibilities
 
 - Analyze `git diff`
-- Use two Senior Engineers as reviewers agents
+- Check `review.reviewers` in `opencode.json` (global or project-level) for
+  the number of Senior Engineer reviewers to use (default: 1)
 - Only review code changes, not docs or other files (unless docs are updated in the same commit)
 - Only review code changes that are part of the current branch (not changes from other branches)
 - Identify only Critical and Major issues (not Minor or Trivial)

@@ -23,3 +23,7 @@ fi
 
 # Resolved issue archive (same level as the source known_issues)
 RESOLVED_FILE="$PROJECT_ISSUES_DIR/resolved_issues.md"
+
+# Reviewer count for branch/PR reviews (default: 1)
+# Projects can override by setting REVIEWER_COUNT in their own config
+REVIEWER_COUNT="${REVIEWER_COUNT:-1}"

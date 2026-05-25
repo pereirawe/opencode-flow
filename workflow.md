@@ -7,7 +7,7 @@
 3. **Project Manager** coordinates team and assigns stories
 4. **Quality Analyst** ensures stories are testable and meet quality standards
 5. **Developer** implements features, writes automated tests, runs tests, and keeps `known_issues.md` in sync
-6. **Senior Reviewers** (2 agents, parallel, by specialty) review code, verify acceptance criteria, confirm tests were written and pass, and identify issues
+6. **Senior Reviewers** (configurable count, default 1, parallel, by specialty) review code, verify acceptance criteria, confirm tests were written and pass, and identify issues
 7. **Developer** implements all corrections from senior review
 8. **Publish Requester** creates merge/pull request
 9. **Documentation** maintains project docs
