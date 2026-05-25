@@ -47,17 +47,6 @@ Single source of truth for tracked work in this project.
 - Impact: Config will not load correctly if not aligned with schema; agents/skills may not be discoverable
 - Suggested fix: Fix instruction paths (critical), normalize agent frontmatter with proper description/mode fields, update skill descriptions with trigger context, clean up .gitignore and stale artifacts
 
-### 8. Create project bootstrap template
-- Status: in-progress
-- Type: feat
-- Severity: high
-- Reported by: william.pereira@digitalup.intranet
-- Remote: -
-- Location: .opencode/ (new), scripts/, README.md
-- Description: Create reusable `.opencode/` project template structure that can be copied into any project. Include project-level AGENTS.md, workflow.md, opencode.json, and subdirectories for agents/commands/skills overrides
-- Impact: Enables quick bootstrapping of new projects with the full OpenCode agent pipeline
-- Suggested fix: Create `.opencode/` directory with template files, add bootstrap script/Make target, document in README.md
-
 ### 9. Multi-locale standards system
 - Status: in-progress
 - Type: feat
