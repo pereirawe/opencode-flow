@@ -1,20 +1,52 @@
 {
     "$schema": "https://opencode.ai/config.json",
     "instructions": [
-        "./AGENTS.md",
-        "./workflow.md",
-        "./known_issues.md"
+        "~/.config/opencode/AGENTS.md",
+        "~/.config/opencode/workflow.md",
+        "~/.config/opencode/known_issues.md",
+        "~/.config/opencode/agents/*.md"
     ],
-    "permission": {
-        "skill": {
-            "issue-manager": "allow"
+    "command": {
+        "init": {
+            "template": "Initialize the `.opencode/` project configuration in the current working directory by running the init script. Then review the generated files.",
+            "description": "Initialize opencode project config with repo context"
+        },
+        "roc:plan-feature": {
+            "template": "Break down the feature into steps, identify impacted layers, and register risks and planned work in `.opencode/known_issues.md`.",
+            "description": "Feature planning with risk awareness"
+        },
+        "roc:promote": {
+            "template": "Promote a tracked backlog item inside `known_issues.md`. Change `Status` from `backlog` or `ready` to `open`. Then create a remote issue via the create_issue script and start development on the generated branch.",
+            "description": "Promote backlog item to open and create remote issue"
+        },
+        "roc:review-branch": {
+            "template": "Run a full PR/MR-style review: analyze `git diff`, use Senior Engineer reviewers, identify Critical and Major issues only, validate tests and docs, and register new issues.",
+            "description": "Full PR/MR-style code review"
+        },
+        "roc:scan-issues": {
+            "template": "Run a deep analysis of the codebase to detect new issues (security, concurrency, architecture, reliability). Create or update `.opencode/known_issues.md`. Follow the issue entry format from `standards/issues.md`.",
+            "description": "Deep codebase analysis and issue detection"
         }
+    },
+    "permission": {
+        "edit": {
+            "~/.config/opencode/**": "ask"
+        },
+        "skill": {
+            "issue-manager": "allow",
+            "customize-opencode": "allow"
+        },
+        "external_directory": {
+            "~/.config/opencode/**": "allow"
+        },
+        "task": "allow"
     },
     "watcher": {
         "ignore": [
             ".git/**",
             "bin/**",
-            "node_modules/**"
+            "node_modules/**",
+            ".opencode/**"
         ]
     }
 }

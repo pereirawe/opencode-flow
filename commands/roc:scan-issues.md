@@ -1,6 +1,10 @@
 ## /roc:scan-issues
 
-Deep analysis of the codebase.
+---
+description: Deep codebase analysis for issue detection
+---
+
+Deep analysis of the codebase to detect and register new issues.
 
 The working directory (`$PWD`) determines the target project. All paths are
 relative to the project root, **not** to the global opencode config.

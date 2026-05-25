@@ -1,6 +1,10 @@
 ## /roc:plan-feature
 
-Feature planning with risk awareness.
+---
+description: Feature planning with risk assessment
+---
+
+Break down a feature into steps and register planned work.
 
 The working directory (`$PWD`) determines the target project. All paths are
 relative to the project root, **not** to the global opencode config.

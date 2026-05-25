@@ -1,6 +1,10 @@
 ## /roc:promote <id>
 
-Promote a tracked backlog item inside `known_issues.md`.
+---
+description: Promote a backlog item to open for execution
+---
+
+Promote a tracked backlog item inside `known_issues.md` and create a remote issue.
 
 The project issue tracker is at `$PWD/.opencode/known_issues.md`.
 Shell scripts live at `$HOME/.config/opencode/scripts/`.
