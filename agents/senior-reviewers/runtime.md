@@ -4,7 +4,7 @@ mode: subagent
 temperature: 0.1
 permission:
   bash: allow
-  edit: none
+  edit: deny
 ---
 Review runtime and environment code.
 
