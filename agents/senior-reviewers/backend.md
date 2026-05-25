@@ -4,6 +4,7 @@ mode: subagent
 temperature: 0.1
 permission:
   bash: allow
+  edit: none
 ---
 Review backend code.
 
@@ -13,3 +14,6 @@ Focus on:
 - Error handling and validation
 - Data flow and state management
 - Service boundaries and layering
+- Dependency injection and coupling
+
+When called, review backend aspects of the code.

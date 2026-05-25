@@ -4,6 +4,7 @@ mode: subagent
 temperature: 0.1
 permission:
   bash: allow
+  edit: none
 ---
 Review test quality and coverage.
 
@@ -14,3 +15,5 @@ Focus on:
 - Mock/stub appropriateness
 - Performance test coverage
 - Test readability and maintainability
+
+When called, review test quality and coverage aspects of the code.

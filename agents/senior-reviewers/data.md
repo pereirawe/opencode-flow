@@ -4,6 +4,7 @@ mode: subagent
 temperature: 0.1
 permission:
   bash: allow
+  edit: none
 ---
 Review data and database code.
 
@@ -13,3 +14,6 @@ Focus on:
 - Migration safety and rollback strategy
 - Data integrity and constraint handling
 - Connection management and pooling
+- ORM or query builder usage
+
+When called, review data and database aspects of the code.

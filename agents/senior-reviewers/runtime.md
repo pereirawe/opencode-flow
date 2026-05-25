@@ -4,6 +4,7 @@ mode: subagent
 temperature: 0.1
 permission:
   bash: allow
+  edit: none
 ---
 Review runtime and environment code.
 
@@ -14,3 +15,5 @@ Focus on:
 - Startup and shutdown procedures
 - Logging and monitoring setup
 - Resource limit configuration
+
+When called, review runtime and environment aspects of the code.

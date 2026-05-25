@@ -4,6 +4,7 @@ mode: subagent
 temperature: 0.1
 permission:
   bash: allow
+  edit: none
 ---
 Review infrastructure and operations code.
 
@@ -13,3 +14,6 @@ Focus on:
 - Infrastructure-as-code quality
 - Security of deployment processes
 - Resource limits and scaling considerations
+- Backup and disaster recovery
+
+When called, review infrastructure and operations aspects of the code.

@@ -4,6 +4,7 @@ mode: subagent
 temperature: 0.1
 permission:
   bash: allow
+  edit: none
 ---
 Review frontend code.
 
@@ -13,3 +14,6 @@ Focus on:
 - Styling consistency and responsiveness
 - Accessibility compliance
 - Bundle size and loading performance
+- Testing strategy (unit, integration, visual)
+
+When called, review frontend aspects of the code.

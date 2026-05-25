@@ -4,6 +4,7 @@ mode: subagent
 temperature: 0.1
 permission:
   bash: allow
+  edit: none
 ---
 Review security aspects of the code.
 
@@ -14,3 +15,5 @@ Focus on:
 - Dependency vulnerabilities
 - Secrets management
 - Security headers and best practices
+
+When called, review security aspects of the code.

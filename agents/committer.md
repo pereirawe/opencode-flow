@@ -15,6 +15,8 @@ Responsibilities:
 - Approve or request changes
 - Ensure `known_issues.md` reflects any new findings
 
+When called, review the current diff and provide actionable feedback.
+
 Rules:
 - Do not make code changes unless explicitly asked
 - Provide clear, actionable feedback
