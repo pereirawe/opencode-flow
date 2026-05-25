@@ -17,11 +17,55 @@ else
   echo "[pre-commit] No test runner detected — skipping tests"
 fi
 
+# Parse commit message for trailers
+COMMIT_MSG_FILE="${1:-}"
+if [[ -n "$COMMIT_MSG_FILE" && -f "$COMMIT_MSG_FILE" ]]; then
+  COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+else
+  COMMIT_MSG=$(git log -1 --pretty=format:"%B" 2>/dev/null || true)
+fi
+
+if [[ -n "$COMMIT_MSG" ]]; then
+  echo "[pre-commit] Checking commit trailers..."
+
+  STATUS_FLAG=$(printf '%s\n' "$COMMIT_MSG" | grep -E '^Status:\s*(in-progress|resolved)$' | head -1 || true)
+  REMOTE_FLAG=$(printf '%s\n' "$COMMIT_MSG" | grep -E '^Remote:\s*#' | head -1 || true)
+  CLOSES_FLAG=$(printf '%s\n' "$COMMIT_MSG" | grep -E '^Closes\s+#[0-9]+' | head -1 || true)
+  ISSUE_REF=$(printf '%s\n' "$COMMIT_MSG" | grep -Eo '\(#[0-9]+\)' | grep -Eo '[0-9]+' | head -1 || true)
+
+  if [[ -n "$ISSUE_REF" ]]; then
+    echo "[pre-commit] Issue reference found: #${ISSUE_REF}"
+
+    if [[ -n "$STATUS_FLAG" ]]; then
+      STATUS_VAL=$(printf '%s\n' "$STATUS_FLAG" | awk '{print $2}')
+      echo "[pre-commit] Status trailer: ${STATUS_VAL}"
+
+      # Check if we have a known_issues.md to update
+      if [[ -f "$PROJECT_ISSUES_FILE" ]]; then
+        CURRENT_STATUS=$(awk -v id="$ISSUE_REF" '
+          $0 ~ "^### " id "\\." {found=1}
+          found && $0 ~ /^- Status:/ {print $2; exit}
+        ' "$PROJECT_ISSUES_FILE" 2>/dev/null || echo "")
+
+        if [[ -n "$CURRENT_STATUS" ]]; then
+          echo "[pre-commit] Issue #${ISSUE_REF} current status: ${CURRENT_STATUS}"
+        fi
+      fi
+    fi
+
+    if [[ -n "$CLOSES_FLAG" ]]; then
+      echo "[pre-commit] Closes flag detected — will archive issue #$(printf '%s\n' "$CLOSES_FLAG" | grep -Eo '[0-9]+')"
+    fi
+  else
+    echo "[pre-commit] No issue reference found in commit message"
+  fi
+fi
+
 # Ensure known_issues was considered
 if git diff --cached --name-only 2>/dev/null | grep -q "known_issues.md"; then
-  echo "[pre-commit] $CONFIG_DIR/known_issues.md was updated"
+  echo "[pre-commit] $PROJECT_ISSUES_FILE was updated"
 else
-  echo "[pre-commit] WARNING: $CONFIG_DIR/known_issues.md was not updated — update it if this change affects the project"
+  echo "[pre-commit] WARNING: $PROJECT_ISSUES_FILE was not updated — update it if this change affects the project"
 fi
 
 echo "[pre-commit] OK"
