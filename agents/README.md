@@ -11,7 +11,7 @@ Agents are loaded via OpenCode's subagent mechanism. Each agent has a specific f
 | `project-manager` | Coordination and task assignment |
 | `quality-analyst` | Quality standards and testability |
 | `developer` | Feature implementation |
-| `committer` | Code review and approval |
+| `committer` | Pre-MR gatekeeper (verifies senior review done) |
 | `publish-requester` | Merge/pull request creation |
 | `documentation` | Docs maintenance |
 | `test-automation` | Automated test suites |

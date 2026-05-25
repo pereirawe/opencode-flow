@@ -7,9 +7,9 @@
 3. **Project Manager** coordinates team and assigns stories
 4. **Quality Analyst** ensures stories are testable and meet quality standards
 5. **Developer** implements features and writes automated tests
-6. **Committer** reviews and approves changes
-7. **Publish Requester** creates merge/pull requests
-8. **Senior Reviewers** (parallel, by specialty) review code
+6. **Senior Reviewers** (2 agents, parallel, by specialty) review code and identify issues
+7. **Developer** implements all corrections from senior review
+8. **Publish Requester** creates merge/pull request
 9. **Documentation** maintains project docs
 10. **Test Automation** creates and maintains test suites
 
@@ -19,7 +19,9 @@
 2. Refined and approved (`ready`)
 3. Promoted for execution (`open`)
 4. Remote issue created, work started (`in-progress`)
-5. Completed (`resolved`)
+5. Senior review completed, corrections applied (`in-review`)
+6. MR/PR created (`in-review`)
+7. MR/PR approved and merged (`resolved`)
 
 ### Branch Naming
 

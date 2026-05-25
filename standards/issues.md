@@ -24,7 +24,7 @@ Two-tier issue tracking:
 ## Lifecycle
 
 ```
-backlog -> ready -> open -> in-progress -> resolved
+backlog -> ready -> open -> in-progress -> in-review -> resolved
 ```
 
 | Status | Meaning |
@@ -33,7 +33,8 @@ backlog -> ready -> open -> in-progress -> resolved
 | `ready` | Clear and approved to pick up |
 | `open` | Selected, awaiting remote creation |
 | `in-progress` | Remote issue exists, work started |
-| `resolved` | Completed or closed (moved to archive) |
+| `in-review` | Senior review done, MR created, awaiting merge |
+| `resolved` | MR approved and merged (moved to archive) |
 
 ## Resolved Archive
 

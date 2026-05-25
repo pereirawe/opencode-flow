@@ -2,7 +2,8 @@
 
 Specialized code reviewers, each focused on a specific domain.
 
-Reviewers are called in parallel by the Committer or Publish Requester before merging.
+Reviewers are called in parallel by the pipeline after Developer implementation,
+before corrections are applied and the Publish Requester creates the MR.
 
 ## Roles
 
