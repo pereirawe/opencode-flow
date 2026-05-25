@@ -19,6 +19,8 @@ Two-tier issue tracking:
 - Suggested fix: <approach or next step>
 ```
 
+`Remote:` is required. Use `-` when no remote issue exists yet.
+
 ## Lifecycle
 
 ```
@@ -31,4 +33,21 @@ backlog -> ready -> open -> in-progress -> resolved
 | `ready` | Clear and approved to pick up |
 | `open` | Selected, awaiting remote creation |
 | `in-progress` | Remote issue exists, work started |
-| `resolved` | Completed or closed |
+| `resolved` | Completed or closed (moved to archive) |
+
+## Resolved Archive
+
+Resolved issues are removed from `known_issues.md` and moved to `resolved_issues.md`
+in compact format. See `standards/resolved-issue.md` for details.
+
+## Branch Review Naming
+
+Review output from `/roc:review-branch` is written to:
+
+```
+<project>/.opencode/<model>_<branch>_issues.md
+```
+
+This keeps reviews isolated by model and branch, avoiding clutter in the main tracker.
+These files are ephemeral — once issues are triaged into `known_issues.md`, the
+review file can be deleted or archived.
