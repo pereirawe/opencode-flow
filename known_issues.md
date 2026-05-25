@@ -68,3 +68,14 @@ Single source of truth for tracked work in this project.
 - Description: Create reusable `.opencode/` project template structure that can be copied into any project. Include project-level AGENTS.md, workflow.md, opencode.json, and subdirectories for agents/commands/skills overrides
 - Impact: Enables quick bootstrapping of new projects with the full OpenCode agent pipeline
 - Suggested fix: Create `.opencode/` directory with template files, add bootstrap script/Make target, document in README.md
+
+### 9. Multi-locale standards system
+- Status: in-progress
+- Type: feat
+- Severity: medium
+- Reported by: william.pereira@digitalup.intranet
+- Remote: -
+- Location: standards/pt/, standards/es/, skills/locale-loader/, conventions.md, architecture.md
+- Description: Create locale-based standards system with Portuguese and Spanish translations of all review documents, plus a locale-loader skill that resolves the correct language based on locale setting in locale file
+- Impact: Enables per-project language configuration for review documents, making the config accessible to Portuguese and Spanish speakers
+- Suggested fix: Create standards/pt/ and standards/es/ with translations, locale-loader skill, add locale to config, document in conventions.md and architecture.md

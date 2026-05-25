@@ -11,6 +11,10 @@
 ├── commands/               Global slash commands
 ├── scripts/                Shell helpers
 ├── standards/              Development patterns
+│   ├── (en/)               English (canonical, root level)
+│   ├── pt/                 Português
+│   └── es/                 Español
+├── locale                  Active locale (e.g., "pt", "es", "en")
 ├── conventions.md          Coding conventions (template)
 ├── decisions.md            Architecture decision records
 └── .opencode/              ══► Project bootstrap template
@@ -39,3 +43,5 @@
 - **Reusable**: `.opencode/` template can be copied into any project
 - **Layered config**: Global provides defaults; project overrides specifics
 - **Self-contained agents**: Each agent has its own frontmatter and permissions
+- **Multi-locale standards**: Standards documents are translated into `pt` and `es`, selected via `locale` file
+- **Locale resolution**: Project `.opencode/locale` overrides global `~/.config/opencode/locale`; falls back to English if not configured
