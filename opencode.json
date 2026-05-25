@@ -28,8 +28,8 @@
             "description": "Deep codebase analysis and issue detection"
         },
         "roc:commit": {
-            "template": "Create a structured commit with automatic status trailers. Detect the project known_issues.md, ask for type/description/issue-id, construct the commit with `Status:` and `Remote:` trailers, run `git commit`, and update known_issues.md status based on trailers.",
-            "description": "Create structured commit with status flags"
+            "template": "Create an atomic semantic commit following `standards/commits.md`. Use format `<type>(<scope>): <imperative description>` with `Issue: #<id>` and `Status:` trailers. Ask for type/scope/description/issue-id. Detect the project known_issues.md, construct the commit, run `git commit`, and update known_issues.md status based on trailers. Split if the change covers multiple concerns.",
+            "description": "Atomic semantic commit with standards/commits.md"
         },
         "roc:sync-issues": {
             "template": "Scan known_issues.md entries with Remote: references, fetch remote issue state via gh/glab, sync status (close remote if local resolved, reopen if mismatch), create remote issues for open entries without remote, and report sync results.",

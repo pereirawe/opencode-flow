@@ -9,6 +9,7 @@ help:
 	@echo "  make review             — show git diff + prompt /roc:review-branch"
 	@echo "  make promote id=<n>     — move known_issues entry to open"
 	@echo "  make close-issue id=<n> — mark known_issues entry resolved"
+	@echo "  make commit             — atomic semantic commit"
 	@echo "  make maintain           — scan known_issues for stale entries + prompt /roc:maintain"
 	@echo "  make update             — check and apply updates (git pull)"
 	@echo "  make bootstrap target=<path> — copy .opencode/ template to target project"
@@ -69,6 +70,12 @@ bootstrap:
 	@echo "[make] Bootstrapped .opencode/ in $(target)"
 	@echo "Includes: AGENTS.md, workflow.md, opencode.json, known_issues.md"
 	@echo "Project issues go in .opencode/known_issues.md, config issues in ~/.config/opencode/known_issues.md"
+
+commit:
+	@echo "[make] Atomic semantic commit"
+	@echo "Run /roc:commit in the assistant to create a structured commit"
+	@echo "Format: <type>(<scope>): <description>"
+	@echo "See standards/commits.md for details"
 
 init:
 	@bash $(CONFIG_DIR)scripts/init.sh "$(target)"

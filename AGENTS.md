@@ -23,6 +23,15 @@ Two-tier issue tracking:
 
 Status lifecycle: `backlog -> ready -> open -> in-progress -> resolved`
 
+## Commit Convention
+
+Every commit MUST follow `standards/commits.md`:
+- **Atomic**: one logical change per commit
+- **Semantic**: `<type>(<scope>): <imperative description>`
+- **Tracked**: always include `Issue: #<id>` trailer
+
+Run `/roc:commit` or `make commit` to create a properly structured commit.
+
 ## Local Helpers
 
 ```
@@ -30,6 +39,7 @@ make scan-issues
 make review
 make promote id=<n>
 make close-issue id=<n>
+make commit
 make bootstrap target=<path>
 ```
 
