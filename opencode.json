@@ -34,7 +34,8 @@
         },
         "skill": {
             "issue-manager": "allow",
-            "customize-opencode": "allow"
+            "customize-opencode": "allow",
+            "graphify": "allow"
         },
         "external_directory": {
             "~/.config/opencode/**": "allow"
