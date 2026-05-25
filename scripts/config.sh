@@ -15,6 +15,11 @@ ISSUES_FILE="$CONFIG_DIR/known_issues.md"
 # Detected from CWD — falls back to global if no .opencode/ found
 if [ -f ".opencode/known_issues.md" ]; then
   PROJECT_ISSUES_FILE="$(pwd -P)/.opencode/known_issues.md"
+  PROJECT_ISSUES_DIR="$(pwd -P)/.opencode"
 else
   PROJECT_ISSUES_FILE="$ISSUES_FILE"
+  PROJECT_ISSUES_DIR="$CONFIG_DIR"
 fi
+
+# Resolved issue archive (same level as the source known_issues)
+RESOLVED_FILE="$PROJECT_ISSUES_DIR/resolved_issues.md"

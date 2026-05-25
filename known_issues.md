@@ -23,18 +23,7 @@ Single source of truth for tracked work in this project.
 - `ready`: item is clear enough to be picked up
 - `open`: item selected locally and awaiting remote issue creation
 - `in-progress`: remote issue exists and work has started
-- `resolved`: completed or closed item
-
-### 1. Reconstruct OpenCode configuration structure
-- Status: in-progress
-- Type: chore
-- Severity: medium
-- Reported by: william.pereira@digitalup.intranet
-- Remote: -
-- Location: .config/opencode/
-- Description: Reorganize project config into generic structure with separated agents/, commands/, skills/, standards/ directories as defined in wip/list.md and Plan.png
-- Impact: Enables scalability and reuse across different projects and languages
-- Suggested fix: Complete remaining cleanup: (a) remove node_modules/, (b) remove package.json/package-lock.json, (c) remove stale wip/list.md and wip/Plan.png, (d) remove self-referencing .gitignore entries for bun.lock and .gitignore itself, (e) ensure no project-specific references remain
+- `resolved`: completed or closed item (removed from active list)
 
 ### 4. Add tech-lead agent role to pipeline
 - Status: backlog
@@ -79,3 +68,7 @@ Single source of truth for tracked work in this project.
 - Description: Create locale-based standards system with Portuguese and Spanish translations of all review documents, plus a locale-loader skill that resolves the correct language based on locale setting in locale file
 - Impact: Enables per-project language configuration for review documents, making the config accessible to Portuguese and Spanish speakers
 - Suggested fix: Create standards/pt/ and standards/es/ with translations, locale-loader skill, add locale to config, document in conventions.md and architecture.md
+
+---
+
+Resolved issues move to `resolved_issues.md` (same directory as this file). See `standards/resolved-issue.md` for the archive format.

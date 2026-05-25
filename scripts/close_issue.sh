@@ -49,16 +49,45 @@ if [[ -n "$REMOTE_ID" && "$REMOTE_ID" != "-" ]]; then
   fi
 fi
 
-# Mark as resolved locally
-awk -v id="$ID" '
-BEGIN{found=0}
-/^### [0-9]+\./{
-  if(found==1 && $0 !~ "^### "id"\\."){found=0}
-}
-$0 ~ "^### "id"\."{found=1}
-{
-  if(found==1 && $0 ~ /^- Status:/){print "- Status: resolved"; next}
-  print
-}' "$FILE" > "$FILE.tmp" && mv "$FILE.tmp" "$FILE"
+# Extract fields for archive
+TITLE=$(printf '%s\n' "$SECTION" | sed -n '1s/^### [0-9]*\. //p')
+TYPE=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Type:/ {print $2; exit}')
+SEVERITY=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Severity:/ {print $2; exit}')
+REPORTED_BY=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Reported by:/ {print $2; exit}')
+DESC=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Description:/ {print $2; exit}')
+SUGGESTED=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Suggested fix:/ {print $2; exit}')
+RESOLVED_DATE=$(date +%Y-%m-%d)
+SUMMARY="${DESC:-no description}${SUGGESTED:+ — ${SUGGESTED}}"
 
-echo "[issue] closed $ID"
+# Ensure resolved archive exists with header
+if [[ ! -f "$RESOLVED_FILE" ]]; then
+  echo "# Resolved Issues" > "$RESOLVED_FILE"
+  echo "" >> "$RESOLVED_FILE"
+  echo "Issues resolved from \`known_issues.md\`. See \`standards/resolved-issue.md\` for format." >> "$RESOLVED_FILE"
+  echo "" >> "$RESOLVED_FILE"
+fi
+
+# Prepend to resolved archive (newest first)
+TMP_ARCHIVE=$(mktemp)
+printf '%s\n' "" > "$TMP_ARCHIVE"
+printf '### %s. %s\n' "$ID" "$TITLE" >> "$TMP_ARCHIVE"
+printf -- '- Resolved: %s\n' "$RESOLVED_DATE" >> "$TMP_ARCHIVE"
+printf -- '- Type: %s\n' "${TYPE:-chore}" >> "$TMP_ARCHIVE"
+printf -- '- Reported by: %s\n' "${REPORTED_BY:-unknown}" >> "$TMP_ARCHIVE"
+printf -- '- Remote: %s\n' "${REMOTE_REF:--}" >> "$TMP_ARCHIVE"
+printf -- '- Severity: %s\n' "${SEVERITY:-medium}" >> "$TMP_ARCHIVE"
+printf -- '- Summary: %s\n' "$SUMMARY" >> "$TMP_ARCHIVE"
+# Append existing content after header (lines 4+)
+tail -n +4 "$RESOLVED_FILE" >> "$TMP_ARCHIVE"
+mv "$TMP_ARCHIVE" "$RESOLVED_FILE"
+echo "[archive] Appended to $RESOLVED_FILE"
+
+# Remove entry from known_issues.md
+awk -v id="$ID" '
+BEGIN{skip=0}
+$0 ~ "^### " id "\\." {skip=1; next}
+skip == 1 && $0 ~ /^### [0-9]+\./ {skip=0}
+skip == 0 {print}
+' "$FILE" > "$FILE.tmp" && mv "$FILE.tmp" "$FILE"
+
+echo "[issue] closed $ID, archived to resolved_issues.md"
