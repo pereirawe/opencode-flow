@@ -42,6 +42,10 @@
         "roc:maintain": {
             "template": "Run full maintenance on known_issues.md and standards/prioritization.md. First run `$SCRIPTS_DIR/maintain.sh` to detect stale issues (local in-progress but remote closed) and status mismatches. Then for each stale issue, run `close_issue.sh <id>` to archive. Reindex remaining issues. Report what was archived/updated.",
             "description": "Maintain known_issues.md and standards/prioritization.md"
+        },
+        "roc:backup": {
+            "template": "Run `$SCRIPTS_DIR/backup.sh` with the provided arguments. Ask the user for: 1) source directory, 2) backup name (default dev_backup), 3) whether to create a .zip. Then execute the backup. After completion, report the backup path, size, and exclusions applied.",
+            "description": "Create intelligent timestamped backup excluding junk"
         }
     },
     "permission": {

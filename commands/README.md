@@ -13,3 +13,4 @@ These commands are available in the assistant. Each file documents a slash comma
 | `roc:sync-issues` | Sync known_issues with remote issue tracker |
 | `roc:archive-issue <id>` | Archive resolved issue to compact format |
 | `roc:maintain` | Full maintenance of known_issues.md |
+| `roc:backup` | Create intelligent timestamped backup excluding junk |
