@@ -83,17 +83,14 @@ ln -sfn "${BACKUP_NAME}_${TIMESTAMP}" "${SOURCE_DIR}/${BACKUP_NAME}_latest"
 
 if $CREATE_ZIP; then
   echo "Creating zip archive..."
-  cd "$SOURCE_DIR"
-  zip -r "${BACKUP_NAME}_${TIMESTAMP}.zip" "${BACKUP_NAME}_${TIMESTAMP}/" \
-    -x "${BACKUP_NAME}_${TIMESTAMP}/node_modules/**" \
-    -x "${BACKUP_NAME}_${TIMESTAMP}/.venv/**" \
-    -x "${BACKUP_NAME}_${TIMESTAMP}/__pycache__/**" \
-    -x "${BACKUP_NAME}_${TIMESTAMP}/.pytest_cache/**" \
-    -x "${BACKUP_NAME}_${TIMESTAMP}/my_pycache/**" \
-    -x "${BACKUP_NAME}_${TIMESTAMP}/vendor/**" \
-    -x "${BACKUP_NAME}_${TIMESTAMP}/bk/**" \
-    > /dev/null 2>&1
-  cd "$OLDPWD"
+  if ! command -v zip &>/dev/null; then
+    echo "Error: zip command not found. Install it with: apt install zip"
+    exit 1
+  fi
+  (
+    cd "$SOURCE_DIR"
+    zip -r "${BACKUP_NAME}_${TIMESTAMP}.zip" "${BACKUP_NAME}_${TIMESTAMP}/"
+  )
   echo "Zip created: ${SOURCE_DIR}/${BACKUP_NAME}_${TIMESTAMP}.zip"
 fi
 
