@@ -41,6 +41,14 @@ Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for fo
 - Remote: -
 - Summary: Fixed instruction paths, added $schema, normalized agent frontmatter, updated locale-loader skill, added senior reviewer locale-awareness via locale-loader, added reviewer count question to roc:review-branch and roc:promote, updated roc:init with locale prompt, cleaned up .gitignore and stale artifacts
 
+### 1. backup: zip creation fails silently due to unsupported `**` patterns
+- Resolved: 2026-05-26
+- Type: fix
+- Reported by: user
+- Remote: -
+- Summary: Removed `**` exclusion patterns (zip does not support them), added zip availability check, removed output suppression, fixed rsync non-zero exit aborting zip/symlink steps.
+- Fixed in: 70147ca, 09f3611
+
 ### 4. Add tech-lead agent role to pipeline
 - Resolved: 2026-05-25
 - Type: feat
