@@ -20,6 +20,17 @@ Single source of truth for tracked work in this project.
 
 `Business rules:` is required for `feat` type issues.
 
+### 1. backup: zip creation fails silently due to unsupported `**` patterns
+- Status: in-progress
+- Type: fix
+- Severity: medium
+- Reported by: user
+- Remote: -
+- Location: `scripts/backup.sh:87-95`
+- Description: zip command uses `**` glob patterns in `-x` exclusions which zip does not support, causing silent failure. All output silenced by `> /dev/null 2>&1`. No availability check for `zip` binary.
+- Impact: --zip flag does not produce any archive; user gets no error feedback
+- Suggested fix: Remove `**` exclusion patterns (rsync already excludes junk). Add zip availability check. Remove output suppression.
+
 ### Status Lifecycle
 
 - `backlog`: item captured but not yet refined or prioritized
