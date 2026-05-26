@@ -14,6 +14,7 @@ help:
 	@echo "  make update             — check and apply updates (git pull)"
 	@echo "  make bootstrap target=<path> — copy .opencode/ template to target project"
 	@echo "  make init target=<path> — init project with repo context (default: current dir)"
+	@echo "  make backup dir=<path> [name=<name>] [zip=1] — create intelligent backup"
 
 scan-issues:
 	@echo "[make] scan-issues"
@@ -85,3 +86,7 @@ commit:
 
 init:
 	@bash $(CONFIG_DIR)scripts/init.sh "$(target)"
+
+backup:
+	@echo "[make] backup"
+	@bash $(CONFIG_DIR)scripts/backup.sh "$(dir)" "$(name)" $(if $(zip),--zip)
