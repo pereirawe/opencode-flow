@@ -73,13 +73,13 @@ mkdir -p "$BACKUP_DIR"
 rsync -a --delete \
   "${RSYNC_EXCLUDES[@]}" \
   --info=progress2 \
-  "$SOURCE_DIR/" "$BACKUP_DIR/"
+  "$SOURCE_DIR/" "$BACKUP_DIR/" || echo "  (rsync completed with non-zero — continuing)"
 
 echo ""
 echo "Backup completed: $BACKUP_DIR"
 
 # Update latest symlink
-ln -sfn "${BACKUP_NAME}_${TIMESTAMP}" "${SOURCE_DIR}/${BACKUP_NAME}_latest"
+ln -sfn "${BACKUP_NAME}_${TIMESTAMP}" "${SOURCE_DIR}/${BACKUP_NAME}_latest" || echo "  (symlink update skipped — continuing)"
 
 if $CREATE_ZIP; then
   echo "Creating zip archive..."
