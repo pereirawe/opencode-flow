@@ -1,4 +1,4 @@
-## /roc:review-branch
+## /ocf:review-branch
 
 ---
 description: Full PR/MR-style code review

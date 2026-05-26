@@ -29,7 +29,7 @@ When a localized file does not exist, the English version in `standards/` is use
 
 ## Setup for new projects
 
-The `/roc:init` command asks the user which locale to use and writes it to
+The `/ocf:init` command asks the user which locale to use and writes it to
 `.opencode/locale`. Alternatively, create or edit the file manually:
 
 ```bash

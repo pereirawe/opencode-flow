@@ -21,4 +21,4 @@ else
   echo "[scan-issues] no text search tool available"
 fi
 
-echo "[scan-issues] Done. Run /roc:scan-issues in the assistant to update $PROJECT_ISSUES_FILE"
+echo "[scan-issues] Done. Run /ocf:scan-issues in the assistant to update $PROJECT_ISSUES_FILE"

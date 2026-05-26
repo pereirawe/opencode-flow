@@ -1,4 +1,4 @@
-## /roc:plan-feature
+## /ocf:plan-feature
 
 ---
 description: Feature planning with risk assessment

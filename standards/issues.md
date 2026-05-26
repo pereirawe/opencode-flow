@@ -74,7 +74,7 @@ in compact format. See `standards/resolved-issue.md` for details.
 
 ## Branch Review Naming
 
-Review output from `/roc:review-branch` is written to:
+Review output from `/ocf:review-branch` is written to:
 
 ```
 <project>/.opencode/<model>_<branch>_issues.md

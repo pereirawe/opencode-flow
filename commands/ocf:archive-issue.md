@@ -1,4 +1,4 @@
-## /roc:archive-issue <id>
+## /ocf:archive-issue <id>
 
 ---
 description: Move a resolved issue to the resolved archive
@@ -10,7 +10,7 @@ The working directory (`$PWD`) determines the target project.
 
 ### Flow
 
-1. Issue must be `Status: resolved` (use `roc:close-issue` first or edit status)
+1. Issue must be `Status: resolved` (use `ocf:close-issue` first or edit status)
 2. Script extracts compact fields: title, type, reported-by, remote, severity, summary
 3. Entry is removed from `known_issues.md`
 4. Entry is prepended to `resolved_issues.md` (newest first)
@@ -19,7 +19,7 @@ The working directory (`$PWD`) determines the target project.
 ### Usage
 
 ```
-/roc:archive-issue 5
+/ocf:archive-issue 5
 ```
 
 ### Direct invocation

@@ -1,4 +1,4 @@
-## /roc:backup
+## /ocf:backup
 
 ---
 description: Create intelligent timestamped backups excluding junk dirs
@@ -13,7 +13,7 @@ the new backup).
 ### Usage
 
 ```
-/roc:backup <source_dir> [backup_name] [--zip]
+/ocf:backup <source_dir> [backup_name] [--zip]
 ```
 
 | Argument | Description |
@@ -25,9 +25,9 @@ the new backup).
 ### Examples
 
 ```
-/roc:backup /home/user/dev
-/roc:backup /home/user/dev my_backup
-/roc:backup /home/user/dev my_backup --zip
+/ocf:backup /home/user/dev
+/ocf:backup /home/user/dev my_backup
+/ocf:backup /home/user/dev my_backup --zip
 ```
 
 ### What is excluded

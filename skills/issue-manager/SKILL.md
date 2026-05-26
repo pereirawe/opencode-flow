@@ -34,7 +34,7 @@ compatibility: opencode
 
 ## Remote sync
 
-- Use `/roc:sync-issues` to synchronize local ↔ remote state
-- When promoting (`roc:promote`), create a remote issue via `create_issue.sh`
-- When closing (`roc:close-issue`), close remote issue and archive
+- Use `/ocf:sync-issues` to synchronize local ↔ remote state
+- When promoting (`ocf:promote`), create a remote issue via `create_issue.sh`
+- When closing (`ocf:close-issue`), close remote issue and archive
 - Prefer `gh` for GitHub, `glab` for GitLab — detect via `git remote -v`

@@ -1,4 +1,4 @@
-## /roc:promote <id>
+## /ocf:promote <id>
 
 ---
 description: Promote a backlog item to open for execution
@@ -20,13 +20,13 @@ Shell scripts live at `$HOME/.config/opencode/scripts/`.
    - Creates remote issue with title + body from `known_issues.md`
    - Updates `Remote: #<id>` and `Status: in-progress` in `known_issues.md`
    - Creates and checks out branch `issue-<remote-id>-<slug>`
-5. Note the reviewer count for branch review phase (used later by `/roc:review-branch`)
+5. Note the reviewer count for branch review phase (used later by `/ocf:review-branch`)
 6. Development starts on the generated branch
 
 ### Usage
 
 ```
-/roc:promote 2
+/ocf:promote 2
 ```
 
 ### Status rules

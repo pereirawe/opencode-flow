@@ -1,4 +1,4 @@
-## /roc:scan-issues
+## /ocf:scan-issues
 
 ---
 description: Deep codebase analysis for issue detection
