@@ -63,11 +63,11 @@ make -C ~/.config/opencode update
 ## Usage
 
 ```bash
-make scan-issues        # static analysis + prompt /roc:scan-issues
-make review             # show git diff + prompt /roc:review-branch
+make scan-issues        # static analysis + prompt /ocf:scan-issues
+make review             # show git diff + prompt /ocf:review-branch
 make promote id=<n>     # promote backlog item to open
 make close-issue id=<n> # close + archive issue
-make maintain           # scan for stale entries + prompt /roc:maintain
+make maintain           # scan for stale entries + prompt /ocf:maintain
 make bootstrap target=<path>  # copy .opencode/ template to project
 make init target=<path> # init project with repo context
 ```
@@ -76,15 +76,15 @@ make init target=<path> # init project with repo context
 
 | Command | Purpose |
 |---------|---------|
-| `/roc:init` | Initialize `.opencode/` project config |
-| `/roc:scan-issues` | Deep codebase analysis and issue detection |
-| `/roc:review-branch` | Full PR/MR-style code review |
-| `/roc:plan-feature` | Feature breakdown with risk assessment |
-| `/roc:promote <id>` | Promote backlog item + create remote issue |
-| `/roc:commit` | Create structured commit with status trailers |
-| `/roc:sync-issues` | Sync known_issues with remote tracker |
-| `/roc:archive-issue <id>` | Archive resolved issue to compact format |
-| `/roc:maintain` | Full maintenance of tracker files |
+| `/ocf:init` | Initialize `.opencode/` project config |
+| `/ocf:scan-issues` | Deep codebase analysis and issue detection |
+| `/ocf:review-branch` | Full PR/MR-style code review |
+| `/ocf:plan-feature` | Feature breakdown with risk assessment |
+| `/ocf:promote <id>` | Promote backlog item + create remote issue |
+| `/ocf:commit` | Create structured commit with status trailers |
+| `/ocf:sync-issues` | Sync known_issues with remote tracker |
+| `/ocf:archive-issue <id>` | Archive resolved issue to compact format |
+| `/ocf:maintain` | Full maintenance of tracker files |
 
 ## Bootstrap a New Project
 

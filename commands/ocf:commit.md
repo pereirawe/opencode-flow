@@ -1,4 +1,4 @@
-## /roc:commit
+## /ocf:commit
 
 ---
 description: Create an atomic semantic commit with issue trailers
@@ -64,7 +64,7 @@ Status: resolved
 ### Usage
 
 ```
-/roc:commit
+/ocf:commit
 ```
 
 The assistant will:

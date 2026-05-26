@@ -1,4 +1,4 @@
-## /roc:init
+## /ocf:init
 
 ---
 description: Initialize opencode project config with repo context and locale

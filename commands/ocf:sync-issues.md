@@ -1,4 +1,4 @@
-## /roc:sync-issues
+## /ocf:sync-issues
 
 ---
 description: Synchronize known_issues status with remote issue tracker

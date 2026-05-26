@@ -1,4 +1,4 @@
-## /roc:maintain
+## /ocf:maintain
 
 ---
 description: Maintain known_issues.md — sync, archive, clean

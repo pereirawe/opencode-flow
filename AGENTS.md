@@ -30,7 +30,7 @@ Every commit MUST follow `standards/commits.md`:
 - **Semantic**: `<type>(<scope>): <imperative description>`
 - **Tracked**: always include `Issue: #<id>` trailer
 
-Run `/roc:commit` or `make commit` to create a properly structured commit.
+Run `/ocf:commit` or `make commit` to create a properly structured commit.
 
 ## Local Helpers
 

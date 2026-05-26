@@ -5,12 +5,12 @@ CONFIG_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
 help:
 	@echo "Targets:"
-	@echo "  make scan-issues        — run static analysis + prompt /roc:scan-issues"
-	@echo "  make review             — show git diff + prompt /roc:review-branch"
+	@echo "  make scan-issues        — run static analysis + prompt /ocf:scan-issues"
+	@echo "  make review             — show git diff + prompt /ocf:review-branch"
 	@echo "  make promote id=<n>     — move known_issues entry to open"
 	@echo "  make close-issue id=<n> — mark known_issues entry resolved"
 	@echo "  make commit             — atomic semantic commit"
-	@echo "  make maintain           — scan known_issues for stale entries + prompt /roc:maintain"
+	@echo "  make maintain           — scan known_issues for stale entries + prompt /ocf:maintain"
 	@echo "  make update             — check and apply updates (git pull)"
 	@echo "  make bootstrap target=<path> — copy .opencode/ template to target project"
 	@echo "  make init target=<path> — init project with repo context (default: current dir)"
@@ -20,14 +20,14 @@ scan-issues:
 	@echo "[make] scan-issues"
 	@chmod +x $(CONFIG_DIR)scripts/scan_issues.sh 2>/dev/null || true
 	@bash $(CONFIG_DIR)scripts/scan_issues.sh
-	@echo "Next: run /roc:scan-issues in assistant"
+	@echo "Next: run /ocf:scan-issues in assistant"
 
 review:
 	@echo "[make] review"
 	@cd $(CONFIG_DIR) && git status --porcelain
 	@echo ""
 	@cd $(CONFIG_DIR) && git diff
-	@echo "Next: run /roc:review-branch in assistant"
+	@echo "Next: run /ocf:review-branch in assistant"
 
 promote:
 	@bash $(CONFIG_DIR)scripts/promote.sh $(id)
@@ -39,7 +39,7 @@ maintain:
 	@echo "[make] maintain"
 	@chmod +x $(CONFIG_DIR)scripts/maintain.sh 2>/dev/null || true
 	@bash $(CONFIG_DIR)scripts/maintain.sh
-	@echo "Next: run /roc:maintain in assistant"
+	@echo "Next: run /ocf:maintain in assistant"
 
 update:
 	@echo "[make] update"
@@ -80,7 +80,7 @@ bootstrap:
 
 commit:
 	@echo "[make] Atomic semantic commit"
-	@echo "Run /roc:commit in the assistant to create a structured commit"
+	@echo "Run /ocf:commit in the assistant to create a structured commit"
 	@echo "Format: <type>(<scope>): <description>"
 	@echo "See standards/commits.md for details"
 
