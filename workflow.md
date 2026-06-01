@@ -61,13 +61,23 @@ Any direct implementation without pipeline is a violation.
    prioritization proposals in `standards/prioritization.md`
 3. **Tech Lead** — refine stories with technical detail, feasibility analysis,
    effort estimation, and task breakdown
-4. **Project Manager** — coordinate team, assign stories, track progress
+4. **Project Manager** — coordinate team, assign stories, track progress.
+   **During promotion, PM MUST ask the user for the base branch:**
+   *"A issue será resolvida na branch default do repositório [main/master] ou em
+   outra branch existente?"*
+   If another branch is chosen, list available local branches for selection.
+   Checkout and pull the chosen base branch, then create the feature branch
+   `issue-<id>-<slug>` from it. Update status to `open`.
+   **PM MUST also ask: "Quantos revisores seniors devem revisar este trabalho?"
+   (default 1) and store the number in `- Reviewers:` in the issue entry.**
 5. **Quality Analyst (pre-development)** — ensure stories are testable and meet
    quality standards, validate business rules are testable
 6. **Developer** — implement features, write automated tests, run tests, keep
-   `known_issues.md` in sync
-7. **Senior Reviewers** — review code, verify acceptance criteria, confirm tests
-   were written and pass, identify issues
+   `known_issues.md` in sync. Verify the feature branch is based on the correct
+   base branch before starting implementation.
+7. **Senior Reviewers** — review code using the count stored in `- Reviewers:`
+   in the issue entry (set during PM promotion), verify acceptance criteria,
+   confirm tests were written and pass, identify issues
 8. **Quality Analyst (post-review)** — verify quality after senior review,
    check that all identified issues were addressed and quality standards are met
 9. **Developer** — implement all corrections from senior review and QA (loop
@@ -90,7 +100,10 @@ Any direct implementation without pipeline is a violation.
 1. PO proposal registered in `standards/prioritization.md`
 2. Item captured in `known_issues.md` with status `backlog`
 3. Refined and approved, QA pre-development review → `ready`
-4. Promoted, branch created, remote issue created → `open`
+4. PM promotes the issue, asks user for base branch (default or existing),
+   checkouts+pulls the base branch, creates feature branch `issue-<id>-<slug>`
+   from it, asks for reviewer count (default 1) and stores in `- Reviewers:`,
+   creates remote issue → `open`
 5. Remote issue exists, work started on branch → `in-progress`
    — Senior review feedback addressed while staying `in-progress`
 6. Senior review completed, all issues resolved → `in-review`
@@ -105,8 +118,12 @@ Any direct implementation without pipeline is a violation.
 
 Pattern: `issue-<id>-<slug>`
 
+Branches are created from the user-chosen base branch (default or another
+existing branch) during the PM promotion step.
+
 ### Definition of Done
 
+- Base branch correctly chosen and feature branch created from it
 - Tests written and passing (run before senior review)
 - Acceptance criteria met (verified by Senior Reviewers)
 - Business rules documented and implemented correctly
