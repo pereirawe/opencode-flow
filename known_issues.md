@@ -41,7 +41,7 @@ Single source of truth for tracked work in this project.
 - Type: feat
 - Severity: medium
 - Reported by: william.pereira@digitalup.intranet
-- Remote: -
+- Remote: #1
 - Location: `workflow.md`:82-91
 - Description: O Issue Lifecycle no workflow.md não mapeia corretamente o Agent Pipeline. Status `in-review` usado para duas fases distintas (senior review e MR criado). Falta Committer gate, branch creation, e QA pós-senior-review como etapas explícitas.
 - Impact: Ambiguidade no fluxo de desenvolvimento, risco de pular etapas (QA, Committer) sem detecção.
