@@ -138,7 +138,7 @@ Single source of truth for tracked work in this project.
 - Suggested fix: Criar `agents/review-external.md` com o agente de revisão. Adicionar comando `ocf:review-external` no `opencode.json`. Criar diretório `.opencode/reviews/` para armazenar relatórios. Atualizar `Makefile` com target `review-external`.
 
 ### 8. Adicionar comando ocf:develop e padronizar definição de comandos
-- Status: in-progress
+- Status: in-publish
 - Type: feat
 - Severity: medium
 - Report: william.pereira@digitalup.intranet
