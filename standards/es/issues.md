@@ -8,7 +8,7 @@ Seguimiento en dos niveles:
 
 ```markdown
 ### <id>. <título>
-- Status: backlog | ready | open | in-progress | resolved
+- Status: backlog | ready | open | in-progress | in-review | in-qa | in-publish | resolved
 - Type: bug | feat | doc | chore
 - Severity: critical | high | medium | low
 - Reported by: <nombre-usuario> | <nombre-modelo>
@@ -22,13 +22,16 @@ Seguimiento en dos niveles:
 ## Ciclo de Vida
 
 ```
-backlog -> ready -> open -> in-progress -> resolved
+backlog -> ready -> open -> in-progress -> in-review -> in-qa -> in-publish -> resolved
 ```
 
 | Status | Significado |
 |--------|-------------|
 | `backlog` | Capturado, aún no refinado |
-| `ready` | Claro y aprobado para ejecutar |
+| `ready` | Claro, aprobado, testeable — listo para ejecución |
 | `open` | Seleccionado, esperando creación remota |
 | `in-progress` | Issue remota existe, trabajo iniciado |
-| `resolved` | Completado o cerrado |
+| `in-review` | Senior review completado, esperando QA |
+| `in-qa` | QA verificando post-review (puede volver a `in-progress`) |
+| `in-publish` | Committer aprobó, MR creado, esperando merge |
+| `resolved` | MR aprobado y fusionado (movido a archivo) |
