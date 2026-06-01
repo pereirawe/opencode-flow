@@ -87,6 +87,7 @@ Single source of truth for tracked work in this project.
 - Report: william.pereira@digitalup.intranet
 - Reviewers: 1
 - Remote: #9
+- PR: #10
 - Location: `opencode.json`:22-25 (existing `ocf:review-branch`), `agents/senior-reviewers/*.md`, `standards/code-review.md`
 - Description: Criar comando `ocf:review-external` + agente `agents/review-external.md` para revisar branches/MRs de outros desenvolvedores, com geração de relatório local e post opcional de comentários críticos/high no MR.
 - Impact: Permite revisão padronizada de código fora do pipeline opencode, garantindo qualidade consistente.
