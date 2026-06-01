@@ -16,4 +16,5 @@ Agents are loaded via OpenCode's subagent mechanism. Each agent has a specific f
 | `documentation` | Docs maintenance |
 | `test-automation` | Automated test suites |
 | `backup` | Intelligent timestamped backups excluding junk |
+| `review-external` | External branch/MR review with structured report generation |
 | `senior-reviewers/` | Specialized domain reviewers (10 roles) |

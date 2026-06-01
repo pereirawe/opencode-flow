@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 CONFIG_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
-.PHONY: scan-issues review help promote close-issue bootstrap init maintain update
+.PHONY: scan-issues review help promote close-issue bootstrap init maintain update review-external
 
 help:
 	@echo "Targets:"
@@ -14,6 +14,7 @@ help:
 	@echo "  make update             — check and apply updates (git pull)"
 	@echo "  make bootstrap target=<path> — copy .opencode/ template to target project"
 	@echo "  make init target=<path> — init project with repo context (default: current dir)"
+	@echo "  make review-external   — prompt /ocf:review-external for external branch/MR review"
 	@echo "  make backup dir=<path> [name=<name>] [zip=1] — create intelligent backup"
 
 scan-issues:
@@ -86,6 +87,11 @@ commit:
 
 init:
 	@bash $(CONFIG_DIR)scripts/init.sh "$(target)"
+
+review-external:
+	@echo "[make] review-external"
+	@echo "Run /ocf:review-external in the assistant to review external branches/MRs"
+	@echo "Usage: provide an MR URL (GitHub/GitLab) or remote branch name"
 
 backup:
 	@echo "[make] backup"
