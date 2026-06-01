@@ -2,6 +2,22 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 5. Criar issue remota obrigatória durante promoção
+- Resolved: 2026-06-01
+- Type: feat
+- Report: william.pereira@digitalup.intranet
+- Reviewers: 1
+- Remote: #2
+- Summary: Tornado obrigatório criar issue remota durante promoção com pergunta "Criar agora? (s/N)". Adicionadas validações em pre_commit.sh e maintain.sh para issues open sem remote.
+
+### 3. Workflow Issue Lifecycle não reflete o pipeline completo
+- Resolved: 2026-06-01
+- Type: feat
+- Report: william.pereira@digitalup.intranet
+- Reviewers: 1
+- Remote: #1
+- Summary: Issue Lifecycle realinhado com Agent Pipeline de 11 passos. Adicionados status in-qa e in-publish. Committer gate explícito. QA pre e post separados.
+
 ### 8. Adicionar comando ocf:develop e padronizar definição de comandos
 - Resolved: 2026-06-01
 - Type: feat

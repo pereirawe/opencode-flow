@@ -47,6 +47,10 @@
             "template": "Run full maintenance on known_issues.md and standards/prioritization.md. First run `$SCRIPTS_DIR/maintain.sh` to detect stale issues (local in-progress but remote closed) and status mismatches. Then for each stale issue, run `close_issue.sh <id>` to archive. Reindex remaining issues. Report what was archived/updated.",
             "description": "Maintain known_issues.md and standards/prioritization.md"
         },
+        "ocf:check-pr": {
+            "template": "Check PR merge status for issues. Ask the user for an issue ID, or scan all issues with `Status: in-publish`. For each issue:\n1. If the issue has a `- PR:` field, use `gh pr view <pr-number> --json state,mergedAt` directly.\n2. If no PR field, search for merged PRs referencing the issue:\n   - First try: `gh pr list --search \"Issue: #<local-id> in:body\" --state merged --json number,headRefName,mergedAt`\n   - If that fails (or is ambiguous), list all merged PRs with `gh pr list --state merged --json number,headRefName,mergedAt --limit 30` and filter by branch name matching the Remote ID pattern `issue-<remote-id>-`.\n3. If a unique merged PR is found:\n   - Add a `- PR: #<number>` field to the issue entry\n   - Update status to `resolved`\n   - Run `close_issue.sh <id>` to archive to `resolved_issues.md`\n   - Report PR number and merge date\n4. If no merged PR found, report the PR state (open/closed/not found).\n5. For issues without `Remote:` field, skip with a warning.",
+            "description": "Check PR merge status for issues and auto-archive merged ones"
+        },
         "ocf:backup": {
             "template": "Run `$SCRIPTS_DIR/backup.sh` with the provided arguments. Ask the user for: 1) source directory, 2) backup name (default dev_backup), 3) whether to create a .zip. Then execute the backup. After completion, report the backup path, size, and exclusions applied.",
             "description": "Create intelligent timestamped backup excluding junk"

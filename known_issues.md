@@ -12,6 +12,7 @@ Single source of truth for tracked work in this project.
 - Report: <user-name> | <model-name>
 - Reviewers: <number> (set during promotion, default 1)
 - Remote: - | #<remote-id>
+- PR: - | #<pr-number>
 - Location: <file-path>:<line-numbers>
 - Description: <brief>
 - Impact: <what or who is affected>
@@ -57,41 +58,7 @@ Single source of truth for tracked work in this project.
   5. O script promote.sh DEVE aceitar um parâmetro opcional de base branch e executar checkout+pull + criação da branch.
 - Suggested fix: Adicionar etapa no workflow.md Agent Pipeline (passo 4 - PM) e Issue Lifecycle (passo 4). Atualizar project-manager.md, developer.md, branching.md, promote.sh e Makefile.
 
-### 3. Workflow Issue Lifecycle não reflete o pipeline completo
-- Status: in-publish
-- Type: feat
-- Severity: medium
-- Report: william.pereira@digitalup.intranet
-- Reviewers: 1
-- Remote: #1
-- Location: `workflow.md`:82-91
-- Description: O Issue Lifecycle no workflow.md não mapeia corretamente o Agent Pipeline. Status `in-review` usado para duas fases distintas (senior review e MR criado). Falta Committer gate, branch creation, e QA pós-senior-review como etapas explícitas.
-- Impact: Ambiguidade no fluxo de desenvolvimento, risco de pular etapas (QA, Committer) sem detecção.
-- Business rules:
-  1. Cada gate do pipeline (senior review, QA, Committer) DEVE ter etapa explícita no lifecycle.
-  2. Status `in-review` DEVE refletir uma única fase semântica — ou divide-se em múltiplos status ou documenta-se os sub-passos com clareza.
-  3. O lifecycle DEVE espelhar o Agent Pipeline (12 passos) para evitar gaps.
-  4. Branch creation (via promote) DEVE constar no lifecycle.
-- Suggested fix: Revisar o `### Issue Lifecycle` para incluir: promotion+branch, development, senior review, QA+corrections, Committer gate, MR creation, MR merge. Alinhar com o Agent Pipeline.
 
-### 5. Criar issue remota obrigatória durante promoção
-- Status: in-publish
-- Type: feat
-- Severity: high
-- Report: william.pereira@digitalup.intranet
-- Reviewers: 1
-- Remote: #2
-- Location: `scripts/promote.sh`:1-131, `scripts/create_issue.sh`:1-124, `workflow.md`:57-92
-- Description: Tornar obrigatória a criação da issue remota (GitHub/GitLab) durante o fluxo de promoção. O promote.sh mantém duas etapas (promote → create_issue), mas o pipeline deve validar que o campo `Remote:` não está vazio antes de permitir `in-progress`. O comando `ocf:promote` deve perguntar se deseja criar a issue remota agora.
-- Impact: Issues podem ser trabalhadas sem contraparte remota, perdendo rastreabilidade e visibilidade do time.
-- Business rules:
-  1. O promote.sh mantém duas etapas separadas (promote → status `open` com Remote `-`; create_issue → Remote preenchido e status `in-progress`).
-  2. O pipeline DEVE validar que o campo `Remote:` contém um ID válido (não `-`) antes de permitir o status `in-progress`.
-  3. O comando `ocf:promote` DEVE verificar se `Remote:` está vazio e perguntar: "Criar issue remota agora? (s/N)".
-  4. Se o usuário recusar criar a remote, a issue fica como `open` e o desenvolvedor NÃO pode iniciar o desenvolvimento.
-  5. Scripts de validação (pre-commit, maintain) DEVEM verificar issues com status `open` e Remote `-` e emitir alerta.
-  6. O create_issue.sh já atualiza Remote e status para `in-progress` — essa lógica deve ser mantida.
-- Suggested fix: Adicionar validação no `ocf:promote` command template em `opencode.json` para verificar Remote antes de prosseguir. Adicionar verificação no `pre_commit.sh` e `maintain.sh`. Adicionar documentação no `workflow.md` Agent Pipeline passo 4.
 
 ### 6. Revisar e enriquecer o PR template
 - Status: backlog
