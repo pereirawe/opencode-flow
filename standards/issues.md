@@ -11,7 +11,8 @@ Two-tier issue tracking:
 - Status: backlog | ready | open | in-progress | in-review | in-qa | in-publish | resolved
 - Type: bug | feat | doc | chore
 - Severity: critical | high | medium | low
-- Reported by: <user-name> | <model-name>
+- Report: <user-name> | <model-name>
+- Reviewers: <number> (set during promotion, default 1)
 - Remote: - | #<remote-id>
 - Location: <file-path>:<line-numbers>
 - Description: <brief description>
@@ -24,6 +25,7 @@ Two-tier issue tracking:
 `Remote:` is required. Use `-` when no remote issue exists yet.
 `Business rules:` is required for `feat` type issues — document the specific
 business logic, domain constraints, and rules that must be implemented.
+`Reviewers:` is set during promotion and consumed during senior review and MR creation.
 `Acceptance criteria:` is recommended for all types. `Tests:` can be added
 as an additional field when specific test scenarios need documentation.
 

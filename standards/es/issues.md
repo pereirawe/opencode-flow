@@ -11,7 +11,8 @@ Seguimiento en dos niveles:
 - Status: backlog | ready | open | in-progress | in-review | in-qa | in-publish | resolved
 - Type: bug | feat | doc | chore
 - Severity: critical | high | medium | low
-- Reported by: <nombre-usuario> | <nombre-modelo>
+- Report: <nombre-usuario> | <nombre-modelo>
+- Reviewers: <número> (definido durante promoción, default 1)
 - Remote: - | #<id-remoto>
 - Location: <ruta-archivo>:<líneas>
 - Description: <descripción breve>

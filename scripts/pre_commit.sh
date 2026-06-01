@@ -61,6 +61,27 @@ if [[ -n "$COMMIT_MSG" ]]; then
   fi
 fi
 
+# Check for issues that are open but without a remote issue
+if [[ -f "$PROJECT_ISSUES_FILE" ]]; then
+  OPEN_NO_REMOTE=$(awk '
+    /^### [0-9]+\./ {
+      if (status_open && remote_dash) print detected_id
+      detected_id = $2; gsub(/\./, "", detected_id)
+      status_open = 0; remote_dash = 0
+    }
+    detected_id != "" && /^- Status:/ && $3 == "open" {status_open = 1}
+    detected_id != "" && /^- Remote:/ && $3 == "-"    {remote_dash = 1}
+    END {
+      if (status_open && remote_dash) print detected_id
+    }
+  ' "$PROJECT_ISSUES_FILE" 2>/dev/null || true)
+
+  if [[ -n "$OPEN_NO_REMOTE" ]]; then
+    echo "[pre-commit] ⚠️  WARNING: Issue(s) with Status: open but no Remote: $OPEN_NO_REMOTE"
+    echo "[pre-commit]   Create a remote issue before starting development."
+  fi
+fi
+
 # Ensure known_issues was considered
 if git diff --cached --name-only 2>/dev/null | grep -q "known_issues.md"; then
   echo "[pre-commit] $PROJECT_ISSUES_FILE was updated"

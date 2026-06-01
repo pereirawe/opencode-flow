@@ -17,6 +17,8 @@ Responsibilities:
 - Keep `known_issues.md` in sync — update status, add discoveries, track progress
 - Follow the branching strategy and commit conventions
 - After senior review, implement all corrections before publish
+- Verify the feature branch is based on the correct base branch before starting;
+  if needed, rebase on the base branch
 
 When called, implement the assigned feature or fix from `known_issues.md`.
 If business rules are missing or unclear, refuse to start and request
