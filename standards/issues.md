@@ -8,7 +8,7 @@ Two-tier issue tracking:
 
 ```markdown
 ### <id>. <title>
-- Status: backlog | ready | open | in-progress | in-review | resolved
+- Status: backlog | ready | open | in-progress | in-review | in-qa | in-publish | resolved
 - Type: bug | feat | doc | chore
 - Severity: critical | high | medium | low
 - Reported by: <user-name> | <model-name>
@@ -55,16 +55,18 @@ specification.
 ## Lifecycle
 
 ```
-backlog -> ready -> open -> in-progress -> in-review -> resolved
+backlog -> ready -> open -> in-progress -> in-review -> in-qa -> in-publish -> resolved
 ```
 
 | Status | Meaning |
 |--------|---------|
 | `backlog` | Captured, not yet refined |
-| `ready` | Clear and approved to pick up |
+| `ready` | Clear, approved, testable — ready to pick up |
 | `open` | Selected, awaiting remote creation |
 | `in-progress` | Remote issue exists, work started |
-| `in-review` | Senior review done, MR created, awaiting merge |
+| `in-review` | Senior review completed, awaiting QA |
+| `in-qa` | QA verifying post-review (may loop to `in-progress`) |
+| `in-publish` | Committer gate passed, MR created, awaiting merge |
 | `resolved` | MR approved and merged (moved to archive) |
 
 ## Resolved Archive

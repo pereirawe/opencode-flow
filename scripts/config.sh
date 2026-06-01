@@ -21,8 +21,12 @@ else
   PROJECT_ISSUES_DIR="$CONFIG_DIR"
 fi
 
-# Resolved issue archive (same level as the source known_issues)
-RESOLVED_FILE="$PROJECT_ISSUES_DIR/resolved_issues.md"
+# Resolved issue archive — prefer project .opencode/ even when issues are global
+if [ -d ".opencode" ]; then
+  RESOLVED_FILE="$(pwd -P)/.opencode/resolved_issues.md"
+else
+  RESOLVED_FILE="$PROJECT_ISSUES_DIR/resolved_issues.md"
+fi
 
 # Reviewer count for branch/PR reviews (default: 1)
 # Projects can override by setting REVIEWER_COUNT in their own config
