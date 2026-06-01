@@ -2,6 +2,13 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 2. Token Iugu hardcoded no código fonte
+- Resolved: 2026-06-01
+- Type: bug
+- Reported by: opencode scan
+- Remote: !268
+- Summary: Substituído token hardcoded `9d3b710be41519cd99aee9b5f7379767` por `process.env.IUGU_TOKEN` em `saveIuguPayment()` em `src/config/api-config.js:179`.
+
 ### 8. Move locale from opencode.json to .opencode/locale file
 - Resolved: 2026-05-25
 - Type: bug

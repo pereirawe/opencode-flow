@@ -25,7 +25,7 @@ compatibility: opencode
 - Prefer file and line references when possible
 - Remove or mark resolved issues when the code already fixes them
 - Keep fields normalized:
-  - `Status`: `backlog`, `ready`, `open`, `in-progress`, `resolved`
+  - `Status`: `backlog`, `ready`, `open`, `in-progress`, `in-review`, `in-qa`, `in-publish`, `resolved`
   - `Type`: `bug`, `feat`, `doc`, `chore`
   - `Severity`: `critical`, `high`, `medium`, `low`
   - `Reported by`: user name for human-reported items, model name for AI-reported items

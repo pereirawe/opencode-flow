@@ -36,4 +36,7 @@ Shell scripts live at `$HOME/.config/opencode/scripts/`.
 | `backlog` / `ready` | Planning states — can be promoted |
 | `open` | Pre-remote execution state — remote creation triggered |
 | `in-progress` | Remote issue exists, work has started |
+| `in-review` | Senior review completed, awaiting QA |
+| `in-qa` | QA verifying post-review corrections |
+| `in-publish` | Committer gate passed, MR created, awaiting merge |
 | `resolved` | Terminal state — issue moved to archive |
