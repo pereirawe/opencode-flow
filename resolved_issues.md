@@ -2,6 +2,14 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 4. Pergunta sobre quantidade de revisores seniors não está documentada no pipeline
+- Resolved: 2026-06-01
+- Type: bug
+- Report: william.pereira@digitalup.intranet
+- Reviewers: 1
+- Remote: -
+- Summary: Documentada pergunta ao usuário sobre quantidade de revisores seniors (default 1) no workflow.md, project-manager.md, commands/ocf:promote.md, commands/ocf:review-branch.md, opencode.json, e agents/publish-requester.md. Armazenamento em `- Reviewers:` no issue. Leitura do campo na issue, não do opencode.json.
+
 ### 5. Criar issue remota obrigatória durante promoção
 - Resolved: 2026-06-01
 - Type: feat
