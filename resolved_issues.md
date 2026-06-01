@@ -2,6 +2,14 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 8. Adicionar comando ocf:develop e padronizar definição de comandos
+- Resolved: 2026-06-01
+- Type: feat
+- Report: william.pereira@digitalup.intranet
+- Reviewers: 1
+- Remote: #4
+- Summary: Adicionado comando `ocf:develop` que gerencia inicio de desenvolvimento com auto-promote e validacao. Sincronizado commands/*.md com templates do opencode.json e documentada regra de que JSON e a fonte da verdade.
+
 ### 2. Token Iugu hardcoded no código fonte
 - Resolved: 2026-06-01
 - Type: bug

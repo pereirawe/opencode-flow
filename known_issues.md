@@ -137,23 +137,6 @@ Single source of truth for tracked work in this project.
   11. O relatório DEVE listar os arquivos revisados e o diff analisado.
 - Suggested fix: Criar `agents/review-external.md` com o agente de revisão. Adicionar comando `ocf:review-external` no `opencode.json`. Criar diretório `.opencode/reviews/` para armazenar relatórios. Atualizar `Makefile` com target `review-external`.
 
-### 8. Adicionar comando ocf:develop e padronizar definição de comandos
-- Status: in-publish
-- Type: feat
-- Severity: medium
-- Report: william.pereira@digitalup.intranet
-- Reviewers: 1
-- Remote: #4
-- Location: `opencode.json`:26-29, `commands/ocf:develop.md`, `commands/ocf:promote.md`, `commands/ocf:review-branch.md`, `commands/README.md`
-- Description: Adicionar comando `ocf:develop` para iniciar desenvolvimento de issues promovidas. Sincronizar `commands/*.md` com os templates do `opencode.json` e documentar regra de que o JSON é a fonte da verdade e os .md devem ser mantidos em sincronia.
-- Impact: Novo comando essencial no pipeline + padronização para evitar divergência entre template executado e documentação.
-- Business rules:
-  1. `opencode.json` → `command.<name>.template` É a fonte da verdade do comportamento.
-  2. `commands/<name>.md` DEVE ser mantido sincronizado com o template correspondente.
-  3. TODO novo comando DEVE ter entrada em `opencode.json` e arquivo `.md` em `commands/`.
-  4. O comando `ocf:develop` DEVE validar o status da issue antes de iniciar: backlog/ready → promove automaticamente; open sem remote → recusa; in-review+ → recusa.
-- Suggested fix: Já implementado parcialmente — falta seguir o pipeline (branch, commit, review, MR).
-
 ### 4. Pergunta sobre quantidade de revisores seniors não está documentada no pipeline
 - Status: in-progress
 - Type: bug
