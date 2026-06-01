@@ -23,23 +23,6 @@ Single source of truth for tracked work in this project.
 `Business rules:` is required for `feat` type issues.
 `Reviewers:` is set during promotion and consumed during senior review and MR creation.
 
-### 1. Resolved issue archive goes to global instead of project `.opencode/`
-- Status: open
-- Type: bug
-- Severity: high
-- Report: william.pereira@digitalup.intranet
-- Reviewers: 1
-- Remote: -
-- Location: `scripts/config.sh`:25
-- Description: Ao arquivar uma issue resolvida de dentro de um projeto que usa a configuração global (mas sem `.opencode/known_issues.md` próprio), o `RESOLVED_FILE` aponta para `$CONFIG_DIR/resolved_issues.md` (global) em vez de `$(pwd -P)/.opencode/resolved_issues.md` (projeto).
-- Impact: Projetos que compartilham o issue tracker global perdem o histórico de issues resolvidas no contexto do projeto — toda resolução vai parar no arquivo global.
-- Business rules:
-  1. Se o projeto possui diretório `.opencode/`, o resolved issues DEVE ser salvo em `.opencode/resolved_issues.md` do projeto, independentemente de onde as issues ativas são trackeadas.
-  2. Se NÃO existe diretório `.opencode/` no CWD (ou seja, não há contexto de projeto), o resolved issues DEVE usar o mesmo diretório do issue tracker global (`$CONFIG_DIR`).
-  3. A detecção do diretório `.opencode/` deve usar `pwd -P` (caminho físico, sem symlinks).
-- Suggested fix: Separar a lógica do `RESOLVED_FILE` da lógica do `PROJECT_ISSUES_DIR` em `config.sh`. Adicionar um bloco `elif [ -d ".opencode" ]` para determinar o diretório de arquivamento.
-
-
 ### 2. Adicionar etapa de definição da branch base no pipeline de promoção
 - Status: in-progress
 - Type: feat
