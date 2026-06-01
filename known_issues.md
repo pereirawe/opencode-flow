@@ -104,23 +104,6 @@ Single source of truth for tracked work in this project.
   11. O relatório DEVE listar os arquivos revisados e o diff analisado.
 - Suggested fix: Criar `agents/review-external.md` com o agente de revisão. Adicionar comando `ocf:review-external` no `opencode.json`. Criar diretório `.opencode/reviews/` para armazenar relatórios. Atualizar `Makefile` com target `review-external`.
 
-### 4. Pergunta sobre quantidade de revisores seniors não está documentada no pipeline
-- Status: in-progress
-- Type: bug
-- Severity: medium
-- Report: william.pereira@digitalup.intranet
-- Reviewers: 1
-- Remote: -
-- Location: `workflow.md`:57-86, `opencode.json`:18-25, `agents/publish-requester.md`:26-27
-- Description: O PM/desenvolvedor não pergunta ao usuário quantos revisores seniors devem revisar o código. O pipeline não documenta essa pergunta, e o valor padrão está sendo 2 revisores (divergente do especificado como default 1). O publish-requester lê de `opencode.json` (que não existe) ao invés de ler do campo `Reviewers:` na issue.
-- Impact: Revisão sempre usa 2 revisores sem consultar o usuário, podendo gastar recursos desnecessários ou ser insuficiente.
-- Business rules:
-  1. Durante a promoção (PM), DEVE ser perguntado: "Quantos revisores seniors devem revisar este trabalho?" (default 1).
-  2. O número DEVE ser armazenado no campo `- Reviewers:` na issue em `known_issues.md`.
-  3. Durante a revisão, a quantidade DEVE ser lida do campo `- Reviewers:` da issue, não do `opencode.json`.
-  4. O publish-requester DEVE ler do campo `Reviewers:` da issue, não do `opencode.json`.
-- Suggested fix: Adicionar etapa no workflow.md Agent Pipeline (passo 4) e Issue Lifecycle (passo 4). Atualizar project-manager.md, publish-requester.md, e opencode.json (ocf:promote). Alterar publish-requester para ler do campo `Reviewers:` da issue.
-
 ### Status Lifecycle
 
 - `backlog`: item captured but not yet refined or prioritized
