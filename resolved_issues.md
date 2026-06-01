@@ -1,5 +1,14 @@
 # Resolved Issues
 
+### 7. Workflow de revisão externa de branches/MRs (ocf:review-external)
+- Resolved: 2026-06-01
+- Type: feat
+- Report: william.pereira@digitalup.intranet
+- Reviewers: 1
+- Remote: #9
+- PR: #10
+- Summary: Criado comando ocf:review-external + agente agents/review-external.md para revisao de branches/MRs externos com relatorio estruturado (11 regras de negocio). Suporta MR URL (GitHub/GitLab) e branch remota.
+
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
 ### 4. Pergunta sobre quantidade de revisores seniors não está documentada no pipeline

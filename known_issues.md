@@ -80,31 +80,6 @@ Single source of truth for tracked work in this project.
   7. O template en (`standards/pr-template.md`) é o padrão; os localized templates devem seguir a mesma estrutura.
 - Suggested fix: Revisar `standards/pr-template.md` adicionando as novas seções. Atualizar cada tradução. Atualizar `agents/publish-requester.md` para usar o novo template e preencher campos automaticamente.
 
-### 7. Workflow de revisão externa de branches/MRs (ocf:review-external)
-- Status: in-publish
-- Type: feat
-- Severity: high
-- Report: william.pereira@digitalup.intranet
-- Reviewers: 1
-- Remote: #9
-- PR: #10
-- Location: `opencode.json`:22-25 (existing `ocf:review-branch`), `agents/senior-reviewers/*.md`, `standards/code-review.md`
-- Description: Criar comando `ocf:review-external` + agente `agents/review-external.md` para revisar branches/MRs de outros desenvolvedores, com geração de relatório local e post opcional de comentários críticos/high no MR.
-- Impact: Permite revisão padronizada de código fora do pipeline opencode, garantindo qualidade consistente.
-- Business rules:
-  1. O comando DEVE aceitar URL de MR (GitHub/GitLab) ou branch remota como entrada.
-  2. DEVE fazer fetch da branch remota e checkout local para análise.
-  3. A revisão DEVE usar os senior-reviewers agents por domínio (backend, frontend, security, data, devops, performance, runtime, mobile, ux-ui, qa).
-  4. Comentários DEVEM ser classificados como: `critical`, `high`, `medium`, `low`, `nit`.
-  5. O relatório local DEVE ser salvo em `.opencode/reviews/review-<branch>-<timestamp>.md`.
-  6. Apenas comentários `critical` e `high` DEVEM ser elegíveis para postagem automática no MR.
-  7. O revisor DEVE ser perguntado antes de postar: "Postar os <n> comentários críticos/high no MR? (s/N)".
-  8. A revisão DEVE focar exclusivamente em aspectos técnicos: corretude, segurança, performance, estrutura, boas práticas.
-  9. O revisor NÃO DEVE assumir contexto de negócio que não está explícito no MR ou na issue referenciada.
-  10. Se uma regra de negócio parecer violada mas não está documentada no MR/issue, DEVE ser classificada como `incomplete-spec` (não bug) e registrada como nova issue na known_issues.md.
-  11. O relatório DEVE listar os arquivos revisados e o diff analisado.
-- Suggested fix: Criar `agents/review-external.md` com o agente de revisão. Adicionar comando `ocf:review-external` no `opencode.json`. Criar diretório `.opencode/reviews/` para armazenar relatórios. Atualizar `Makefile` com target `review-external`.
-
 ### Status Lifecycle
 
 - `backlog`: item captured but not yet refined or prioritized
