@@ -23,6 +23,10 @@
             "template": "Ask the user how many Senior Reviewers should perform this review (default 1). Do NOT read reviewer count from opencode.json. Read `- Reviewers:` from the issue entry in `known_issues.md` instead. Then run a full PR/MR-style review: analyze `git diff`, use that many Senior Engineer reviewers, identify Critical and Major issues only, validate tests and docs, and register new issues.",
             "description": "Full PR/MR-style code review"
         },
+        "ocf:develop": {
+            "template": "Ask the user which issue ID to develop (or detect from current branch name matching `issue-<id>-<slug>`). Read the issue entry from `known_issues.md`. Check the Status:\n- If `backlog` or `ready`: run the promote flow first — ask base branch, reviewer count, create remote issue, then proceed.\n- If `open` with Remote `-`: refuse — tell the user to create the remote first via `ocf:promote` or `ocf:sync-issues`.\n- If `open` with Remote set or `in-progress`: proceed.\n- If `in-review`, `in-qa`, `in-publish`, or `resolved`: refuse — issue is past development phase.\nIf proceeding, verify the current git branch matches `issue-<id>-<slug>`; if not, checkout the correct branch. Then invoke the Developer agent with the full issue context (title, description, business rules, acceptance criteria, location, branch) to implement the feature or fix.",
+            "description": "Start or resume development on an issue, promoting first if needed"
+        },
         "ocf:scan-issues": {
             "template": "Run a deep analysis of the codebase to detect new issues (security, concurrency, architecture, reliability). Create or update `.opencode/known_issues.md`. Follow the issue entry format from `standards/issues.md`.",
             "description": "Deep codebase analysis and issue detection"
