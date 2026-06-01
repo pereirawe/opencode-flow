@@ -7,7 +7,7 @@ help:
 	@echo "Targets:"
 	@echo "  make scan-issues        — run static analysis + prompt /ocf:scan-issues"
 	@echo "  make review             — show git diff + prompt /ocf:review-branch"
-	@echo "  make promote id=<n>     — move known_issues entry to open"
+	@echo "  make promote id=<n> [base=<b>] — promote issue + create feature branch from base (default: auto-detect)"
 	@echo "  make close-issue id=<n> — mark known_issues entry resolved"
 	@echo "  make commit             — atomic semantic commit"
 	@echo "  make maintain           — scan known_issues for stale entries + prompt /ocf:maintain"

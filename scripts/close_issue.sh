@@ -53,7 +53,8 @@ fi
 TITLE=$(printf '%s\n' "$SECTION" | sed -n '1s/^### [0-9]*\. //p')
 TYPE=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Type:/ {print $2; exit}')
 SEVERITY=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Severity:/ {print $2; exit}')
-REPORTED_BY=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Reported by:/ {print $2; exit}')
+REPORTED_BY=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Report:/ {print $2; exit}')
+REVIEWERS=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Reviewers:/ {print $2; exit}')
 DESC=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Description:/ {print $2; exit}')
 SUGGESTED=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Suggested fix:/ {print $2; exit}')
 RESOLVED_DATE=$(date +%Y-%m-%d)
@@ -73,7 +74,8 @@ printf '%s\n' "" > "$TMP_ARCHIVE"
 printf '### %s. %s\n' "$ID" "$TITLE" >> "$TMP_ARCHIVE"
 printf -- '- Resolved: %s\n' "$RESOLVED_DATE" >> "$TMP_ARCHIVE"
 printf -- '- Type: %s\n' "${TYPE:-chore}" >> "$TMP_ARCHIVE"
-printf -- '- Reported by: %s\n' "${REPORTED_BY:-unknown}" >> "$TMP_ARCHIVE"
+printf -- '- Report: %s\n' "${REPORTED_BY:-unknown}" >> "$TMP_ARCHIVE"
+printf -- '- Reviewers: %s\n' "${REVIEWERS:-1}" >> "$TMP_ARCHIVE"
 printf -- '- Remote: %s\n' "${REMOTE_REF:--}" >> "$TMP_ARCHIVE"
 printf -- '- Severity: %s\n' "${SEVERITY:-medium}" >> "$TMP_ARCHIVE"
 printf -- '- Summary: %s\n' "$SUMMARY" >> "$TMP_ARCHIVE"
