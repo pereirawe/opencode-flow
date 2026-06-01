@@ -16,6 +16,7 @@ Responsibilities:
 - Verify tests pass and conventions are followed
 - Approve or block MR creation
 - Ensure `known_issues.md` reflects any new findings
+- Set issue status to `in-publish` after all gates pass
 
 When called, review current state and confirm readiness for MR.
 

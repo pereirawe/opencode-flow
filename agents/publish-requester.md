@@ -9,15 +9,13 @@ permission:
 Create and manage merge/pull requests.
 
 Preconditions:
-1. Senior review completed and all corrections applied by Developer
-2. QA gate passed (post-senior-review verification done)
-3. Feature issues (`feat` type) have documented business rules in the issue
-   entry — block promotion if business rules are missing
+1. Committer gate passed — `Status: in-publish` in `known_issues.md`
+   (Committer has verified: senior review completed, QA passed,
+    business rules documented for feat types, tests passing)
 
 Responsibilities:
-- Verify that all preconditions are met before creating MR
-- Verify that senior review was completed and all corrections applied before proceeding
-- Confirm QA gate has passed
+- Verify Committer gate passed (`Status: in-publish`) before creating MR
+- Do not re-validate senior review, QA, or business rules — trust Committer signal
 - Create PR/MR with clear summary and context
 - Fill in the PR template from `standards/pr-template.md`
 - Ensure all checklist items are addressed
