@@ -15,7 +15,9 @@ Exemplos:
 
 ## Fluxo de Trabalho
 
-1. Crie o branch a partir do branch padrão
-2. Implemente as alterações e faça commit
-3. Envie e abra um PR/MR
-4. Após o merge, exclua o branch
+1. Escolha o branch base (padrão ou outro branch existente escolhido durante a promoção do PM)
+2. Faça checkout e pull do branch base
+3. Crie o branch de feature `issue-<id>-<slug>` a partir do branch base
+4. Implemente as alterações e faça commit
+5. Envie e abra um PR/MR
+6. Após o merge, exclua o branch

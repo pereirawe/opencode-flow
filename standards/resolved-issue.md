@@ -8,7 +8,8 @@ Resolved issues are removed from `known_issues.md` and moved here in compact for
 ### <id>. <title>
 - Resolved: <YYYY-MM-DD>
 - Type: bug | feat | doc | chore
-- Reported by: <user-name> | <model-name>
+- Report: <user-name> | <model-name>
+- Reviewers: <number>
 - Remote: - | #<remote-id>
 - Summary: <2-3 linhas do que foi feito>
 ```

@@ -15,7 +15,9 @@ Examples:
 
 ## Workflow
 
-1. Create branch from the default branch
-2. Implement changes and commit
-3. Push and open PR/MR
-4. After merge, delete the branch
+1. Choose base branch (default or another existing branch chosen during PM promotion)
+2. Checkout and pull the base branch
+3. Create feature branch `issue-<id>-<slug>` from the base branch
+4. Implement changes and commit
+5. Push and open PR/MR
+6. After merge, delete the branch

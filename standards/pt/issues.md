@@ -11,7 +11,8 @@ Rastreamento em dois níveis:
 - Status: backlog | ready | open | in-progress | in-review | in-qa | in-publish | resolved
 - Type: bug | feat | doc | chore
 - Severity: critical | high | medium | low
-- Reported by: <nome-usuário> | <nome-modelo>
+- Report: <nome-usuário> | <nome-modelo>
+- Reviewers: <número> (definido durante promoção, default 1)
 - Remote: - | #<id-remoto>
 - Location: <caminho-arquivo>:<linhas>
 - Description: <descrição breve>
