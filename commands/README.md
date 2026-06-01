@@ -13,6 +13,7 @@ These commands are available in the assistant.
 | `ocf:commit` | Create structured commit with `Status:` trailers |
 | `ocf:sync-issues` | Sync known_issues with remote issue tracker |
 | `ocf:archive-issue <id>` | Archive resolved issue to compact format |
+| `ocf:check-pr [id]` | Check PR merge status and auto-archive merged |
 | `ocf:maintain` | Full maintenance of known_issues.md |
 | `ocf:backup` | Create intelligent timestamped backup excluding junk |
 

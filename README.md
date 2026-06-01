@@ -85,6 +85,7 @@ make init target=<path> # init project with repo context
 | `/ocf:commit` | Create structured commit with status trailers |
 | `/ocf:sync-issues` | Sync known_issues with remote tracker |
 | `/ocf:archive-issue <id>` | Archive resolved issue to compact format |
+| `/ocf:check-pr [id]` | Check PR merge status and auto-archive merged |
 | `/ocf:maintain` | Full maintenance of tracker files |
 | `/ocf:backup` | Create timestamped backup excluding junk |
 
