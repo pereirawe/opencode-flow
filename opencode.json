@@ -16,7 +16,7 @@
             "description": "Feature planning with risk awareness"
         },
         "ocf:promote": {
-            "template": "Ask the user how many Senior Reviewers should review the work after development (default 1). Do NOT read reviewer count from opencode.json. Store the count as `- Reviewers: <n>` in the issue entry in `known_issues.md`. Then promote a tracked backlog item inside `known_issues.md`. Change `Status` from `backlog` or `ready` to `open`. Then create a remote issue via the create_issue script and start development on the generated branch.",
+            "template": "Ask the user how many Senior Reviewers should review the work after development (default 1). Do NOT read reviewer count from opencode.json. Store the count as `- Reviewers: <n>` in the issue entry in `known_issues.md`. Then promote a tracked backlog item inside `known_issues.md`. Change `Status` from `backlog` or `ready` to `open` and reset `Remote` to `-`. Then ask the user: \"Criar issue remota agora? (s/N)\". If yes, run the create_issue script to create the remote issue, update `Remote: #<id>` and `Status: in-progress`, and switch to the generated branch. If no, keep status as `open` — the developer MUST NOT start development without a remote issue.",
             "description": "Promote backlog item to open and create remote issue"
         },
         "ocf:review-branch": {

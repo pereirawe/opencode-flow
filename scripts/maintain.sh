@@ -82,12 +82,23 @@ for ((i = 0; i < TOTAL; i++)); do
   echo ""
 done
 
+OPEN_NO_REMOTE=0
+for ((i = 0; i < TOTAL; i++)); do
+  status="${ISSUE_STATUSES[$i]}"
+  remote="${ISSUE_REMOTES[$i]}"
+  if [[ "$status" == "open" && "$remote" == "-" ]]; then
+    OPEN_NO_REMOTE=$((OPEN_NO_REMOTE + 1))
+    echo "  ⚠️  OPEN WITHOUT REMOTE: Issue #${ISSUE_IDS[$i]} — create remote issue before development"
+  fi
+done
+
 echo ""
 echo "=== Summary ==="
-echo "  Total issues: $TOTAL"
-echo "  Local only:   $LOCAL"
-echo "  With remote:  $REMOTE"
-echo "  Remote synced: $MATCH"
-echo "  Stale:         $STALE"
+echo "  Total issues:        $TOTAL"
+echo "  Local only:          $LOCAL"
+echo "  With remote:         $REMOTE"
+echo "  Remote synced:       $MATCH"
+echo "  Stale:               $STALE"
+echo "  Open without remote: $OPEN_NO_REMOTE"
 echo ""
 echo "[maintain] Done. Run /ocf:maintain in the assistant to review and archive."
