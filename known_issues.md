@@ -74,6 +74,69 @@ Single source of truth for tracked work in this project.
   4. Branch creation (via promote) DEVE constar no lifecycle.
 - Suggested fix: Revisar o `### Issue Lifecycle` para incluir: promotion+branch, development, senior review, QA+corrections, Committer gate, MR creation, MR merge. Alinhar com o Agent Pipeline.
 
+### 5. Criar issue remota obrigatória durante promoção
+- Status: in-publish
+- Type: feat
+- Severity: high
+- Report: william.pereira@digitalup.intranet
+- Reviewers: 1
+- Remote: #2
+- Location: `scripts/promote.sh`:1-131, `scripts/create_issue.sh`:1-124, `workflow.md`:57-92
+- Description: Tornar obrigatória a criação da issue remota (GitHub/GitLab) durante o fluxo de promoção. O promote.sh mantém duas etapas (promote → create_issue), mas o pipeline deve validar que o campo `Remote:` não está vazio antes de permitir `in-progress`. O comando `ocf:promote` deve perguntar se deseja criar a issue remota agora.
+- Impact: Issues podem ser trabalhadas sem contraparte remota, perdendo rastreabilidade e visibilidade do time.
+- Business rules:
+  1. O promote.sh mantém duas etapas separadas (promote → status `open` com Remote `-`; create_issue → Remote preenchido e status `in-progress`).
+  2. O pipeline DEVE validar que o campo `Remote:` contém um ID válido (não `-`) antes de permitir o status `in-progress`.
+  3. O comando `ocf:promote` DEVE verificar se `Remote:` está vazio e perguntar: "Criar issue remota agora? (s/N)".
+  4. Se o usuário recusar criar a remote, a issue fica como `open` e o desenvolvedor NÃO pode iniciar o desenvolvimento.
+  5. Scripts de validação (pre-commit, maintain) DEVEM verificar issues com status `open` e Remote `-` e emitir alerta.
+  6. O create_issue.sh já atualiza Remote e status para `in-progress` — essa lógica deve ser mantida.
+- Suggested fix: Adicionar validação no `ocf:promote` command template em `opencode.json` para verificar Remote antes de prosseguir. Adicionar verificação no `pre_commit.sh` e `maintain.sh`. Adicionar documentação no `workflow.md` Agent Pipeline passo 4.
+
+### 6. Revisar e enriquecer o PR template
+- Status: backlog
+- Type: feat
+- Severity: medium
+- Report: william.pereira@digitalup.intranet
+- Reviewers: (set during promotion)
+- Remote: -
+- Location: `standards/pr-template.md`:1-16, `standards/pt/pr-template.md`:1-16, `standards/es/pr-template.md`, `standards/fr/pr-template.md`, `standards/de/pr-template.md`, `standards/ja/pr-template.md`, `standards/zh/pr-template.md`, `agents/publish-requester.md`:17-18
+- Description: Expandir o PR template atual (en/pt/es/fr/de/ja/zh) para um template único mais completo, com seções opcionais. O publish-requester deve preencher automaticamente os dados da issue.
+- Impact: PRs mais completos reduzem idas-e-voltas em revisão e documentam decisões técnicas.
+- Business rules:
+  1. O template DEVE ser único (não múltiplos templates por tipo de issue).
+  2. Seções opcionais DEVEM ser claramente marcadas como `(opcional)` no template.
+  3. O template DEVE incluir: Resumo executivo, Contexto/Motivação, O que mudou, Checklist, Screenshots/Evidências (opcional), Breaking Changes (opcional), Rollback Plan (opcional), Referência à Issue (obrigatório), Riscos, Como Testar.
+  4. A seção "Referência à Issue" DEVE conter `Relates to: #<id>` linkando para a known_issues.md.
+  5. O agente publish-requester DEVE preencher automaticamente o template com: título da issue, ID, branch name, e remote reference.
+  6. Todas as traduções existentes (pt, es, fr, de, ja, zh) DEVEM ser atualizadas em paralelo com o template en.
+  7. O template en (`standards/pr-template.md`) é o padrão; os localized templates devem seguir a mesma estrutura.
+- Suggested fix: Revisar `standards/pr-template.md` adicionando as novas seções. Atualizar cada tradução. Atualizar `agents/publish-requester.md` para usar o novo template e preencher campos automaticamente.
+
+### 7. Workflow de revisão externa de branches/MRs (ocf:review-external)
+- Status: backlog
+- Type: feat
+- Severity: high
+- Report: william.pereira@digitalup.intranet
+- Reviewers: (set during promotion)
+- Remote: -
+- Location: `opencode.json`:22-25 (existing `ocf:review-branch`), `agents/senior-reviewers/*.md`, `standards/code-review.md`
+- Description: Criar comando `ocf:review-external` + agente `agents/review-external.md` para revisar branches/MRs de outros desenvolvedores, com geração de relatório local e post opcional de comentários críticos/high no MR.
+- Impact: Permite revisão padronizada de código fora do pipeline opencode, garantindo qualidade consistente.
+- Business rules:
+  1. O comando DEVE aceitar URL de MR (GitHub/GitLab) ou branch remota como entrada.
+  2. DEVE fazer fetch da branch remota e checkout local para análise.
+  3. A revisão DEVE usar os senior-reviewers agents por domínio (backend, frontend, security, data, devops, performance, runtime, mobile, ux-ui, qa).
+  4. Comentários DEVEM ser classificados como: `critical`, `high`, `medium`, `low`, `nit`.
+  5. O relatório local DEVE ser salvo em `.opencode/reviews/review-<branch>-<timestamp>.md`.
+  6. Apenas comentários `critical` e `high` DEVEM ser elegíveis para postagem automática no MR.
+  7. O revisor DEVE ser perguntado antes de postar: "Postar os <n> comentários críticos/high no MR? (s/N)".
+  8. A revisão DEVE focar exclusivamente em aspectos técnicos: corretude, segurança, performance, estrutura, boas práticas.
+  9. O revisor NÃO DEVE assumir contexto de negócio que não está explícito no MR ou na issue referenciada.
+  10. Se uma regra de negócio parecer violada mas não está documentada no MR/issue, DEVE ser classificada como `incomplete-spec` (não bug) e registrada como nova issue na known_issues.md.
+  11. O relatório DEVE listar os arquivos revisados e o diff analisado.
+- Suggested fix: Criar `agents/review-external.md` com o agente de revisão. Adicionar comando `ocf:review-external` no `opencode.json`. Criar diretório `.opencode/reviews/` para armazenar relatórios. Atualizar `Makefile` com target `review-external`.
+
 ### 4. Pergunta sobre quantidade de revisores seniors não está documentada no pipeline
 - Status: in-progress
 - Type: bug

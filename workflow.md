@@ -70,6 +70,12 @@ Any direct implementation without pipeline is a violation.
    `issue-<id>-<slug>` from it. Update status to `open`.
    **PM MUST also ask: "Quantos revisores seniors devem revisar este trabalho?"
    (default 1) and store the number in `- Reviewers:` in the issue entry.**
+   **After promoting to `open`, PM MUST ask: "Criar issue remota agora? (s/N)".**
+   If yes, create the remote issue via the create_issue script (updates Remote and
+   status to `in-progress`). If no, keep status as `open` — development MUST NOT
+   start without a remote issue.
+   **Pre-commit and maintain scripts MUST check for issues with `Status: open` and
+   `Remote: -` and emit alerts.**
 5. **Quality Analyst (pre-development)** — ensure stories are testable and meet
    quality standards, validate business rules are testable
 6. **Developer** — implement features, write automated tests, run tests, keep
@@ -103,16 +109,20 @@ Any direct implementation without pipeline is a violation.
 4. PM promotes the issue, asks user for base branch (default or existing),
    checkouts+pulls the base branch, creates feature branch `issue-<id>-<slug>`
    from it, asks for reviewer count (default 1) and stores in `- Reviewers:`,
-   creates remote issue → `open`
-5. Remote issue exists, work started on branch → `in-progress`
-   — Senior review feedback addressed while staying `in-progress`
-6. Senior review completed, all issues resolved → `in-review`
-7. QA verification:
-   - Corrections needed → `in-qa` → `in-progress` (back to step 5)
+   updates status → `open`
+5. PM asks user if they want to create the remote issue now:
+   - Yes → creates remote issue, updates `Remote: #<id>` and `Status: in-progress`
+   - No → stays `open`, development MUST NOT start
+   → `in-progress` (if remote created) or `open` (if deferred)
+6. Development on branch — Senior review feedback addressed while staying
+   `in-progress` → `in-progress`
+7. Senior review completed, all issues resolved → `in-review`
+8. QA verification:
+   - Corrections needed → `in-qa` → `in-progress` (back to development)
    - Approved → `in-qa`
-8. Committer gate passed → `in-publish`
-9. MR/PR created → `in-publish`
-10. MR/PR approved and merged → `resolved`
+9. Committer gate passed → `in-publish`
+10. MR/PR created → `in-publish`
+11. MR/PR approved and merged → `resolved`
 
 ### Branch Naming
 
