@@ -81,12 +81,12 @@ Single source of truth for tracked work in this project.
 - Suggested fix: Revisar `standards/pr-template.md` adicionando as novas seções. Atualizar cada tradução. Atualizar `agents/publish-requester.md` para usar o novo template e preencher campos automaticamente.
 
 ### 7. Workflow de revisão externa de branches/MRs (ocf:review-external)
-- Status: backlog
+- Status: in-publish
 - Type: feat
 - Severity: high
 - Report: william.pereira@digitalup.intranet
-- Reviewers: (set during promotion)
-- Remote: -
+- Reviewers: 1
+- Remote: #9
 - Location: `opencode.json`:22-25 (existing `ocf:review-branch`), `agents/senior-reviewers/*.md`, `standards/code-review.md`
 - Description: Criar comando `ocf:review-external` + agente `agents/review-external.md` para revisar branches/MRs de outros desenvolvedores, com geração de relatório local e post opcional de comentários críticos/high no MR.
 - Impact: Permite revisão padronizada de código fora do pipeline opencode, garantindo qualidade consistente.
