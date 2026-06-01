@@ -81,10 +81,12 @@ make init target=<path> # init project with repo context
 | `/ocf:review-branch` | Full PR/MR-style code review |
 | `/ocf:plan-feature` | Feature breakdown with risk assessment |
 | `/ocf:promote <id>` | Promote backlog item + create remote issue |
+| `/ocf:develop [id]` | Start or resume development on a promoted issue |
 | `/ocf:commit` | Create structured commit with status trailers |
 | `/ocf:sync-issues` | Sync known_issues with remote tracker |
 | `/ocf:archive-issue <id>` | Archive resolved issue to compact format |
 | `/ocf:maintain` | Full maintenance of tracker files |
+| `/ocf:backup` | Create timestamped backup excluding junk |
 
 ## Bootstrap a New Project
 

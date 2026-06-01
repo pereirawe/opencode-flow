@@ -1,42 +1,39 @@
 ## /ocf:promote <id>
 
 ---
-description: Promote a backlog item to open for execution
+description: Promote a backlog item to open and create remote issue
 ---
 
-Promote a tracked backlog item inside `known_issues.md` and create a remote issue.
-
-The project issue tracker is at `$PWD/.opencode/known_issues.md`.
-Shell scripts live at `$HOME/.config/opencode/scripts/`.
+Promote a tracked backlog item inside `known_issues.md`.
 
 ### Flow
 
-1. **Ask the user** how many Senior Reviewers should review after development (default: 1)
-   — do **not** read from `opencode.json` to avoid config breakage
-2. Promote tracked item: change `Status` from `backlog` or `ready` to `open`
-3. Reset `Remote` to `-` (will be set by remote creation)
-4. Create remote issue via `$HOME/.config/opencode/scripts/create_issue.sh <id>`
-   - Detects GitHub (`gh`) or GitLab (`glab`) from `git remote`
-   - Creates remote issue with title + body from `known_issues.md`
-   - Updates `Remote: #<id>` and `Status: in-progress` in `known_issues.md`
-   - Creates and checks out branch `issue-<remote-id>-<slug>`
-5. Note the reviewer count for branch review phase (used later by `/ocf:review-branch`)
-6. Development starts on the generated branch
+1. **Ask the user** how many Senior Reviewers should review after development
+   (default: 1) — do **not** read from `opencode.json`
+2. Store the count as `- Reviewers: <n>` in the issue entry
+3. Change `Status` from `backlog` or `ready` to `open`
+4. Reset `Remote` to `-`
+5. **Ask the user**: "Criar issue remota agora? (s/N)"
+   - **Yes**: run `create_issue.sh <id>` — creates remote issue, updates
+     `Remote: #<id>` and `Status: in-progress`, switches to the generated
+     branch `issue-<remote-id>-<slug>`
+   - **No**: keep status as `open` — development MUST NOT start without a
+     remote issue
+
+### Status lifecycle
+
+| Status | Description |
+|--------|-------------|
+| `backlog` / `ready` | Planning states — can be promoted |
+| `open` | Pre-remote execution state — remote creation deferred |
+| `in-progress` | Remote issue exists, work has started |
+| `in-review` | Senior review completed, awaiting QA |
+| `in-qa` | QA verifying post-review corrections |
+| `in-publish` | Committer gate passed, MR created, awaiting merge |
+| `resolved` | Terminal state — issue moved to archive |
 
 ### Usage
 
 ```
 /ocf:promote 2
 ```
-
-### Status rules
-
-| Status | Description |
-|--------|-------------|
-| `backlog` / `ready` | Planning states — can be promoted |
-| `open` | Pre-remote execution state — remote creation triggered |
-| `in-progress` | Remote issue exists, work has started |
-| `in-review` | Senior review completed, awaiting QA |
-| `in-qa` | QA verifying post-review corrections |
-| `in-publish` | Committer gate passed, MR created, awaiting merge |
-| `resolved` | Terminal state — issue moved to archive |
