@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 CONFIG_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
-.PHONY: scan-issues review help promote close-issue bootstrap init maintain update review-external
+.PHONY: scan-issues review help promote close-issue bootstrap init maintain update review-external sync-issues close-merged
 
 help:
 	@echo "Targets:"
@@ -92,6 +92,14 @@ review-external:
 	@echo "[make] review-external"
 	@echo "Run /ocf:review-external in the assistant to review external branches/MRs"
 	@echo "Usage: provide an MR URL (GitHub/GitLab) or remote branch name"
+
+sync-issues:
+	@echo "[make] sync-issues"
+	@bash $(CONFIG_DIR)scripts/sync_github_issues.sh $(filter-out $@,$(MAKECMDGOALS))
+
+close-merged:
+	@echo "[make] close-merged"
+	@echo "Run /ocf:close-requester in the assistant or use \`make close-issue id=<n>\` for a single issue"
 
 backup:
 	@echo "[make] backup"

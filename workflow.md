@@ -93,6 +93,10 @@ Any direct implementation without pipeline is a violation.
     `in-publish` on approval.
 11. **Publish Requester** — create merge/pull request after Committer gate passes.
     Does not re-validate gates — trusts Committer signal (`Status: in-publish`).
+12. **Close Requester** — after MR/PR is merged, close the remote issue on
+    GitHub/GitLab, update `known_issues.md` status to `resolved`, and archive
+    to `resolved_issues.md` via `close_issue.sh`. If the PR is not yet merged
+    when called, skip and report back.
 
 > **Documentation** and **Test Automation** are ongoing activities that run in
 > parallel across all pipeline phases, not sequential gates.
@@ -122,7 +126,8 @@ Any direct implementation without pipeline is a violation.
    - Approved → `in-qa`
 9. Committer gate passed → `in-publish`
 10. MR/PR created → `in-publish`
-11. MR/PR approved and merged → `resolved`
+11. MR/PR approved and merged → `in-publish` (PR merged but issue not yet closed)
+12. Close Requester closes remote issue and archives → `resolved`
 
 ### Branch Naming
 
@@ -141,6 +146,7 @@ existing branch) during the PM promotion step.
 - Committer gate passed before MR creation
 - `known_issues.md` reflects current status at every step
 - MR approved and merged
+- Remote issue closed
 
 ### Pre-commit
 

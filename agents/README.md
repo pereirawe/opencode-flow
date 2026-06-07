@@ -13,6 +13,7 @@ Agents are loaded via OpenCode's subagent mechanism. Each agent has a specific f
 | `developer` | Feature implementation |
 | `committer` | Pre-MR gatekeeper (verifies senior review done) |
 | `publish-requester` | Merge/pull request creation |
+| `close-requester` | Closes remote issues after MR merge and archives to resolved_issues.md |
 | `documentation` | Docs maintenance |
 | `test-automation` | Automated test suites |
 | `backup` | Intelligent timestamped backups excluding junk |

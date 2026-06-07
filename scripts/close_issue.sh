@@ -34,11 +34,25 @@ fi
 STATUS=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Status:/ {print $2; exit}')
 REMOTE_REF=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Remote:/ {print $2; exit}')
 REMOTE_ID=${REMOTE_REF#\#}
+PR_REF=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- PR:/ {print $2; exit}')
+PR_ID=${PR_REF#\#}
 REMOTE_URL=$(git config --get remote.origin.url)
 
-if [[ "$STATUS" != "open" && "$STATUS" != "in-progress" ]]; then
+if [[ "$STATUS" != "open" && "$STATUS" != "in-progress" && "$STATUS" != "in-publish" && "$STATUS" != "resolved" ]]; then
   echo "Issue $ID cannot be closed from status '$STATUS'"
   exit 1
+fi
+
+# Auto-detect merged PR when status is in-publish
+if [[ "$STATUS" == "in-publish" && -n "$PR_ID" && "$PR_ID" != "-" ]]; then
+  if [[ "$REMOTE_URL" == *"github.com"* ]]; then
+    PR_STATE=$(gh pr view "$PR_ID" --json state --jq '.state' 2>/dev/null || echo "UNKNOWN")
+    if [[ "$PR_STATE" == "MERGED" ]]; then
+      echo "[pr] PR #$PR_ID merged — closing issue"
+    else
+      echo "[pr] PR #$PR_ID not merged yet (state: $PR_STATE). Skipping remote close."
+    fi
+  fi
 fi
 
 if [[ -n "$REMOTE_ID" && "$REMOTE_ID" != "-" ]]; then
