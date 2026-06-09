@@ -66,12 +66,13 @@ Single source of truth for tracked work in this project.
 - Suggested fix: Criar `standards/lsp-catalog.json` com mapeamentos. Atualizar `scripts/init.sh` para detectar linguagens, consultar catálogo, sugerir LSPs e configurar editor. Atualizar `commands/ocf:init.md` com o novo fluxo. Atualizar `opencode.json` command template. Unificar `make bootstrap` → `init.sh`.
 
 ### 8. Validar opencode instalado e atualizado antes do install.sh do opencode-flow
-- Status: backlog
+- Status: in-publish
 - Type: feat
 - Severity: high
 - Report: william.pereira@digitalup.intranet
-- Reviewers: (set during promotion)
-- Remote: -
+- Reviewers: 1
+- Remote: #12
+- PR: #13
 - Location: `install.sh`:1-96, `README.md`:12-14, `scripts/update.sh`
 - Description: O install.sh instala a config opencode-flow sem validar se o opencode (ferramenta AI) está instalado. Se não estiver, a config não tem funcionalidade. Deve também verificar se está atualizado e oferecer update.
 - Impact: Usuários podem instalar a config sem ter o opencode, resultando em configuração inútil.
