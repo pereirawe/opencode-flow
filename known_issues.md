@@ -45,13 +45,14 @@ Single source of truth for tracked work in this project.
 - Suggested fix: Revisar `standards/pr-template.md` adicionando as novas seções. Atualizar cada tradução. Atualizar `agents/publish-requester.md` para usar o novo template e preencher campos automaticamente.
 
 ### 7. Melhorar ocf:init com detecção de linguagens, sugestão de LSPs e configuração automática do editor
-- Status: backlog
+- Status: in-publish
 - Type: feat
 - Severity: medium
 - Report: william.pereira@digitalup.intranet
-- Reviewers: (set during promotion)
-- Remote: -
-- Location: `commands/ocf:init.md`:1-25, `scripts/init.sh`:1-57, `Makefile`:49-80,88-89, `opencode.json`:10-13
+- Reviewers: 1
+- Remote: #14
+- PR: #15
+- Location: `standards/lsp-catalog.json`:1-157, `commands/ocf:init.md`:1-31, `scripts/init.sh`:1-244, `Makefile`:49-55, `opencode.json`:10-13
 - Description: O init global deve detectar linguagens do projeto via catálogo, sugerir LSPs e configurar .vscode/settings.json com merge preservando configurações existentes. Unificar `make bootstrap` para delegar em `init.sh`.
 - Impact: Projetos inicializados com opencode ganham configuração de editor pronta para uso, com LSPs adequados ao tipo de projeto.
 - Business rules:

@@ -1,0 +1,173 @@
+[
+  {
+    "detectors": ["package.json", "deno.json", "deno.jsonc"],
+    "language": "JavaScript & TypeScript",
+    "extensions": [
+      "dbaeumer.vscode-eslint",
+      "ms-vscode.vscode-typescript-next"
+    ],
+    "settings": {
+      "[javascript]": {
+        "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+        "editor.formatOnSave": true
+      },
+      "[typescript]": {
+        "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+        "editor.formatOnSave": true
+      },
+      "[typescriptreact]": {
+        "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+        "editor.formatOnSave": true
+      },
+      "[javascriptreact]": {
+        "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+        "editor.formatOnSave": true
+      }
+    }
+  },
+  {
+    "detectors": ["*.py"],
+    "language": "Python",
+    "extensions": [
+      "charliermarsh.ruff"
+    ],
+    "settings": {
+      "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll": "explicit"
+        }
+      }
+    }
+  },
+  {
+    "detectors": ["Cargo.toml"],
+    "language": "Rust",
+    "extensions": [
+      "rust-lang.rust-analyzer"
+    ],
+    "settings": {
+      "[rust]": {
+        "editor.defaultFormatter": "rust-lang.rust-analyzer",
+        "editor.formatOnSave": true
+      }
+    }
+  },
+  {
+    "detectors": ["go.mod"],
+    "language": "Go",
+    "extensions": [
+      "golang.go"
+    ],
+    "settings": {
+      "[go]": {
+        "editor.defaultFormatter": "golang.go",
+        "editor.formatOnSave": true
+      }
+    }
+  },
+  {
+    "detectors": ["composer.json"],
+    "language": "PHP",
+    "extensions": [
+      "bmewburn.vscode-intelephense-client"
+    ],
+    "settings": {
+      "[php]": {
+        "editor.defaultFormatter": "bmewburn.vscode-intelephense-client",
+        "editor.formatOnSave": true
+      }
+    }
+  },
+  {
+    "detectors": ["*.sh"],
+    "language": "Shell",
+    "extensions": [
+      "timonwong.shellcheck"
+    ],
+    "settings": {
+      "[shellscript]": {
+        "editor.defaultFormatter": "timonwong.shellcheck",
+        "editor.formatOnSave": true
+      }
+    }
+  },
+  {
+    "detectors": ["*.md"],
+    "language": "Markdown",
+    "extensions": [
+      "davidanson.vscode-markdownlint",
+      "yzhang.markdown-all-in-one"
+    ],
+    "settings": {
+      "[markdown]": {
+        "editor.defaultFormatter": "yzhang.markdown-all-in-one",
+        "editor.formatOnSave": true
+      }
+    }
+  },
+  {
+    "detectors": ["*.json", "*.jsonc"],
+    "language": "JSON",
+    "extensions": [],
+    "settings": {
+      "[json]": {
+        "editor.defaultFormatter": "vscode.json-language-features",
+        "editor.formatOnSave": true
+      },
+      "[jsonc]": {
+        "editor.defaultFormatter": "vscode.json-language-features",
+        "editor.formatOnSave": true
+      }
+    }
+  },
+  {
+    "detectors": ["*.yml", "*.yaml"],
+    "language": "YAML",
+    "extensions": [
+      "redhat.vscode-yaml"
+    ],
+    "settings": {
+      "[yaml]": {
+        "editor.defaultFormatter": "redhat.vscode-yaml",
+        "editor.formatOnSave": true
+      }
+    }
+  },
+  {
+    "detectors": ["tailwind.config.js", "tailwind.config.ts", "tailwind.config.mjs", "tailwind.config.cjs"],
+    "language": "Tailwind CSS",
+    "extensions": [
+      "bradlc.vscode-tailwindcss"
+    ],
+    "settings": {
+      "tailwindCSS.experimental.classRegex": [],
+      "editor.quickSuggestions": {
+        "strings": "on"
+      }
+    }
+  },
+  {
+    "detectors": ["*.html"],
+    "language": "HTML",
+    "extensions": [],
+    "settings": {
+      "[html]": {
+        "editor.defaultFormatter": "vscode.html-language-features",
+        "editor.formatOnSave": true
+      }
+    }
+  },
+  {
+    "detectors": ["*.css"],
+    "language": "CSS",
+    "extensions": [],
+    "settings": {
+      "[css]": {
+        "editor.defaultFormatter": "vscode.css-language-features",
+        "editor.formatOnSave": true
+      }
+    }
+  }
+]
