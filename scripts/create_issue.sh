@@ -18,6 +18,7 @@ if [[ "$INPUT" =~ ^[0-9]+$ ]]; then
     exit 1
   fi
   SECTION=$(awk -v id="$INPUT" '
+    /^### Status/ {exit}
     $0 ~ "^### " id "\\." {found=1}
     found {
       if ($0 ~ /^### [0-9]+\./ && $0 !~ "^### " id "\\.") {
@@ -80,17 +81,28 @@ else
 fi
 
 ISSUE_ID=""
+ERROR_MSG=""
 if $CREATE_REMOTE; then
   if [[ "$REMOTE_URL" == *"github.com"* ]]; then
-    ISSUE_URL=$(gh issue create --title "$TITLE" --body "$BODY")
-    ISSUE_ID=$(basename "$ISSUE_URL")
+    ISSUE_URL=$(gh issue create --title "$TITLE" --body "$BODY" 2>/tmp/gh_error || true)
+    if [[ -z "$ISSUE_URL" ]]; then
+      ERROR_MSG=$(head -1 /tmp/gh_error 2>/dev/null || echo "unknown error")
+      echo "[issue] FAILED: $ERROR_MSG"
+    else
+      ISSUE_ID=$(basename "$ISSUE_URL")
+      echo "[issue] Created: $ISSUE_URL"
+    fi
   elif [[ "$REMOTE_URL" == *"gitlab"* ]]; then
-    ISSUE_URL=$(glab issue create --title "$TITLE" --description "$BODY" --yes | grep -Eo 'https?://[^ ]+')
-    ISSUE_ID=$(basename "$ISSUE_URL")
+    ISSUE_URL=$(glab issue create --title "$TITLE" --description "$BODY" --yes 2>/tmp/gl_error | grep -Eo 'https?://[^ ]+' || true)
+    if [[ -z "$ISSUE_URL" ]]; then
+      ERROR_MSG=$(head -1 /tmp/gl_error 2>/dev/null || echo "unknown error")
+      echo "[issue] FAILED: $ERROR_MSG"
+    else
+      ISSUE_ID=$(basename "$ISSUE_URL")
+      echo "[issue] Created: $ISSUE_URL"
+    fi
   fi
-  echo "[issue] Created: $ISSUE_URL"
 else
-  ISSUE_ID="local"
   echo "[issue] Local-only issue (no remote)"
 fi
 
@@ -101,7 +113,14 @@ if [[ -f "$FILE" && "$INPUT" =~ ^[0-9]+$ ]]; then
   if [[ "$STATUS" == "ready" ]]; then
     NEW_STATUS="ready"
   fi
-  awk -v id="$INPUT" -v rid="$ISSUE_ID" -v ns="$NEW_STATUS" '
+  if [[ -n "$ERROR_MSG" ]]; then
+    REMOTE_VAL="error:$ERROR_MSG"
+  elif [[ -n "$ISSUE_ID" ]]; then
+    REMOTE_VAL="#$ISSUE_ID"
+  else
+    REMOTE_VAL="-"
+  fi
+  awk -v id="$INPUT" -v rid="$REMOTE_VAL" -v ns="$NEW_STATUS" '
   BEGIN{found=0}
   /^### [0-9]+\./{
     if(found==1 && $0 !~ "^### "id"\\."){found=0}
@@ -109,7 +128,7 @@ if [[ -f "$FILE" && "$INPUT" =~ ^[0-9]+$ ]]; then
   $0 ~ "^### "id"\."{found=1}
   {
     if(found==1 && $0 ~ /^- Status:/){print "- Status: "ns; next}
-    if(found==1 && $0 ~ /^- Remote:/){print "- Remote: #"rid; next}
+    if(found==1 && $0 ~ /^- Remote:/){print "- Remote: "rid; next}
     print
   }' "$FILE" > "$FILE.tmp" && mv "$FILE.tmp" "$FILE"
 fi

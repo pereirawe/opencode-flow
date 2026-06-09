@@ -17,6 +17,7 @@ if [[ ! -f "$FILE" ]]; then
 fi
 
 SECTION=$(awk -v id="$ID" '
+  /^### Status/ {exit}
   $0 ~ "^### " id "\\." {found=1}
   found {
     if ($0 ~ /^### [0-9]+\./ && $0 !~ "^### " id "\\.") {

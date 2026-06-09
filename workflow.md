@@ -78,7 +78,7 @@ Any direct implementation without pipeline is a violation.
    `known_issues.md` in sync. Verify the feature branch is based on the correct
    base branch before starting implementation.
 7. **Senior Reviewers** — review code using the count stored in `- Reviewers:`
-   in the issue entry (set during PM promotion), verify acceptance criteria,
+    in the issue entry (set during discovery), verify acceptance criteria,
    confirm tests were written and pass, identify issues
 8. **Quality Analyst (post-review)** — verify quality after senior review,
    check that all identified issues were addressed and quality standards are met
@@ -127,8 +127,8 @@ Any direct implementation without pipeline is a violation.
 
 Pattern: `issue-<id>-<slug>`
 
-Branches are created from the user-chosen base branch (default or another
-existing branch) during the PM promotion step.
+Branches are created from the `Base branch:` field in the issue entry
+(defined during discovery) by `promote.sh`.
 
 ### Definition of Done
 

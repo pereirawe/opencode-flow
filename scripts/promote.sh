@@ -22,6 +22,7 @@ fi
 
 # Extract issue section
 SECTION=$(awk -v id="$ID" '
+  /^### Status/ {exit}
   $0 ~ "^### " id "\\." {found=1}
   found {
     if ($0 ~ /^### [0-9]+\./ && $0 !~ "^### " id "\\.") {
@@ -75,6 +76,28 @@ if [[ "$STATUS" == "ready" ]]; then
     exit 1
   fi
 
+  if [[ "$REMOTE" == "#local" ]]; then
+    echo "[promote] ERROR: Issue $ID has Remote: #local — remote creation was skipped."
+    echo "[promote] Re-run create_issue.sh before promoting."
+    exit 1
+  fi
+
+  # Validate reviewer profiles (BR2)
+  REVIEWERS=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Reviewers:/ {print $2; exit}')
+  VALID_PROFILES="backend data devops frontend mobile performance qa runtime security ux-ui"
+  if [[ -n "$REVIEWERS" ]]; then
+    if printf '%s\n' "$REVIEWERS" | grep -q '('; then
+      PROFILES=$(printf '%s\n' "$REVIEWERS" | sed 's/.*(\(.*\))/\1/')
+      for p in $(printf '%s\n' "$PROFILES" | tr ',' ' '); do
+        p=$(printf '%s\n' "$p" | xargs)
+        if [[ -n "$p" ]] && ! printf '%s\n' "$VALID_PROFILES" | tr ' ' '\n' | grep -qxF "$p"; then
+          echo "[promote] ⚠️  WARNING: Unknown reviewer profile '$p' in issue $ID"
+          echo "[promote]   Valid profiles: $VALID_PROFILES"
+        fi
+      done
+    fi
+  fi
+
   # Read Base branch from field, with fallback
   if [[ -z "$BASE_BRANCH" ]]; then
     BASE_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's#refs/remotes/origin/##')
@@ -124,7 +147,7 @@ if [[ "$STATUS" == "ready" ]]; then
 
   # Generate slug from title
   SLUG=$(printf '%s\n' "$TITLE" \
-    | iconv -t ascii//TRANSLIT 2>/dev/null \
+    | (command -v iconv &>/dev/null && iconv -t ascii//TRANSLIT || cat) 2>/dev/null \
     | tr '[:upper:]' '[:lower:]' \
     | sed 's/[^a-z0-9]/-/g' \
     | sed 's/--*/-/g' \
@@ -138,9 +161,9 @@ if [[ "$STATUS" == "ready" ]]; then
   # Checkout base branch and pull
   git fetch origin "$BASE_BRANCH" 2>/dev/null || git fetch origin 2>/dev/null || true
   if git show-ref --verify refs/heads/"$BASE_BRANCH" &>/dev/null 2>&1; then
-    git checkout "$BASE_BRANCH" 2>/dev/null
+    git checkout "$BASE_BRANCH"
   else
-    git checkout -b "$BASE_BRANCH" origin/"$BASE_BRANCH" 2>/dev/null || true
+    git checkout -b "$BASE_BRANCH" origin/"$BASE_BRANCH"
   fi
   git pull origin "$BASE_BRANCH" 2>/dev/null || true
 
