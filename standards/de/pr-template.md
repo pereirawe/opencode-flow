@@ -1,4 +1,4 @@
-## Zusammenfassung
+## Management Summary
 <!-- Beschreiben Sie kurz, was dieser PR tut und warum -->
 
 ## Kontext & Motivation
@@ -9,9 +9,9 @@
 
 ## Checkliste
 - [ ] Tests hinzugefügt/aktualisiert
-- [ ] Keine breaking changes (oder unten dokumentiert)
+- [ ] Keine breaking changes (oder in Breaking Changes dokumentiert)
 - [ ] Config/Env aktualisiert falls nötig
-- [ ] `.config/opencode/known_issues.md` aktualisiert (Einträge hinzugefügt/bearbeitet/entfernt)
+- [ ] `known_issues.md` aktualisiert (Einträge hinzugefügt/bearbeitet/entfernt)
 
 ## Testanleitung
 <!-- Schritte zur Validierung der Änderungen -->

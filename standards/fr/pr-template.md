@@ -9,9 +9,9 @@
 
 ## Checklist
 - [ ] Tests ajoutés/mis à jour
-- [ ] Pas de breaking changes (ou documentés ci-dessous)
+- [ ] Pas de breaking changes (ou documentés dans Breaking Changes)
 - [ ] Configuration/Env mis à jour si nécessaire
-- [ ] `.config/opencode/known_issues.md` mis à jour (entrées ajoutées/modifiées/supprimées)
+- [ ] `known_issues.md` mis à jour (entrées ajoutées/modifiées/supprimées)
 
 ## Comment Tester
 <!-- Étapes pour valider les changements -->
