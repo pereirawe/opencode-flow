@@ -31,3 +31,5 @@ Discovery protocol — ask these questions based on project context:
 7. **Qual a branch base para desenvolvimento (main, master, homol, etc.)?**
 8. **Quais perfis de senior reviewers são necessários?**
    (backend, data, devops, frontend, mobile, performance, qa, runtime, security, ux-ui)
+9. **Criar a issue remota via `scripts/create_issue.sh <id>`** quando o refinement
+   estiver completo — antes de passar para QA.
