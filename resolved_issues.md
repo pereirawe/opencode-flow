@@ -1,5 +1,15 @@
 # Resolved Issues
 
+### 8. Validar opencode instalado e atualizado antes do install.sh do opencode-flow
+- Resolved: 2026-06-09
+- Type: feat
+- Report: william.pereira@digitalup.intranet
+- Reviewers: 1
+- Remote: #12
+- PR: #13
+- Severity: high
+- Summary: Adicionado bloco de validação no início do install.sh antes da instalação da config. Criada função validate_opencode que verifica instalação, versão e atualiza se necessário. README atualizado com o novo fluxo.
+
 ### 2. Adicionar etapa de definição da branch base no pipeline de promoção
 - Resolved: 2026-06-09
 - Type: feat

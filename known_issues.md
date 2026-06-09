@@ -65,27 +65,6 @@ Single source of truth for tracked work in this project.
   8. O AGENTS.md gerado DEVE usar abordagem híbrida: template base fixo + placeholders substituídos (já existente), sem adicionar seção de LSPs.
 - Suggested fix: Criar `standards/lsp-catalog.json` com mapeamentos. Atualizar `scripts/init.sh` para detectar linguagens, consultar catálogo, sugerir LSPs e configurar editor. Atualizar `commands/ocf:init.md` com o novo fluxo. Atualizar `opencode.json` command template. Unificar `make bootstrap` → `init.sh`.
 
-### 8. Validar opencode instalado e atualizado antes do install.sh do opencode-flow
-- Status: in-publish
-- Type: feat
-- Severity: high
-- Report: william.pereira@digitalup.intranet
-- Reviewers: 1
-- Remote: #12
-- PR: #13
-- Location: `install.sh`:1-96, `README.md`:12-14, `scripts/update.sh`
-- Description: O install.sh instala a config opencode-flow sem validar se o opencode (ferramenta AI) está instalado. Se não estiver, a config não tem funcionalidade. Deve também verificar se está atualizado e oferecer update.
-- Impact: Usuários podem instalar a config sem ter o opencode, resultando em configuração inútil.
-- Business rules:
-  1. O install DEVE validar `command -v opencode` e `~/.config/opencode/` antes de prosseguir.
-  2. Se opencode não instalado → DEVE perguntar "Instalar opencode? (s/N)". Se recusar, DEVE ABORTAR com a mensagem: "A instalação do opencode-flow não pode continuar pois o opencode não está instalado. Esta config é um overlay e não tem funcionalidade sem o opencode. Instale em: https://opencode.ai"
-  3. Se usuário aceitar instalar → DEVE instalar via script curl bash oficial do opencode.ai.
-  4. Se installed, DEVE verificar versão via `opencode --version` vs GitHub API latest.
-  5. Se desatualizado → DEVE perguntar "Atualizar de vX para vY? (s/N)". Se recusar, DEVE continuar mesmo assim.
-  6. Método de atualização DEVE ser detectado: npm (`npm list -g @opencode-ai/cli`), brew (`brew list opencode`), ou perguntar ao usuário.
-  7. opencode-flow SÓ deve ser instalado após garantir que opencode existe.
-- Suggested fix: Adicionar bloco de validação no início do install.sh antes da instalação da config. Criar função `validate_opencode` que verifica instalação, versão e atualiza se necessário. Atualizar README com o novo fluxo.
-
 ### Status Lifecycle
 
 - `backlog`: item captured but not yet refined or prioritized
