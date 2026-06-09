@@ -25,6 +25,28 @@ at proposal time. Unknown rules will be captured during discovery refinement.
 
 ## Active Proposals
 
+### Proposal 2026-06-09-1: Consolidar decisões de branch, revisores e issue remota no discovery
+- Priority: high
+- Business value: Elimina interrupções no desenvolvimento eliminando perguntas redundantes do PM na promoção. Tudo que pode ser decidido no discovery (branch base, revisores, issue remota) já deve estar definido e registrado em `known_issues.md` antes do desenvolvimento começar.
+- Target sprint: next
+- Description: O discovery pipeline atual (PO → CTO → Tech Lead → QA → PO → PM) captura regras de negócio, critérios de aceite e histórias, mas não define branch base, revisores e issue remota. Isso é perguntado na promoção (PM), causando interrupção. A proposta é mover essas decisões para o discovery:
+  1. Branch base (main ou outra) decidida durante discovery e registrada no `known_issues.md`
+  2. Perfis e quantidade de senior reviewers decididos durante discovery
+  3. Issue remota criada durante discovery, com Remote já populado
+  4. PM promotion vira execução automática sem perguntas
+- Business rules:
+  1. `known_issues.md` DEVE ter campo `- Base branch: <branch>` definido no discovery.
+  2. `known_issues.md` DEVE ter campo `- Reviewers: <count>` com perfis (ex: "2 backend, performance") definido no discovery.
+  3. A issue remota DEVE ser criada durante discovery (CTO ou Tech Lead define momento ideal) e `Remote:` preenchido.
+  4. PM promotion DEVE ser puramente executório: checkout da base branch, criar feature branch, atualizar status para `in-progress`.
+  5. PM NÃO DEVE perguntar base branch, revisores ou criar remote durante promoção.
+  6. Scripts de promote DEVEM ler os campos do `known_issues.md` em vez de interagir com o usuário.
+  7. O formato do issue no `known_issues.md` DEVE ser atualizado para suportar os novos campos.
+- Stakeholders: Dev, PM, Senior Reviewers, PO
+- Rationale: Todo ciclo de issue atual tem pelo menos 2 interrupções do PM para confirmar coisas que poderiam ser decididas no discovery. Isso quebra fluxo do desenvolvedor e adiciona latência desnecessária.
+- Dependencies: Issues #1, #2 (já resolvidas), #7 (resolvida) — padrão de issue tracking já consolidado.
+- Proposed issue type: feat
+
 ### Proposal 2026-06-02-1: Configurar Vercel com production (main) e preview (homol)
 - Priority: high
 - Business value: Estabelece pipeline de deploy contínuo com ambiente de homologação separado da produção, permitindo validar mudanças antes de ir ao ar.
