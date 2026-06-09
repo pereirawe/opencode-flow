@@ -22,3 +22,4 @@ Discovery questions — ask during prioritization proposal review:
 - Quais princípios arquiteturais são afetados?
 - Existem trade-offs conhecidos?
 - Como isso se alinha com a visão técnica de longo prazo?
+- A branch base escolhida está alinhada com a estratégia de branches do projeto?

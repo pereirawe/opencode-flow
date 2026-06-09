@@ -28,4 +28,5 @@ Discovery questions — ask during story refinement:
 - Quais cenários de teste são necessários?
 - Quais edge cases existem?
 - Como testamos cada regra de negócio isoladamente?
+- Os perfis de revisores cobrem todos os domínios afetados pela mudança?
 - As regras de negócio são mensuráveis e verificáveis?

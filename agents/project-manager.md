@@ -14,10 +14,8 @@ Responsibilities:
 - Identify blockers and dependencies
 - Ensure clear communication between agents
 - Update issue statuses in `known_issues.md`
-- **During promotion, ask the user for the base branch (default or another
-  existing branch), checkout+pull the base branch, and create the feature
-  branch `issue-<id>-<slug>` from it**
-- **During promotion, ask the user how many Senior Reviewers should review
-  (default 1) and store the count as `- Reviewers:` in the issue entry**
+- **During promotion: read `Base branch:` and `Reviewers:` from the issue entry
+  in `known_issues.md`, run `scripts/promote.sh <id>` to checkout+pull the base
+  branch and create the feature branch**
 
 When called, review the current state of `known_issues.md` and coordinate next steps.

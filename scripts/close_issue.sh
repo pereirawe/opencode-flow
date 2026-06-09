@@ -38,7 +38,7 @@ PR_REF=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- PR:/ {print $2; exit}')
 PR_ID=${PR_REF#\#}
 REMOTE_URL=$(git config --get remote.origin.url)
 
-if [[ "$STATUS" != "open" && "$STATUS" != "in-progress" && "$STATUS" != "in-publish" && "$STATUS" != "resolved" ]]; then
+if [[ "$STATUS" != "ready" && "$STATUS" != "open" && "$STATUS" != "in-progress" && "$STATUS" != "in-publish" && "$STATUS" != "resolved" ]]; then
   echo "Issue $ID cannot be closed from status '$STATUS'"
   exit 1
 fi
@@ -69,6 +69,8 @@ TYPE=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Type:/ {print $2; exit}')
 SEVERITY=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Severity:/ {print $2; exit}')
 REPORTED_BY=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Report:/ {print $2; exit}')
 REVIEWERS=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Reviewers:/ {print $2; exit}')
+# Strip profiles, keep only count for archive (BR11)
+REVIEWER_COUNT=$(printf '%s\n' "$REVIEWERS" | grep -o '^[0-9]*' || echo "1")
 DESC=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Description:/ {print $2; exit}')
 SUGGESTED=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Suggested fix:/ {print $2; exit}')
 RESOLVED_DATE=$(date +%Y-%m-%d)
@@ -89,7 +91,7 @@ printf '### %s. %s\n' "$ID" "$TITLE" >> "$TMP_ARCHIVE"
 printf -- '- Resolved: %s\n' "$RESOLVED_DATE" >> "$TMP_ARCHIVE"
 printf -- '- Type: %s\n' "${TYPE:-chore}" >> "$TMP_ARCHIVE"
 printf -- '- Report: %s\n' "${REPORTED_BY:-unknown}" >> "$TMP_ARCHIVE"
-printf -- '- Reviewers: %s\n' "${REVIEWERS:-1}" >> "$TMP_ARCHIVE"
+printf -- '- Reviewers: %s\n' "${REVIEWER_COUNT:-1}" >> "$TMP_ARCHIVE"
 printf -- '- Remote: %s\n' "${REMOTE_REF:--}" >> "$TMP_ARCHIVE"
 printf -- '- Severity: %s\n' "${SEVERITY:-medium}" >> "$TMP_ARCHIVE"
 printf -- '- Summary: %s\n' "$SUMMARY" >> "$TMP_ARCHIVE"

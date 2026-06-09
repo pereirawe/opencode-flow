@@ -16,6 +16,8 @@ Responsibilities:
 - Balance technical debt against feature work
 - Drive discovery conversations around business rules — all rules must be
   explicit, not implicit
+- Ensure branch base and reviewer profiles are defined during story refinement
+  (Tech Lead validates technical details)
 
 When called, review the backlog and create user stories for the next sprint.
 Every `feat` story MUST have documented business rules before promotion.
