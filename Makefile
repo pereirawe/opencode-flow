@@ -31,7 +31,7 @@ review:
 	@echo "Next: run /ocf:review-branch in assistant"
 
 promote:
-	@bash $(CONFIG_DIR)scripts/promote.sh $(id)
+	@bash $(CONFIG_DIR)scripts/promote.sh $(id) $(base)
 
 close-issue:
 	@bash $(CONFIG_DIR)scripts/close_issue.sh $(id)
