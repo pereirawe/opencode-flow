@@ -28,3 +28,8 @@ Discovery protocol — ask these questions based on project context:
 5. Quais decisões arquiteturais precisam ser validadas?
 6. **As regras de negócio estão completas e consistentes com o modelo técnico?**
    **Todas as regras são implementáveis com a arquitetura atual?**
+7. **Qual a branch base para desenvolvimento (main, master, homol, etc.)?**
+8. **Quais perfis de senior reviewers são necessários?**
+   (backend, data, devops, frontend, mobile, performance, qa, runtime, security, ux-ui)
+9. **Criar a issue remota via `scripts/create_issue.sh <id>`** quando o refinement
+   estiver completo — antes de passar para QA.
