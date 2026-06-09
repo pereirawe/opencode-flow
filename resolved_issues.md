@@ -1,5 +1,23 @@
 # Resolved Issues
 
+### 8. Validar opencode instalado e atualizado antes do install.sh do opencode-flow
+- Resolved: 2026-06-09
+- Type: feat
+- Report: william.pereira@digitalup.intranet
+- Reviewers: 1
+- Remote: #12
+- PR: #13
+- Summary: install.sh agora valida se opencode está instalado e atualizado antes de instalar a config. Detecta método de instalação (npm/brew), oferece update, e aborta com mensagem clara se recusar instalar.
+
+### 7. Melhorar ocf:init com detecção de linguagens, sugestão de LSPs e configuração automática do editor
+- Resolved: 2026-06-09
+- Type: feat
+- Report: william.pereira@digitalup.intranet
+- Reviewers: 1
+- Remote: #14
+- PR: #15
+- Summary: Criado standards/lsp-catalog.json com mapeamentos linguagem→extensões VS Code. scripts/init.sh detecta linguagens, consulta catálogo, sugere LSPs e configura .vscode/settings.json com merge preservando existentes. make bootstrap delegado para init.sh.
+
 ### 2. Adicionar etapa de definição da branch base no pipeline de promoção
 - Resolved: 2026-06-09
 - Type: feat
