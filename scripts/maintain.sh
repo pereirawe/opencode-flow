@@ -86,9 +86,16 @@ OPEN_NO_REMOTE=0
 for ((i = 0; i < TOTAL; i++)); do
   status="${ISSUE_STATUSES[$i]}"
   remote="${ISSUE_REMOTES[$i]}"
+  id="${ISSUE_IDS[$i]}"
   if [[ "$status" == "open" && "$remote" == "-" ]]; then
     OPEN_NO_REMOTE=$((OPEN_NO_REMOTE + 1))
-    echo "  ⚠️  OPEN WITHOUT REMOTE: Issue #${ISSUE_IDS[$i]} — create remote issue before development"
+    echo "  ⚠️  OPEN WITHOUT REMOTE: Issue #$id — create remote issue before development"
+  elif [[ "$status" == "ready" && "$remote" == "-" ]]; then
+    OPEN_NO_REMOTE=$((OPEN_NO_REMOTE + 1))
+    echo "  ⚠️  READY WITHOUT REMOTE: Issue #$id — create remote issue before promotion"
+  elif [[ "$status" == "ready" && "$remote" == error:* ]]; then
+    OPEN_NO_REMOTE=$((OPEN_NO_REMOTE + 1))
+    echo "  ⚠️  READY WITH FAILED REMOTE: Issue #$id ($remote) — re-run create_issue.sh"
   fi
 done
 
@@ -99,6 +106,6 @@ echo "  Local only:          $LOCAL"
 echo "  With remote:         $REMOTE"
 echo "  Remote synced:       $MATCH"
 echo "  Stale:               $STALE"
-echo "  Open without remote: $OPEN_NO_REMOTE"
+echo "  Open/Ready without remote: $OPEN_NO_REMOTE"
 echo ""
 echo "[maintain] Done. Run /ocf:maintain in the assistant to review and archive."

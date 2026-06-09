@@ -35,7 +35,7 @@ if [[ "$INPUT" =~ ^[0-9]+$ ]]; then
   STATUS=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Status:/ {print $2; exit}')
   REMOTE_REF=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Remote:/ {print $2; exit}')
 
-  if [[ "$STATUS" != "open" ]]; then
+  if [[ "$STATUS" != "ready" && "$STATUS" != "open" ]]; then
     echo "Issue $INPUT cannot create remote issue from status '$STATUS'"
     exit 1
   fi
@@ -97,28 +97,32 @@ fi
 # Update known_issues with Remote ID and status
 FILE="$PROJECT_ISSUES_FILE"
 if [[ -f "$FILE" && "$INPUT" =~ ^[0-9]+$ ]]; then
-  awk -v id="$INPUT" -v rid="$ISSUE_ID" '
+  NEW_STATUS="in-progress"
+  if [[ "$STATUS" == "ready" ]]; then
+    NEW_STATUS="ready"
+  fi
+  awk -v id="$INPUT" -v rid="$ISSUE_ID" -v ns="$NEW_STATUS" '
   BEGIN{found=0}
   /^### [0-9]+\./{
     if(found==1 && $0 !~ "^### "id"\\."){found=0}
   }
   $0 ~ "^### "id"\."{found=1}
   {
-    if(found==1 && $0 ~ /^- Status:/){print "- Status: in-progress"; next}
+    if(found==1 && $0 ~ /^- Status:/){print "- Status: "ns; next}
     if(found==1 && $0 ~ /^- Remote:/){print "- Remote: #"rid; next}
     print
   }' "$FILE" > "$FILE.tmp" && mv "$FILE.tmp" "$FILE"
 fi
 
-# Create branch
-SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9 ' | tr ' ' '-')
-BRANCH="issue-${ISSUE_ID}-${SLUG}"
-
-if git rev-parse --verify "$BRANCH" >/dev/null 2>&1; then
-  git checkout "$BRANCH"
-else
-  git checkout -b "$BRANCH" 2>/dev/null || true
+# Create branch (only for legacy open status, ready uses promote.sh)
+if [[ "$STATUS" == "open" ]]; then
+  SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9 ' | tr ' ' '-')
+  BRANCH="issue-${ISSUE_ID}-${SLUG}"
+  if git rev-parse --verify "$BRANCH" >/dev/null 2>&1; then
+    git checkout "$BRANCH"
+  else
+    git checkout -b "$BRANCH" 2>/dev/null || true
+  fi
+  echo "[issue] Branch: $BRANCH"
 fi
-
-echo "[issue] Branch: $BRANCH"
 echo "$ISSUE_ID"
