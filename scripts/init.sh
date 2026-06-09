@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+shopt -s nullglob 2>/dev/null || true
 
 # Initialize opencode config in a project with repo context detection.
 # Usage: bash scripts/init.sh [target=/path/to/project] [locale=en]
@@ -29,7 +30,8 @@ if command -v git >/dev/null 2>&1 && git -C "$TARGET" rev-parse --git-dir >/dev/
     default_branch="$(git -C "$TARGET" symbolic-ref HEAD 2>/dev/null | sed 's#refs/heads/##' || echo "main")"
   fi
 
-  sed -i "s/__DEFAULT_BRANCH__/$default_branch/g" "$TARGET/.opencode/AGENTS.md"
+  escaped_branch=$(printf '%s\n' "$default_branch" | sed 's/[\/&]/\\&/g')
+  sed -i "s/__DEFAULT_BRANCH__/$escaped_branch/g" "$TARGET/.opencode/AGENTS.md"
 
   # Remotes — handle repos with no remotes
   git -C "$TARGET" remote -v 2>/dev/null | awk '{print "  - `" $1 "` -> `" $2 "`"}' | sort -u > /tmp/opencode_remotes_$$
@@ -55,3 +57,154 @@ echo "[init] .opencode/ initialized in $TARGET"
 echo "[init] Locale set to: $LOCALE"
 echo "[init] Files include: AGENTS.md, workflow.md, opencode.json, known_issues.md"
 echo "[init] Project issues go in .opencode/known_issues.md, config issues in ~/.config/opencode/known_issues.md"
+
+# --- LSP / Editor Configuration ---
+CATALOG="$CONFIG_DIR/standards/lsp-catalog.json"
+
+if [ -f "$CATALOG" ]; then
+  # Detect languages using python3 (preferred) or jq
+  DETECTED=""
+  if command -v python3 &>/dev/null; then
+    DETECTED=$(TARGET="$TARGET" CATALOG="$CATALOG" python3 -c '
+import os, json, glob
+
+target = os.environ["TARGET"]
+catalog_path = os.environ["CATALOG"]
+
+try:
+    with open(catalog_path) as f:
+        catalog = json.load(f)
+except Exception:
+    print("[]")
+    exit(0)
+
+results = []
+seen = set()
+for entry in catalog:
+    lang = entry["language"]
+    if lang in seen:
+        continue
+    for detector in entry["detectors"]:
+        if "*" in detector or "?" in detector:
+            matches = glob.glob(os.path.join(target, detector))
+            if matches:
+                results.append(entry)
+                seen.add(lang)
+                break
+        else:
+            if os.path.isfile(os.path.join(target, detector)):
+                results.append(entry)
+                seen.add(lang)
+                break
+
+print(json.dumps(results))
+' 2>/dev/null) || DETECTED=""
+  fi
+
+  if [ -n "$DETECTED" ] && [ "$DETECTED" != "[]" ]; then
+    # Count detected languages for summary
+    LANG_COUNT=$(echo "$DETECTED" | python3 -c '
+import json, sys
+try:
+    data = json.load(sys.stdin)
+    print(len(data))
+except Exception:
+    print("0")
+' 2>/dev/null || echo "0")
+
+    if [ "$LANG_COUNT" -gt 0 ]; then
+      echo ""
+      echo "[init] Detected languages: $(echo "$DETECTED" | python3 -c '
+import json, sys
+data = json.load(sys.stdin)
+print(", ".join(e["language"] for e in data))
+' 2>/dev/null)"
+
+      # Show LSP suggestions
+      echo "[init] LSP suggestions available for detected languages:"
+      echo "$DETECTED" | python3 -c '
+import json, sys
+data = json.load(sys.stdin)
+for entry in data:
+    exts = entry.get("extensions", [])
+    if exts:
+        print("  \u2192 " + entry["language"] + ": " + ", ".join(exts))
+    else:
+        print("  \u2192 " + entry["language"] + ": (built-in support)")
+' 2>/dev/null
+
+      # Ask user for confirmation
+      echo ""
+      printf "[init] Configure VS Code with these LSPs? (s/N) "
+      read -r CONFIRM || CONFIRM="n"
+      if [ "$CONFIRM" = "s" ] || [ "$CONFIRM" = "S" ]; then
+        mkdir -p "$TARGET/.vscode"
+        echo "[init] Creating/updating .vscode/settings.json..."
+
+        # Extract combined settings from detected languages
+        NEW_SETTINGS=$(echo "$DETECTED" | python3 -c '
+import json, sys
+data = json.load(sys.stdin)
+settings = {}
+for entry in data:
+    entry_settings = entry.get("settings", {})
+    for key, val in entry_settings.items():
+        settings[key] = val
+print(json.dumps(settings, indent=2))
+' 2>/dev/null) || NEW_SETTINGS="{}"
+
+        EXISTING_FILE="$TARGET/.vscode/settings.json"
+        MERGED=""
+
+        if [ -f "$EXISTING_FILE" ]; then
+          if command -v jq &>/dev/null; then
+            MERGED=$(jq -s --argjson new "$NEW_SETTINGS" '.[0] * $new' "$EXISTING_FILE" 2>/dev/null) || MERGED=""
+          elif command -v python3 &>/dev/null; then
+            MERGED=$(EXISTING_FILE="$EXISTING_FILE" NEW_SETTINGS="$NEW_SETTINGS" python3 -c '
+import os, json
+with open(os.environ["EXISTING_FILE"]) as f:
+    existing = json.load(f)
+new = json.loads(os.environ["NEW_SETTINGS"])
+existing.update(new)
+print(json.dumps(existing, indent=2))
+' 2>/dev/null) || MERGED=""
+          fi
+
+          if [ -n "$MERGED" ]; then
+            echo "$MERGED" > "$EXISTING_FILE"
+            echo "[init] Merged LSP settings into existing $EXISTING_FILE"
+          else
+            echo "[init] Warning: could not merge settings. $EXISTING_FILE unchanged."
+            echo "[init] New settings would be:"
+            echo "$NEW_SETTINGS"
+          fi
+        else
+          echo "$NEW_SETTINGS" > "$EXISTING_FILE"
+          echo "[init] Created $EXISTING_FILE with LSP configuration"
+        fi
+
+        # List extensions to install
+        echo ""
+        echo "[init] Recommended VS Code extensions to install:"
+        echo "$DETECTED" | python3 -c '
+import json, sys
+data = json.load(sys.stdin)
+all_exts = []
+for entry in data:
+    all_exts.extend(entry.get("extensions", []))
+for ext in all_exts:
+    print("  - " + ext)
+' 2>/dev/null
+
+        echo ""
+        echo "[init] VS Code configured with LSPs for detected languages"
+      else
+        echo "[init] Skipping VS Code configuration"
+      fi
+    fi
+  else
+    echo "[init] No project languages detected from catalog"
+  fi
+else
+  echo "[init] LSP catalog not found at $CATALOG; skipping editor configuration"
+fi

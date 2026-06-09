@@ -8,7 +8,7 @@
     ],
     "command": {
         "init": {
-            "template": "Ask the user which locale they want for this project (pt for Portuguese, es for Spanish, or en for English). Then initialize the `.opencode/` project configuration in the current working directory by running the init script with the chosen locale. After init completes, verify `.opencode/locale` contains the chosen language. Then review the generated files.",
+            "template": "Ask the user which locale they want for this project (pt for Portuguese, es for Spanish, or en for English). Then initialize the `.opencode/` project configuration in the current working directory by running the init script with the chosen locale. The script will detect project languages, suggest LSPs, and optionally configure `.vscode/settings.json`. After init completes, verify `.opencode/locale` contains the chosen language. Then review the generated files.",
             "description": "Initialize opencode project config with repo context and locale"
         },
         "ocf:plan-feature": {
