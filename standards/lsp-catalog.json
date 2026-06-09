@@ -1,6 +1,6 @@
 [
   {
-    "detectors": ["package.json"],
+    "detectors": ["package.json", "deno.json", "deno.jsonc"],
     "language": "JavaScript & TypeScript",
     "extensions": [
       "dbaeumer.vscode-eslint",
@@ -88,7 +88,8 @@
     ],
     "settings": {
       "[shellscript]": {
-        "editor.defaultFormatter": "timonwong.shellcheck"
+        "editor.defaultFormatter": "timonwong.shellcheck",
+        "editor.formatOnSave": true
       }
     }
   },
@@ -102,6 +103,21 @@
     "settings": {
       "[markdown]": {
         "editor.defaultFormatter": "yzhang.markdown-all-in-one",
+        "editor.formatOnSave": true
+      }
+    }
+  },
+  {
+    "detectors": ["*.json", "*.jsonc"],
+    "language": "JSON",
+    "extensions": [],
+    "settings": {
+      "[json]": {
+        "editor.defaultFormatter": "vscode.json-language-features",
+        "editor.formatOnSave": true
+      },
+      "[jsonc]": {
+        "editor.defaultFormatter": "vscode.json-language-features",
         "editor.formatOnSave": true
       }
     }

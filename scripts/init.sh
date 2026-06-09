@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+shopt -s nullglob 2>/dev/null || true
 
 # Initialize opencode config in a project with repo context detection.
 # Usage: bash scripts/init.sh [target=/path/to/project] [locale=en]
@@ -29,7 +30,8 @@ if command -v git >/dev/null 2>&1 && git -C "$TARGET" rev-parse --git-dir >/dev/
     default_branch="$(git -C "$TARGET" symbolic-ref HEAD 2>/dev/null | sed 's#refs/heads/##' || echo "main")"
   fi
 
-  sed -i "s/__DEFAULT_BRANCH__/$default_branch/g" "$TARGET/.opencode/AGENTS.md"
+  escaped_branch=$(printf '%s\n' "$default_branch" | sed 's/[\/&]/\\&/g')
+  sed -i "s/__DEFAULT_BRANCH__/$escaped_branch/g" "$TARGET/.opencode/AGENTS.md"
 
   # Remotes — handle repos with no remotes
   git -C "$TARGET" remote -v 2>/dev/null | awk '{print "  - `" $1 "` -> `" $2 "`"}' | sort -u > /tmp/opencode_remotes_$$
@@ -97,42 +99,6 @@ for entry in catalog:
 
 print(json.dumps(results))
 ' 2>/dev/null) || DETECTED=""
-  elif command -v jq &>/dev/null; then
-    # Fallback: use jq to iterate over catalog entries
-    COUNT=$(jq length "$CATALOG")
-    DETECTED="["
-    FIRST=1
-    for i in $(seq 0 $((COUNT - 1))); do
-      ENTRY=$(jq ".[$i]" "$CATALOG")
-      LANG=$(echo "$ENTRY" | jq -r '.language')
-      DETECTORS=$(echo "$ENTRY" | jq -r '.detectors[]')
-      FOUND=0
-      while IFS= read -r det; do
-        if echo "$det" | grep -q '[*?]'; then
-          # Glob pattern
-          for f in "$TARGET"/$det; do
-            if [ -f "$f" ]; then
-              FOUND=1
-              break
-            fi
-          done
-        else
-          if [ -f "$TARGET/$det" ]; then
-            FOUND=1
-          fi
-        fi
-        [ "$FOUND" = 1 ] && break
-      done <<< "$DETECTORS"
-      if [ "$FOUND" = 1 ]; then
-        if [ "$FIRST" = 1 ]; then
-          DETECTED="$DETECTED$ENTRY"
-          FIRST=0
-        else
-          DETECTED="$DETECTED,$ENTRY"
-        fi
-      fi
-    done
-    DETECTED="$DETECTED]"
   fi
 
   if [ -n "$DETECTED" ] && [ "$DETECTED" != "[]" ]; then
@@ -170,7 +136,7 @@ for entry in data:
       # Ask user for confirmation
       echo ""
       printf "[init] Configure VS Code with these LSPs? (s/N) "
-      read -r CONFIRM
+      read -r CONFIRM || CONFIRM="n"
       if [ "$CONFIRM" = "s" ] || [ "$CONFIRM" = "S" ]; then
         mkdir -p "$TARGET/.vscode"
         echo "[init] Creating/updating .vscode/settings.json..."

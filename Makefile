@@ -61,7 +61,7 @@ commit:
 	@echo "See standards/commits.md for details"
 
 init:
-	@bash $(CONFIG_DIR)scripts/init.sh "$(target)"
+	@bash $(CONFIG_DIR)scripts/init.sh "$(target)" "$(locale)"
 
 review-external:
 	@echo "[make] review-external"
