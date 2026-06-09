@@ -173,7 +173,13 @@ update_opencode_tool() {
       opencode_path=$(command -v opencode 2>/dev/null || true)
       if [[ -n "$opencode_path" ]]; then
         echo "[install] OpenCode binary found at: $opencode_path"
-        read -p "➡️  Reinstalar via script oficial (curl -fsSL https://opencode.ai/install.sh | bash)? (s/N): " reinstall
+        if [[ -t 0 ]]; then
+          read -p "➡️  Reinstalar via script oficial (curl -fsSL https://opencode.ai/install.sh | bash)? (s/N): " reinstall < /dev/tty
+        else
+          echo "[install] Non-interactive mode. Update manually:"
+          echo "[install]   https://opencode.ai"
+          return 0
+        fi
         if [[ "$reinstall" =~ ^[Ss]$ ]]; then
           curl -fsSL https://opencode.ai/install.sh | bash
         fi
