@@ -48,36 +48,11 @@ update:
 
 bootstrap:
 	@if [ -z "$(target)" ]; then echo "Usage: make bootstrap target=/path/to/project [locale=en]"; exit 1; fi
-	@mkdir -p "$(target)/.opencode"
-	@cp -r $(CONFIG_DIR).opencode/. "$(target)/.opencode/"
 	@locale="$(locale)"; \
 	if [ -z "$$locale" ]; then \
 	  locale="en"; \
 	fi; \
-	echo "$$locale" > "$(target)/.opencode/locale"
-	@if command -v git >/dev/null 2>&1 && git -C "$(target)" rev-parse --git-dir >/dev/null 2>&1; then \
-	  origin_head=$$(git -C "$(target)" symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's#refs/remotes/origin/##' || true); \
-	  if [ -n "$$origin_head" ]; then \
-	    default_branch=$$origin_head; \
-	  else \
-	    default_branch=$$(git -C "$(target)" symbolic-ref HEAD 2>/dev/null | sed 's#refs/heads/##' || echo "main"); \
-	  fi; \
-	  sed -i "s/__DEFAULT_BRANCH__/$$default_branch/g" "$(target)/.opencode/AGENTS.md"; \
-	  git -C "$(target)" remote -v 2>/dev/null | awk '{print "  - `" $$1 "` -> `" $$2 "`"}' | sort -u > /tmp/opencode_remotes; \
-	  if [ -s /tmp/opencode_remotes ]; then \
-	    awk 'NR==FNR{remotes[++n]=$$0;next} /^__REMOTES__$$/{for(i=1;i<=n;i++) print remotes[i];next} 1' /tmp/opencode_remotes "$(target)/.opencode/AGENTS.md" > "$(target)/.opencode/AGENTS.md.tmp" && mv "$(target)/.opencode/AGENTS.md.tmp" "$(target)/.opencode/AGENTS.md"; \
-	  else \
-	    sed -i '/^__REMOTES__$$/c\  <none>' "$(target)/.opencode/AGENTS.md"; \
-	  fi; \
-	  rm -f /tmp/opencode_remotes; \
-	else \
-	  sed -i 's/__DEFAULT_BRANCH__/<not a git repo>/g' "$(target)/.opencode/AGENTS.md"; \
-	  sed -i '/^__REMOTES__$$/c\  <none>' "$(target)/.opencode/AGENTS.md"; \
-	fi
-	@echo "[make] Bootstrapped .opencode/ in $(target)"
-	@echo "Locale set to: $$(cat $(target)/.opencode/locale)"
-	@echo "Includes: AGENTS.md, workflow.md, opencode.json, known_issues.md"
-	@echo "Project issues go in .opencode/known_issues.md, config issues in ~/.config/opencode/known_issues.md"
+	bash $(CONFIG_DIR)scripts/init.sh "$(target)" "$$locale"
 
 commit:
 	@echo "[make] Atomic semantic commit"
