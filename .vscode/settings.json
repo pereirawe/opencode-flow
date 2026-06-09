@@ -2,5 +2,27 @@
     "cSpell.words": [
         "committer",
         "opencode"
-    ]
+    ],
+    "[markdown]": {
+        "editor.defaultFormatter": "yzhang.markdownlint",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll.markdownlint": "explicit"
+        }
+    },
+    "[shellscript]": {
+        "editor.defaultFormatter": "timonwong.shellcheck",
+        "editor.formatOnSave": true
+    },
+    "[json]": {
+        "editor.defaultFormatter": "vscode.json-language-features",
+        "editor.formatOnSave": true
+    },
+    "extensions": {
+        "recommendations": [
+            "yzhang.markdown-all-in-one",
+            "timonwong.shellcheck",
+            "davidanson.vscode-markdownlint"
+        ]
+    }
 }
