@@ -1,5 +1,22 @@
 # Resolved Issues
 
+### 2. Adicionar etapa de definição da branch base no pipeline de promoção
+- Resolved: 2026-06-09
+- Type: feat
+- Report: william.pereira@digitalup.intranet
+- Reviewers: 1
+- Remote: -
+- Summary: Implementada em workflow.md, project-manager.md, developer.md, branching.md, promote.sh e Makefile. PM pergunta base branch, faz checkout+pull, cria branch issue-<id>-<slug>.
+
+### 1. Resolved issue archive goes to global instead of project `.opencode/`
+- Resolved: 2026-06-09
+- Type: bug
+- Report: william.pereira@digitalup.intranet
+- Reviewers: 1
+- Remote: -
+- Severity: high
+- Summary: Fix aplicado em scripts/config.sh:25-29 — RESOLVED_FILE agora detecta .opencode/ no CWD com $(pwd -P) antes de cair no global.
+
 ### 7. Workflow de revisão externa de branches/MRs (ocf:review-external)
 - Resolved: 2026-06-01
 - Type: feat
