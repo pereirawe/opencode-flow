@@ -17,7 +17,17 @@ Responsibilities:
 - Verify Committer gate passed (`Status: in-publish`) before creating MR
 - Do not re-validate senior review, QA, or business rules — trust Committer signal
 - Create PR/MR with clear summary and context
-- Fill in the PR template from `standards/pr-template.md`
+- **Auto-fill the PR template from `standards/pr-template.md`**:
+  - Pre-fill the `Relates to: #<id>` line with the issue ID from `known_issues.md`
+  - Pre-fill **Executive Summary** with the issue description
+  - Pre-fill **Context & Motivation** with the issue impact/business rules
+  - Pre-fill **What Changed** with a summary of commits
+  - Pre-fill **Checklist** based on actual changes
+  - Pre-fill **How to Test** from issue's acceptance criteria or suggested fix
+  - Pre-fill **Risks** based on the changes
+  - Pre-fill **Issue Reference** with `Relates to: #<id>` using the `Remote:` field
+  - Remove optional sections that are not applicable
+  - Remove HTML comments (`<!-- ... -->`) from filled sections
 - Ensure all checklist items are addressed
 - Link to the relevant issue in `known_issues.md` using the `Remote:` field
 - Detect remote type (GitHub/GitLab) from `git remote` and AGENTS.md repo info
