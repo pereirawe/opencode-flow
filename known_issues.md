@@ -45,7 +45,7 @@ Single source of truth for tracked work in this project.
 - Suggested fix: Revisar `standards/pr-template.md` adicionando as novas seções. Atualizar cada tradução. Atualizar `agents/publish-requester.md` para usar o novo template e preencher campos automaticamente.
 
 ### 7. Melhorar ocf:init com detecção de linguagens, sugestão de LSPs e configuração automática do editor
-- Status: in-progress
+- Status: in-publish
 - Type: feat
 - Severity: medium
 - Report: william.pereira@digitalup.intranet
