@@ -22,15 +22,28 @@ validate_opencode() {
   if [[ "$opencode_found" == false ]]; then
     echo "[install] ⚠️  OpenCode (AI tool) is not installed."
     echo "[install] This config is an overlay and requires OpenCode to function."
-    read -p "➡️  Instalar opencode? (s/N): " install_opencode
+    if [[ -t 0 ]]; then
+      read -p "➡️  Instalar opencode? (s/N): " install_opencode < /dev/tty
+    else
+      echo "[install] Non-interactive shell detected."
+      install_opencode=""
+    fi
     if [[ "$install_opencode" =~ ^[Ss]$ ]]; then
       echo "[install] Installing OpenCode via official script..."
       echo "[install] Running: curl -fsSL https://opencode.ai/install.sh | bash"
-      if ! curl -fsSL https://opencode.ai/install.sh | bash; then
+      curl -fsSL https://opencode.ai/install.sh -o /tmp/opencode-install.sh
+      echo "[install] Script downloaded to /tmp/opencode-install.sh"
+      if [[ -t 0 ]]; then
+        read -p "➡️  Confirmar execução do script de instalação? (s/N): " confirm < /dev/tty
+        if [[ ! "$confirm" =~ ^[Ss]$ ]]; then
+          echo "[install] ❌ Installation cancelled by user."
+          exit 1
+        fi
+      fi
+      if ! bash /tmp/opencode-install.sh; then
         echo "[install] ❌ OpenCode installation failed."
         exit 1
       fi
-      # Re-check after installation
       if ! command -v opencode &>/dev/null; then
         echo "[install] ❌ OpenCode was installed but the 'opencode' command was not found."
         echo "[install] Please check your PATH or restart your terminal."
@@ -47,20 +60,18 @@ validate_opencode() {
   else
     echo "[install] ✅ OpenCode binary found: $(command -v opencode)"
 
-    # Secondary check: config directory at default location
-    if [[ ! -d "$HOME/.config/opencode" ]]; then
-      echo "[install] ℹ️  OpenCode config directory not found at ~/.config/opencode"
-      echo "[install]    (This is expected — the config overlay will create it.)"
+    if [[ ! -d "$INSTALL_DIR" ]]; then
+      echo "[install] ⚠️  OpenCode config directory not found at $INSTALL_DIR"
+      echo "[install]    Run 'opencode init' to initialize it, or the config overlay will create it."
     fi
 
-    # Version check
     check_opencode_version
   fi
 }
 
 check_opencode_version() {
   local current_version
-  current_version=$(opencode --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "")
+  current_version=$(opencode --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "")
 
   if [[ -z "$current_version" ]]; then
     echo "[install] ⚠️  Could not determine OpenCode version."
@@ -74,13 +85,14 @@ check_opencode_version() {
   local latest_version=""
   if command -v npm &>/dev/null; then
     echo "[install] Checking for updates via npm registry..."
-    latest_version=$(npm view @opencode-ai/cli version 2>/dev/null || echo "")
+    latest_version=$(timeout 10 npm view @opencode-ai/cli version --timeout=10000 2>/dev/null || echo "")
   fi
 
   # Fallback to GitHub API
   if [[ -z "$latest_version" ]]; then
     echo "[install] npm not available, trying GitHub API..."
-    latest_version=$(curl -sL https://api.github.com/repos/anomaly/opencode/releases/latest 2>/dev/null \
+    latest_version=$(curl -sL --connect-timeout 10 --max-time 15 \
+      https://api.github.com/repos/opencode-ai/opencode/releases/latest 2>/dev/null \
       | grep '"tag_name":' \
       | sed 's/.*"v\?\([^"]*\)".*/\1/' \
       | tr -d ' \n' \
@@ -94,11 +106,19 @@ check_opencode_version() {
     return 0
   fi
 
-  # Compare versions (simple string comparison)
-  if [[ "$current_version" != "$latest_version" ]]; then
+  # Semver comparison using sort -V
+  local newer
+  newer=$(printf '%s\n' "$current_version" "$latest_version" | sort -V | tail -1)
+  if [[ "$newer" != "$latest_version" ]]; then
     echo "[install] 📦 New version available: v$current_version → v$latest_version"
-    # Use exact prompt format from business rules
-    read -p "➡️  Atualizar de v${current_version} para v${latest_version}? (s/N): " update_opencode
+    local prompt="➡️  Atualizar de v${current_version} para v${latest_version}? (s/N): "
+    if [[ -t 0 ]]; then
+      read -p "$prompt" update_opencode
+    else
+      echo "[install] Non-interactive mode — skipping update."
+      echo "[install] Run manually: npm install -g @opencode-ai/cli@latest"
+      return 0
+    fi
     if [[ "$update_opencode" =~ ^[Ss]$ ]]; then
       update_opencode_tool
     else
@@ -129,18 +149,40 @@ update_opencode_tool() {
   case "$method" in
     npm)
       echo "[install] Detected npm installation — updating via npm..."
-      npm install -g @opencode-ai/cli@latest
+      if npm install -g @opencode-ai/cli@latest; then
+        local new_version
+        new_version=$(opencode --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "")
+        echo "[install] ✅ OpenCode updated to v${new_version:-latest}"
+      else
+        echo "[install] ⚠️  npm update failed. Try: sudo npm install -g @opencode-ai/cli@latest"
+      fi
       ;;
     brew)
       echo "[install] Detected Homebrew installation — updating via brew..."
-      brew upgrade opencode
+      if brew upgrade opencode; then
+        local new_version
+        new_version=$(opencode --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "")
+        echo "[install] ✅ OpenCode updated to v${new_version:-latest}"
+      else
+        echo "[install] ⚠️  brew update failed. Try: brew upgrade opencode"
+      fi
       ;;
     *)
       echo "[install] ⚠️  Could not detect installation method automatically."
-      echo "[install] Please update OpenCode manually using one of these methods:"
-      echo "[install]   - npm:  npm install -g @opencode-ai/cli@latest"
-      echo "[install]   - brew: brew upgrade opencode"
-      echo "[install]   - Other: https://opencode.ai"
+      local opencode_path
+      opencode_path=$(command -v opencode 2>/dev/null || true)
+      if [[ -n "$opencode_path" ]]; then
+        echo "[install] OpenCode binary found at: $opencode_path"
+        read -p "➡️  Reinstalar via script oficial (curl -fsSL https://opencode.ai/install.sh | bash)? (s/N): " reinstall
+        if [[ "$reinstall" =~ ^[Ss]$ ]]; then
+          curl -fsSL https://opencode.ai/install.sh | bash
+        fi
+      else
+        echo "[install] Please update OpenCode manually using one of these methods:"
+        echo "[install]   - npm:  npm install -g @opencode-ai/cli@latest"
+        echo "[install]   - brew: brew upgrade opencode"
+        echo "[install]   - Other: https://opencode.ai"
+      fi
       ;;
   esac
 }
