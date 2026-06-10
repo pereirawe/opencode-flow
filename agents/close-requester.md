@@ -30,3 +30,5 @@ Remote detection:
 
 Note: This agent is the final step in the pipeline lifecycle. Once an issue
 is archived, it moves from `known_issues.md` to `resolved_issues.md`.
+This agent does not poll — it only acts when explicitly triggered by
+a merge notification.

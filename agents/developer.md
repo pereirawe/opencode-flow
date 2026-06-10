@@ -21,5 +21,5 @@ Responsibilities:
   if needed, rebase on the base branch
 
 When called, implement the assigned feature or fix from `known_issues.md`.
-If business rules are missing or unclear, refuse to start and request
-refinement back through the discovery pipeline.
+If business rules are missing or unclear, flag the gap as a new issue in
+`known_issues.md` and proceed with what is defined — do not block the pipeline.
