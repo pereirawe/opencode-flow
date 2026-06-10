@@ -58,4 +58,6 @@ Output a summary:
 
 - `maintain.sh` is safe to run independently — it only reads remote state and reports, never modifies files
 - Actual archiving requires the assistant to run `close_issue.sh` after reviewing the report
-- `standards/prioritization.md` proposals should be checked separately for items ready to promote
+- Proposals in `.opencode/standards/prioritization.md` (project-level) or
+  `~/.config/opencode/standards/prioritization.md` (global fallback) should
+  be checked separately for items ready to promote
