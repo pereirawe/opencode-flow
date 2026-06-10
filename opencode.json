@@ -44,7 +44,7 @@
             "description": "Archive resolved issue to compact format"
         },
         "ocf:maintain": {
-            "template": "Run full maintenance on known_issues.md and standards/prioritization.md. First run `$SCRIPTS_DIR/maintain.sh` to detect stale issues (local in-progress but remote closed) and status mismatches. Then for each stale issue, run `close_issue.sh <id>` to archive. Reindex remaining issues. Report what was archived/updated.",
+            "template": "Run full maintenance on known_issues.md and prioritization. Resolve `standards/prioritization.md` relative to the project root first (`.opencode/standards/prioritization.md`), falling back to `~/.config/opencode/standards/prioritization.md` if the project has no local copy. First run `$SCRIPTS_DIR/maintain.sh` to detect stale issues (local in-progress but remote closed) and status mismatches. Then for each stale issue, run `close_issue.sh <id>` to archive. Reindex remaining issues. Report what was archived/updated.",
             "description": "Maintain known_issues.md and standards/prioritization.md"
         },
         "ocf:close-issue": {

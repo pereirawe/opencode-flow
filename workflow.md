@@ -14,7 +14,9 @@ through discovery.
 
 ### Discovery Pipeline
 
-1. **PO** registers a prioritization proposal in `standards/prioritization.md`
+1. **PO** registers a prioritization proposal in
+   `.opencode/standards/prioritization.md` (project-level) or
+   `~/.config/opencode/standards/prioritization.md` (global fallback)
    with business value, target, rationale, proposed issue type, and known
    business rules
 2. **CTO** reviews architectural alignment, defines technical vision, and
@@ -64,7 +66,9 @@ Any direct implementation without pipeline is a violation.
 
 1. **CTO** — define technical vision and guidelines
 2. **Product Owner** — define priorities, create user stories, register
-   prioritization proposals in `standards/prioritization.md`
+   prioritization proposals in `.opencode/standards/prioritization.md`
+   (project-level) or `~/.config/opencode/standards/prioritization.md`
+   (global fallback)
 3. **Tech Lead** — refine stories with technical detail, feasibility analysis,
    effort estimation, and task breakdown
 4. **Project Manager** — coordinate team, assign stories, track progress.
@@ -103,7 +107,9 @@ Any direct implementation without pipeline is a violation.
 
 ### Issue Lifecycle
 
-1. PO proposal registered in `standards/prioritization.md`
+1. PO proposal registered in `.opencode/standards/prioritization.md`
+   (project-level) or `~/.config/opencode/standards/prioritization.md`
+   (global fallback)
 2. Item captured in `known_issues.md` with status `backlog`
 3. Refined and approved, QA pre-development review → `ready`
 4. PM promotes the issue, reads `Base branch:` and `Reviewers:` from the issue

@@ -15,6 +15,8 @@ mkdir -p "$TARGET/.opencode"
 
 # Copy template files
 cp -r "$CONFIG_DIR/.opencode/." "$TARGET/.opencode/"
+# Copy standards (prioritization.md, issues.md, etc.) for project-level use
+cp -r "$CONFIG_DIR/standards" "$TARGET/.opencode/standards"
 
 # Write locale file
 echo "$LOCALE" > "$TARGET/.opencode/locale"
