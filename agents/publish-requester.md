@@ -47,11 +47,12 @@ Responsibilities:
 - **After creating the MR, update `known_issues.md`** with `- PR: #<n>`
   in the issue entry
 - After creating the MR, delegate closure to the **Close Requester** agent,
-  which monitors the MR until merge, closes the remote issue, updates
+  which closes the remote issue when triggered by a merge notification, updates
   `known_issues.md` status to `resolved`, and archives via `close_issue.sh`
 - Ensure `known_issues.md` reflects current status at every step
 
 When called, prepare the branch for integration and create the PR/MR.
+Do not ask for confirmation — the Committer gate has already passed.
 
 Remote detection:
 - Read `Remote:` field from the issue in `known_issues.md`

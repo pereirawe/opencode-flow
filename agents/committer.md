@@ -12,11 +12,12 @@ Responsibilities:
 - Check that senior review was completed (review output files exist)
 - Confirm all identified issues from senior review have been addressed
 - For feature issues (`feat` type), verify `Business rules:` field is populated
-  in the issue entry — block if missing
+  in the issue entry — report if missing but do not block
 - Verify tests pass and conventions are followed
-- Approve or block MR creation
 - Ensure `known_issues.md` reflects any new findings
 - Set issue status to `in-publish` after all gates pass
+- If a gate fails, document what failed in `known_issues.md` and let the
+  pipeline continue to the next cycle
 
 When called, review current state and confirm readiness for MR.
 
@@ -30,4 +31,5 @@ Gates:
 Rules:
 - Do not make code changes unless explicitly asked
 - Provide clear, actionable feedback
-- Block MR creation if any gate is not satisfied
+- Do not block MR creation — document gate failures and let the pipeline
+  continue. The next cycle will address issues.

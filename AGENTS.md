@@ -36,6 +36,11 @@ changes. It applies to bugs, features, chores, and documentation alike.
 For agents: if asked to implement something directly, first verify the issue
 exists in `known_issues.md`, promote it, switch to the branch, then implement.
 
+**After promotion, the pipeline runs automatically** (development → senior review →
+QA → corrections → committer gate → MR) **without user confirmation.**
+Only gaps found during discovery (missing business rules, ambiguous specs)
+generate questions — everything else flows continuously.
+
 ## Commit Convention
 
 Every commit MUST follow `standards/commits.md`:

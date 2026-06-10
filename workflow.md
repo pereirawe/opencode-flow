@@ -62,6 +62,27 @@ drive the conversation around **business rules** specifically.
 full pipeline.** This is enforced at the instruction level via `AGENTS.md`.
 Any direct implementation without pipeline is a violation.
 
+### Continuous Execution
+
+**After promotion, steps 6–11 (development → senior review → QA → corrections →
+committer gate → MR creation) execute automatically without user confirmation.**
+No agent asks for permission between steps — each agent reads the issue status
+in `known_issues.md`, performs its function, updates the status, and the next
+agent in the pipeline continues.
+
+**Only two scenarios trigger interaction with the user:**
+1. **Incomplete refinement**: business rules are missing or ambiguous in the
+   issue — the agent flags the gap in `known_issues.md` and continues with
+   what is available, rather than blocking. The issue remains in progress
+   and the gap is documented for the next discovery cycle.
+2. **Blocking error**: the issue has no `Base branch:`, no `Remote:` (for feat),
+   or no reviewer profiles defined — these are structural gaps that prevent
+   promotion entirely and must be resolved during discovery.
+
+**After MR publication**: the pipeline pauses. The Close Requester does not
+poll or check — it only acts when explicitly triggered by a merge notification.
+The user merges the MR manually.
+
 ### Agent Pipeline
 
 1. **CTO** — define technical vision and guidelines
@@ -80,7 +101,9 @@ Any direct implementation without pipeline is a violation.
    quality standards, validate business rules are testable
 6. **Developer** — implement features, write automated tests, run tests, keep
    `known_issues.md` in sync. Verify the feature branch is based on the correct
-   base branch before starting implementation.
+   base branch before starting implementation. If business rules are missing or
+   unclear, flag the gap as a new issue in `known_issues.md` and proceed with
+   what is defined — do not block.
 7. **Senior Reviewers** — review code using the count stored in `- Reviewers:`
     in the issue entry (set during discovery), verify acceptance criteria,
    confirm tests were written and pass, identify issues
@@ -90,13 +113,15 @@ Any direct implementation without pipeline is a violation.
    with QA until approved)
 10. **Committer** — verify pipeline gates: senior review completed, QA passed,
     business rules documented (for `feat` types), tests passing. Sets status to
-    `in-publish` on approval.
+    `in-publish` on approval. Reports findings without blocking — if a gate
+    fails, document what failed and let the pipeline continue to the next cycle.
 11. **Publish Requester** — create merge/pull request after Committer gate passes.
     Does not re-validate gates — trusts Committer signal (`Status: in-publish`).
-12. **Close Requester** — after MR/PR is merged, close the remote issue on
-    GitHub/GitLab, update `known_issues.md` status to `resolved`, and archive
-    to `resolved_issues.md` via `close_issue.sh`. If the PR is not yet merged
-    when called, skip and report back.
+    Does not ask for confirmation — creates the MR automatically.
+12. **Close Requester** — does not poll or check automatically. Only acts when
+    explicitly triggered by a merge notification. After MR/PR is merged, closes
+    the remote issue on GitHub/GitLab, updates `known_issues.md` status to
+    `resolved`, and archives to `resolved_issues.md` via `close_issue.sh`.
 
 > **Documentation** and **Test Automation** are ongoing activities that run in
 > parallel across all pipeline phases, not sequential gates.
@@ -128,6 +153,9 @@ Any direct implementation without pipeline is a violation.
 10. MR/PR created → `in-publish`
 11. MR/PR approved and merged → `in-publish` (PR merged but issue not yet closed)
 12. Close Requester closes remote issue and archives → `resolved`
+
+> **Steps 6–11 run automatically without user confirmation after promotion.**
+> Step 12 only triggers on merge notification — no polling.
 
 ### Branch Naming
 
