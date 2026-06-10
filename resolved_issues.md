@@ -1,6 +1,12 @@
-# Resolved Issues
 
-### 8. Validar opencode instalado e atualizado antes do install.sh do opencode-flow
+### 9. Consolidar decisões de branch, revisores e issue remota no discovery
+- Resolved: 2026-06-09
+- Type: feat
+- Report: opencode
+- Reviewers: 1
+- Remote: #18
+- Severity: high
+- Summary: Mover decisões de branch base, perfis de revisores e criação de issue remota do PM promotion para o discovery pipeline. PM promotion vira puramente executória (sem perguntas ao usuário). — Seguir ordem
 - Resolved: 2026-06-09
 - Type: feat
 - Report: william.pereira@digitalup.intranet

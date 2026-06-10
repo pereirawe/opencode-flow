@@ -1,31 +1,30 @@
 ## /ocf:promote <id>
 
 ---
-description: Promote a backlog item to open and create remote issue
+description: Promote an issue — backlog→ready or ready→in-progress with branch
 ---
 
-Promote a tracked backlog item inside `known_issues.md`.
+Promote a tracked issue in `known_issues.md` to the next lifecycle stage.
+Data is read from the issue entry. Missing fields are handled gracefully:
+`Base branch:` detected from git, `Reviewers:` defaults to 1,
+`Remote:` auto-created if missing — no user prompts.
 
 ### Flow
 
-1. **Ask the user** how many Senior Reviewers should review after development
-   (default: 1) — do **not** read from `opencode.json`
-2. Store the count as `- Reviewers: <n>` in the issue entry
-3. Change `Status` from `backlog` or `ready` to `open`
-4. Reset `Remote` to `-`
-5. **Ask the user**: "Criar issue remota agora? (s/N)"
-   - **Yes**: run `create_issue.sh <id>` — creates remote issue, updates
-     `Remote: #<id>` and `Status: in-progress`, switches to the generated
-     branch `issue-<remote-id>-<slug>`
-   - **No**: keep status as `open` — development MUST NOT start without a
-     remote issue
+| Current Status | Action |
+|----------------|--------|
+| `backlog` | `promote.sh <id>` → `ready` (status only, no branch) |
+| `ready` | Auto-create remote if missing, then `promote.sh <id>` → `in-progress` + branch `issue-<id>-<slug>` |
+| other | Refuse — issue cannot be promoted from its current status |
+
+The script handles: base branch checkout/pull, feature branch creation,
+reviewer profile validation, remote creation if needed, and status update.
 
 ### Status lifecycle
 
 | Status | Description |
 |--------|-------------|
 | `backlog` / `ready` | Planning states — can be promoted |
-| `open` | Pre-remote execution state — remote creation deferred |
 | `in-progress` | Remote issue exists, work has started |
 | `in-review` | Senior review completed, awaiting QA |
 | `in-qa` | QA verifying post-review corrections |
