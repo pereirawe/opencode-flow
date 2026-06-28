@@ -111,11 +111,7 @@ jobs:
           git config user.name "opencode-flow[bot]"
           git config user.email "opencode-flow[bot]@users.noreply.github.com"
           git add known_issues.md resolved_issues.md
-          git commit -F- <<EOF
-chore: close issue #$LOCAL_ID (PR #$PR_NUMBER merged)
-
-Issue: #$LOCAL_ID
-Status: resolved
-EOF
+          printf 'chore: close issue #%s (PR #%s merged)\n\nIssue: #%s\nStatus: resolved\n' \
+            "$LOCAL_ID" "$PR_NUMBER" "$LOCAL_ID" | git commit -F-
           git push
           echo "Changes committed and pushed to main"
