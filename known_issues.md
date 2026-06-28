@@ -27,18 +27,29 @@ Single source of truth for tracked work in this project.
 `Remote:` is populated at the end of discovery (PM asks user, creates if confirmed).
 Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 
-### 3. Landing page não possui Content Security Policy (CSP)
-- Status: in-review
-- Type: chore
+### 20. Agente Anderson — feedback de usuário leigo nas MRs
+- Status: ready
+- Type: feat
 - Severity: medium
-- Report: senior-reviewers/security
+- Report: PO
 - Base branch: main
-- Reviewers: 1 (security)
-- Remote: -
+- Reviewers: 2 (qa, ux-ui)
+- Remote: #20
 - PR: -
-- Location: advogados/index.html
-- Description: Nenhuma CSP definida. A página carrega Google Fonts via CDN externo e usa data URIs em inline SVGs.
-- Impact: Sem defesa em profundidade contra injeção de scripts via dependências comprometidas.
-- Suggested fix: Adicionar &lt;meta http-equiv="Content-Security-Policy"&gt; com allowlist para Google Fonts e data: URIs.
-- Business rules: (none — this is a chore, not a feat)
-
+- Location: agents/ (novo agente), opencode.json, workflow.md
+- Description: Criar agente "Anderson" — usuário leigo, ansioso, paulistano e puxa-saco — que comenta automaticamente em PT-BR nas MRs após o publish-requester, simulando feedback do cliente final.
+- Impact: Fecha o gap de validação do ponto de vista do usuário final no pipeline. Força PRs a serem escritas de forma clara para não-técnicos.
+- Business rules:
+  1. Acionado AUTOMATICAMENTE após publish-requester criar a MR (novo step no pipeline)
+  2. Lê APENAS título + body da PR — NÃO analisa diff/código
+  3. Posta UM comentário único via gh ou glab
+  4. Comentário INFORMATIVO — não bloqueia merge
+  5. Tom: paulistano, leigo, ansioso, puxa-saco
+  6. Sempre começa ELOGIANDO, depois faz perguntas ansiosas de leigo
+  7. Usa gírias paulistanas: "mano", "sô", "tipo", "caraca", "véi"
+  8. Comentário em PT-BR
+  9. Se descrição da PR for vazia/curta: comenta que não entendeu e pede mais detalhes
+  10. Detecta remote automaticamente (GitHub → gh, GitLab → glab)
+  11. Comando manual ocf:anderson-feedback registrado em opencode.json
+  12. Se gh/glab falhar: loga erro e continua (não falha pipeline)
+- Suggested fix: Criar agents/anderson.md, registrar comando em opencode.json, atualizar workflow.md
