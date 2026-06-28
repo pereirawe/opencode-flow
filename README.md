@@ -1,6 +1,6 @@
 # OpenCode Project Configuration
 
-**Version:** 1.2.1 — [License](LICENSE) (MIT)
+**Version:** 1.4.0 — [License](LICENSE) (MIT)
 
 Generic, language-agnostic configuration for AI-assisted development workflow.
 This config lives in `~/.config/opencode/` and is automatically loaded by OpenCode as the **global config**.
@@ -49,6 +49,7 @@ make -C ~/.config/opencode update
 | `conventions.md` | Development conventions and best practices |
 | `decisions.md` | Architecture decision records |
 | `known_issues.md` | Active issues tracker |
+| `prioritization.md` | PO prioritization proposals (project backlog) |
 | `resolved_issues.md` | Resolved issues archive (compact) |
 | `VERSION` | Current version |
 | `LICENSE` | MIT License |
@@ -79,15 +80,29 @@ make init target=<path> # init project with repo context
 | `/ocf:init` | Initialize `.opencode/` project config |
 | `/ocf:scan-issues` | Deep codebase analysis and issue detection |
 | `/ocf:review-branch` | Full PR/MR-style code review |
+| `/ocf:review-external` | External branch/MR review with structured report |
 | `/ocf:plan-feature` | Feature breakdown with risk assessment |
 | `/ocf:promote <id>` | Promote backlog item + create remote issue |
 | `/ocf:develop [id]` | Start or resume development on a promoted issue |
 | `/ocf:commit` | Create structured commit with status trailers |
 | `/ocf:sync-issues` | Sync known_issues with remote tracker |
 | `/ocf:archive-issue <id>` | Archive resolved issue to compact format |
+| `/ocf:close-issue <id>` | Close remote issue and archive after PR merge |
 | `/ocf:check-pr [id]` | Check PR merge status and auto-archive merged |
 | `/ocf:maintain` | Full maintenance of tracker files |
 | `/ocf:backup` | Create timestamped backup excluding junk |
+| `/ocf:bump-version` | Calculate version bump, update changelog, commit, tag, and publish to main |
+
+## Pipeline Overview
+
+The development pipeline has three phases:
+
+1. **Discovery** (PO → CTO → Tech Lead → QA → PM): refine requirements, define business rules, branch base, and reviewer profiles. PM asks to create remote issue at the end.
+2. **Development** (Developer → Senior Reviewers → QA → Developer corrections): implement, self-review, run tests, then auto-proceed to senior review without pausing.
+3. **Publishing** (Committer → Publish Requester → Close Requester): verify gates, create MR, close issue on merge.
+
+The pipeline runs continuously after promotion — no user confirmation needed between steps.
+See `workflow.md` for complete details.
 
 ## Bootstrap a New Project
 
