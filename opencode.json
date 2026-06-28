@@ -7,7 +7,8 @@
         "~/.config/opencode/agents/*.md",
         "~/.config/opencode/prioritization.md",
         "~/.config/opencode/standards/*.md",
-        "~/.config/opencode/standards/pt/*.md"
+        "~/.config/opencode/standards/pt/*.md",
+        "~/.config/opencode/standards/es/*.md"
     ],
     "command": {
         "init": {
