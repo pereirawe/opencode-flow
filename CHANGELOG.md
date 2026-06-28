@@ -2,6 +2,13 @@
 
 ## 1.4.2 (2026-06-28)
 
+- **chore: remove unused locale dirs** — deleted `standards/fr`, `de`, `ja`, `zh` (not actively maintained)
+- **chore: keep EN + PT + ES** — English is source of truth, Portuguese and Spanish are actively used
+- **chore: update opencode.json** — instructions now load ES locale alongside PT
+- **doc: update standards/README.md** — document available locales
+
+## 1.4.1 (2026-06-28)
+
 - **chore: add CONTRIBUTING.md** — contributor guide with conventions and local setup
 - **chore: add ROADMAP.md** — short, medium, and long-term vision
 - **chore: add GitHub issue templates** — bug report, feature request, and config
