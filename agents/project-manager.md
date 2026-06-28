@@ -14,6 +14,10 @@ Responsibilities:
 - Identify blockers and dependencies
 - Ensure clear communication between agents
 - Update issue statuses in `known_issues.md`
+- **At the end of discovery (after QA validates): ask the user if they want to
+  create the remote issue now. If confirmed, run `scripts/create_issue.sh <id>`
+  to create it and populate `Remote:`. If not confirmed, the issue will need
+  remote creation before promotion to `in-progress`.**
 - **During promotion: read `Base branch:` and `Reviewers:` from the issue entry
   in `known_issues.md`, run `scripts/promote.sh <id>` to checkout+pull the base
   branch and create the feature branch**

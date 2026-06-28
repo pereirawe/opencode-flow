@@ -24,7 +24,8 @@ Single source of truth for tracked work in this project.
 `Business rules:` is required for `feat` type issues.
 `Base branch:` is set during discovery (usually `main`/`master`).
 `Reviewers:` stores count and profiles (set during discovery, e.g. `1 (backend)`).
-`Remote:` is populated at the end of discovery (when issue reaches `ready`).
+`Remote:` is populated at the end of discovery (PM asks user, creates if confirmed).
+Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 
 ### 3. Landing page não possui Content Security Policy (CSP)
 - Status: in-review
