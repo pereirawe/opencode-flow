@@ -1,0 +1,33 @@
+name: Bug Report
+description: Report something that isn't working
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Follow the pipeline — this will be triaged into `known_issues.md`.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened vs what should have happened
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `cat VERSION`
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How to trigger the bug
+      placeholder: "1. Run /ocf:develop\n2. See error..."
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output
+      render: shell
