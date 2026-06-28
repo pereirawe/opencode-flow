@@ -3,7 +3,9 @@
 [![Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fpereirawe%2Fopencode-flow%2Fmain%2Fpackage.json&query=%24.version&label=version&color=blue)](https://github.com/pereirawe/opencode-flow/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](CONTRIBUTING.md)
+[![GitHub stars](https://img.shields.io/github/stars/pereirawe/opencode-flow?style=social)](https://github.com/pereirawe/opencode-flow/stargazers)
 [![GitHub last commit](https://img.shields.io/github/last-commit/pereirawe/opencode-flow)](https://github.com/pereirawe/opencode-flow/commits/main)
+[![GitHub Discussions](https://img.shields.io/badge/discussions-welcome-brightgreen)](https://github.com/pereirawe/opencode-flow/discussions)
 
 **Version:** 1.4.2 — [License](LICENSE) (MIT)
 
@@ -97,6 +99,50 @@ make init target=<path> # init project with repo context
 | `/ocf:maintain` | Full maintenance of tracker files |
 | `/ocf:backup` | Create timestamped backup excluding junk |
 | `/ocf:bump-version` | Calculate version bump, update changelog, commit, tag, and publish to main |
+
+## Pipeline in Action
+
+This project dogfoods its own pipeline. Here's a real cycle (v1.4.2 release):
+
+```
+# 1. DISCOVERY — identify improvement (remove unused locale dirs)
+→ PO identifies the need (fr/de/ja/zh standards are stale)
+→ CTO/Tech Lead validate minimal impact
+→ QA confirms no breaking changes
+→ PM promotes: issue registered in known_issues.md
+
+# 2. DEVELOPMENT — implement + auto-proceed to review
+→ Developer removes 4 locale dirs, updates opencode.json
+→ Tests run, self-review passes
+→ Status → in-review (no pause, no asking)
+
+# 3. PUBLISHING — gate → MR → release
+→ Committer verifies: senior review done, QA passed, tests passing
+→ Publish Requester creates MR (chore: remove unused locales)
+→ MR merged to main
+→ Maintainer runs: /ocf:bump-version
+```
+
+```
+$ /ocf:bump-version
+  Current VERSION: 1.4.1
+  Last tag: v1.4.1
+  Commits since tag: 1 (chore)
+  Suggested: 1.4.2 (patch)
+  
+  Confirm bump to 1.4.2? [Y/n]: Y
+  
+  ✓ VERSION updated: 1.4.1 → 1.4.2
+  ✓ README.md version badge updated
+  ✓ CHANGELOG.md entry added
+  ✓ Commit: chore: bump version to 1.4.2
+  ✓ Tag: v1.4.2
+  ✓ Push to origin/main --tags
+  ✓ GitHub Release created: v1.4.2
+  → https://github.com/pereirawe/opencode-flow/releases/tag/v1.4.2
+```
+
+Every change in this repo follows the same lifecycle. See `workflow.md` for the complete pipeline definition.
 
 ## Pipeline Overview
 
