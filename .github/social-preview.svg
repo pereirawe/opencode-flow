@@ -1,0 +1,103 @@
+<svg width="1280" height="640" viewBox="0 0 1280 640" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#161b22"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#58a6ff"/>
+      <stop offset="100%" stop-color="#3fb950"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="640" fill="url(#bg)"/>
+
+  <!-- Grid lines -->
+  <g stroke="#21262d" stroke-width="0.5" opacity="0.5">
+    <line x1="0" y1="160" x2="1280" y2="160"/>
+    <line x1="0" y1="320" x2="1280" y2="320"/>
+    <line x1="0" y1="480" x2="1280" y2="480"/>
+    <line x1="320" y1="0" x2="320" y2="640"/>
+    <line x1="640" y1="0" x2="640" y2="640"/>
+    <line x1="960" y1="0" x2="960" y2="640"/>
+  </g>
+
+  <!-- Pipeline Flow -->
+  <g transform="translate(80, 480)">
+    <rect x="0" y="0" width="160" height="48" rx="8" fill="#1f6feb"/>
+    <text x="80" y="30" text-anchor="middle" fill="#fff" font-family="monospace" font-size="14">Discovery</text>
+
+    <polygon points="168,24 184,16 184,32" fill="#484f58"/>
+    <polygon points="186,24 202,16 202,32" fill="#484f58"/>
+
+    <rect x="210" y="0" width="180" height="48" rx="8" fill="#238636"/>
+    <text x="300" y="30" text-anchor="middle" fill="#fff" font-family="monospace" font-size="14">Development</text>
+
+    <polygon points="398,24 414,16 414,32" fill="#484f58"/>
+    <polygon points="416,24 432,16 432,32" fill="#484f58"/>
+
+    <rect x="440" y="0" width="170" height="48" rx="8" fill="#1f6feb"/>
+    <text x="525" y="30" text-anchor="middle" fill="#fff" font-family="monospace" font-size="14">Senior Review</text>
+
+    <polygon points="618,24 634,16 634,32" fill="#484f58"/>
+    <polygon points="636,24 652,16 652,32" fill="#484f58"/>
+
+    <rect x="660" y="0" width="120" height="48" rx="8" fill="#d29922"/>
+    <text x="720" y="30" text-anchor="middle" fill="#fff" font-family="monospace" font-size="14">QA Gate</text>
+
+    <polygon points="788,24 804,16 804,32" fill="#484f58"/>
+    <polygon points="806,24 822,16 822,32" fill="#484f58"/>
+
+    <rect x="830" y="0" width="160" height="48" rx="8" fill="#3fb950"/>
+    <text x="910" y="30" text-anchor="middle" fill="#fff" font-family="monospace" font-size="14">Publish → MR</text>
+
+    <polygon points="998,24 1014,16 1014,32" fill="#484f58"/>
+    <polygon points="1016,24 1032,16 1032,32" fill="#484f58"/>
+
+    <rect x="1040" y="0" width="150" height="48" rx="8" fill="#bc8cff"/>
+    <text x="1115" y="30" text-anchor="middle" fill="#fff" font-family="monospace" font-size="14">Close Issue</text>
+  </g>
+
+  <!-- Robot icon -->
+  <g transform="translate(80, 60)">
+    <rect x="0" y="20" width="80" height="80" rx="16" fill="#21262d"/>
+    <rect x="20" y="0" width="40" height="30" rx="8" fill="#21262d"/>
+    <circle cx="32" cy="60" r="6" fill="#58a6ff"/>
+    <circle cx="48" cy="60" r="6" fill="#3fb950"/>
+    <rect x="28" y="75" width="24" height="4" rx="2" fill="#484f58"/>
+  </g>
+
+  <!-- Title -->
+  <text x="180" y="110" fill="#f0f6fc" font-family="system-ui, sans-serif" font-size="48" font-weight="bold">
+    OpenCode Flow
+  </text>
+  <text x="180" y="145" fill="#8b949e" font-family="system-ui, sans-serif" font-size="20">
+    AI-assisted development workflow pipeline
+  </text>
+
+  <!-- Badges -->
+  <g transform="translate(180, 170)">
+    <rect x="0" y="0" width="100" height="24" rx="4" fill="#21262d"/>
+    <circle cx="10" cy="12" r="4" fill="#3fb950"/>
+    <text x="20" y="17" fill="#f0f6fc" font-family="monospace" font-size="12">v1.4.2</text>
+
+    <rect x="110" y="0" width="120" height="24" rx="4" fill="#21262d"/>
+    <text x="120" y="17" fill="#f0f6fc" font-family="monospace" font-size="12">MIT License</text>
+
+    <rect x="240" y="0" width="160" height="24" rx="4" fill="#21262d"/>
+    <text x="250" y="17" fill="#f0f6fc" font-family="monospace" font-size="12">Pipeline: 7 stages</text>
+  </g>
+
+  <!-- Agents list -->
+  <g transform="translate(760, 80)">
+    <text x="0" y="0" fill="#f0f6fc" font-family="system-ui, sans-serif" font-size="16" font-weight="bold">13 Agents</text>
+    <text x="0" y="24" fill="#8b949e" font-family="monospace" font-size="13">CTO · PO · Tech Lead · PM</text>
+    <text x="0" y="46" fill="#8b949e" font-family="monospace" font-size="13">QA · Developer · Senior Reviewers</text>
+    <text x="0" y="68" fill="#8b949e" font-family="monospace" font-size="13">Committer · Publish · Close</text>
+    <text x="0" y="90" fill="#8b949e" font-family="monospace" font-size="13">Documentation · Test · Backup</text>
+  </g>
+
+  <!-- Bottom bar -->
+  <rect x="0" y="620" width="1280" height="20" fill="url(#accent)" opacity="0.3"/>
+</svg>
