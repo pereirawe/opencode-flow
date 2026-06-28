@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.4.1 (2026-06-28)
+## 1.4.2 (2026-06-28)
 
 - **chore: add CONTRIBUTING.md** — contributor guide with conventions and local setup
 - **chore: add ROADMAP.md** — short, medium, and long-term vision
