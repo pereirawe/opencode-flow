@@ -1,0 +1,117 @@
+name: Post-Merge — close issue & update main
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: read
+
+jobs:
+  close-issue:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Extract issue ID from PR body
+        id: extract
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          ISSUE_ID=$(echo "$PR_BODY" | grep -oP '(?:Closes|Issue):\s*#\K\d+' | head -1 || echo "")
+          echo "issue_id=$ISSUE_ID" >> $GITHUB_OUTPUT
+          echo "Extracted issue: $ISSUE_ID"
+
+      - name: Close remote issue
+        if: steps.extract.outputs.issue_id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ISSUE_ID="${{ steps.extract.outputs.issue_id }}"
+          gh issue close "$ISSUE_ID"
+          echo "Closed remote issue #$ISSUE_ID"
+
+      - name: Update known_issues.md and archive
+        if: steps.extract.outputs.issue_id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LOCAL_ID: ${{ steps.extract.outputs.issue_id }}
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          ISSUES_FILE="${{ github.workspace }}/known_issues.md"
+          RESOLVED_FILE="${{ github.workspace }}/resolved_issues.md"
+
+          # Extract issue section
+          SECTION=$(awk -v id="$LOCAL_ID" '
+            $0 ~ "^### " id "\\." {found=1}
+            found {
+              if ($0 ~ /^### [0-9]+\./ && $0 !~ "^### " id "\\.") exit
+              print
+            }
+          ' "$ISSUES_FILE")
+
+          if [[ -z "$SECTION" ]]; then
+            echo "Issue $LOCAL_ID not found in known_issues.md"
+            exit 0
+          fi
+
+          # Parse fields
+          TITLE=$(echo "$SECTION" | sed -n '1s/^### [0-9]*\. //p')
+          TYPE=$(echo "$SECTION" | awk -F': ' '/^- Type:/ {print $2; exit}')
+          SEVERITY=$(echo "$SECTION" | awk -F': ' '/^- Severity:/ {print $2; exit}')
+          REPORT=$(echo "$SECTION" | awk -F': ' '/^- Report:/ {print $2; exit}')
+          REVIEWERS=$(echo "$SECTION" | awk -F': ' '/^- Reviewers:/ {print $2; exit}')
+          REVIEWER_COUNT=$(echo "$REVIEWERS" | grep -o '^[0-9]*' || echo "1")
+          REMOTE_REF=$(echo "$SECTION" | awk -F': ' '/^- Remote:/ {print $2; exit}')
+          DESC=$(echo "$SECTION" | awk -F': ' '/^- Description:/ {print $2; exit}')
+          SUGGESTED=$(echo "$SECTION" | awk -F': ' '/^- Suggested fix:/ {print $2; exit}')
+          SUMMARY="${DESC:-no description}${SUGGESTED:+ — ${SUGGESTED}}"
+          RESOLVED_DATE=$(date +%Y-%m-%d)
+
+          # Archive to resolved_issues.md (prepend)
+          if [[ ! -f "$RESOLVED_FILE" ]]; then
+            echo "# Resolved Issues" > "$RESOLVED_FILE"
+            echo "" >> "$RESOLVED_FILE"
+            echo "Issues resolved from \`known_issues.md\`." >> "$RESOLVED_FILE"
+            echo "" >> "$RESOLVED_FILE"
+          fi
+
+          TMP=$(mktemp)
+          echo "" > "$TMP"
+          echo "### $LOCAL_ID. $TITLE" >> "$TMP"
+          echo "- Resolved: $RESOLVED_DATE" >> "$TMP"
+          echo "- Type: ${TYPE:-chore}" >> "$TMP"
+          echo "- Report: ${REPORT:-unknown}" >> "$TMP"
+          echo "- Reviewers: ${REVIEWER_COUNT:-1}" >> "$TMP"
+          echo "- Remote: ${REMOTE_REF:--}" >> "$TMP"
+          echo "- Severity: ${SEVERITY:-medium}" >> "$TMP"
+          echo "- Summary: $SUMMARY" >> "$TMP"
+          tail -n +4 "$RESOLVED_FILE" 2>/dev/null >> "$TMP" || true
+          mv "$TMP" "$RESOLVED_FILE"
+
+          # Remove from known_issues.md
+          awk -v id="$LOCAL_ID" '
+            BEGIN{skip=0}
+            $0 ~ "^### " id "\\." {skip=1; next}
+            skip == 1 && $0 ~ /^### [0-9]+\./ {skip=0}
+            skip == 0 {print}
+          ' "$ISSUES_FILE" > "$ISSUES_FILE.tmp" && mv "$ISSUES_FILE.tmp" "$ISSUES_FILE"
+
+          echo "Issue $LOCAL_ID archived and removed from known_issues.md"
+
+          # Commit and push
+          git config user.name "opencode-flow[bot]"
+          git config user.email "opencode-flow[bot]@users.noreply.github.com"
+          git add known_issues.md resolved_issues.md
+          git commit -m "chore: close issue #$LOCAL_ID (PR #$PR_NUMBER merged)
+
+        Issue: #$LOCAL_ID
+        Status: resolved"
+          git push
+          echo "Changes committed and pushed to main"
