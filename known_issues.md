@@ -76,7 +76,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Base branch: main
 - Reviewers: 1
 - Remote: #22
-- PR: -
+- PR: #21
 - Location: commands/ocf:review-external.md
 - Description: `ocf:review-external` está definido em opencode.json e referenciado no Makefile e prioritization.md, mas `commands/ocf:review-external.md` não existe. O comando funciona via template JSON mas não há documentação discoverable para o agente.
 - Impact: Agente não tem instruções para executar o comando corretamente. Referências órfãs no Makefile e prioritization.
