@@ -1,0 +1,41 @@
+name: Feature Request
+description: Suggest an improvement or new capability
+labels: [feat]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion. Every feature goes through the discovery pipeline.
+        Be as specific as possible about business rules.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What problem does this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How would this work?
+    validations:
+      required: true
+  - type: textarea
+    id: rules
+    attributes:
+      label: Business rules
+      description: Specific constraints, limits, and conditions
+      placeholder: "1. Users MUST be logged in to access this\n2. The timeout MUST NOT exceed 30s"
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Impact area
+      options:
+        - Pipeline / Workflow
+        - Agents
+        - Scripts
+        - Standards
+        - Documentation
+        - Multi-tool support
+        - Other
