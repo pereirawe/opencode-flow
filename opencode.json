@@ -4,7 +4,9 @@
         "~/.config/opencode/AGENTS.md",
         "~/.config/opencode/workflow.md",
         "~/.config/opencode/known_issues.md",
-        "~/.config/opencode/agents/*.md"
+        "~/.config/opencode/agents/*.md",
+        "~/.config/opencode/standards/*.md",
+        "~/.config/opencode/standards/pt/*.md"
     ],
     "command": {
         "init": {

@@ -1,6 +1,6 @@
 # OpenCode Project Configuration
 
-**Version:** 1.0.0 — [License](LICENSE) (MIT)
+**Version:** 1.2.1 — [License](LICENSE) (MIT)
 
 Generic, language-agnostic configuration for AI-assisted development workflow.
 This config lives in `~/.config/opencode/` and is automatically loaded by OpenCode as the **global config**.
@@ -56,7 +56,7 @@ make -C ~/.config/opencode update
 | `commands/` | Slash command documentation |
 | `skills/` | Reusable skills (issue-manager, locale-loader, graphify) |
 | `scripts/` | Shell helpers for issue lifecycle |
-| `standards/` | Development patterns (branching, commits, PR) + pt/es translations |
+| `standards/` | Development patterns (branching, commits, PR, issues, code-review) + locale translations. Auto-loaded via `instructions` in `opencode.json` |
 | `.opencode/` | Project bootstrap template (copy to other projects) |
 | `wip/` | Planning artifacts |
 
