@@ -68,20 +68,6 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Impact: Perda cumulativa de dados no arquivo de issues resolvidas. Entradas antigas são silenciosamente truncadas a cada fechamento.
 - Suggested fix: Substituir `tail -n +4` por `cat "$RESOLVED_FILE"` para preservar todo o conteúdo existente.
 
-### 22. Comando `ocf:review-external` registrado sem arquivo de documentação
-- Status: in-publish
-- Type: bug
-- Severity: high
-- Report: opencode
-- Base branch: main
-- Reviewers: 1
-- Remote: #22
-- PR: -
-- Location: commands/ocf:review-external.md
-- Description: `ocf:review-external` está definido em opencode.json e referenciado no Makefile e prioritization.md, mas `commands/ocf:review-external.md` não existe. O comando funciona via template JSON mas não há documentação discoverable para o agente.
-- Impact: Agente não tem instruções para executar o comando corretamente. Referências órfãs no Makefile e prioritization.
-- Suggested fix: Criar `commands/ocf:review-external.md` ou remover referências órfãs.
-
 ### 23. Instruções contraditórias para contagem de revisores entre command doc e opencode.json
 - Status: backlog
 - Type: bug
