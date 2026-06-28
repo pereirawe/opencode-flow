@@ -69,7 +69,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Suggested fix: Substituir `tail -n +4` por `cat "$RESOLVED_FILE"` para preservar todo o conteúdo existente.
 
 ### 22. Comando `ocf:review-external` registrado sem arquivo de documentação
-- Status: in-review
+- Status: in-publish
 - Type: bug
 - Severity: high
 - Report: opencode

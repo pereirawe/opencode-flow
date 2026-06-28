@@ -64,6 +64,8 @@ If invoked without arguments, the agent prompts for the MR URL or remote branch.
    - Only findings classified as `critical` or `high` are eligible
    - The user is asked: "Postar os <n> comentários críticos/high no MR? (s/N)"
    - If confirmed, uses `gh pr review` (GitHub) or `glab mr comment` (GitLab)
+     to post each finding as a comment/review on the MR, with file and line
+     references when possible
 
 ### Classification Rules
 
