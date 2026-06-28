@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.4.1 (2026-06-28)
+
+- **chore: add CONTRIBUTING.md** — contributor guide with conventions and local setup
+- **chore: add ROADMAP.md** — short, medium, and long-term vision
+- **chore: add GitHub issue templates** — bug report, feature request, and config
+- **chore: add badges to README** — version, license, PRs welcome, last commit
+- **chore: add GitHub topics** — opencode, ai-coding, pipeline, agent-framework, devops, productivity
+- **fix(bump-version): add `gh release create` step** — now creates GitHub Release automatically
+
 ## 1.4.0 (2026-06-28)
 
 - **feat: add `ocf:bump-version` command** — automatically calculates version bump from git log, updates VERSION/CHANGELOG/README, commits, tags, and publishes to main

@@ -5,7 +5,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](CONTRIBUTING.md)
 [![GitHub last commit](https://img.shields.io/github/last-commit/pereirawe/opencode-flow)](https://github.com/pereirawe/opencode-flow/commits/main)
 
-**Version:** 1.4.0 — [License](LICENSE) (MIT)
+**Version:** 1.4.1 — [License](LICENSE) (MIT)
 
 Generic, language-agnostic configuration for AI-assisted development workflow.
 This config lives in `~/.config/opencode/` and is automatically loaded by OpenCode as the **global config**.
