@@ -145,3 +145,12 @@ Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for fo
 - Remote: -
 - Severity: low
 - Summary: Created agents/tech-lead.md agent definition and added it to workflow.md pipeline — provides technical guidance between CTO (strategy) and Developer (implementation)
+
+### 22. Comando `ocf:review-external` registrado sem arquivo de documentação
+- Resolved: 2026-06-28
+- Type: bug
+- Report: opencode
+- Reviewers: 1
+- Remote: #22
+- Severity: high
+- Summary: Criado commands/ocf:review-external.md com documentação completa do workflow de revisão externa (10 domínios, 5 níveis de severidade, relatório estruturado, post opcional no MR). Criado .github/workflows/post-merge.yml para auto-close de issues via GitHub Action.
