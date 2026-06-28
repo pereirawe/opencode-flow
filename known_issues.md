@@ -69,14 +69,14 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Suggested fix: Substituir `tail -n +4` por `cat "$RESOLVED_FILE"` para preservar todo o conteúdo existente.
 
 ### 23. Instruções contraditórias para contagem de revisores entre command doc e opencode.json
-- Status: in-review
+- Status: in-publish
 - Type: bug
 - Severity: high
 - Report: opencode
 - Base branch: main
 - Reviewers: 1
 - Remote: #22
-- PR: -
+- PR: #23
 - Location: commands/ocf:review-branch.md vs opencode.json:28
 - Description: commands/ocf:review-branch.md diz "Ask user for reviewer count (default 1)", enquanto opencode.json (fonte da verdade) diz "Read from `- Reviewers:` field; if absent or empty, default to 1 — do NOT ask the user."
 - Impact: Agentes recebem instruções conflitantes. Pode resultar em perguntas indesejadas ao usuário ou revisores não atribuídos.
