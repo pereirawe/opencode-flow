@@ -22,8 +22,10 @@ jobs:
       - name: Extract issue ID from PR body
         id: extract
         env:
-          PR_BODY: ${{ github.event.pull_request.body }}
+          GH_TOKEN: ${{ github.token }}
         run: |
+          PR_NUMBER="${{ github.event.number }}"
+          PR_BODY=$(gh pr view "$PR_NUMBER" --json body --jq '.body' 2>/dev/null || echo "")
           ISSUE_ID=$(echo "$PR_BODY" | grep -oP '(?:Closes|Issue):\s*#\K\d+' | head -1 || echo "")
           echo "issue_id=$ISSUE_ID" >> $GITHUB_OUTPUT
           echo "Extracted issue: $ISSUE_ID"
@@ -109,9 +111,11 @@ jobs:
           git config user.name "opencode-flow[bot]"
           git config user.email "opencode-flow[bot]@users.noreply.github.com"
           git add known_issues.md resolved_issues.md
-          git commit -m "chore: close issue #$LOCAL_ID (PR #$PR_NUMBER merged)
+          git commit -F- <<EOF
+chore: close issue #$LOCAL_ID (PR #$PR_NUMBER merged)
 
-        Issue: #$LOCAL_ID
-        Status: resolved"
+Issue: #$LOCAL_ID
+Status: resolved
+EOF
           git push
           echo "Changes committed and pushed to main"
