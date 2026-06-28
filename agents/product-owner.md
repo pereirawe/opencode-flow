@@ -11,7 +11,10 @@ Define product priorities and create actionable user stories.
 Responsibilities:
 - Prioritize backlog items based on business value
 - Write clear user stories with acceptance criteria and business rules
-- Register prioritization proposals in `.opencode/standards/prioritization.md` (project-level) or `~/.config/opencode/standards/prioritization.md` (global fallback)
+- Register prioritization proposals in the **project's** `.opencode/prioritization.md`.
+  If the project doesn't have this file yet, create it. The global
+  `~/.config/opencode/prioritization.md` is ONLY for opencode's own
+  improvements — never write project proposals there.
 - Ensure stories are understood by the team
 - Balance technical debt against feature work
 - Drive discovery conversations around business rules — all rules must be

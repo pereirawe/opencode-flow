@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 CONFIG_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
-.PHONY: scan-issues review help promote close-issue bootstrap init maintain update review-external sync-issues close-merged
+.PHONY: scan-issues review help promote close-issue bootstrap init maintain update review-external sync-issues close-merged bump-version
 
 help:
 	@echo "Targets:"
@@ -16,6 +16,7 @@ help:
 	@echo "  make init target=<path> — init project with repo context (default: current dir)"
 	@echo "  make review-external   — prompt /ocf:review-external for external branch/MR review"
 	@echo "  make backup dir=<path> [name=<name>] [zip=1] — create intelligent backup"
+	@echo "  make bump-version        — prompt /ocf:bump-version to calculate version, update changelog, and publish"
 
 scan-issues:
 	@echo "[make] scan-issues"
@@ -75,6 +76,10 @@ sync-issues:
 close-merged:
 	@echo "[make] close-merged"
 	@echo "Run /ocf:close-requester in the assistant or use \`make close-issue id=<n>\` for a single issue"
+
+bump-version:
+	@echo "[make] bump-version"
+	@echo "Run /ocf:bump-version in the assistant to calculate version, update changelog, commit, tag, and publish"
 
 backup:
 	@echo "[make] backup"

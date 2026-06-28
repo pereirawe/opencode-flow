@@ -12,11 +12,15 @@ Rastreamento em dois níveis:
 - Type: bug | feat | doc | chore
 - Severity: critical | high | medium | low
 - Report: <nome-usuário> | <nome-modelo>
-- Reviewers: <número> (definido durante promoção, default 1)
+- Base branch: <default-branch> | <branch-name>
+- Reviewers: <número> (definido durante discovery, default 1)
 - Remote: - | #<id-remoto>
+- PR: - | #<pr-number>
 - Location: <caminho-arquivo>:<linhas>
 - Description: <descrição breve>
 - Impact: <o que ou quem é afetado>
+- Business rules: <regras de negócio, restrições e regras de domínio>
+- Acceptance criteria: <o que deve ser verdade para a issue ser considerada completa>
 - Suggested fix: <abordagem ou próximo passo>
 ```
 

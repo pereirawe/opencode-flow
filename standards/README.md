@@ -10,3 +10,4 @@ Project-wide conventions and patterns.
 | `pr-template.md` | Pull request template |
 | `code-review.md` | Code review guidelines |
 | `locale.md` | Locale system — how to set project language |
+| `resolved-issue.md` | Resolved issue archive format |

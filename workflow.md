@@ -14,27 +14,30 @@ through discovery.
 
 ### Discovery Pipeline
 
-1. **PO** registers a prioritization proposal in
-   `.opencode/standards/prioritization.md` (project-level) or
-   `~/.config/opencode/standards/prioritization.md` (global fallback)
-   with business value, target, rationale, proposed issue type, and known
-   business rules
+1. **PO** registers a prioritization proposal in the **project's**
+   `.opencode/prioritization.md`. If the project doesn't have this
+   file yet, create it. The global `~/.config/opencode/prioritization.md`
+   is ONLY for opencode's own improvements — never write project proposals there.
+   Include business value, target, rationale, proposed issue type, and known
+   business rules.
 2. **CTO** reviews architectural alignment, defines technical vision, and
    identifies strategic constraints. Define whether the base branch aligns
    with the project's branch strategy.
 3. **Tech Lead** refines with technical detail: feasibility, effort, risks,
    dependencies, non-functional requirements, task breakdown, and validates
    business rules against the technical model. Defines the **base branch**
-   and **senior reviewer profiles**. Creates the **remote issue** via
-   `scripts/create_issue.sh` and populates `- Remote:` in the issue entry.
+   and **senior reviewer profiles**.
 4. **PO** creates user story with acceptance criteria and documented business
    rules — every business rule must be explicit, not implicit. Records
    `- Base branch:` and `- Reviewers:` in the issue entry.
 5. **QA** reviews story for testability, edge cases, and quality criteria —
    verifies that business rules are testable. Validates that reviewer profiles
    cover all affected domains.
-6. **PM** validates dependencies, assigns to sprint, and promotes to
-   `known_issues.md` with status `backlog` or `ready` (remote already created).
+6. **PM** validates dependencies, assigns to sprint, asks the user if they want
+   to create the remote issue now (`scripts/create_issue.sh <id>` if confirmed),
+   and promotes to `known_issues.md` with status `backlog` or `ready`. If the
+   user declines remote creation, the field stays as `-` — it will be
+   auto-created during promotion to `in-progress`.
 
 ### Agent Discovery Questions
 
@@ -68,7 +71,10 @@ Any direct implementation without pipeline is a violation.
 committer gate → MR creation) execute automatically without user confirmation.**
 No agent asks for permission between steps — each agent reads the issue status
 in `known_issues.md`, performs its function, updates the status, and the next
-agent in the pipeline continues.
+agent in the pipeline continues. **The Developer must never pause between
+implementation and senior review** — after running tests and self-review, the
+developer updates status to `in-review` and proceeds immediately without asking
+the user.
 
 **Only two scenarios trigger interaction with the user:**
 1. **Incomplete refinement**: business rules are missing or ambiguous in the
@@ -87,30 +93,37 @@ The user merges the MR manually.
 
 1. **CTO** — define technical vision and guidelines
 2. **Product Owner** — define priorities, create user stories, register
-   prioritization proposals in `.opencode/standards/prioritization.md`
-   (project-level) or `~/.config/opencode/standards/prioritization.md`
-   (global fallback)
+    prioritization proposals in `.opencode/prioritization.md`
+    (project-level) or `~/.config/opencode/prioritization.md`
+   (global fallback). **The global file is ONLY for opencode's own improvements —
+   never write project proposals there.**
 3. **Tech Lead** — refine stories with technical detail, feasibility analysis,
    effort estimation, and task breakdown
-4. **Project Manager** — coordinate team, assign stories, track progress.
-   **During promotion, PM reads `Base branch:` and `Reviewers:` from the issue
-   entry in `known_issues.md`, runs `promote.sh <id>` to checkout+pull the base
-   branch and create the feature branch. No user questions — all data was set
-   during discovery.**
-5. **Quality Analyst (pre-development)** — ensure stories are testable and meet
+4. **Quality Analyst (pre-development)** — ensure stories are testable and meet
    quality standards, validate business rules are testable
+5. **Project Manager** — coordinate team, assign stories, track progress.
+   **During promotion, PM reads `Base branch:` and `Reviewers:` from the issue
+   entry in `known_issues.md`, auto-creates Remote if missing via
+   `scripts/create_issue.sh <id>`, then runs `promote.sh <id>` to checkout+pull
+   the base branch and create the feature branch. No user questions — all data
+   was set during discovery.**
+   **When QA sends an issue back from `in-qa` to `in-progress`, the PM
+   re-invokes the Developer agent to implement corrections, then notifies
+   Senior Reviewers to re-review.**
 6. **Developer** — implement features, write automated tests, run tests, keep
    `known_issues.md` in sync. Verify the feature branch is based on the correct
    base branch before starting implementation. If business rules are missing or
    unclear, flag the gap as a new issue in `known_issues.md` and proceed with
-   what is defined — do not block.
+   what is defined — do not block. **After implementation, update status to
+   `in-review` and proceed to senior review without asking the user.**
 7. **Senior Reviewers** — review code using the count stored in `- Reviewers:`
     in the issue entry (set during discovery), verify acceptance criteria,
    confirm tests were written and pass, identify issues
 8. **Quality Analyst (post-review)** — verify quality after senior review,
    check that all identified issues were addressed and quality standards are met
 9. **Developer** — implement all corrections from senior review and QA (loop
-   with QA until approved)
+   with QA until approved). Re-invoked by PM when status returns to
+   `in-progress` from `in-qa`.
 10. **Committer** — verify pipeline gates: senior review completed, QA passed,
     business rules documented (for `feat` types), tests passing. Sets status to
     `in-publish` on approval. Reports findings without blocking — if a gate
@@ -132,17 +145,19 @@ The user merges the MR manually.
 
 ### Issue Lifecycle
 
-1. PO proposal registered in `.opencode/standards/prioritization.md`
-   (project-level) or `~/.config/opencode/standards/prioritization.md`
-   (global fallback)
+1. PO proposal registered in `.opencode/prioritization.md`
+   (project-level) or `~/.config/opencode/prioritization.md`
+   (global fallback). **The global file is ONLY for opencode's own improvements
+   — never write project proposals there.**
 2. Item captured in `known_issues.md` with status `backlog`
 3. Refined and approved, QA pre-development review → `ready`
-4. PM promotes the issue, reads `Base branch:` and `Reviewers:` from the issue
-   entry in `known_issues.md`, checkouts+pulls the base branch, creates feature
-   branch `issue-<id>-<slug>` from it. Status → `in-progress`.
-5. Remote issue was already created during discovery (Tech Lead step) — `Remote:` 
-   is already populated in `known_issues.md`. Promotion blocks if `Remote:` is
-   empty or `error:*`.
+4. PM promotes the issue: auto-creates Remote if missing via
+   `scripts/create_issue.sh <id>`, reads `Base branch:` and `Reviewers:` from
+   the issue entry, checkouts+pulls the base branch, creates feature branch
+   `issue-<id>-<slug>`. Status → `in-progress`.
+5. Promotion blocks if `Remote:` is empty or `error:*` after auto-creation.
+   Remote was optionally created during discovery (PM asks user); if declined,
+   promotion auto-creates silently.
 6. Development on branch — Senior review feedback addressed while staying
    `in-progress` → `in-progress`
 7. Senior review completed, all issues resolved → `in-review`

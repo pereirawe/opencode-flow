@@ -16,6 +16,7 @@ These commands are available in the assistant.
 | `ocf:check-pr [id]` | Check PR merge status and auto-archive merged |
 | `ocf:maintain` | Full maintenance of known_issues.md |
 | `ocf:backup` | Create intelligent timestamped backup excluding junk |
+| `ocf:bump-version` | Calculate version bump, update changelog, commit, tag, and publish to main |
 
 ## Command Definition Rule
 

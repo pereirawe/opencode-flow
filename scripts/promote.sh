@@ -57,7 +57,7 @@ if [[ "$STATUS" == "backlog" ]]; then
   ' "$ISS_FILE" > "$ISS_FILE.tmp" && mv "$ISS_FILE.tmp" "$ISS_FILE"
 
   echo "[promote] Issue $ID promoted from backlog to ready"
-  echo "[promote] Tech Lead should now create remote issue via create_issue.sh"
+  echo "[promote] Remote issue will be created during promotion (PM step) or by the next promoter."
   exit 0
 fi
 
