@@ -27,16 +27,15 @@ Example: `.opencode/claude-4_feat-add-auth_issues.md`
 
 1. **Load locale-loader skill first** to get locale-appropriate standards
    (code-review.md, issues.md) — respect `.opencode/locale` in the project
-2. **Read `- Reviewers:`** from the issue entry in `known_issues.md` — do
-   **not** read from `opencode.json` to avoid config breakage. If the field
-   is empty or missing, ask the user (default: 1)
+2. **Read `- Reviewers:`** from the issue entry in `known_issues.md` — if
+   the field is missing or empty, default to 1 — do **not** ask the user
 3. Pass the resolved locale context to all Senior Reviewer agents
 4. Analyze `git diff` and run the review with that many reviewers
 5. Write review output to the branch-specific file
 
 ### Responsibilities
 
-- Ask user for reviewer count (default 1) — never read from `opencode.json`
+- Read `- Reviewers:` from the issue entry — default to 1 if missing or empty — do **not** ask the user
 - Analyze `git diff`
 - Use the specified number of Senior Engineer reviewers
 - Only review code changes, not docs or other files (unless docs are updated in the same commit)
