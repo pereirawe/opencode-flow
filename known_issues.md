@@ -263,3 +263,22 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Description: O script escaneia apenas `./src ./cmd ./internal ./*.go ./*.py ./*.js ./*.ts ./*.rs`. Projetos com layouts diferentes (monorepo, app/, lib/, scripts/) são ignorados.
 - Impact: scan-issues pode reportar "no issues" quando há issues em diretórios não listados. Scripts shell em scripts/ nunca são escaneados.
 - Suggested fix: Incluir scripts/ nos targets. Adicionar suporte a config `.opencode/scan-patterns` ou escanear a raiz com .gitignore-aware tool.
+
+### 37. Delegar `ocf:develop` para router e agente Go
+- Status: in-progress
+- Type: feat
+- Severity: medium
+- Report: opencode
+- Base branch: main
+- Reviewers: 1 (docs, runtime)
+- Remote: -
+- PR: -
+- Location: commands/ocf:develop.md, opencode.json, agents/develop-router.md, agents/devs/golang.md, skills/go/*
+- Description: Atualizar `ocf:develop` para invocar `develop-router` e registrar o agente Go com skills dedicadas.
+- Impact: O fluxo de desenvolvimento passa a rotear automaticamente para o agente mais específico, em vez de cair sempre no `developer` genérico.
+- Business rules:
+  1. `/ocf:develop` deve invocar `develop-router` em vez de chamar `developer` diretamente.
+  2. `develop-router` deve escolher `devs/golang` quando o contexto indicar Go.
+  3. O registro de agentes deve incluir `devs/golang` com `go.mod`, `.go`, `cmd/`, `internal/`.
+  4. As skills Go devem estar disponíveis para revisão e implementação idiomática.
+- Suggested fix: Adicionar o router, registrar o agente Go e atualizar o comando/config para usar o novo fluxo.
