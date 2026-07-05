@@ -273,7 +273,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Reviewers: 1 (backend)
 - Remote: -
 - PR: -
-- Location: agents/close-requester.md, agents/publish-requester.md, scripts/close_issue.sh
+- Location: agents/close-requester.md, agents/publish-requester.md, agents/committer.md
 - Description: Após o pipeline de delivery, os agentes close-requester e publish-requester modificam `known_issues.md` (status, PR number) e `resolved_issues.md` (arquivo), mas essas alterações nunca são commitadas. O usuário precisa commitar manualmente em main/master.
 - Impact: Arquivos de tracking ficam dessincronizados com o git. Cada merge requer commit manual dos arquivos de issue.
 - Business rules:
