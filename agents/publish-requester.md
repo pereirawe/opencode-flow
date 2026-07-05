@@ -47,7 +47,9 @@ Responsibilities:
 - **After creating the MR, update `known_issues.md`** with `- PR: #<n>`
   in the issue entry
 - **Commit and push** the `known_issues.md` update to the feature branch.
-  Use semantic commit message: `chore: update PR reference in known_issues.md`
+  Stage files explicitly: `git add known_issues.md`
+  Use semantic commit message:
+  `chore: sync issue tracking after MR #<pr-id>`
   Include trailer `Issue: #<local-id>`. If git commit fails, log a warning
   and continue without failing the pipeline.
 - After creating the MR, delegate closure to the **Close Requester** agent,

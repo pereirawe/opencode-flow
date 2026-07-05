@@ -17,8 +17,9 @@ Responsibilities:
 - Ensure `known_issues.md` reflects any new findings
 - Set issue status to `in-publish` after all gates pass
 - **Commit the `known_issues.md` update** (status change to `in-publish`) to the
-  feature branch. Use semantic commit message:
-  `chore: update issue status to in-publish`
+  feature branch. Stage files explicitly: `git add known_issues.md`
+  Use semantic commit message:
+  `chore: sync issue tracking after MR #<pr-id>`
   Include trailer `Issue: #<local-id>`. If git commit fails, log a warning
   and continue without failing the pipeline.
 - If a gate fails, document what failed in `known_issues.md` and let the
