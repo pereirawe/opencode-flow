@@ -265,7 +265,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Suggested fix: Incluir scripts/ nos targets. Adicionar suporte a config `.opencode/scan-patterns` ou escanear a raiz com .gitignore-aware tool.
 
 ### 38. Criar agentes orquestradores Discovery e Delivery
-- Status: ready
+- Status: in-progress
 - Type: feat
 - Severity: medium
 - Report: william_pereira
