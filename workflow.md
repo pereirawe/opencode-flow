@@ -148,7 +148,7 @@ The user merges the MR manually.
 Two meta-agents orchestrate the pipeline phases:
 
 **Discovery Agent** (`agents/discovery.md`):
-- Orchestrates phases 1-5: PO → CTO → Tech Lead → QA → PM
+- Orchestrates phases 1-6: PO → CTO → Tech Lead → PO → QA → PM
 - Transforms raw ideas into tracked issues with complete business rules
 - Ensures all required fields (Base branch, Reviewers, Remote) are populated
 - Output: issue in `known_issues.md` with status `ready`
