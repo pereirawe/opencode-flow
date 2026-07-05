@@ -265,7 +265,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Suggested fix: Incluir scripts/ nos targets. Adicionar suporte a config `.opencode/scan-patterns` ou escanear a raiz com .gitignore-aware tool.
 
 ### 37. `close-requester` e `publish-requester` não commitam alterações em `known_issues.md` e `resolved_issues.md`
-- Status: in-review
+- Status: in-publish
 - Type: bug
 - Severity: high
 - Report: william_pereira
