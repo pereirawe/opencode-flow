@@ -272,7 +272,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Base branch: main
 - Reviewers: 1 (backend)
 - Remote: -
-- PR: -
+- PR: #24
 - Location: agents/discovery.md, agents/delivery.md, agents/README.md, opencode.json, workflow.md
 - Description: Criar dois meta-agentes que orquestram as fases do pipeline: Discovery (fases 1-5: PO → CTO → Tech Lead → QA → PM) e Delivery (fases 6-12: Developer → Review → QA → Committer → Publish → Close). Registrar comandos `ocf:discovery` e `ocf:delivery` no opencode.json.
 - Impact: Simplifica o uso do pipeline — usuários podem invocar um único comando para executar todas as fases de discovery ou delivery, em vez de invocar cada agente individualmente.
