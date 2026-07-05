@@ -143,6 +143,24 @@ The user merges the MR manually.
 > **Business rules must be documented in every `feat` issue before promotion.**
 > Missing business rules found during review = incomplete spec, not a bug.
 
+### Orchestrator Agents
+
+Two meta-agents orchestrate the pipeline phases:
+
+**Discovery Agent** (`agents/discovery.md`):
+- Orchestrates phases 1-5: PO → CTO → Tech Lead → QA → PM
+- Transforms raw ideas into tracked issues with complete business rules
+- Ensures all required fields (Base branch, Reviewers, Remote) are populated
+- Output: issue in `known_issues.md` with status `ready`
+
+**Delivery Agent** (`agents/delivery.md`):
+- Orchestrates phases 6-12: PM → Developer → Senior Review → QA → Committer → Publish → Close
+- Executes automatically without user confirmation after promotion
+- Handles the complete lifecycle from feature branch to merged MR
+- Post-merge: triggers Close Requester to archive the issue
+
+Use `ocf:discovery` to start the discovery pipeline and `ocf:delivery` to execute the delivery pipeline.
+
 ### Issue Lifecycle
 
 1. PO proposal registered in `.opencode/prioritization.md`

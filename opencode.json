@@ -70,6 +70,14 @@
         "ocf:backup": {
             "template": "Run `$SCRIPTS_DIR/backup.sh` with the provided arguments. Ask the user for: 1) source directory, 2) backup name (default dev_backup), 3) whether to create a .zip. Then execute the backup. After completion, report the backup path, size, and exclusions applied.",
             "description": "Create intelligent timestamped backup excluding junk"
+        },
+        "ocf:discovery": {
+            "template": "Invoke the Discovery agent to orchestrate the full discovery pipeline (PO → CTO → Tech Lead → QA → PM). Start by asking the user for the feature idea or issue description. Then execute all 5 phases sequentially: (1) PO registers prioritization proposal and drives business rules conversation, (2) CTO reviews architectural alignment, (3) Tech Lead refines with technical detail and defines base branch + reviewer profiles, (4) QA validates testability, (5) PM promotes to known_issues.md with status ready. After completion, the issue is tracked and ready for delivery. If the user wants to proceed to implementation, invoke the Delivery agent.",
+            "description": "Orchestrate full discovery pipeline (PO → CTO → Tech Lead → QA → PM)"
+        },
+        "ocf:delivery": {
+            "template": "Invoke the Delivery agent to orchestrate the full delivery pipeline from tracked issue to merged MR. The issue must be in known_issues.md with status ready (or backlog if fully refined) and have Base branch, Reviewers, and Remote defined. Execute all phases sequentially: (6) PM promotes issue and creates feature branch, (7) Developer implements with tests, (8) Senior Reviewers review code, (9) QA verifies quality, (10) Committer verifies gates, (11) Publish Requester creates MR. After MR creation, the pipeline pauses. Phase 12 (Close Requester) triggers only after MR is merged. Do NOT pause between phases 7-11 — the pipeline is continuous.",
+            "description": "Orchestrate full delivery pipeline (Developer → Review → QA → Committer → Publish → Close)"
         }
     },
     "permission": {

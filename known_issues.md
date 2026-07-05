@@ -263,3 +263,25 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Description: O script escaneia apenas `./src ./cmd ./internal ./*.go ./*.py ./*.js ./*.ts ./*.rs`. Projetos com layouts diferentes (monorepo, app/, lib/, scripts/) são ignorados.
 - Impact: scan-issues pode reportar "no issues" quando há issues em diretórios não listados. Scripts shell em scripts/ nunca são escaneados.
 - Suggested fix: Incluir scripts/ nos targets. Adicionar suporte a config `.opencode/scan-patterns` ou escanear a raiz com .gitignore-aware tool.
+
+### 38. Criar agentes orquestradores Discovery e Delivery
+- Status: ready
+- Type: feat
+- Severity: medium
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 1 (backend)
+- Remote: -
+- PR: -
+- Location: agents/discovery.md, agents/delivery.md, agents/README.md, opencode.json, workflow.md
+- Description: Criar dois meta-agentes que orquestram as fases do pipeline: Discovery (fases 1-5: PO → CTO → Tech Lead → QA → PM) e Delivery (fases 6-12: Developer → Review → QA → Committer → Publish → Close). Registrar comandos `ocf:discovery` e `ocf:delivery` no opencode.json.
+- Impact: Simplifica o uso do pipeline — usuários podem invocar um único comando para executar todas as fases de discovery ou delivery, em vez de invocar cada agente individualmente.
+- Business rules:
+  1. Discovery agent DEVE orquestrar fases 1-5 sequencialmente (PO → CTO → Tech Lead → QA → PM)
+  2. Delivery agent DEVE orquestrar fases 6-12 sequencialmente (PM → Developer → Review → QA → Committer → Publish → Close)
+  3. Após promoção (fase 6), fases 7-11 DEVEM executar automaticamente sem confirmação do usuário
+  4. Fase 12 (Close Requester) DEVE pausar após criação da MR — apenas dispara quando MR é merged
+  5. Comandos `ocf:discovery` e `ocf:delivery` DEVEM ser registrados no opencode.json
+  6. agents/README.md DEVE listar os novos agentes orquestradores
+  7. workflow.md DEVE documentar os agentes orquestradores
+- Suggested fix: Criar agents/discovery.md e agents/delivery.md com instruções completas de orquestração. Atualizar README.md e workflow.md. Registrar comandos no opencode.json.

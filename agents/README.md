@@ -6,6 +6,8 @@ Agents are loaded via OpenCode's subagent mechanism. Each agent has a specific f
 
 | Agent | Function |
 |-------|----------|
+| `discovery` | Orchestrates full discovery pipeline (PO → CTO → Tech Lead → QA → PM) |
+| `delivery` | Orchestrates full delivery pipeline (Developer → Review → QA → Committer → Publish → Close) |
 | `cto` | Technical vision and guidelines |
 | `product-owner` | Priorities and user stories |
 | `project-manager` | Coordination and task assignment |
