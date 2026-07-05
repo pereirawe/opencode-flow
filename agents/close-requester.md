@@ -20,6 +20,12 @@ Responsibilities:
 - Update `known_issues.md` status to `resolved`
 - Archive the issue to `resolved_issues.md` via `close_issue.sh`
 - Detect remote type (GitHub/GitLab) from `git remote -v`
+- **Commit the changes** to `known_issues.md` and `resolved_issues.md` after
+  archiving. Use semantic commit message:
+  `chore: sync issue tracking after MR #<pr-id>`
+  Include trailer `Issue: #<local-id>`. If git commit fails (e.g., nothing to
+  commit), log a warning and continue without failing the pipeline.
+- **Push the commit** to the remote (main/master branch)
 
 When called, check each issue with `Status: in-publish` in `known_issues.md`,
 verify its PR is merged, close the remote issue, and archive the resolution.
