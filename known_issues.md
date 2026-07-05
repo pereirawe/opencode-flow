@@ -263,3 +263,23 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Description: O script escaneia apenas `./src ./cmd ./internal ./*.go ./*.py ./*.js ./*.ts ./*.rs`. Projetos com layouts diferentes (monorepo, app/, lib/, scripts/) são ignorados.
 - Impact: scan-issues pode reportar "no issues" quando há issues em diretórios não listados. Scripts shell em scripts/ nunca são escaneados.
 - Suggested fix: Incluir scripts/ nos targets. Adicionar suporte a config `.opencode/scan-patterns` ou escanear a raiz com .gitignore-aware tool.
+
+### 37. `close-requester` e `publish-requester` não commitam alterações em `known_issues.md` e `resolved_issues.md`
+- Status: in-review
+- Type: bug
+- Severity: high
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 1 (backend)
+- Remote: -
+- PR: -
+- Location: agents/close-requester.md, agents/publish-requester.md, scripts/close_issue.sh
+- Description: Após o pipeline de delivery, os agentes close-requester e publish-requester modificam `known_issues.md` (status, PR number) e `resolved_issues.md` (arquivo), mas essas alterações nunca são commitadas. O usuário precisa commitar manualmente em main/master.
+- Impact: Arquivos de tracking ficam dessincronizados com o git. Cada merge requer commit manual dos arquivos de issue.
+- Business rules:
+  1. publish-requester DEVE commitar e pushar a atualização de `PR: #<n>` em `known_issues.md` para a feature branch após criar a MR
+  2. close-requester DEVE commitar as alterações em `known_issues.md` e `resolved_issues.md` na branch atual (main/master) após fechar a issue
+  3. Os commits DEVEM usar mensagem semântica: `chore: sync issue tracking after MR #<n>`
+  4. Os commits DEVEM referenciar a issue local: `Issue: #<id>`
+  5. Se git commit falhar (ex: nada para commitar), o agente DEVE logar warning e continuar sem falhar o pipeline
+- Suggested fix: Atualizar agents/close-requester.md e agents/publish-requester.md para incluir passos de commit após modificar os arquivos. Opcionalmente, adicionar lógica de commit em close_issue.sh.
