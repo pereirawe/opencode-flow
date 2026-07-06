@@ -1,6 +1,6 @@
 ---
 description: Orchestrates the full discovery pipeline (PO → CTO → Tech Lead → QA → PM)
-mode: subagent
+mode: all
 temperature: 0.3
 permission:
   bash: allow

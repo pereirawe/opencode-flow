@@ -1,6 +1,6 @@
 ---
 description: Implements features and writes automated tests
-mode: subagent
+mode: all
 temperature: 0.2
 permission:
   bash: allow
