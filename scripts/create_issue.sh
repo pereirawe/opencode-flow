@@ -18,7 +18,6 @@ if [[ "$INPUT" =~ ^[0-9]+$ ]]; then
     exit 1
   fi
   SECTION=$(awk -v id="$INPUT" '
-    /^### Status/ {exit}
     $0 ~ "^### " id "\\." {found=1}
     found {
       if ($0 ~ /^### [0-9]+\./ && $0 !~ "^### " id "\\.") {

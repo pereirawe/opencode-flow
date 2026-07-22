@@ -100,5 +100,20 @@
             "node_modules/**",
             ".opencode/**"
         ]
+    },
+    "disabled_providers": [],
+    "provider": {
+        "ollama": {
+            "name": "ollama",
+            "npm": "@ai-sdk/openai-compatible",
+            "options": {
+                "baseURL": "http://127.0.0.1:11434/v1"
+            },
+            "models": {
+                "qwen2.5-coder:7b": {
+                    "name": "LOCALHOST-qwen2.5-coder"
+                }
+            }
+        }
     }
 }
