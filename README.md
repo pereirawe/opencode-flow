@@ -7,7 +7,7 @@
 [![GitHub last commit](https://img.shields.io/github/last-commit/pereirawe/opencode-flow)](https://github.com/pereirawe/opencode-flow/commits/main)
 [![GitHub Discussions](https://img.shields.io/badge/discussions-welcome-brightgreen)](https://github.com/pereirawe/opencode-flow/discussions)
 
-**Version:** 1.4.2 — [License](LICENSE) (MIT)
+**Version:** 1.5.0 — [License](LICENSE) (MIT)
 
 Configuração multi-setor para OpenCode com agentes C-level, skills especializadas
 e pipeline de desenvolvimento completo. Vive em `~/.config/opencode/` e é
