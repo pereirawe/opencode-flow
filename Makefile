@@ -1,22 +1,29 @@
 SHELL := /bin/bash
 CONFIG_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
-.PHONY: scan-issues review help promote close-issue bootstrap init maintain update review-external sync-issues close-merged bump-version
+.PHONY: scan-issues review help promote close-issue bootstrap init maintain update review-external sync-issues close-merged bump-version restart-web setup-web
 
 help:
-	@echo "Targets:"
-	@echo "  make scan-issues        — run static analysis + prompt /ocf:scan-issues"
-	@echo "  make review             — show git diff + prompt /ocf:review-branch"
-	@echo "  make promote id=<n> — promote issue + create feature branch from Base branch in known_issues.md"
-	@echo "  make close-issue id=<n> — mark known_issues entry resolved"
-	@echo "  make commit             — atomic semantic commit"
-	@echo "  make maintain           — scan known_issues for stale entries + prompt /ocf:maintain"
-	@echo "  make update             — check and apply updates (git pull)"
-	@echo "  make bootstrap target=<path> — copy .opencode/ template to target project"
-	@echo "  make init target=<path> — init project with repo context (default: current dir)"
-	@echo "  make review-external   — prompt /ocf:review-external for external branch/MR review"
-	@echo "  make backup dir=<path> [name=<name>] [zip=1] — create intelligent backup"
-	@echo "  make bump-version        — prompt /ocf:bump-version to calculate version, update changelog, and publish"
+	@echo "OpenCode Flow — Targets:"
+	@echo ""
+	@echo "== Issue Lifecycle =="
+	@echo "  make scan-issues             — static analysis + /ocf:scan-issues"
+	@echo "  make review                  — git diff + /ocf:review-branch"
+	@echo "  make promote id=<n>          — promote issue, create feature branch"
+	@echo "  make close-issue id=<n>      — close + archive issue"
+	@echo "  make maintain                — scan stale entries + /ocf:maintain"
+	@echo "  make commit                  — atomic semantic commit"
+	@echo ""
+	@echo "== Web Service =="
+	@echo "  make restart-web             — restart opencode web service (apply config changes)"
+	@echo "  make setup-web               — install/update systemd service for opencode web"
+	@echo ""
+	@echo "== Project =="
+	@echo "  make update                  — git pull + update"
+	@echo "  make bootstrap target=<path> — copy .opencode/ template to project"
+	@echo "  make init target=<path>      — init project config"
+	@echo "  make bump-version            — version bump + changelog + tag + release"
+	@echo "  make backup dir=<path>       — timestamped backup"
 
 scan-issues:
 	@echo "[make] scan-issues"
@@ -80,6 +87,15 @@ close-merged:
 bump-version:
 	@echo "[make] bump-version"
 	@echo "Run /ocf:bump-version in the assistant to calculate version, update changelog, commit, tag, and publish"
+
+restart-web:
+	@echo "[make] restart-web"
+	@sudo systemctl restart opencode
+	@echo "Service restarted."
+
+setup-web:
+	@echo "[make] setup-web"
+	@bash $(CONFIG_DIR)scripts/setup-web.sh
 
 backup:
 	@echo "[make] backup"

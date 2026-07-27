@@ -9,8 +9,9 @@
 
 **Version:** 1.4.2 — [License](LICENSE) (MIT)
 
-Generic, language-agnostic configuration for AI-assisted development workflow.
-This config lives in `~/.config/opencode/` and is automatically loaded by OpenCode as the **global config**.
+Configuração multi-setor para OpenCode com agentes C-level, skills especializadas
+e pipeline de desenvolvimento completo. Vive em `~/.config/opencode/` e é
+carregado automaticamente como **config global**.
 
 ## Installation
 
@@ -47,26 +48,51 @@ make -C ~/.config/opencode update
 
 ## Structure
 
-| Path | Purpose |
-|------|---------|
+## Estrutura
+
+| Caminho | Propósito |
+|---------|-----------|
 | `AGENTS.md` | Entrypoint instructions |
-| `opencode.json` | OpenCode configuration |
-| `workflow.md` | Development workflow pipeline |
-| `architecture.md` | Technical vision and structural decisions |
-| `conventions.md` | Development conventions and best practices |
-| `decisions.md` | Architecture decision records |
-| `known_issues.md` | Active issues tracker |
-| `prioritization.md` | PO prioritization proposals (project backlog) |
-| `resolved_issues.md` | Resolved issues archive (compact) |
-| `VERSION` | Current version |
+| `opencode.json` | Configuração OpenCode + comandos + permissões |
+| `workflow.md` | Pipeline de desenvolvimento (descoberta → MR) |
+| `architecture.md` | Visão técnica e decisões estruturais |
+| `conventions.md` | Convenções e boas práticas |
+| `decisions.md` | Architecture Decision Records |
+| `known_issues.md` | Rastreador de issues ativas |
+| `prioritization.md` | Propostas de priorização do PO |
+| `resolved_issues.md` | Issues resolvidas (formato compacto) |
+| `VERSION` | Versão atual |
 | `LICENSE` | MIT License |
-| `agents/` | Subagent definitions (CTO, PO, Dev, Committer, etc.) |
-| `commands/` | Slash command documentation |
-| `skills/` | Reusable skills (issue-manager, locale-loader, graphify) |
-| `scripts/` | Shell helpers for issue lifecycle |
-| `standards/` | Development patterns (branching, commits, PR, issues, code-review) + locale translations. Auto-loaded via `instructions` in `opencode.json` |
-| `.opencode/` | Project bootstrap template (copy to other projects) |
-| `wip/` | Planning artifacts |
+| `agents/` | **88 agentes** em 8 setores + 5 C-levels |
+| `commands/` | Documentação de comandos `/ocf:*` |
+| `skills/` | **68 skills** reutilizáveis por setor |
+| `scripts/` | Shell helpers (issue lifecycle + setup web) |
+| `standards/` | Padrões de desenvolvimento (branching, commits, PR, issues, code-review) + traduções locale |
+| `.opencode/` | Bootstrap template (copiar para outros projetos) |
+
+### Agentes por Setor
+
+| Setor | Agentes | Skills | C-Level |
+|-------|---------|--------|---------|
+| **C-Level** | ceo, cto, cfo, cmo, coo | — | Estratégico |
+| **Development** | 15 agentes (developer, cto, po, pm, qa, committer, publish, close, docs, devs/*, senior-reviewers/*) | 9 skills (Go, Python) | `cto` |
+| **Marketing** | 23 agentes (seo, ads, cro, copywriting, content, email, analytics, social, video, etc.) | 25 skills | `cmo` |
+| **Sales** | 10 agentes (pipeline, prospecting, enablement, proposals, discovery, closing, negotiation, etc.) | 6 skills | — |
+| **Finance** | 6 agentes (modeling, budgeting, cost, revenue, reporting, cfo) | 6 skills | `cfo` |
+| **Commercial** | 6 agentes (pricing, deal-desk, partnerships, channel, forecasting, rfp) | 6 skills | — |
+| **BI** | 5 agentes (analytics-engineering, dashboard, data-analysis, automation, governance) | 5 skills | — |
+| **Business Ops** | 6 agentes (process-mapper, vendor, capacity, comms, knowledge, procurement) | 6 skills | `coo` |
+| **Shared** | — | 5 skills (issue-manager, graphify, locale-loader, skill-importer, skill-creator) | — |
+
+### C-Level Team
+
+| Agente | Domínio | Delega para |
+|--------|---------|-------------|
+| `ceo` | Estratégia global, board, OKRs | Todos os setores |
+| `cto` | Tecnologia, arquitetura, engenharia | `development/*` |
+| `cfo` | Finanças, fundraising, M&A | `finance/*`, `commercial/*` |
+| `cmo` | Marketing, growth, marca | `marketing/*` |
+| `coo` | Operações, processos, eficiência | `business-ops/*` |
 
 ## Usage
 
@@ -99,6 +125,23 @@ make init target=<path> # init project with repo context
 | `/ocf:maintain` | Full maintenance of tracker files |
 | `/ocf:backup` | Create timestamped backup excluding junk |
 | `/ocf:bump-version` | Calculate version bump, update changelog, commit, tag, and publish to main |
+
+## Como Usar os Agentes
+
+```bash
+# C-Level (estratégico)
+@ceo    "Planeje o próximo quarter com metas por setor"
+@cto    "Revise a arquitetura do projeto X"
+@cfo    "Prepare o board deck mensal"
+@cmo    "Estratégia de lançamento do produto Y"
+@coo    "Mapeie o processo de onboarding do cliente"
+
+# Execução tática por setor
+@marketing/seo   "Audite o SEO do site"
+@sales/pipeline  "Previsão de receita para o mês"
+@finance/budgeting "Análise de variância do orçamento"
+@bi/dashboard-design "Crie um dashboard de KPIs"
+```
 
 ## Pipeline in Action
 
@@ -154,6 +197,25 @@ The development pipeline has three phases:
 
 The pipeline runs continuously after promotion — no user confirmation needed between steps.
 See `workflow.md` for complete details.
+
+## Web Service
+
+O OpenCode pode rodar como serviço systemd para acesso web persistente:
+
+```bash
+# Instalar/atualizar o serviço
+make setup-web
+
+# Reiniciar após alterações de config, agents ou skills
+make restart-web
+
+# Acesso via navegador
+http://<host>:4096
+```
+
+O template do serviço está em `scripts/opencode.service` e o instalador em
+`scripts/setup-web.sh`. Compatível com qualquer ambiente Linux que tenha
+systemd.
 
 ## Bootstrap a New Project
 
