@@ -1,0 +1,12 @@
+[Unit]
+Description=Opencode web
+After=network.target
+
+[Service]
+ExecStart=__OPENCODE_BIN__ web
+Restart=always
+RestartSec=5
+User=__USER__
+
+[Install]
+WantedBy=multi-user.target
