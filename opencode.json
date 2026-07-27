@@ -81,6 +81,10 @@
         "ocf:setup-web": {
             "template": "Install or update the opencode web systemd service. Run `$SCRIPTS_DIR/setup-web.sh` with optional --user and --bin flags. If not provided, ask the user for the system user and path to the opencode binary. The service file is stored at `$SCRIPTS_DIR/opencode.service` and can be replicated to other machines. After setup, report the service status.",
             "description": "Install or update the opencode web systemd service"
+        },
+        "ocf:anderson-feedback": {
+            "template": "Invoke the Anderson agent (development/anderson.md) to post user-feedback in PT-BR on a PR/MR. Ask the user for the PR/MR number if not provided. Then invoke the `development/anderson` subagent via `task:` with `subagent_type: development/anderson` to read the PR title+body and post a leigo-paulistano comment. Report success or error. If gh/glab fails, log error and continue (non-blocking).",
+            "description": "Post Anderson user-feedback comment on a PR/MR"
         }
     },
     "permission": {
