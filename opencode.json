@@ -4,8 +4,8 @@
         "~/.config/opencode/AGENTS.md",
         "~/.config/opencode/workflow.md",
         "~/.config/opencode/known_issues.md",
-        "~/.config/opencode/agents/*.md",
-        "~/.config/opencode/agents/devs/REGISTRY.md",
+        "~/.config/opencode/agents/*/*.md",
+        "~/.config/opencode/agents/*/devs/REGISTRY.md",
         "~/.config/opencode/prioritization.md",
         "~/.config/opencode/standards/*.md",
         "~/.config/opencode/standards/pt/*.md",
@@ -73,6 +73,14 @@
         "ocf:backup": {
             "template": "Run `$SCRIPTS_DIR/backup.sh` with the provided arguments. Ask the user for: 1) source directory, 2) backup name (default dev_backup), 3) whether to create a .zip. Then execute the backup. After completion, report the backup path, size, and exclusions applied.",
             "description": "Create intelligent timestamped backup excluding junk"
+        },
+        "ocf:restart-web": {
+            "template": "Restart the opencode web service. Run `sudo systemctl restart opencode` to apply the latest configuration changes (agents, skills, commands) to the running web instance. If the service is not found, run `$SCRIPTS_DIR/setup-web.sh --user <user> --bin <path>` to install it first. Report the service status after restart.",
+            "description": "Restart opencode web service to apply configuration changes"
+        },
+        "ocf:setup-web": {
+            "template": "Install or update the opencode web systemd service. Run `$SCRIPTS_DIR/setup-web.sh` with optional --user and --bin flags. If not provided, ask the user for the system user and path to the opencode binary. The service file is stored at `$SCRIPTS_DIR/opencode.service` and can be replicated to other machines. After setup, report the service status.",
+            "description": "Install or update the opencode web systemd service"
         }
     },
     "permission": {
@@ -85,7 +93,60 @@
             "graphify": "allow",
             "seo-optimizer": "allow",
             "skill-importer": "allow",
-            "skill-creator": "allow"
+            "skill-creator": "allow",
+            "ads-campaign": "allow",
+            "landing-pages": "allow",
+            "presentations": "allow",
+            "marketing-reports": "allow",
+            "market-research": "allow",
+            "social-media": "allow",
+            "marketing-templates": "allow",
+            "copywriting": "allow",
+            "conversion-optimization": "allow",
+            "content-strategy": "allow",
+            "email-marketing": "allow",
+            "marketing-analytics": "allow",
+            "marketing-psychology": "allow",
+            "marketing-plan": "allow",
+            "customer-research": "allow",
+            "video-production": "allow",
+            "competitor-intelligence": "allow",
+            "ab-testing": "allow",
+            "launch": "allow",
+            "cold-email": "allow",
+            "influencer-marketing": "allow",
+            "public-relations": "allow",
+            "analytics-engineering": "allow",
+            "dashboard-design": "allow",
+            "data-analysis": "allow",
+            "report-automation": "allow",
+            "data-governance": "allow",
+            "sales-pipeline": "allow",
+            "prospecting": "allow",
+            "sales-enablement": "allow",
+            "proposals": "allow",
+            "account-management": "allow",
+            "financial-modeling": "allow",
+            "budgeting": "allow",
+            "cost-analytics": "allow",
+            "revenue-analytics": "allow",
+            "financial-reporting": "allow",
+            "cfo-advisory": "allow",
+            "pricing-strategist": "allow",
+            "deal-desk": "allow",
+            "partnerships-architect": "allow",
+            "channel-economics": "allow",
+            "commercial-forecasting": "allow",
+            "rfp-responder": "allow",
+            "process-mapper": "allow",
+            "vendor-management": "allow",
+            "capacity-planner": "allow",
+            "internal-comms": "allow",
+            "knowledge-ops": "allow",
+            "procurement-optimizer": "allow",
+            "frontend-design": "allow",
+            "theme-factory": "allow",
+            "sales-psychology": "allow"
         },
         "external_directory": {
             "~/.config/opencode/**": "allow",
@@ -110,8 +171,8 @@
                 "baseURL": "http://127.0.0.1:11434/v1"
             },
             "models": {
-                "qwen2.5-coder:7b": {
-                    "name": "LOCALHOST-qwen2.5-coder"
+                "qwen3.6:27b": {
+                    "name": "LOCALHOST-qwen3.6-27b"
                 }
             }
         }
