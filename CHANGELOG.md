@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.5.0 (2026-07-27)
+
+- **refactor: restructure agents and skills into sector-based directories** — flat layout now organized under `development/`, `shared/`, `marketing/`, `bi/`, `sales/`, `finance/`, `commercial/`, `business-ops/`
+- **feat: add marketing sector** — 23 agents and 25 skills for SEO, ads, CRO, copywriting, email, analytics, social, video, influencers, PR, and more
+- **feat: add BI sector** — 5 agents and skills for analytics engineering, dashboards, data analysis, report automation, data governance
+- **feat: add sales sector** — 10 agents with BANT/MEDDIC/SPICED/Challenger/Gap Selling frameworks, plus 6 skills
+- **feat: add finance sector** — 6 agents for modeling, budgeting, cost/revenue analytics, reporting, CFO advisory
+- **feat: add commercial sector** — 6 pricing, deal desk, partnerships, channel economics, forecasting, RFP agents
+- **feat: add business-ops sector** — 6 agents for process mapping, vendor management, capacity planning, internal comms, knowledge ops, procurement
+- **feat: add C-level executive agents** — CEO, CTO, CFO, CMO, COO for cross-sector orchestration
+- **feat: add web service systemd setup** — `make setup-web` / `make restart-web`, `ocf:setup-web`, `ocf:restart-web`
+- **docs: update READMEs** for multi-sector structure
+
 ## 1.4.2 (2026-06-28)
 
 - **chore: remove unused locale dirs** — deleted `standards/fr`, `de`, `ja`, `zh` (not actively maintained)
