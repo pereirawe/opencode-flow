@@ -12,11 +12,12 @@ skill system so it becomes available via the `skill` tool.
 ## Workflow
 
 1. **Ask the user** which skill path to import (e.g. `business-marketing/seo-optimizer`)
-2. **Run** `scripts/import_claude_skill.sh <skill-path>` to:
+2. **Ask which sector** the skill belongs to: `development`, `marketing`, `bi`, `sales`, `finance`, or `shared`
+3. **Run** `scripts/import_claude_skill.sh <skill-path> <sector>` to:
    - Fetch the SKILL.md from claude-code-templates
-   - Copy the entire skill directory (SKILL.md + supporting files) to `~/.config/opencode/skills/<name>/`
+   - Copy the entire skill directory to `~/.config/opencode/skills/<sector>/<name>/`
    - Register `"<name>": "allow"` in `opencode.json` under `permission.skill`
-3. **Report** the installed path and tell the user to start a new session
+4. **Report** the installed path and tell the user to start a new session
    for the skill to appear in `available_skills`
 
 ## Import script

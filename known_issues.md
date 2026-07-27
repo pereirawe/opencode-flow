@@ -273,15 +273,15 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Reviewers: 1 (docs, runtime)
 - Remote: -
 - PR: -
-- Location: commands/ocf:develop.md, opencode.json, agents/develop-router.md, agents/devs/golang.md, agents/devs/python.md, skills/go/*, skills/python/*
+- Location: commands/ocf:develop.md, opencode.json, agents/development/develop-router.md, agents/development/devs/golang.md, agents/development/devs/python.md, skills/development/go/*, skills/development/python/*
 - Description: Atualizar `ocf:develop` para invocar `develop-router` e registrar agentes especializados para Go e Python com skills dedicadas.
 - Impact: O fluxo de desenvolvimento passa a rotear automaticamente para o agente mais específico, em vez de cair sempre no `developer` genérico, melhorando a qualidade idiomática em projetos Go e Python.
 - Business rules:
   1. `/ocf:develop` deve invocar `develop-router` em vez de chamar `developer` diretamente.
-  2. `develop-router` deve escolher `devs/golang` quando o contexto indicar Go.
-  3. `develop-router` deve escolher `devs/python` quando o contexto indicar Python.
-  4. O registro de agentes deve incluir `devs/golang` com `go.mod`, `.go`, `cmd/`, `internal/`.
-  5. O registro de agentes deve incluir `devs/python` com `pyproject.toml`, `requirements.txt`, `setup.py`, `setup.cfg`, `.py`, `.pyi`, `src/`, `app/`, `tests/`.
+  2. `develop-router` deve escolher `development/devs/golang` quando o contexto indicar Go.
+  3. `develop-router` deve escolher `development/devs/python` quando o contexto indicar Python.
+  4. O registro de agentes deve incluir `development/devs/golang` com `go.mod`, `.go`, `cmd/`, `internal/`.
+  5. O registro de agentes deve incluir `development/devs/python` com `pyproject.toml`, `requirements.txt`, `setup.py`, `setup.cfg`, `.py`, `.pyi`, `src/`, `app/`, `tests/`.
   6. O agente Python deve se apoiar apenas nas fontes fornecidas para PEP 20, PEP 8, PEP 257, typing, dataclasses, excecoes e Google Python Style Guide.
   7. As skills Go e Python devem estar disponiveis para revisao e implementacao idiomatica quando necessarias.
   8. O ecossistema Python pode incluir skill especializada para Flask quando o desafio principal for desenho de API HTTP e nao sintaxe da linguagem.
