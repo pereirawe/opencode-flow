@@ -55,7 +55,7 @@
             "description": "Maintain known_issues.md and prioritization.md"
         },
         "ocf:close-issue": {
-            "template": "Detect the issue ID from the argument, or from the current branch name (`issue-<id>-<slug>`), or ask if neither is available. Read the issue entry from `known_issues.md`. The issue must have `Remote: #<id>` and `Status: in-publish`. Verify the PR is merged: if `- PR: #<n>` field exists, run `gh pr view <n> --json state --jq '.state'`; if not merged, report state and abort. If no PR field, search merged PRs by branch name matching `issue-<remote-id>-*`. If PR is merged, run `scripts/close_issue.sh <id>` — this closes the remote issue on GitHub/GitLab and archives the entry to `resolved_issues.md` in compact format. Report the result.",
+            "template": "Detect the issue ID from the argument, or from the current branch name (`issue-<id>-<slug>`), or ask if neither is available. Read the issue entry from `known_issues.md`. The issue must have `Remote: #<id>` and `Status: in-publish` or `resolved`. For `in-publish`: verify the PR is merged — if `- PR: #<n>` field exists, run `gh pr view <n> --json state --jq '.state'`; if not merged, report state and abort. If no PR field, search merged PRs by branch name matching `issue-<remote-id>-*`. For `resolved`: the issue is already archived locally, just close the remote if still open. If the remote issue or PR is valid, run `scripts/close_issue.sh <id>` — this closes the remote issue on GitHub/GitLab (with user confirmation) and archives the entry to `resolved_issues.md` in compact format. Report the result.",
             "description": "Close remote issue and archive after PR merge"
         },
         "ocf:check-pr": {
@@ -167,22 +167,6 @@
         ]
     },
     "disabled_providers": [],
-    "mcpServers": {
-        "github": {
-            "command": "npx",
-            "args": ["-y", "@modelcontextprotocol/server-github"],
-            "env": {
-                "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
-            }
-        },
-        "notion": {
-            "command": "npx",
-            "args": ["-y", "@mcp-notion/server"],
-            "env": {
-                "NOTION_TOKEN": "${NOTION_TOKEN}"
-            }
-        }
-    },
     "provider": {
         "ollama": {
             "name": "ollama",
