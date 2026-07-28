@@ -85,7 +85,7 @@ at proposal time. Unknown rules will be captured during discovery refinement.
 - Priority: high
 - Business value: Permite que qualquer dev solicite revisão técnica de código de outros desenvolvedores (mesmo fora do pipeline opencode) de forma padronizada, com geração de relatório e post opcional de comentários críticos no MR.
 - Target sprint: next
-- Description: Criar comando `ocf:review-external` + agente `agents/review-external.md`. O fluxo: (1) usuário informa URL de MR/PR ou branch remota; (2) fetch + checkout; (3) revisão técnica com senior-reviewers; (4) geração de relatório .md local; (5) pergunta se deseja postar comentários críticos/high no MR via gh/glab; (6) postagem opcional.
+- Description: Criar comando `ocf:review-external` + agente `agents/development/review-external.md`. O fluxo: (1) usuário informa URL de MR/PR ou branch remota; (2) fetch + checkout; (3) revisão técnica com senior-reviewers; (4) geração de relatório .md local; (5) pergunta se deseja postar comentários críticos/high no MR via gh/glab; (6) postagem opcional.
 - Business rules:
   1. O comando DEVE aceitar URL de MR (GitHub/GitLab) ou branch remota.
   2. DEVE fazer fetch da branch e checkout local para análise.
