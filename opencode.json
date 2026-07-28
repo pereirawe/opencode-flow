@@ -167,6 +167,22 @@
         ]
     },
     "disabled_providers": [],
+    "mcpServers": {
+        "github": {
+            "command": "npx",
+            "args": ["-y", "@modelcontextprotocol/server-github"],
+            "env": {
+                "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+            }
+        },
+        "notion": {
+            "command": "npx",
+            "args": ["-y", "@mcp-notion/server"],
+            "env": {
+                "NOTION_TOKEN": "${NOTION_TOKEN}"
+            }
+        }
+    },
     "provider": {
         "ollama": {
             "name": "ollama",
