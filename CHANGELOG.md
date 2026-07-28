@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.0 (2026-07-28)
+
+- **feat: add SaaS agent pack** — new agents: SRE, Technical Writer, Product Manager, Customer Success, Growth Engineer
+- **feat: add MCP registry** — `standards/mcp-registry.md` with recommended MCP servers for SaaS projects
+- **config: enable GitHub and Notion MCPs** — configured in `opencode.json` for this project
+
 ## 1.5.1 (2026-07-27)
 
 - **fix: correct agent paths after sector restructuring** — updated `opencode.json` agent reference and `develop-router.md` fallback permissions to use `development/` prefix; fixed self-referential text in develop template
