@@ -144,7 +144,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Suggested fix: Alterar `"/temp/*"` para `"/tmp/*"`.
 
 ### 28. `close_issue.sh` fecha issue remota sem verificar merge do PR para status não-`in-publish`
-- Status: ready
+- Status: in-progress
 - Type: bug
 - Severity: medium
 - Report: opencode
