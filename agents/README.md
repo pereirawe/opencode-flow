@@ -23,10 +23,13 @@ The `ceo` agent orchestrates cross-sector execution.
 |-------|----------|
 | `cto` | Technical vision and guidelines |
 | `product-owner` | Priorities and user stories |
+| `product-manager` | Roadmap, prioritization, and metrics-driven decisions |
 | `project-manager` | Coordination and task assignment |
 | `quality-analyst` | Quality standards and testability |
 | `developer` | Feature implementation (auto-proceeds to senior review) |
 | `develop-router` | Routes `/ocf:develop` to language-specific subagents |
+| `sre` | Site reliability, observability, incident response, SLOs |
+| `technical-writer` | API docs, developer portals, SDK guides, release notes |
 | `committer` | Pre-MR gatekeeper |
 | `publish-requester` | Merge/pull request creation |
 | `close-requester` | Closes remote issues after MR merge |
@@ -63,6 +66,7 @@ The `ceo` agent orchestrates cross-sector execution.
 | `cold-email` | B2B outreach and deliverability |
 | `influencer` | Creator partnerships and ambassador programs |
 | `pr` | Media relations, crisis comms, thought leadership |
+| `growth-engineer` | PLG, activation, onboarding, A/B tests, viral loops |
 
 ## BI (Business Intelligence)
 | Agent | Function |
@@ -81,6 +85,7 @@ The `ceo` agent orchestrates cross-sector execution.
 | `sales-enablement` | Collateral, decks, objection handling (LAER) |
 | `proposals` | Proposal writing, pricing, negotiation strategy |
 | `account-management` | Expansion, retention, QBRs, health scoring |
+| `customer-success` | Onboarding, churn prevention, voice of customer |
 | `discovery` | Needs assessment, BANT/MEDDIC/SPICED/SPIN/Gap/Challenger |
 | `closing` | Buying signals, trial closes, urgency, decision-framing |
 | `negotiation` | Value-based negotiation, concession strategy, anchoring |
