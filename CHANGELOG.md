@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.1 (2026-07-27)
+
+- **fix: correct agent paths after sector restructuring** — updated `opencode.json` agent reference and `develop-router.md` fallback permissions to use `development/` prefix; fixed self-referential text in develop template
+
 ## 1.5.0 (2026-07-27)
 
 - **refactor: restructure agents and skills into sector-based directories** — flat layout now organized under `development/`, `shared/`, `marketing/`, `bi/`, `sales/`, `finance/`, `commercial/`, `business-ops/`

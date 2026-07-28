@@ -30,7 +30,7 @@ The promote flow runs silently. Missing data is handled gracefully:
    `Reviewers:` to 1 if empty, auto-create `Remote:` if needed — no user prompts
 3. **Auto-promote**: run the promotion flow above based on current status
 4. **Verify branch**: if not already on `issue-<id>-<slug>`, checkout or create it
-5. **Invoke the router** with full issue context; it must pick the matching `development/devs/*` agent from the registry and only fall back to `developer` when no specialized match exists
+5. **Select implementation subagent** from the registry; pick the matching `development/devs/*` agent and only fall back to `developer` when no specialized match exists
 6. **Stop**: development ends here — no MR creation prompt. Use `/ocf:commit`
    to commit, then run review → QA → committer → publish pipeline separately
 
