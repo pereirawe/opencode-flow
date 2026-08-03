@@ -11,6 +11,11 @@ permission:
   bash:
     "*": deny
     "git *": allow
+    "git push --force*": deny
+    "git push -f*": deny
+    "git reset --hard*": deny
+    "git clean -f*": deny
+    "git branch -D *": deny
     "scripts/promote.sh *": allow
     "scripts/create_issue.sh *": allow
   task:

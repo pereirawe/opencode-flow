@@ -93,12 +93,12 @@
     },
     "permission": {
         "edit": {
+            "~/.config/opencode/**": "ask",
             "~/.config/opencode/opencode.json": "deny",
             "~/.config/opencode/aibot-repos.json": "deny",
             "~/.config/opencode/scripts/aibot-watcher.sh": "deny",
             "~/.config/opencode/state/**": "deny",
-            "~/.ssh/**": "deny",
-            "~/.config/opencode/**": "ask"
+            "~/.ssh/**": "deny"
         },
         "bash": {
             "rm -rf /": "deny",

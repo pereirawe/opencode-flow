@@ -3,11 +3,19 @@ description: aibot — posta mensagens padronizadas em PT-BR em issues remotas (
 mode: subagent
 temperature: 0.2
 permission:
+  read:
+    "~/.ssh/**": "deny"
+    "~/.config/opencode/state/**": "deny"
   bash:
     "*": "deny"
     "gh *": "allow"
     "glab *": "allow"
     "git *": "allow"
+    "git push --force*": "deny"
+    "git push -f*": "deny"
+    "git reset --hard*": "deny"
+    "git clean -f*": "deny"
+    "git branch -D *": "deny"
   edit: deny
   webfetch: deny
   websearch: deny

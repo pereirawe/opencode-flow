@@ -22,7 +22,7 @@ assert_eq() {
 
 # assert_contains <file> <needle> <label> — file contains the needle
 assert_contains() {
-  if grep -qF "$2" "$1" 2>/dev/null; then
+  if grep -qF -- "$2" "$1" 2>/dev/null; then
     t_ok "$3"
   else
     t_fail "$3 (missing '$2' in $1)"
@@ -31,7 +31,7 @@ assert_contains() {
 
 # assert_not_contains <file> <needle> <label> — file does NOT contain the needle
 assert_not_contains() {
-  if grep -qF "$2" "$1" 2>/dev/null; then
+  if grep -qF -- "$2" "$1" 2>/dev/null; then
     t_fail "$3 (unexpected '$2' in $1)"
   else
     t_ok "$3"
@@ -40,7 +40,7 @@ assert_not_contains() {
 
 # count_occurrences <file> <needle> — prints the count (0 when file missing)
 count_occurrences() {
-  grep -cF "$2" "$1" 2>/dev/null || echo 0
+  grep -cF -- "$2" "$1" 2>/dev/null || echo 0
 }
 
 # assert_count <file> <needle> <expected> <label>

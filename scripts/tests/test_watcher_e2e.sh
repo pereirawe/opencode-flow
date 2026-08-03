@@ -68,10 +68,25 @@ done
 case "$cmd" in
   ocf:develop)
     echo "DEVELOP:$args" >> "${MOCK_OPENCODE_LOG:-/dev/null}"
+    # MOCK_DEVELOP_EXIT: simulate a blocked develop (non-zero exit, no MR).
+    if [[ -n "${MOCK_DEVELOP_EXIT:-}" ]]; then
+      exit "$MOCK_DEVELOP_EXIT"
+    fi
     local_id="${args%% *}"
+    # MOCK_DEVELOP_NO_MR: develop finishes (exit 0) but no MR was created —
+    # the tracker is left untouched so the success check fails.
+    if [[ -n "${MOCK_DEVELOP_NO_MR:-}" ]]; then
+      exit 0
+    fi
+    # Success path: mark ONLY the developed issue in-publish with a PR.
     if [[ -n "${MOCK_TRACKER:-}" && -f "$MOCK_TRACKER" ]]; then
-      sed -i "/^- Status:/s/.*/- Status: in-publish/" "$MOCK_TRACKER"
-      sed -i "/^- PR:/s/.*/- PR: #$((local_id + 100))/" "$MOCK_TRACKER"
+      awk -v id="$local_id" -v pr="#$((local_id + 100))" '
+        $0 ~ "^### " id "\\." { found=1 }
+        found && $0 ~ /^### [0-9]+\./ && $0 !~ "^### " id "\\." { found=0 }
+        found && $0 ~ /^- Status:/ { print "- Status: in-publish"; next }
+        found && $0 ~ /^- PR:/ { print "- PR: " pr; next }
+        { print }
+      ' "$MOCK_TRACKER" > "$MOCK_TRACKER.tmp" && mv "$MOCK_TRACKER.tmp" "$MOCK_TRACKER"
     fi
     ;;
   ocf:aibot-notify)
@@ -172,6 +187,11 @@ assert_contains "$TMP/opencode.log" "DEVELOP:7"             "S1: develop dispara
 assert_contains "$TMP/opencode.log" "NOTIFY:30 success 107" "S1: notificação success com PR 107"
 assert_contains "$TMP/run.log" "in-publish"                 "S1: tracker atualizado para in-publish"
 assert_eq "#107" "$(get_field_ "$ws/known_issues.md" 7 PR)" "S1: PR populado no tracker"
+# F3 (runtime): BR 7 exact command form — attach+auto, qualified model, NO `--`
+assert_contains "$TMP/opencode.log" "run --attach http://up.local --auto" "S1: forma BR 7 (--attach --auto)"
+assert_contains "$TMP/opencode.log" "--model opencode-go/deepseek-v4-flash" "S1: modelo qualificado"
+assert_contains "$TMP/opencode.log" "--command ocf:develop 7" "S1: args seguem --command sem separador"
+assert_not_contains "$TMP/opencode.log" "--command ocf:develop -- " "S1: formulário com -- proibido"
 
 # ============================================================================
 # S2 — BR 4/AC 3: issue não rastreada → not-tracked, sem develop
@@ -414,7 +434,46 @@ reset_logs
 printf '%s\n' "30" "31" > "$TMP/issues.txt"   # ambas são issues reais
 run_watcher "$TMP/allow16.json" "$ws"
 assert_count "$TMP/opencode.log" "DEVELOP" 1 "S16: cap MAX_TRIGGERS_PER_TICK=1 → um spawn"
-assert_contains "$TMP/run.log" "limite de triggers" "S16: log do cap"
+assert_contains "$TMP/run.log" "deferido" "S16: segundo trigger deferido (log)"
+assert_eq "5" "$(cat "$STATE/test_repo.cursor")" "S16: cursor NÃO avança para o comentário deferido"
+# run 2: o comentário deferido é reexaminado e dispara (F1 — deferral, não perda)
+run_watcher "$TMP/allow16.json" "$ws"
+assert_count "$TMP/opencode.log" "DEVELOP" 2 "S16: deferido é desenvolvido no próximo tick"
+assert_contains "$TMP/opencode.log" "DEVELOP:8" "S16: segunda issue desenvolvida"
+assert_contains "$TMP/opencode.log" "NOTIFY:31 success 108" "S16: success notificado para a segunda issue"
+assert_eq "15" "$(cat "$STATE/test_repo.cursor")" "S16: cursor avançou após processar deferido"
+
+# ============================================================================
+# S18 — BR 9/AC 11: develop bloqueado (exit != 0) → cannot-develop, sem MR
+# ============================================================================
+ws="$TMP/ws18"
+make_workspace "$ws" "git@github.com:test/repo.git" "ready"
+make_allowlist "$TMP/allow18.json" "test/repo" "$ws"
+seed_cursor "test/repo" 0
+cp "$TMP/comments-one.json" "$TMP/comments.json"
+reset_logs
+run_watcher "$TMP/allow18.json" "$ws" MOCK_DEVELOP_EXIT=1
+assert_eq "1" "$(count_occurrences "$TMP/opencode.log" "DEVELOP:7")" "S18: develop foi tentado"
+assert_contains "$TMP/opencode.log" "NOTIFY:30 cannot-develop" "S18: falha → cannot-develop"
+assert_not_contains "$TMP/opencode.log" "NOTIFY:30 success" "S18: sem notificação de sucesso"
+assert_eq "ready" "$(get_field_ "$ws/known_issues.md" 7 Status)" "S18: tracker sem MR (status intacto)"
+assert_eq "-" "$(get_field_ "$ws/known_issues.md" 7 PR)" "S18: PR não populado"
+
+# ============================================================================
+# S19 — BR 9/AC 11: develop termina mas sem MR → cannot-develop, sem MR
+# ============================================================================
+ws="$TMP/ws19"
+make_workspace "$ws" "git@github.com:test/repo.git" "ready"
+make_allowlist "$TMP/allow19.json" "test/repo" "$ws"
+seed_cursor "test/repo" 0
+cp "$TMP/comments-one.json" "$TMP/comments.json"
+reset_logs
+run_watcher "$TMP/allow19.json" "$ws" MOCK_DEVELOP_NO_MR=1
+assert_eq "1" "$(count_occurrences "$TMP/opencode.log" "DEVELOP:7")" "S19: develop foi tentado"
+assert_contains "$TMP/opencode.log" "NOTIFY:30 cannot-develop" "S19: sem MR → cannot-develop"
+assert_not_contains "$TMP/opencode.log" "NOTIFY:30 success" "S19: sem notificação de sucesso"
+assert_eq "ready" "$(get_field_ "$ws/known_issues.md" 7 Status)" "S19: tracker sem MR (status intacto)"
+assert_eq "-" "$(get_field_ "$ws/known_issues.md" 7 PR)" "S19: PR não populado"
 
 # ============================================================================
 # S17 — sem allowlist file → saída limpa
