@@ -89,6 +89,38 @@ the user.
 poll or check — it only acts when explicitly triggered by a merge notification.
 The user merges the MR manually.
 
+### Remote Entry Point: `aibot-watcher` (issue #39)
+
+The `aibot-watcher` systemd timer (`aibot-watcher.timer`, `OnCalendar=*:0/2`)
+feeds the continuous pipeline from remote issue comments:
+
+1. A `@aibot:develop` comment on a **locally tracked** issue (`Remote: #<id>`
+   in the workspace `known_issues.md`) in an **allowlisted** repo
+   (`~/.config/opencode/aibot-repos.json`) triggers the equivalent of
+   `/ocf:develop <id>`: promote → develop → senior review → QA → corrections →
+   committer gate → MR.
+2. The trigger runs via `opencode run --attach <web-url> --auto --dir <workspace>
+   --command "ocf:develop"` on the existing web server, serialized per repo
+   with `flock -n` (parallel across repos).
+3. Result messages (success with MR link / already-in-progress /
+   already-resolved / not-tracked-locally / cannot-develop) are posted to the
+   remote issue by the `development/aibot` subagent via `ocf:aibot-notify`,
+   following `standards/aibot-messages.md` — one message per trigger.
+4. Security boundary (validated by the security reviewer as a gate):
+   allowlist of repos + locally-tracked-issue gate + explicit `deny` rules in
+   `opencode.json` (enforced even under `--auto`, which auto-approves
+   everything NOT explicitly denied). The deny rules bind the main/command
+   session, the `aibot` agent and the `develop-router`; implementation agents
+   (`developer`/`devs/*`) run with unrestricted bash under `--auto` (agent
+   permission overrides the global) and are covered only by EDIT deny rules on
+   security-critical files (opencode.json, aibot-repos.json, aibot-watcher.sh,
+   state/**, ~/.ssh/**) — the effective boundary is allowlist + tracked-issue
+   gate + trusted model.
+
+**No-merge-polling boundary**: the watcher polls ONLY issue comments. It
+never polls merge/PR status — closing remote issues after merge remains
+exclusive to `ocf:check-pr` and the Close Requester (step 12).
+
 ### Agent Pipeline
 
 1. **CTO** — define technical vision and guidelines
