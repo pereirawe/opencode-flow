@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.0 (2026-08-03)
+
+- **feat: add discovery and delivery orchestrator agents** — two meta-agents orchestrate the full pipeline phases (PO -> CTO -> Tech Lead -> PO -> QA -> PM for discovery; PM -> Developer -> Review -> QA -> Committer -> Publish -> Close for delivery), with `ocf:discovery` and `ocf:delivery` commands
+
 ## 1.6.0 (2026-07-28)
 
 - **feat: add SaaS agent pack** — new agents: SRE, Technical Writer, Product Manager, Customer Success, Growth Engineer
