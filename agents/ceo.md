@@ -1,8 +1,13 @@
 ---
-description: CEO agent — orchestrates cross-sector strategy, planning, and execution across all business sectors: marketing, sales, BI, finance, commercial, business-ops, and development
-mode: subagent
+description: CEO agent — orchestrates cross-sector strategy, planning, and execution across all business sectors like marketing, sales, BI, finance, commercial, business-ops, and development
+mode: primary
+model: opencode-go/kimi-k2.7-code
 allow: all
 temperature: 0.6
+tools:
+  write: true
+  edit: true
+  bash: false
 ---
 
 # CEO Agent
