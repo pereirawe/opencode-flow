@@ -1,0 +1,13 @@
+{
+  "_doc": "Allowlist de repositorios para o aibot-watcher (BR 1). Cada chave e o 'owner/repo' (GitHub) ou 'group/project' (GitLab) lido de remote.origin.url do workspace — o watcher recusa qualquer repo fora desta lista. Chaves iniciadas com '_' sao documentacao e sao ignoradas.",
+  "_format": {
+    "<owner>/<repo>": {
+      "workspace": "caminho absoluto (ou ~/...) do checkout local do repo; e tambem o workspace usado por `opencode run --dir` para desenvolver a issue",
+      "comment": "opcional — nota sobre o repo"
+    }
+  },
+  "pereirawe/opencode-flow": {
+    "workspace": "~/.config/opencode",
+    "comment": "Exemplo: o proprio repositorio de config do opencode. O tracker real deste repo vive em ~/.config/opencode/known_issues.md (o .opencode/known_issues.md e o template vazio); o watcher resolve isso automaticamente. Em projetos padrao, o tracker e o .opencode/known_issues.md do workspace."
+  }
+}

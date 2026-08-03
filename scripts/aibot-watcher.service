@@ -1,0 +1,16 @@
+[Unit]
+Description=OpenCode aibot watcher — process @aibot:develop triggers
+After=network.target opencode.service
+
+[Service]
+Type=oneshot
+ExecStart=__SCRIPT__/aibot-watcher.sh
+User=__USER__
+Environment=HOME=/home/__USER__
+Environment=OPENCODE_BIN=__OPENCODE_BIN__
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/home/__USER__/.opencode/bin
+# A develop run can take several minutes; never kill it mid-run (BR 12)
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target
