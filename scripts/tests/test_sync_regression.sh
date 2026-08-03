@@ -47,10 +47,19 @@ cat > "$fix/.opencode/known_issues.md" <<'EOF'
 - Description: y
 EOF
 
-# pre-extraction script from HEAD + its config.sh
+# pre-extraction script: the sync_github_issues.sh as of the commit BEFORE
+# remote.sh was introduced (the extraction is what the watcher branch added),
+# plus its config.sh.
+ROOT="$(cd "$HERE/../.." && pwd)"
 old="$TMP/oldsync"
 mkdir -p "$old"
-git -C "$HERE/.." show HEAD:scripts/sync_github_issues.sh > "$old/sync_github_issues.sh" || exit 1
+EXTRACT_COMMIT="$(git -C "$ROOT" log --format='%H' --diff-filter=A -- scripts/remote.sh | head -1 || true)"
+if [[ -z "$EXTRACT_COMMIT" ]]; then
+  # remote.sh not yet in history — fall back to HEAD (extraction uncommitted)
+  git -C "$ROOT" show HEAD:scripts/sync_github_issues.sh > "$old/sync_github_issues.sh"
+else
+  git -C "$ROOT" show "$EXTRACT_COMMIT^:scripts/sync_github_issues.sh" > "$old/sync_github_issues.sh"
+fi
 cp "$HERE/../config.sh" "$old/config.sh"
 
 (cd "$fix" && PATH="$MOCK:$PATH" bash "$old/sync_github_issues.sh" --dry-run) > "$TMP/old.out" 2>&1

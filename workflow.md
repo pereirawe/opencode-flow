@@ -107,15 +107,17 @@ feeds the continuous pipeline from remote issue comments:
    remote issue by the `development/aibot` subagent via `ocf:aibot-notify`,
    following `standards/aibot-messages.md` — one message per trigger.
 4. Security boundary (validated by the security reviewer as a gate):
-   allowlist of repos + locally-tracked-issue gate + explicit `deny` rules in
-   `opencode.json` (enforced even under `--auto`, which auto-approves
-   everything NOT explicitly denied). The deny rules bind the main/command
-   session, the `aibot` agent and the `develop-router`; implementation agents
-   (`developer`/`devs/*`) run with unrestricted bash under `--auto` (agent
-   permission overrides the global) and are covered only by EDIT deny rules on
-   security-critical files (opencode.json, aibot-repos.json, aibot-watcher.sh,
-   state/**, ~/.ssh/**) — the effective boundary is allowlist + tracked-issue
-   gate + trusted model.
+   repo allowlist (`aibot-repos.json`) + locally-tracked-issue gate +
+   pinned qualified model + the global bash deny list (~21 destructive
+   patterns: rm -rf, force-push, reset --hard, clean -f, branch -D, mkfs, dd,
+   curl|sh, chmod -R 777, chown -R, shutdown/reboot) binding the main/command
+   session and every agent WITHOUT its own bash config (`developer`, `devs/*`)
+   + agent-level granular bash (`aibot`, `develop-router`: catch-all deny +
+   scoped allows + explicit destructive-git denies after `git *: allow`) +
+   EDIT denies on security-critical files (opencode.json, aibot-repos.json,
+   aibot-watcher.sh, state/**, ~/.ssh/**) ordered so the deny is the LAST
+   matching rule (findLast) and therefore wins under `--auto`; `aibot` also
+   denies reads of `~/.ssh/**` and `state/**`.
 
 **No-merge-polling boundary**: the watcher polls ONLY issue comments. It
 never polls merge/PR status — closing remote issues after merge remains

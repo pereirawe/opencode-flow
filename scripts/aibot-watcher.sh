@@ -121,9 +121,10 @@ read_cursor() {
 }
 
 write_cursor() {
-  local f
+  local f tmp
   f="$(cursor_file "$1")"
-  printf '%s\n' "$2" > "$f"
+  tmp="$f.tmp.$$"
+  printf '%s\n' "$2" > "$tmp" && mv "$tmp" "$f" || rm -f "$tmp"
 }
 
 # resolve_tracker <workspace> — BR 4: prefer the workspace .opencode tracker,
@@ -181,11 +182,17 @@ get_field() {
 
 # has_token <body> — 0 when the standalone token appears as a whole line
 # (trimmed) OUTSIDE fenced code blocks. Token inside code fences (``` or ~~~),
-# quoted replies, inline code or linked text does not match (R-M2 / AC 15).
+# raw HTML <pre>/<code> blocks, quoted replies, inline code or linked text
+# does not match (R-M2 / AC 15 / Runtime F5).
 has_token() {
   local body="$1"
+  # NOTE: `[^>]` is avoided here — mawk mis-parses it (treats `>` specially),
+  # so tag lines are matched via `.*>`. A single line carrying BOTH the opening
+  # and closing tag (e.g. `<pre></pre>`) counts as ONE fence toggle (boundary
+  # documented in the issue entry — F5).
   printf '%s\n' "$body" | awk -v tok="$AIBOT_TOKEN" '
-    /^[[:space:]]*(```|~~~)/ { in_fence = !in_fence; next }
+    /^[[:space:]]*(```|~~~)/                  { in_fence = !in_fence; next }
+    /^[[:space:]]*<\/?(pre|code).*>[[:space:]]*$/ { in_fence = !in_fence; next }
     !in_fence {
       gsub(/^[[:space:]]+|[[:space:]]+$/, "")
       if ($0 == tok) { found = 1 }
@@ -235,7 +242,7 @@ fetch_issue_numbers() {
       err="$(mktemp)"
       # state=all: closed issues are still real issues (BR 18 / BR 5 —
       # "already-resolved" path). PRs are excluded via .pull_request == null.
-      out="$(gh api "repos/$path/issues?state=all" --paginate \
+      out="$(gh api "repos/$path/issues?state=all&per_page=100" --paginate \
         --jq '.[] | select(.pull_request == null) | .number' \
         < /dev/null 2>"$err")" || rc=$?
       if [[ "$rc" -ne 0 ]]; then
@@ -359,7 +366,7 @@ run_develop() {
 
 # notify_issue <workspace> <remote_id> <message_key> [pr_number] — post exactly
 # one standardized aibot message to the remote issue via ocf:aibot-notify
-# (BR 10). Non-blocking.
+# (BR 10). Runs synchronously; failures are logged, never fatal.
 notify_issue() {
   local workspace="$1" remote_id="$2" msg_key="$3" pr_number="${4:-}"
   if ! command -v "$OPENCODE_BIN" >/dev/null 2>&1; then
@@ -560,10 +567,12 @@ process_repo() {
       continue
     fi
     processed=$((processed + 1))
-    # Security M3: bound parallel pipeline spawns per repo per tick
+    # Security M3: bound parallel pipeline spawns per repo per tick. The
+    # capped comment is NOT written to the cursor (Runtime F1): the next tick
+    # re-examines it — the BR 5 status re-check already prevents a duplicate
+    # develop on the same issue, so deferral only ever delays OTHER issues.
     if [[ "$triggers" -ge "$MAX_TRIGGERS_PER_TICK" ]]; then
-      log "limite de triggers por tick atingido ($MAX_TRIGGERS_PER_TICK) — comentário $cid (issue #$cissue) pulado, cursor avança"
-      write_cursor "$key" "$cid"
+      log "limite de triggers por tick atingido ($MAX_TRIGGERS_PER_TICK) — comentário $cid (issue #$cissue) deferido, cursor NÃO avança"
       continue
     fi
     if ! handle_comment "$workspace" "$tracker" "$provider" "$path" \

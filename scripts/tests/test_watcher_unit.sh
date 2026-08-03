@@ -32,6 +32,10 @@ assert_cmd_fail "token dentro de code fence"     has_token $'```\n@aibot:develop
 assert_cmd_fail "token em fence com linguagem"   has_token $'```bash\n@aibot:develop\n```'
 assert_cmd_fail "token em fence ~~~"             has_token $'~~~\n@aibot:develop\n~~~'
 assert_cmd_fail "token em fence sem fechamento"  has_token $'```\n@aibot:develop'
+assert_cmd_fail "token em bloco <pre>"           has_token $'<pre>\n@aibot:develop\n</pre>'
+assert_cmd_fail "token em bloco <code>"          has_token $'<code>\n@aibot:develop\n</code>'
+assert_cmd_fail "token em <pre> com atributo"    has_token $'<pre class="x">\n@aibot:develop\n</pre>'
+assert_cmd_fail "token em <pre><code> aninhado"  has_token $'<pre><code>\n@aibot:develop\n</code></pre>'
 assert_cmd_fail "token em quoted reply"          has_token $'> @aibot:develop'
 assert_cmd_fail "token em texto linkado"         has_token "[@aibot:develop](https://example.com)"
 assert_cmd_fail "token no meio de frase"         has_token "veja @aibot:develop por favor"
