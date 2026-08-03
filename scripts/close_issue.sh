@@ -101,17 +101,17 @@ SUGGESTED=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Suggested fix:/ {print $2
 RESOLVED_DATE=$(date +%Y-%m-%d)
 SUMMARY="${DESC:-no description}${SUGGESTED:+ — ${SUGGESTED}}"
 
-# Ensure resolved archive exists with header
+# Ensure resolved archive exists (rewrite block below always writes the header)
 if [[ ! -f "$RESOLVED_FILE" ]]; then
-  echo "# Resolved Issues" > "$RESOLVED_FILE"
-  echo "" >> "$RESOLVED_FILE"
-  echo "Issues resolved from \`known_issues.md\`. See \`standards/resolved-issue.md\` for format." >> "$RESOLVED_FILE"
-  echo "" >> "$RESOLVED_FILE"
+  : > "$RESOLVED_FILE"
 fi
 
-# Prepend to resolved archive (newest first)
-TMP_ARCHIVE=$(mktemp)
-printf '%s\n' "" > "$TMP_ARCHIVE"
+# Prepend to resolved archive (newest first), always rewriting the header
+TMP_ARCHIVE=$(mktemp "$(dirname "$RESOLVED_FILE")/.resolved.XXXXXX")
+printf '# Resolved Issues\n' > "$TMP_ARCHIVE"
+printf '\n' >> "$TMP_ARCHIVE"
+printf 'Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.\n' >> "$TMP_ARCHIVE"
+printf '\n' >> "$TMP_ARCHIVE"
 printf '### %s. %s\n' "$ID" "$TITLE" >> "$TMP_ARCHIVE"
 printf -- '- Resolved: %s\n' "$RESOLVED_DATE" >> "$TMP_ARCHIVE"
 printf -- '- Type: %s\n' "${TYPE:-chore}" >> "$TMP_ARCHIVE"
@@ -120,8 +120,10 @@ printf -- '- Reviewers: %s\n' "${REVIEWER_COUNT:-1}" >> "$TMP_ARCHIVE"
 printf -- '- Remote: %s\n' "${REMOTE_REF:--}" >> "$TMP_ARCHIVE"
 printf -- '- Severity: %s\n' "${SEVERITY:-medium}" >> "$TMP_ARCHIVE"
 printf -- '- Summary: %s\n' "$SUMMARY" >> "$TMP_ARCHIVE"
-# Append existing content after header (lines 4+)
-tail -n +4 "$RESOLVED_FILE" >> "$TMP_ARCHIVE"
+printf '\n' >> "$TMP_ARCHIVE"
+# Append existing entries in full (skip the descriptive header if present),
+# so no data is ever truncated by a tail-based offset.
+awk '/^### [0-9]+\./ { seen=1 } seen { print }' "$RESOLVED_FILE" >> "$TMP_ARCHIVE"
 mv "$TMP_ARCHIVE" "$RESOLVED_FILE"
 echo "[archive] Appended to $RESOLVED_FILE"
 
