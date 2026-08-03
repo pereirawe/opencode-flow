@@ -4,7 +4,13 @@ mode: subagent
 temperature: 0.2
 permission:
   bash: allow
-  edit: allow
+  edit:
+    "~/.config/opencode/opencode.json": deny
+    "~/.config/opencode/aibot-repos.json": deny
+    "~/.config/opencode/scripts/aibot-watcher.sh": deny
+    "~/.config/opencode/state/**": deny
+    "~/.ssh/**": deny
+    "*": allow
 ---
 Implement features according to specifications.
 

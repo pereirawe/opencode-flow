@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 CONFIG_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
-.PHONY: scan-issues review help promote close-issue bootstrap init maintain update review-external sync-issues close-merged bump-version restart-web setup-web
+.PHONY: scan-issues review help promote close-issue bootstrap init maintain update review-external sync-issues close-merged bump-version restart-web setup-web test-scripts
 
 help:
 	@echo "OpenCode Flow — Targets:"
@@ -17,6 +17,9 @@ help:
 	@echo "== Web Service =="
 	@echo "  make restart-web             — restart opencode web service (apply config changes)"
 	@echo "  make setup-web               — install/update systemd service for opencode web"
+	@echo ""
+	@echo "== Quality =="
+	@echo "  make test-scripts            — run scripts/tests/ plain-bash test suite"
 	@echo ""
 	@echo "== Project =="
 	@echo "  make update                  — git pull + update"
@@ -96,6 +99,10 @@ restart-web:
 setup-web:
 	@echo "[make] setup-web"
 	@bash $(CONFIG_DIR)scripts/setup-web.sh
+
+test-scripts:
+	@echo "[make] test-scripts"
+	@bash $(CONFIG_DIR)scripts/tests/run_all.sh
 
 backup:
 	@echo "[make] backup"
