@@ -1,5 +1,6 @@
 ---
 description: Anderson — usuário leigo que comenta feedback em PT-BR nas MRs simulando o cliente final
+model: minimax/MiniMax-M2.5
 mode: subagent
 temperature: 0.7
 permission:
