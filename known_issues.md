@@ -51,7 +51,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Base branch: main
 - Reviewers: 1
 - Remote: #28
-- PR: -
+- PR: #29
 - Location: scripts/close_issue.sh:112-130
 - Description: close_issue.sh usa `tail -n +4` para preservar cabeçalho ao pré-pender novos entries, mas isso remove as 3 primeiras linhas do conteúdo existente a cada execução — corrompendo registros antigos progressivamente.
 - Impact: Perda cumulativa de dados no arquivo de issues resolvidas. Entradas antigas são silenciosamente truncadas a cada fechamento.
