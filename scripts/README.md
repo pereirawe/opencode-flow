@@ -14,6 +14,11 @@ Shell helpers for issue lifecycle management.
 | `backup.sh` | Intelligent timestamped backup excluding junk and preventing recursion |
 | `init.sh` | Initialize `.opencode/` project config with locale and LSP detection |
 | `sync_github_issues.sh` | Sync GitHub issues with local known_issues.md |
+| `remote.sh` | Shared remote provider detection (github/gitlab/none/unknown) — sourced by scripts |
+| `aibot-watcher.sh` | Poll remote issue comments for `@aibot:develop` and trigger the develop pipeline |
+| `aibot-watcher.service` | Systemd oneshot unit template for the watcher (issue #39) |
+| `aibot-watcher.timer` | Systemd timer template (`OnCalendar=*:0/2`) for the watcher (issue #39) |
+| `setup-aibot-watcher.sh` | Install/uninstall the aibot watcher systemd timer + service |
 | `import_claude_skill.sh` | Import skills from claude-code-templates |
 | `config.sh` | Shared configuration sourced by other scripts |
 | `setup-web.sh` | Install/update opencode web systemd service for headless operation |
@@ -70,6 +75,26 @@ The service file (`scripts/opencode.service`) is version-controlled here.
 To replicate to another machine: copy the repo, run `setup-web.sh` pointing at
 the target user and opencode binary path. After installation, access the web
 UI at `http://<host>:4096` (default port).
+
+## Aibot Watcher (issue #39)
+
+The watcher polls remote issue comments for `@aibot:develop` and triggers the
+full continuous pipeline (develop → review → QA → committer → MR) via the
+opencode web server. It runs as a systemd timer every 2 minutes.
+
+Install (requires the opencode web service to be running):
+
+```bash
+./scripts/setup-aibot-watcher.sh --user william_pereira --bin /home/william_pereira/.opencode/bin/opencode
+```
+
+- Allowlist: `~/.config/opencode/aibot-repos.json` (only repos listed there
+  are watched — others are refused).
+- State: cursor + per-repo lock in `~/.config/opencode/state/aibot/`.
+- Messages: `standards/aibot-messages.md`, posted by `development/aibot` via
+  `ocf:aibot-notify`.
+- Remove: `./scripts/setup-aibot-watcher.sh --uninstall`
+- Tests: `make test-scripts` (plain-bash, mock gh/glab/opencode/curl — no deps)
 
 Scripts operate on `known_issues.md` (global or project-level).
 When an issue is closed, it's archived to `resolved_issues.md` in compact format.

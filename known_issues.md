@@ -307,3 +307,62 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   7. As skills Go e Python devem estar disponiveis para revisao e implementacao idiomatica quando necessarias.
   8. O ecossistema Python pode incluir skill especializada para Flask quando o desafio principal for desenho de API HTTP e nao sintaxe da linguagem.
 - Suggested fix: Adicionar o router, registrar os agentes especializados e atualizar o comando/config para usar o novo fluxo.
+
+### 39. Disparo de pipeline de desenvolvimento por comentário remoto `@aibot:develop`
+- Status: in-publish
+- Type: feat
+- Severity: critical
+- Report: PO
+- Base branch: main
+- Reviewers: 3 (devops, runtime, security)
+- Remote: #30
+- PR: -
+- Location: scripts/aibot-watcher.sh, scripts/aibot-watcher.service, scripts/aibot-watcher.timer, scripts/setup-aibot-watcher.sh, scripts/remote.sh, scripts/sync_github_issues.sh, scripts/tests/*, standards/aibot-messages.md, agents/development/aibot.md, opencode.json, workflow.md, aibot-repos.json, Makefile
+- Description: Criar um watcher (systemd timer) que observa comentários em issues remotas (GitHub/GitLab) e, ao detectar `@aibot:develop`, dispara o pipeline completo de desenvolvimento da issue comentada (equivalente a `/ocf:develop <id>`), terminando em senior review, QA, criação de MR e um comentário padrão do aibot avisando que o desenvolvimento terminou e o MR está pronto para revisão/merge. Issues não rastreadas localmente são recusadas com mensagem padrão. Execução via `opencode run --attach` no servidor web existente, com per-repo flock para concorrência serial e paralelismo entre repos.
+- Impact: Permite que qualquer pessoa (ou o próprio aibot) dispare desenvolvimento completo de issues pequenas via comentário remoto, sem acesso ao terminal — pipelines paralelos por repo no servidor.
+- Business rules:
+  1. Apenas repos listados como chaves em `~/.config/opencode/aibot-repos.json` são allowlisted; o watcher DEVE recusar operar em qualquer outro repo.
+  2. O watcher DEVE pollear APENAS issue comments (nunca PR comments nem merge states) em repos allowlisted, usando `gh`/`glab` conforme o provider detectado, com cursor persistente por repo; cada comentário DEVE ser processado no máximo uma vez.
+  3. Apenas comentários contendo o token `@aibot:develop` como palavra standalone disparam; outros comentários são ignorados mas o cursor ainda avança.
+  4. A issue comentada DEVE já estar rastreada localmente: o `.opencode/known_issues.md` do workspace DEVE conter entrada com `Remote:` igual ao id remoto do comentário. Caso contrário, o watcher DEVE postar a mensagem padrão "não rastreada localmente" e NÃO DEVE iniciar pipeline.
+  5. Apenas um develop por issue: dentro do flock, o watcher DEVE re-checar o Status — `in-progress`/`in-review`/`in-qa`/`in-publish` → mensagem padrão "já em andamento"; `resolved` → "já resolvida"; senão dispara.
+  6. Serialização por repo via `flock -n` (non-blocking) mantida por todo o run de develop; repos rodam em paralelo; um segundo trigger em repo travado é deferido para o próximo tick.
+  7. O trigger DEVE ser `opencode run --attach http://127.0.0.1:4096 --auto --dir <workspace> --model "${AIBOT_MODEL:-opencode-go/deepseek-v4-flash}" --command "ocf:develop" <local-id>` — SEM o separador `--` (o formulário com `--` quebra no opencode 1.18.7 com `G.includes is not a function`; corrigido durante senior review). O default do modelo DEVE ser o ID qualificado `opencode-go/deepseek-v4-flash` (o ID bare não resolve no servidor). O comando executa o pipeline completo contínuo (promote → develop → senior review → QA → correções → committer gate → MR). O mesmo vale para `ocf:aibot-notify`: `--command "ocf:aibot-notify" <remote-id> <msg-key>` sem `--`.
+  8. Em sucesso (issue atinge `in-publish` com `PR: #n`), o watcher DEVE postar a mensagem padrão de sucesso via agente aibot, incluindo o link do MR lido do known_issues.md.
+  9. Em falha (qualquer bloqueio: conflito git, regra de negócio ausente/ambígua, falha de modelo), o watcher DEVE postar a mensagem padrão "não foi possível desenvolver, tarefa deve ser revisada" e NÃO DEVE criar MR.
+  10. Todas as mensagens DEVEM seguir `standards/aibot-messages.md` e ser postadas pelo subagente `development/aibot` via comando `ocf:aibot-notify` — uma mensagem por trigger.
+  11. A detecção de provider DEVE usar `scripts/remote.sh` (extraído de `sync_github_issues.sh`) baseada em `remote.origin.url`.
+  12. O watcher DEVE rodar como systemd timer+service (`OnCalendar=*:0/2`, `Persistent=true`, `TimeoutStartSec=0`) sob o usuário opencode; DEVE fazer health-check do web server (127.0.0.1:4096) antes de disparar e skip+log quando estiver down.
+  13. O `--auto` DEVE ser usado apenas se a permission config do servidor negar explicitamente operações perigosas; a fronteira de segurança efetiva = allowlist de repos + gate de issue rastreada + modelo confiável + deny rules explícitas (validadas pelo revisor de security como gate). As deny rules vinculam a sessão principal/comando, o agente `aibot` e o `develop-router`; os agentes de implementação (`developer`/`devs/*`) rodam com bash irrestrito sob `--auto` (permissão de agente substitui a global) e têm apenas deny rules de EDIT para arquivos críticos — o gate de segurança DEVE refletir esse limite com precisão (não superestimar a proteção).
+  14. O watcher NÃO DEVE pollear merge/PR status — isso permanece exclusivo de `ocf:check-pr`/close-requester.
+  15. Cursor, lock e state DEVEM viver em `~/.config/opencode/state/aibot/` (cursor = último comentário processado; lock = arquivo flock); nenhum secret armazenado.
+  16. `workflow.md` DEVE documentar o watcher como novo entry point que alimenta o pipeline contínuo.
+  17. Comentários do próprio aibot NUNCA disparam (exclusão de autor para evitar loop).
+  18. Apenas issue comments disparam; comentários em PR/review NÃO disparam.
+- Acceptance criteria:
+  1. `aibot-watcher.timer` + `.service` instalados e enabled; timer dispara a cada 2 minutos (`systemctl list-timers`).
+  2. Postar `@aibot:develop` em issue rastreada (`Remote: #n`) em repo allowlisted dispara develop completo até `in-publish`; MR criado com `PR: #n` populado; aibot posta comentário padrão de sucesso com link do MR.
+  3. Postar `@aibot:develop` em issue não rastreada → aibot posta "não rastreada localmente"; sem mudança de status, branch ou MR.
+  4. Postar em issue já `in-progress` → "já em andamento"; exatamente um run de develop.
+  5. Dois comentários `@aibot:develop` na mesma issue no mesmo tick → apenas um run de develop.
+  6. Triggers em dois repos diferentes no mesmo tick → runs em paralelo com workspaces/branches isolados.
+  7. Comentários sem o token são ignorados (cursor avança, sem pipeline, sem mensagem).
+  8. Restart do serviço não re-dispara comentários já processados (cursor persiste).
+  9. Web server down → watcher loga e sai limpo; resume no próximo tick sem erro.
+  10. Mensagem de sucesso segue `standards/aibot-messages.md` e contém o link do MR.
+  11. Caminho de falha (ex: `feat` sem `Business rules:`) → "não foi possível desenvolver, tarefa deve ser revisada"; sem MR.
+  12. Regression: `sync_github_issues.sh --dry-run` se comporta igual antes/depois da extração de `remote.sh`.
+  13. Replay do mesmo stream de comentários não re-triggera (cursor prova: 1 run).
+  14. Comentários do aibot nunca disparam desenvolvimento (self-trigger prevention).
+  15. `@aibot:develop` dentro de code fence / quoted reply / texto linkado não dispara; exact match por linha.
+  16. Comentário em PR não dispara; apenas issue comments.
+  17. `aibot-repos.json` com workspace vazio/inexistente → recusa com mensagem padrão e saída limpa.
+  18. Matriz de provider: github / gitlab / remote desconhecido → handling correto cada.
+  19. Security review: com `--auto`, um edit de arquivo crítico do opencode (opencode.json, aibot-repos.json, aibot-watcher.sh, state/**, ~/.ssh/**) é negado por deny rules (globais e de agente) presentes e provadas; os agentes de implementação têm bash irrestrito sob `--auto` (limite documentado e refletido no gate).
+  20. `workflow.md` documenta o novo entry point e a fronteira de no-merge-polling.
+- Suggested fix: Criar `scripts/remote.sh` (extrair de sync_github_issues.sh), `aibot-repos.json`, `standards/aibot-messages.md`, `agents/development/aibot.md`, comando `ocf:aibot-notify`, `scripts/aibot-watcher.sh` + unit/timer templates, hardening de permission rules, e documentar em `workflow.md`.
+- Notes (implementação — revisores validarem):
+  1. CWD quirk: o watcher resolve o tracker do workspace preferindo `.opencode/known_issues.md` com entries reais, caindo para `<workspace>/known_issues.md` (o repo de config do opencode tem template vazio em `.opencode/`). Para o exemplo `pereirawe/opencode-flow`, um trigger real dispararia `ocf:develop` a partir do workspace root, onde `promote.sh` resolve o tracker por CWD (`.opencode/known_issues.md` vazio) → "Issue not found" → mensagem `cannot-develop`. Projetos padrão (tracker real em `.opencode/`) funcionam normalmente.
+  2. Fronteira de segurança (AC 19): deny rules explícitas em `opencode.json` valem sob `--auto`. Pela semântica de merge do opencode, config de bash de um agente substitui a global para aquele agente — as deny rules protegem a sessão principal/comando e agentes sem `bash` próprio; agentes dev com `bash: allow` ficam fora dessa camada específica (o revisor de security valida o gate). O agente `aibot` usa permissão granular (catch-all deny + allow gh/glab/git).
+  3. Testes: 98 assertions em `scripts/tests/` (test_remote 12, test_watcher_unit 34, test_watcher_e2e 49, test_sync_regression 3) passando via `make test-scripts` — cobrem BR 1-18 e AC 2-18 (AC 1/19/20 verificados estaticamente; exigem runtime). O e2e usa mocks de gh/glab/opencode/curl injetados via PATH. `sync_github_issues.sh --dry-run` idêntico antes/depois da extração de `remote.sh` (AC 12).
+  4. Senior review (1º ciclo): devops APPROVE; runtime REQUEST CHANGES (B1: `--` quebra no opencode 1.18.7; B2: modelo bare não resolve; M1: PR comments disparam no GitHub; M2: token em code fence dispara); security REQUEST CHANGES (B1 gate: deny rules não vinculam agentes de implementação; M1: PR comments). Correções aplicadas: sem `--`, modelo qualificado, filtro de PR no fetch, fence-awareness, deny rules de EDIT (globais e de agente), MAX_TRIGGERS_PER_TICK, cursor init no primeiro run, senha via env, streaming de log, `.gitignore` com `state/`, `systemd-analyze verify` no setup, health-check com `-f`, logs de falha. BR 7/13 e AC 19 atualizados para o formulário real.
