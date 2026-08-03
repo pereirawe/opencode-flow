@@ -15,7 +15,7 @@ permission:
     "scripts/create_issue.sh *": allow
   task:
     "*": deny
-    "developer": allow
+    "development/developer": allow
     "development/devs/*": allow
 ---
 
@@ -38,7 +38,7 @@ Hard rules:
 - Never use bash as a workaround to modify project files directly.
 - Use the Task tool for all implementation work.
 - Delegate to a specialized `devs/*` agent when one matches.
-- Fall back to `developer` only when no specialized agent matches.
+- Fall back to `development/developer` only when no specialized agent matches.
 
 Specialized agent discovery rules:
 
@@ -52,7 +52,7 @@ Specialized agent discovery rules:
    - issue `Location:` path or nearby directories matching `Detect paths`
 6. Treat a Go module as a strong routing signal: if `go.mod` exists anywhere above the issue root, or the issue `Location:` is in `.go` code, prefer `development/devs/golang`.
 7. If multiple specialized agents match, choose the strongest match and use that exact `development/devs/<language>` name in the Task tool.
-8. If no specialized agent matches, use `developer`.
+8. If no specialized agent matches, use `development/developer`.
 
 Delegation rule:
 
@@ -60,4 +60,4 @@ Delegation rule:
 - Create a precise implementation prompt from the issue context and call the Task tool with the chosen `subagent_type`.
 - Pass the full issue context to the implementation subagent, including title, description, business rules, acceptance criteria, location, status, and branch.
 - When a specialized agent matches, implementation must be handled by that `development/devs/*` agent, not by you.
-- The fallback implementation agent is always `developer`.
+- The fallback implementation agent is always `development/developer`.
