@@ -39,28 +39,52 @@ PR_REF=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- PR:/ {print $2; exit}')
 PR_ID=${PR_REF#\#}
 REMOTE_URL=$(git config --get remote.origin.url)
 
-if [[ "$STATUS" != "ready" && "$STATUS" != "open" && "$STATUS" != "in-progress" && "$STATUS" != "in-publish" && "$STATUS" != "resolved" ]]; then
+if [[ "$STATUS" != "in-publish" && "$STATUS" != "resolved" ]]; then
   echo "Issue $ID cannot be closed from status '$STATUS'"
+  echo "Only in-publish and resolved statuses are accepted"
   exit 1
 fi
 
-# Auto-detect merged PR when status is in-publish
-if [[ "$STATUS" == "in-publish" && -n "$PR_ID" && "$PR_ID" != "-" ]]; then
-  if [[ "$REMOTE_URL" == *"github.com"* ]]; then
-    PR_STATE=$(gh pr view "$PR_ID" --json state --jq '.state' 2>/dev/null || echo "UNKNOWN")
-    if [[ "$PR_STATE" == "MERGED" ]]; then
-      echo "[pr] PR #$PR_ID merged — closing issue"
-    else
-      echo "[pr] PR #$PR_ID not merged yet (state: $PR_STATE). Skipping remote close."
-    fi
-  fi
-fi
+SHOULD_CLOSE_REMOTE=true
 
 if [[ -n "$REMOTE_ID" && "$REMOTE_ID" != "-" ]]; then
-  if [[ "$REMOTE_URL" == *"github.com"* ]]; then
-    gh issue close "$REMOTE_ID" || true
-  elif [[ "$REMOTE_URL" == *"gitlab"* ]]; then
-    glab issue close "$REMOTE_ID" || true
+  # For resolved: check if remote is already closed
+  if [[ "$STATUS" == "resolved" ]]; then
+    if [[ "$REMOTE_URL" == *"github.com"* ]]; then
+      REMOTE_STATE=$(gh issue view "$REMOTE_ID" --json state --jq '.state' 2>/dev/null || echo "UNKNOWN")
+      if [[ "$REMOTE_STATE" == "CLOSED" ]]; then
+        echo "[remote] Issue #$REMOTE_ID is already closed — skipping remote close"
+        SHOULD_CLOSE_REMOTE=false
+      fi
+    fi
+  fi
+
+  # For in-publish: verify PR is merged before closing
+  if [[ "$STATUS" == "in-publish" && -n "$PR_ID" && "$PR_ID" != "-" ]]; then
+    if [[ "$REMOTE_URL" == *"github.com"* ]]; then
+      PR_STATE=$(gh pr view "$PR_ID" --json state --jq '.state' 2>/dev/null || echo "UNKNOWN")
+      if [[ "$PR_STATE" != "MERGED" ]]; then
+        echo "[pr] PR #$PR_ID not merged yet (state: $PR_STATE). Skipping remote close."
+        SHOULD_CLOSE_REMOTE=false
+      fi
+    fi
+  fi
+
+  # Confirm with user before closing remote
+  if $SHOULD_CLOSE_REMOTE; then
+    read -r -p "Fechar issue #$REMOTE_ID no remote? (s/N) " CONFIRM || true
+    if [[ "$CONFIRM" != "s" && "$CONFIRM" != "S" ]]; then
+      echo "[remote] User cancelled — skipping remote close"
+      SHOULD_CLOSE_REMOTE=false
+    fi
+  fi
+
+  if $SHOULD_CLOSE_REMOTE; then
+    if [[ "$REMOTE_URL" == *"github.com"* ]]; then
+      gh issue close "$REMOTE_ID" || echo "[remote] Warning: failed to close issue #$REMOTE_ID"
+    elif [[ "$REMOTE_URL" == *"gitlab"* ]]; then
+      glab issue close "$REMOTE_ID" || echo "[remote] Warning: failed to close issue #$REMOTE_ID"
+    fi
   fi
 fi
 

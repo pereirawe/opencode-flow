@@ -18,6 +18,7 @@ Single source of truth for tracked work in this project.
 - Description: <brief>
 - Impact: <what or who is affected>
 - Business rules: <specific business logic, constraints, and domain rules>
+- Acceptance criteria: <what must be true for the issue to be complete>
 - Suggested fix: <approach or next step>
 ```
 
@@ -99,18 +100,34 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Suggested fix: Remover open do ciclo de vida ou fazer create_issue.sh transicionar ready→open ao criar remote com sucesso.
 
 ### 26. `standards/issues.md` não documenta campo `Base branch:` e sintaxe de perfis em `Reviewers:`
-- Status: backlog
+- Status: ready
 - Type: doc
 - Severity: medium
 - Report: opencode
 - Base branch: main
-- Reviewers: 1
+- Reviewers: 1 (docs)
 - Remote: -
 - PR: -
-- Location: standards/issues.md:9-24 vs known_issues.md:8-22
-- Description: O formato canônico em standards/issues.md omite o campo `- Base branch:` e a sintaxe `(<profile1>, <profile2>)` para Reviewers, que estão presentes no header real do known_issues.md e são consumidos por scripts.
+- Location: standards/issues.md, standards/pt/issues.md, standards/es/issues.md, known_issues.md:8-22
+- Description: O formato canônico em standards/issues.md omite o campo `- Base branch:` e a sintaxe `(<profile1>, <profile2>)` para Reviewers, que estão presentes no header real do known_issues.md e são consumidos por scripts. O mesmo problema existe em standards/es/issues.md (falta Base branch e perfil) e standards/pt/issues.md (falta perfil).
 - Impact: Agentes/usuários que leem standards/issues.md produzem entries sem campos obrigatórios para os scripts.
-- Suggested fix: Atualizar standards/issues.md para espelhar exatamente o formato do known_issues.md.
+- Business rules:
+  1. standards/issues.md DEVE incluir `- Base branch:` após `- Report:`.
+  2. standards/issues.md DEVE usar `- Reviewers: <number> (<profile1>, <profile2>)` em vez de `- Reviewers: <number> (set during discovery, default 1)`.
+  3. O campo `- Acceptance criteria:` DEVE estar presente em standards/issues.md e known_issues.md.
+  4. O known_issues.md DEVE incluir `- Acceptance criteria:` no Format header.
+  5. standards/pt/issues.md DEVE atualizar Reviewers syntax para `<número> (<perfil1>, <perfil2>)`.
+  6. standards/es/issues.md DEVE incluir `- Base branch:` e atualizar Reviewers syntax para `<número> (<perfil1>, <perfil2>)`.
+  7. As descrições dos campos DEVEM ser consistentes entre as três línguas.
+- Acceptance criteria:
+  1. standards/issues.md contém `- Base branch: <default-branch> | <branch-name>` no entry format.
+  2. standards/issues.md contém `- Reviewers: <number> (<profile1>, <profile2>)`.
+  3. standards/pt/issues.md contém `- Reviewers: <número> (<perfil1>, <perfil2>)`.
+  4. standards/es/issues.md contém `- Base branch:` e `- Reviewers: <número> (<perfil1>, <perfil2>)`.
+  5. known_issues.md Format header contém `- Acceptance criteria:`.
+  6. standards/issues.md e standards/pt/issues.md mantêm `Acceptance criteria:` (já presentes).
+  7. standards/es/issues.md adiciona `- Acceptance criteria:` se necessário.
+- Suggested fix: Atualizar os 3 arquivos standards e o Format header do known_issues.md para espelhar o formato canônico.
 
 ### 27. `opencode.json` referencia `/temp/*` em vez de `/tmp/*`
 - Status: backlog
@@ -127,18 +144,34 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Suggested fix: Alterar `"/temp/*"` para `"/tmp/*"`.
 
 ### 28. `close_issue.sh` fecha issue remota sem verificar merge do PR para status não-`in-publish`
-- Status: backlog
+- Status: in-progress
 - Type: bug
 - Severity: medium
 - Report: opencode
 - Base branch: main
-- Reviewers: 1
+- Reviewers: 1 (devops)
 - Remote: -
 - PR: -
 - Location: scripts/close_issue.sh:42-65
 - Description: O script aceita status ready, open, in-progress, resolved e executa `gh issue close` sem verificar se o PR foi merged. Apenas in-publish tem verificação de merge.
 - Impact: Fechamento acidental de issues remotas ainda em desenvolvimento. Sem proteção ou confirmação.
-- Suggested fix: Restringir close_issue.sh a aceitar apenas status in-publish e resolved. Abortar com erro para outros status.
+- Business rules:
+  1. close_issue.sh DEVE aceitar apenas status `in-publish` e `resolved`.
+  2. Para qualquer outro status, DEVE abortar com erro e não modificar known_issues.md nem resolved_issues.md.
+  3. Para status `in-publish`, DEVE manter a verificação existente de merge do PR antes de fechar remote.
+  4. Para status `resolved`, DEVE verificar se a issue remota já está fechada antes de tentar fechar.
+  5. DEVE exibir confirmação ao usuário antes de fechar a issue remota: `"Fechar issue #<id> no remote? (s/N)"`.
+  6. Se o usuário recusar, DEVE pular o fechamento remoto mas continuar o arquivamento local.
+  7. O fechamento remoto NÃO DEVE travar o arquivamento local em caso de falha.
+- Acceptance criteria:
+  1. Script aceita apenas status `in-publish` e `resolved` para fechar remote.
+  2. Status `ready`, `open`, `in-progress`, `backlog`, `in-review`, `in-qa` abortam com erro.
+  3. Status `resolved` verifica se remote já está fechado antes de tentar fechar.
+  4. Status `in-publish` verifica merge do PR (lógica existente preservada).
+  5. Usuário é confirmado antes de fechar remote.
+  6. Se usuário recusar, arquivamento local continua.
+  7. Falha no fechamento remoto não interrompe arquivamento.
+- Suggested fix: Restringir close_issue.sh a aceitar apenas status in-publish e resolved. Adicionar verificação de estado remoto para resolved. Adicionar confirmação do usuário.
 
 ### 29. IDs duplicados de issue em `resolved_issues.md`
 - Status: backlog
