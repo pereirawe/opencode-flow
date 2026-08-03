@@ -274,3 +274,25 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   7. As skills Go e Python devem estar disponiveis para revisao e implementacao idiomatica quando necessarias.
   8. O ecossistema Python pode incluir skill especializada para Flask quando o desafio principal for desenho de API HTTP e nao sintaxe da linguagem.
 - Suggested fix: Adicionar o router, registrar os agentes especializados e atualizar o comando/config para usar o novo fluxo.
+
+### 38. Criar agentes orquestradores Discovery e Delivery
+- Status: resolved
+- Type: feat
+- Severity: medium
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 1 (docs, runtime)
+- Remote: -
+- PR: -
+- Location: agents/development/discovery.md, agents/development/delivery.md, agents/README.md, agents/development/README.md, opencode.json, workflow.md
+- Description: Criar dois meta-agentes que orquestram as fases do pipeline: Discovery (fases 1-6: PO -> CTO -> Tech Lead -> PO -> QA -> PM) e Delivery (fases 6-12: PM -> Developer -> Review -> QA -> Committer -> Publish -> Close). Registrar comandos `ocf:discovery` e `ocf:delivery` no opencode.json.
+- Impact: Simplifica o uso do pipeline — usuários podem invocar um único comando para executar todas as fases de discovery ou delivery, em vez de invocar cada agente individualmente.
+- Business rules:
+  1. Discovery agent DEVE orquestrar fases 1-6 sequencialmente (PO -> CTO -> Tech Lead -> PO -> QA -> PM)
+  2. Delivery agent DEVE orquestrar fases 6-12 sequencialmente (PM -> Developer -> Review -> QA -> Committer -> Publish -> Close)
+  3. Após promoção (fase 6), fases 7-11 DEVEM executar automaticamente sem confirmação do usuário
+  4. Fase 12 (Close Requester) DEVE pausar após criação da MR — apenas dispara quando MR é merged
+  5. Comandos `ocf:discovery` e `ocf:delivery` DEVEM ser registrados no opencode.json
+  6. agents/README.md e agents/development/README.md DEVEM listar os novos agentes orquestradores
+  7. workflow.md DEVE documentar os agentes orquestradores
+- Suggested fix: Criar agents/development/discovery.md e agents/development/delivery.md com instruções completas de orquestração. Atualizar READMEs e workflow.md. Registrar comandos no opencode.json.

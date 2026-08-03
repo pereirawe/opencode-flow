@@ -21,6 +21,8 @@ The `ceo` agent orchestrates cross-sector execution.
 ## Development
 | Agent | Function |
 |-------|----------|
+| `discovery` | Orchestrates discovery pipeline (PO -> CTO -> Tech Lead -> PO -> QA -> PM) |
+| `delivery` | Orchestrates delivery pipeline (PM -> Developer -> Review -> QA -> Committer -> Publish -> Close) |
 | `cto` | Technical vision and guidelines |
 | `product-owner` | Priorities and user stories |
 | `project-manager` | Coordination and task assignment |
