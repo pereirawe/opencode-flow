@@ -385,7 +385,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Base branch: main
 - Reviewers: 2 (frontend, ux-ui)
 - Remote: #33
-- PR: -
+- PR: #34
 - Location: agents/designer.md, skills/design/*/SKILL.md, opencode.json
 - Description: Criar o agente `designer` (frontend product agent) que transforma descrições em UI funcional seguindo brief → explore → plan → build → review, e instalar as skills de design do repo `Leonxlnx/taste-skill` (design-taste-frontend default; redesign-existing-projects, minimalist-ui). O skill v2 obriga o agente a ler o brief, inferir a direção de design e só então gerar código.
 - Impact: Habilita build de UIs polidas e funcionais a partir de descrição, com direção estética explícita e reuso do design system existente do projeto, em vez de estética genérica.
