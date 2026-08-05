@@ -1,6 +1,12 @@
 ---
 description: CTO — technical vision, architecture strategy, engineering leadership, technology decisions
-mode: subagent
+mode: all
+allow: all
+temperature: 0.5
+tools:
+  write: true
+  edit: true
+  bash: false
 ---
 
 # CTO — Chief Technology Officer
