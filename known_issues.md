@@ -43,20 +43,6 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Business rules: all 12 implemented
 - Suggested fix: Implemented
 
-### 21. Perda progressiva de dados em `resolved_issues.md` no fechamento de issues
-- Status: in-progress
-- Type: bug
-- Severity: high
-- Report: opencode
-- Base branch: main
-- Reviewers: 1
-- Remote: #28
-- PR: #29
-- Location: scripts/close_issue.sh:112-130
-- Description: close_issue.sh usa `tail -n +4` para preservar cabeçalho ao pré-pender novos entries, mas isso remove as 3 primeiras linhas do conteúdo existente a cada execução — corrompendo registros antigos progressivamente.
-- Impact: Perda cumulativa de dados no arquivo de issues resolvidas. Entradas antigas são silenciosamente truncadas a cada fechamento.
-- Suggested fix: Substituir `tail -n +4` por `cat "$RESOLVED_FILE"` para preservar todo o conteúdo existente.
-
 ### 23. Instruções contraditórias para contagem de revisores entre command doc e opencode.json
 - Status: in-publish
 - Type: bug
