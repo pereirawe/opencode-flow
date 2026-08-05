@@ -317,3 +317,97 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Suggested fix: Criar agents/development/discovery.md e agents/development/delivery.md com instruções completas de orquestração. Atualizar READMEs e workflow.md. Registrar comandos no opencode.json.
 
 ### 40. AIBot nativo em GitHub Actions / GitLab CI com imagem Docker do opencode config
+- Status: in-progress
+- Type: feat
+- Severity: critical
+- Report: PO
+- Base branch: main
+- Reviewers: 2 (devops, security)
+- Remote: #32
+- PR: -
+- Location: .github/workflows/aibot-develop.yml, Dockerfile, scripts/build-opencode-image.sh, scripts/run-ci-workflow.sh, opencode.json, workflow.md, scripts/README.md
+- Description: Executar o pipeline de desenvolvimento completo em CI remoto (GitHub Actions / GitLab CI) ao detectar `@aibot:develop` em comentário de issue. O workflow usa uma **imagem Docker pre-built** do opencode config (`ghcr.io/pereirawe/opencode-flow:latest` + tag semver) que inclui opencode binary + config completa (agents, skills, commands, scripts, deny rules). O workflow roda `opencode run --command "ocf:develop" <id> --auto` em **modo headless** (sem `--attach`) no runner CI, cria a MR e o aibot comenta o link. Paralelismo massivo: cada repo/issue corre no próprio runner, sem consumir recursos locais.
+- Impact: Libera a máquina local; escala horizontalmente com runners GitHub/GitLab; isola cada run; paridade local/CI via imagem imutável. O watcher local (issue 39) vira fallback.
+- Business rules:
+  1. O trigger DEVE ser APENAS comentário em issue (não PR) contendo `@aibot:develop` como palavra standalone; outros comentários são ignorados.
+  2. O repo DEVE estar em allowlist: a imagem contém `aibot-repos.json` (ou o secret/variável `AIBOT_ALLOWLIST` define os repos autorizados). Repo fora da allowlist → recusa com mensagem padrão.
+  3. A issue comentada DEVE estar rastreada localmente no workspace: `known_issues.md` com `Remote:` igual ao id remoto. Senão → mensagem padrão "não rastreada localmente", sem pipeline.
+  4. O workflow DEVE executar o pipeline completo em modo headless: promote → develop → senior review → QA → correções → committer gate → MR.
+  5. Ao terminar com sucesso, o aibot DEVE comentar na issue com o link da MR e que está pronta para revisão/merge.
+  6. Se houver bloqueio (regra de negócio ausente/ambígua, conflito, falha de modelo), o aibot DEVE comentar "não foi possível desenvolver, tarefa deve ser revisada" — sem criar MR.
+  7. Mensagens DEVM seguir `standards/aibot-messages.md` (uma mensagem por trigger).
+  8. NÃO DEVE haver execução concorrente para a mesma issue: lock a nível de issue no CI (ex: `actions/locker` ou mutex por repo+issue) → segundo trigger é ignorado com mensagem padrão.
+  9. Múltiplos repos/issues DEVEM rodar em paralelo (runners separados, workspaces/branches isolados `issue-<id>-<slug>`).
+  10. NÃO DEVE pollear merge/PR status — fechamento de issue após merge permanece exclusivo do `ocf:check-pr`/close-requester (no-merge-polling boundary).
+  11. Secrets: `OPENCODE_API_KEY`, `GH_TOKEN`/`GL_TOKEN`, `AIBOT_ALLOWLIST` em GitHub Actions secrets / GitLab CI variables.
+  12. **Imagem Docker**: build automático em push a `main` que toque `.config/opencode/**` (ou `~/.config/opencode/**`); publicada em `ghcr.io/pereirawe/opencode-flow:latest` + tag semver (`vX.Y.Z`); build idempotente e reprodutível.
+  13. **Modo headless**: o trigger DEVE ser `opencode run --command "ocf:develop" <local-id> --auto` (sem `--attach`). Se opencode exigir web server, o workflow usa self-hosted runner com acesso a `http://host.docker.internal:4096` — validar em spike antes da implementação.
+  14. O workflow DEVE ser idempotente e tolerante a re-runs (re-executar não duplica MR nem pipeline).
+  15. O aibot NÃO DEVE auto-disparar (exclusão de autor do comentário).
+  16. `workflow.md` DEVE documentar o entry point CI nativo e a fronteira de no-merge-polling.
+- Acceptance criteria:
+  1. `Dockerfile` + `scripts/build-opencode-image.sh` produzem imagem `ghcr.io/pereirawe/opencode-flow:latest` com opencode binary + config completa; `docker run ghcr.io/pereirawe/opencode-flow opencode --version` funciona.
+  2. Build da imagem é idempotente (rodar 2x não quebra) e dispara em push a `main` tocando a config.
+  3. Workflow `.github/workflows/aibot-develop.yml` instalado e válido (`actionlint`/parse OK).
+  4. Postar `@aibot:develop` em issue rastreada em repo allowlisted → pipeline completo até `in-publish`; MR criada com `PR: #n`; aibot comenta sucesso com link da MR.
+  5. Postar `@aibot:develop` em issue não rastreada → aibot posta "não rastreada localmente"; sem mudança de status/branch/MR.
+  6. Postar em issue já `in-progress`/`in-publish` → "já em andamento"; exatamente um run.
+  7. Dois comentários na mesma issue no mesmo run → apenas um run de develop.
+  8. Issues em repos diferentes no mesmo tick → runs paralelos isolados.
+  9. Comentário sem o token é ignorado (sem pipeline, sem mensagem).
+  10. Caminho de falha (ex: `feat` sem `Business rules:`) → "não foi possível desenvolver"; sem MR.
+  11. Comentário em PR não dispara; apenas issue comments.
+  12. Comentário do aibot nunca dispara (self-trigger prevention).
+  13. Re-run do workflow não re-dispara (idempotência: 1 run prova).
+  14. `workflow.md` documenta o entry point CI nativo e a fronteira de no-merge-polling.
+  15. Matriz de provider: GitHub Actions + GitLab CI → handling correto em cada.
+  16. Security review: com `--auto`, um edit/bash fora do allowlist é negado (deny rules presentes e provadas na imagem; boundary documentado sem superestimar).
+  17. Imagem usa opencode versionado (sem drift): `opencode --version` na imagem == versão esperada.
+  18. Segredo `OPENCODE_API_KEY`/`GH_TOKEN` não vaza em logs (redação verificada).
+- Suggested fix: Criar `Dockerfile` + `scripts/build-opencode-image.sh` (build GHCR + tag semver), `.github/workflows/aibot-develop.yml` (trigger issue_comment → filter `@aibot:develop` → allowlist/tracker gates → `opencode run` headless → MR + notify), validar modo headless em spike, documentar em `workflow.md` e `scripts/README.md`. O watcher local (issue 39) permanece como fallback.
+- Notes (implementação — revisores validarem):
+  1. **Spike (BR 13) — RESULTADO: headless OK**. Executado em 2026-08-03 com opencode 1.18.7 (binário local em `~/.opencode/bin/opencode`): `opencode run --command "ocf:scan-issues" --auto --dir /home/william_pereira/.config/opencode` SEM `--attach` — o opencode iniciou uma sessão local própria (`message=command session.id=... command=ocf:scan-issues`), resolveu o comando, avaliou permissões (`evaluated permission=read ... action=allow`) e iniciou o stream (`providerID=opencode-go modelID=deepseek-v4-flash`). NÃO exigiu web server nem `--attach`; o `--attach` só é necessário para conectar a um servidor JÁ em execução. O run foi encerrado pelo timeout do spike (30–45s) durante a varredura de arquivos — não por erro de modo headless. Conclusão: o workflow CI pode rodar `opencode run --command "ocf:develop" <id> --auto` dentro do container Docker sem `--attach` e sem self-hosted runner. O modelo deve ser fornecido via `--model` + `OPENCODE_API_KEY` (o provider padrão do opencode é `opencode-go`; o fallback ollama local não existe no runner).
+  2. O pipeline headless no CI precisa resolver o CWD quirk (issue 39): o runner roda no workspace do repo alvo com `.opencode/known_issues.md` real (projetos padrão) — repos sem tracker real caem em `cannot-develop` (mesma limitação do watcher local).
+  3. A imagem Docker carrega a config global (`~/.config/opencode/`); o workspace do repo alvo é montado via `-v` ou checkout no runner. Secrets via env do workflow.
+  4. Issues #41 (nginx) e #39 (watcher local) permanecem independentes; esta issue pode coexistir (watcher como fallback) ou, após validação, o CI nativo torna-se o caminho primário.
+  5. **Dependência do issue #39 (não merged)**: `aibot-repos.json`, `standards/aibot-messages.md` e as deny rules de `opencode.json` só existem na branch do issue #39 (PR #31, in-review, NÃO merged em main). O issue #40 portou cópias IDÊNTICAS desses artefatos nesta branch (mesmo blob → merge limpo quando #39 land): `aibot-repos.json` (allowlist), `standards/aibot-messages.md` (templates de mensagem) e o bloco `permission.bash/edit` (deny rules — exigidas pelo AC 16 na imagem). O comando `ocf:aibot-notify` (issue #39) NÃO foi portado: o CI posta mensagens nativamente via `gh`/`glab` usando os templates do `standards/aibot-messages.md`, evitando duplicar o diff de #39 no opencode.json. Se revisores preferirem o `ocf:aibot-notify` no CI, é follow-up.
+  6. **Decisão de design — recusa de allowlist**: BR 2 pede "recusa com mensagem padrão" para repo fora da allowlist; o arquivo `standards/aibot-messages.md` portado (idêntico ao de #39) não tem chave `not-allowlisted`. A mensagem de recusa ficou INLINE no `run-ci-workflow.sh` (mesmo tom/formato PT-BR) para não divergir do arquivo de #39. Se os revisores quiserem, mover para o padrão no follow-up.
+  7. **Lock por issue**: BR 8/AC 6/AC 7 — implementado via `concurrency` do GitHub Actions por issue (`group: aibot-develop-${{ github.event.issue.number }}`) + re-check de status dentro do script. Dois comentários na mesma issue → o segundo run serializa e o status gate posta `already-in-progress`/`already-resolved`.
+  8. **Testes**: `scripts/tests/test_run_ci_workflow.sh` (bash puro, sem BATS) cobre as gates do `run-ci-workflow.sh` (autor/token/allowlist/tracker/status/headless argv) com mocks de `opencode`/`gh` via PATH; `bash -n` em todos os scripts; `actionlint` ausente na máquina — validação do YAML feita com parser do Ruby/`docker` fallback (AC 3 verificado estaticamente; exige runner para validação real do GitHub Actions). `docker build` executado (AC 1) se o daemon estiver disponível.
+  9. **GitLab CI (AC 15)**: este repo é GitHub-only (origin github.com). O `.github/workflows/aibot-develop.yml` cobre GitHub Actions; o mesmo `scripts/run-ci-workflow.sh` é provider-agnostic (detecta github/gitlab do remote) e pode ser invocado de um `.gitlab-ci.yml` equivalente — documentado no `scripts/README.md` (seção "GitLab CI"). Matriz de provider coberta no script; o workflow YAML GitLab não foi criado por ausência de repo GitLab no allowlist (flag incompleto se o PO quiser).
+ - Suggested fix (alternativo): Se o spike do modo headless falhar, avaliar self-hosted GitHub runner na mesma VM do opencode web, com `--attach http://127.0.0.1:4096` — mantém paralelismo sem exigir suporte headless do opencode. SPIKE PASSED — alternativa NÃO necessária.
+
+### 42. Agente designer + skills de design-taste para UI de frontend
+- Status: in-publish
+- Type: feat
+- Severity: medium
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (frontend, ux-ui)
+- Remote: #33
+- PR: #34
+- Location: agents/designer.md, skills/design/*/SKILL.md, opencode.json
+- Description: Criar o agente `designer` (frontend product agent) que transforma descrições em UI funcional seguindo brief → explore → plan → build → review, e instalar as skills de design do repo `Leonxlnx/taste-skill` (design-taste-frontend default; redesign-existing-projects, minimalist-ui). O skill v2 obriga o agente a ler o brief, inferir a direção de design e só então gerar código.
+- Impact: Habilita build de UIs polidas e funcionais a partir de descrição, com direção estética explícita e reuso do design system existente do projeto, em vez de estética genérica.
+- Business rules:
+  1. O agente DEVE ser criado como `agents/designer.md` (global) no formato opencode (frontmatter + prompt).
+  2. O agente DEVE seguir a ordem de workflow: brief → explore → plan → build → review.
+  3. O agente DEVE ler o SKILL.md de design do projeto ANTES de gerar qualquer UI; as regras do skill sobrepõem os defaults do agente.
+  4. O agente DEVE usar o design system existente do projeto (tokens, componentes, convenções) antes de introduzir novos padrões.
+  5. O agente NÃO DEVE usar defaults genéricos (gradientes roxos, headers com emoji, grids de 3 colunas) salvo se o brief pedir.
+  6. O agente DEVE detectar o framework do projeto (React/Vue/Svelte/Astro...) e a component library instalada (shadcn/radix/headlessui).
+  7. O agente SÓ DEVE adicionar dependências se realmente necessário e DEVE perguntar antes.
+  8. O agente DEVE convidar feedback após cada build e tratar follow-ups como refinamento.
+  9. As skills de design DEVEM ser instaladas via `npx skills add` com os skills: design-taste-frontend (default), redesign-existing-projects (redesign/audit), minimalist-ui (Notion/Linear). Nota: os nomes design-audit-frontend, design-minimal-frontend e design-soft-frontend NÃO existem no repo `Leonxlnx/taste-skill`; os equivalentes reais são redesign-existing-projects e minimalist-ui, e não há skill dedicada de soft UI/glassmorphism (fallback: design-taste-frontend com vibe "glassy"/"soft").
+  10. O mapeamento de casos de uso → skill DEVE ser documentado (landing novo → taste; redesign → audit; minimalista → minimal; soft/glass → soft).
+  11. O agente DEVE usar `mode: all` e modelo `anthropic/claude-sonnet-4-20250514`.
+  12. Permissões do agente DEVM restringir edição a `src/**`, `app/**`, `components/**`, `public/**` e bash a `npm run dev`, `npm install *`, `npx *` (resto `ask`).
+- Acceptance criteria:
+  1. `agents/designer.md` existe com frontmatter válido (description, mode, model, permission).
+  2. O prompt do agente contém as 5 fases (brief/explore/plan/build/review) e as regras de design.
+  3. `skills/design/` contém SKILL.md(s) instalados do taste-skill.
+  4. O SKILL.md é lido automaticamente pelo opencode (skills.paths configurado se necessário).
+  5. O mapeamento dos 4 casos de uso → skill está documentado.
+  6. `opencode.json` válido após a mudança.
+  7. Agente acessível via Tab/@designer.
+- Suggested fix: (1) rodar `npx skills add https://github.com/Leonxlnx/taste-skill --skill design-taste-frontend` na raiz, (2) repetir para redesign-existing-projects e minimalist-ui, (3) criar `agents/designer.md` com o conteúdo fornecido, (4) registrar skills.paths se instalado fora do padrão, (5) documentar mapeamento de casos de uso.

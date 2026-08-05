@@ -190,7 +190,10 @@
             "procurement-optimizer": "allow",
             "frontend-design": "allow",
             "theme-factory": "allow",
-            "sales-psychology": "allow"
+            "sales-psychology": "allow",
+            "design-taste-frontend": "allow",
+            "redesign-existing-projects": "allow",
+            "minimalist-ui": "allow"
         },
         "external_directory": {
             "~/.config/opencode/**": "allow",
