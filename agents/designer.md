@@ -7,11 +7,11 @@ mode: all
 model: anthropic/claude-sonnet-4-20250514
 permission:
   edit:
+    "*": ask
     "src/**": allow
     "app/**": allow
     "components/**": allow
     "public/**": allow
-    "*": ask
   bash:
     "*": ask
     "npm run dev": allow

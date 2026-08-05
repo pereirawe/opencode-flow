@@ -387,7 +387,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Remote: #33
 - PR: -
 - Location: agents/designer.md, skills/design/*/SKILL.md, opencode.json
-- Description: Criar o agente `designer` (frontend product agent) que transforma descrições em UI funcional seguindo brief → explore → plan → build → review, e instalar as skills de design do repo `Leonxlnx/taste-skill` (design-taste-frontend default; design-audit-frontend, design-minimal-frontend, design-soft-frontend). O skill v2 obriga o agente a ler o brief, inferir a direção de design e só então gerar código.
+- Description: Criar o agente `designer` (frontend product agent) que transforma descrições em UI funcional seguindo brief → explore → plan → build → review, e instalar as skills de design do repo `Leonxlnx/taste-skill` (design-taste-frontend default; redesign-existing-projects, minimalist-ui). O skill v2 obriga o agente a ler o brief, inferir a direção de design e só então gerar código.
 - Impact: Habilita build de UIs polidas e funcionais a partir de descrição, com direção estética explícita e reuso do design system existente do projeto, em vez de estética genérica.
 - Business rules:
   1. O agente DEVE ser criado como `agents/designer.md` (global) no formato opencode (frontmatter + prompt).
@@ -398,7 +398,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   6. O agente DEVE detectar o framework do projeto (React/Vue/Svelte/Astro...) e a component library instalada (shadcn/radix/headlessui).
   7. O agente SÓ DEVE adicionar dependências se realmente necessário e DEVE perguntar antes.
   8. O agente DEVE convidar feedback após cada build e tratar follow-ups como refinamento.
-  9. As skills de design DEVEM ser instaladas via `npx skills add` com os skills: design-taste-frontend (default), design-audit-frontend (redesign), design-minimal-frontend (Notion/Linear), design-soft-frontend (soft UI/glassmorphism).
+  9. As skills de design DEVEM ser instaladas via `npx skills add` com os skills: design-taste-frontend (default), redesign-existing-projects (redesign/audit), minimalist-ui (Notion/Linear). Nota: os nomes design-audit-frontend, design-minimal-frontend e design-soft-frontend NÃO existem no repo `Leonxlnx/taste-skill`; os equivalentes reais são redesign-existing-projects e minimalist-ui, e não há skill dedicada de soft UI/glassmorphism (fallback: design-taste-frontend com vibe "glassy"/"soft").
   10. O mapeamento de casos de uso → skill DEVE ser documentado (landing novo → taste; redesign → audit; minimalista → minimal; soft/glass → soft).
   11. O agente DEVE usar `mode: all` e modelo `anthropic/claude-sonnet-4-20250514`.
   12. Permissões do agente DEVM restringir edição a `src/**`, `app/**`, `components/**`, `public/**` e bash a `npm run dev`, `npm install *`, `npx *` (resto `ask`).
@@ -410,4 +410,4 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   5. O mapeamento dos 4 casos de uso → skill está documentado.
   6. `opencode.json` válido após a mudança.
   7. Agente acessível via Tab/@designer.
-- Suggested fix: (1) rodar `npx skills add https://github.com/Leonxlnx/taste-skill --skill design-taste-frontend` na raiz, (2) repetir para design-audit-frontend, design-minimal-frontend, design-soft-frontend, (3) criar `agents/designer.md` com o conteúdo fornecido, (4) registrar skills.paths se instalado fora do padrão, (5) documentar mapeamento de casos de uso.
+- Suggested fix: (1) rodar `npx skills add https://github.com/Leonxlnx/taste-skill --skill design-taste-frontend` na raiz, (2) repetir para redesign-existing-projects e minimalist-ui, (3) criar `agents/designer.md` com o conteúdo fornecido, (4) registrar skills.paths se instalado fora do padrão, (5) documentar mapeamento de casos de uso.
