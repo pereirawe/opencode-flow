@@ -2,6 +2,23 @@
 
 Reusable capabilities organized by business sector.
 
+## Design
+
+| Skill | Purpose |
+|-------|---------|
+| `design-taste-frontend` | Anti-slop UI — landing pages, portfolios, redesigns. Reads brief, infers design direction, ships non-templated interfaces (default) |
+| `redesign-existing-projects` | Audit-first redesign — upgrades existing sites/apps to premium quality |
+| `minimalist-ui` | Notion/Linear-style — clean editorial, warm monochrome, typographic contrast |
+
+Mapeamento de casos de uso → skill:
+
+| Caso de uso | Skill |
+|---|---|
+| Landing / portfolio novo | `design-taste-frontend` (default) |
+| Redesenhar algo existente | `redesign-existing-projects` |
+| UI tipo Notion/Linear (minimalista) | `minimalist-ui` |
+| Soft UI / glassmorphism | sem skill dedicada — seguir `design-taste-frontend` com vibe "glassy"/"soft" |
+
 ## Development
 
 | Skill | Purpose |
