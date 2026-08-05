@@ -378,7 +378,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
  - Suggested fix (alternativo): Se o spike do modo headless falhar, avaliar self-hosted GitHub runner na mesma VM do opencode web, com `--attach http://127.0.0.1:4096` — mantém paralelismo sem exigir suporte headless do opencode. SPIKE PASSED — alternativa NÃO necessária.
 
 ### 42. Agente designer + skills de design-taste para UI de frontend
-- Status: in-qa
+- Status: in-publish
 - Type: feat
 - Severity: medium
 - Report: william_pereira
