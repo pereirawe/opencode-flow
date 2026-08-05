@@ -89,6 +89,40 @@ the user.
 poll or check — it only acts when explicitly triggered by a merge notification.
 The user merges the MR manually.
 
+### Remote Entry Point: `aibot-watcher` (issue #39)
+
+The `aibot-watcher` systemd timer (`aibot-watcher.timer`, `OnCalendar=*:0/2`)
+feeds the continuous pipeline from remote issue comments:
+
+1. A `@aibot:develop` comment on a **locally tracked** issue (`Remote: #<id>`
+   in the workspace `known_issues.md`) in an **allowlisted** repo
+   (`~/.config/opencode/aibot-repos.json`) triggers the equivalent of
+   `/ocf:develop <id>`: promote → develop → senior review → QA → corrections →
+   committer gate → MR.
+2. The trigger runs via `opencode run --attach <web-url> --auto --dir <workspace>
+   --command "ocf:develop"` on the existing web server, serialized per repo
+   with `flock -n` (parallel across repos).
+3. Result messages (success with MR link / already-in-progress /
+   already-resolved / not-tracked-locally / cannot-develop) are posted to the
+   remote issue by the `development/aibot` subagent via `ocf:aibot-notify`,
+   following `standards/aibot-messages.md` — one message per trigger.
+4. Security boundary (validated by the security reviewer as a gate):
+   repo allowlist (`aibot-repos.json`) + locally-tracked-issue gate +
+   pinned qualified model + the global bash deny list (~21 destructive
+   patterns: rm -rf, force-push, reset --hard, clean -f, branch -D, mkfs, dd,
+   curl|sh, chmod -R 777, chown -R, shutdown/reboot) binding the main/command
+   session and every agent WITHOUT its own bash config (`developer`, `devs/*`)
+   + agent-level granular bash (`aibot`, `develop-router`: catch-all deny +
+   scoped allows + explicit destructive-git denies after `git *: allow`) +
+   EDIT denies on security-critical files (opencode.json, aibot-repos.json,
+   aibot-watcher.sh, state/**, ~/.ssh/**) ordered so the deny is the LAST
+   matching rule (findLast) and therefore wins under `--auto`; `aibot` also
+   denies reads of `~/.ssh/**` and `state/**`.
+
+**No-merge-polling boundary**: the watcher polls ONLY issue comments. It
+never polls merge/PR status — closing remote issues after merge remains
+exclusive to `ocf:check-pr` and the Close Requester (step 12).
+
 ### Agent Pipeline
 
 1. **CTO** — define technical vision and guidelines

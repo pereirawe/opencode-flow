@@ -102,6 +102,26 @@ at proposal time. Unknown rules will be captured during discovery refinement.
 - Dependencies: Agentes senior-reviewers já existem; precisamos do agente review-external e comando no opencode.json.
 - Proposed issue type: feat
 
+### Proposal 2026-08-02-2: Disparo de pipeline de desenvolvimento por comentario remoto `@aibot:develop`
+- Priority: critical
+- Business value: Permite que qualquer pessoa (ou o proprio aibot) dispare o desenvolvimento completo de uma issue apenas comentando `@aibot:develop` na issue remota (GitHub/GitLab) — sem acesso ao terminal. Habilita resolucao paralela de pequenas issues em pipelines independentes aproveitando o servidor local.
+- Target sprint: next
+- Description: Criar um watcher/servico que observa comentarios novos em issues remotas (GitHub/GitLab) e, ao detectar `@aibot:develop`, executa o equivalente a `ocf:develop <id>` — pipeline completo terminando em senior review, QA, criacao de MR e um comentario do aibot avisando que o desenvolvimento terminou e o MR esta pronto para revisao/merge. Se durante o desenvolvimento faltar regra de negocio clara ou existir conflito que impeça a execucao, o aibot DEVE comentar que nao foi possivel desenvolver e que a tarefa deve ser revisada. O processo de develop nao pode estar rodando concorrentemente para a mesma issue.
+- Business rules:
+  1. Um comentario contendo exatamente `@aibot:develop` em uma issue remota (GitHub ou GitLab) DEVE disparar o desenvolvimento da issue em que o comentario foi postado.
+  2. O gatilho DEVE funcionar tanto para issues GitHub quanto GitLab, identificando o provider pelo remote do repositorio.
+  3. O desenvolvimento disparado DEVE seguir o pipeline completo (promote → develop → senior review → QA → correcoes → committer gate → publish/MR), equivalente a `/ocf:develop <id>`.
+  4. Nao DEVE haver execucao concorrente: se um develop para a mesma issue ja estiver em andamento (`in-progress`), o novo comando DEVE ser ignorado e o aibot DEVE comentar que ja existe um desenvolvimento em andamento para a issue.
+  5. Ao terminar com sucesso, o aibot DEVE comentar na issue remota avisando que o desenvolvimento terminou, informando o numero/URL da MR criada e que esta pronta para revisao e merge.
+  6. Se durante o desenvolvimento houver regra de negocio ausente/ambigua ou conflito que impeça a execucao, o aibot DEVE comentar que nao foi possivel desenvolver e que a tarefa deve ser revisada — sem criar MR.
+  7. Mensagens de sucesso e de erro DEVEM seguir um standard uniforme (`standards/`), com links e informacoes consistentes.
+  8. O watcher DEVE rodar como servico no mesmo servidor onde o opencode roda (aproveitando o servidor do repositorio) e suportar multiplos repositorios/projetos em paralelo.
+  9. Cada repo disparado DEVE ter um workspace/branch isolado (`issue-<id>-<slug>`) para permitir pipelines paralelos.
+- Stakeholders: PO, Dev, PM, Senior Reviewers, QA, Committer, Publish Requester
+- Rationale: Automatiza o ciclo completo a partir de um simples comentario remoto; habilita aibot a resolver pequenas issues em paralelo.
+- Dependencies: Base ja existente (pipeline ocf:develop, publish-requester, anderson, close-requester, scripts create/promote).
+- Proposed issue type: feat
+
 ## Lifecycle
 
 1. **Proposal** — PO registers the idea with business context and priority
