@@ -378,13 +378,13 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
  - Suggested fix (alternativo): Se o spike do modo headless falhar, avaliar self-hosted GitHub runner na mesma VM do opencode web, com `--attach http://127.0.0.1:4096` — mantém paralelismo sem exigir suporte headless do opencode. SPIKE PASSED — alternativa NÃO necessária.
 
 ### 42. Agente designer + skills de design-taste para UI de frontend
-- Status: ready
+- Status: in-progress
 - Type: feat
 - Severity: medium
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 2 (frontend, ux-ui)
-- Remote: -
+- Remote: #33
 - PR: -
 - Location: agents/designer.md, skills/design/*/SKILL.md, opencode.json
 - Description: Criar o agente `designer` (frontend product agent) que transforma descrições em UI funcional seguindo brief → explore → plan → build → review, e instalar as skills de design do repo `Leonxlnx/taste-skill` (design-taste-frontend default; design-audit-frontend, design-minimal-frontend, design-soft-frontend). O skill v2 obriga o agente a ler o brief, inferir a direção de design e só então gerar código.
