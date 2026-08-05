@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 source "$(dirname "$0")/config.sh"
+source "$(dirname "$0")/remote.sh"
 
 # sync_github_issues.sh — Synchronize resolved known_issues with GitHub/GitLab
 #
@@ -25,8 +26,12 @@ for arg in "$@"; do
   esac
 done
 
-REMOTE_URL=$(git config --get remote.origin.url 2>/dev/null || echo "")
-if [[ -z "$REMOTE_URL" ]]; then
+# Provider detection extracted to remote.sh (issue #39) — behavior unchanged:
+# github when remote.origin.url contains github.com, gitlab when it contains
+# gitlab, none when no remote, unknown otherwise.
+PROVIDER="$(detect_provider "$(pwd -P)")"
+REMOTE_URL="$(get_remote_url "$(pwd -P)")"
+if [[ "$PROVIDER" == "none" ]]; then
   echo "[!] No git remote found in CWD"
 fi
 
@@ -81,14 +86,14 @@ check_file() {
     case "$status" in
       "resolved")
         if [[ -n "$REMOTE_ID" && "$REMOTE_ID" != "-" ]]; then
-          if [[ "$REMOTE_URL" == *"github.com"* ]]; then
+          if [[ "$PROVIDER" == "github" ]]; then
             ISSUE_STATE=$(gh issue view "$REMOTE_ID" --json state --jq '.state' 2>/dev/null || echo "UNKNOWN")
             echo "  GitHub issue state: $ISSUE_STATE"
             if [[ "$ISSUE_STATE" == "OPEN" ]]; then
               SHOULD_CLOSE=true
               REASON="GitHub issue #$REMOTE_ID is OPEN but local status is resolved"
             fi
-          elif [[ "$REMOTE_URL" == *"gitlab"* ]]; then
+          elif [[ "$PROVIDER" == "gitlab" ]]; then
             ISSUE_STATE=$(glab issue view "$REMOTE_ID" 2>/dev/null | head -5 || echo "")
             echo "  GitLab issue state: $(echo "$ISSUE_STATE" | grep -i state || echo "unknown")"
           fi
@@ -99,7 +104,7 @@ check_file() {
           # Only close if PR is merged
           PR_MERGED=false
           if [[ -n "$PR_ID" && "$PR_ID" != "-" ]]; then
-            if [[ "$REMOTE_URL" == *"github.com"* ]]; then
+            if [[ "$PROVIDER" == "github" ]]; then
               PR_STATE=$(gh pr view "$PR_ID" --json state --jq '.state' 2>/dev/null || echo "UNKNOWN")
               echo "  PR #$PR_ID state: $PR_STATE"
               if [[ "$PR_STATE" == "MERGED" ]]; then
@@ -129,10 +134,10 @@ check_file() {
       if $DRY_RUN; then
         echo "  [dry-run] Would close remote issue #$REMOTE_ID"
       else
-        if [[ "$REMOTE_URL" == *"github.com"* ]]; then
+        if [[ "$PROVIDER" == "github" ]]; then
           echo "  Closing GitHub issue #$REMOTE_ID..."
           gh issue close "$REMOTE_ID" && echo "  ✓ Closed #$REMOTE_ID" || echo "  ✗ Failed to close #$REMOTE_ID"
-        elif [[ "$REMOTE_URL" == *"gitlab"* ]]; then
+        elif [[ "$PROVIDER" == "gitlab" ]]; then
           echo "  Closing GitLab issue #$REMOTE_ID..."
           glab issue close "$REMOTE_ID" && echo "  ✓ Closed #$REMOTE_ID" || echo "  ✗ Failed to close #$REMOTE_ID"
         fi
