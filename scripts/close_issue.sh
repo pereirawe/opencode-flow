@@ -106,8 +106,12 @@ if [[ ! -f "$RESOLVED_FILE" ]]; then
   : > "$RESOLVED_FILE"
 fi
 
-# Prepend to resolved archive (newest first), always rewriting the header
+# Prepend to resolved archive (newest first), always rewriting the header.
+# Clean stale temp files from previous failed runs, then create a fresh one
+# in the target directory (same filesystem) for an atomic rename.
+rm -f "$(dirname "$RESOLVED_FILE")"/.resolved.*
 TMP_ARCHIVE=$(mktemp "$(dirname "$RESOLVED_FILE")/.resolved.XXXXXX")
+trap 'rm -f "$TMP_ARCHIVE"' EXIT
 printf '# Resolved Issues\n' > "$TMP_ARCHIVE"
 printf '\n' >> "$TMP_ARCHIVE"
 printf 'Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.\n' >> "$TMP_ARCHIVE"
@@ -121,9 +125,13 @@ printf -- '- Remote: %s\n' "${REMOTE_REF:--}" >> "$TMP_ARCHIVE"
 printf -- '- Severity: %s\n' "${SEVERITY:-medium}" >> "$TMP_ARCHIVE"
 printf -- '- Summary: %s\n' "$SUMMARY" >> "$TMP_ARCHIVE"
 printf '\n' >> "$TMP_ARCHIVE"
-# Append existing entries in full (skip the descriptive header if present),
-# so no data is ever truncated by a tail-based offset.
-awk '/^### [0-9]+\./ { seen=1 } seen { print }' "$RESOLVED_FILE" >> "$TMP_ARCHIVE"
+# Append existing entries in full — skip only the canonical 4-line header;
+# keep every entry, even corrupted ones (no data is ever truncated).
+awk '
+  NR <= 4 && ($0 == "# Resolved Issues" || $0 == "" ||
+               $0 ~ /^Issues resolved from `known_issues\.md`/) { next }
+  { print }
+' "$RESOLVED_FILE" >> "$TMP_ARCHIVE"
 mv "$TMP_ARCHIVE" "$RESOLVED_FILE"
 echo "[archive] Appended to $RESOLVED_FILE"
 
