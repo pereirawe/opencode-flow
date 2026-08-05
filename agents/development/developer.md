@@ -5,6 +5,7 @@ temperature: 0.2
 permission:
   bash: allow
   edit: allow
+  "temp/*": allow
 ---
 Implement features according to specifications.
 
