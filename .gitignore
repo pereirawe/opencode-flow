@@ -3,3 +3,4 @@ package.json
 package-lock.json
 .opencode/reviews/
 state/
+.agents/
