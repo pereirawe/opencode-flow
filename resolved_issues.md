@@ -2,6 +2,15 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 39. Disparo de pipeline de desenvolvimento por comentário remoto `@aibot:develop`
+- Resolved: 2026-08-04
+- Type: feat
+- Report: PO
+- Reviewers: 3
+- Remote: #30
+- Severity: critical
+- Summary: Criar um watcher (systemd timer) que observa comentários em issues remotas (GitHub/GitLab) e, ao detectar `@aibot:develop`, dispara o pipeline completo de desenvolvimento da issue comentada (equivalente a `/ocf:develop <id>`), terminando em senior review, QA, criação de MR e um comentário padrão do aibot avisando que o desenvolvimento terminou e o MR está pronto para revisão/merge. Issues não rastreadas localmente são recusadas com mensagem padrão. Execução via `opencode run --attach` no servidor web existente, com per-repo flock para concorrência serial e paralelismo entre repos. — Criar `scripts/remote.sh` (extrair de sync_github_issues.sh), `aibot-repos.json`, `standards/aibot-messages.md`, `agents/development/aibot.md`, comando `ocf:aibot-notify`, `scripts/aibot-watcher.sh` + unit/timer templates, hardening de permission rules, e documentar em `workflow.md`.
+
 ### 21. Perda progressiva de dados em `resolved_issues.md` no fechamento de issues
 - Resolved: 2026-08-04
 - Type: bug
