@@ -1,3 +1,15 @@
+# Resolved Issues
+
+Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
+
+### 21. Perda progressiva de dados em `resolved_issues.md` no fechamento de issues
+- Resolved: 2026-08-04
+- Type: bug
+- Report: opencode
+- Reviewers: 1
+- Remote: #28
+- Severity: high
+- Summary: close_issue.sh usa `tail -n +4` para preservar cabeçalho ao pré-pender novos entries, mas isso remove as 3 primeiras linhas do conteúdo existente a cada execução — corrompendo registros antigos progressivamente. — Substituir `tail -n +4` por `cat "$RESOLVED_FILE"` para preservar todo o conteúdo existente.
 
 ### 9. Consolidar decisões de branch, revisores e issue remota no discovery
 - Resolved: 2026-06-09

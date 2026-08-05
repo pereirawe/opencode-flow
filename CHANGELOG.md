@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.7.1 (2026-08-04)
+
+- **fix: preserve full `resolved_issues.md` archive on close** — replaced `tail -n +4` (which truncated 3 lines of existing content on every close, causing progressive data loss) with a prepend that always rewrites the 4-line header and appends all existing entries via awk, plus atomic `mktemp`/`mv` in the target directory; hardened to keep corrupted entries and clean orphaned temp files
+
+## 1.7.0 (2026-08-03)
+
+- **feat: add discovery and delivery orchestrator agents** — two meta-agents orchestrate the full pipeline phases (PO -> CTO -> Tech Lead -> PO -> QA -> PM for discovery; PM -> Developer -> Review -> QA -> Committer -> Publish -> Close for delivery), with `ocf:discovery` and `ocf:delivery` commands
+
 ## 1.6.0 (2026-07-28)
 
 - **feat: add SaaS agent pack** — new agents: SRE, Technical Writer, Product Manager, Customer Success, Growth Engineer
