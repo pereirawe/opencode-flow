@@ -43,20 +43,6 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Business rules: all 12 implemented
 - Suggested fix: Implemented
 
-### 21. Perda progressiva de dados em `resolved_issues.md` no fechamento de issues
-- Status: backlog
-- Type: bug
-- Severity: high
-- Report: opencode
-- Base branch: main
-- Reviewers: 1
-- Remote: -
-- PR: -
-- Location: scripts/close_issue.sh:88-101
-- Description: close_issue.sh usa `tail -n +4` para preservar cabeçalho ao pré-pender novos entries, mas isso remove as 3 primeiras linhas do conteúdo existente a cada execução — corrompendo registros antigos progressivamente.
-- Impact: Perda cumulativa de dados no arquivo de issues resolvidas. Entradas antigas são silenciosamente truncadas a cada fechamento.
-- Suggested fix: Substituir `tail -n +4` por `cat "$RESOLVED_FILE"` para preservar todo o conteúdo existente.
-
 ### 23. Instruções contraditórias para contagem de revisores entre command doc e opencode.json
 - Status: in-publish
 - Type: bug
@@ -308,6 +294,28 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   8. O ecossistema Python pode incluir skill especializada para Flask quando o desafio principal for desenho de API HTTP e nao sintaxe da linguagem.
 - Suggested fix: Adicionar o router, registrar os agentes especializados e atualizar o comando/config para usar o novo fluxo.
 
+### 38. Criar agentes orquestradores Discovery e Delivery
+- Status: resolved
+- Type: feat
+- Severity: medium
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 1 (docs, runtime)
+- Remote: -
+- PR: -
+- Location: agents/development/discovery.md, agents/development/delivery.md, agents/README.md, agents/development/README.md, opencode.json, workflow.md
+- Description: Criar dois meta-agentes que orquestram as fases do pipeline: Discovery (fases 1-6: PO -> CTO -> Tech Lead -> PO -> QA -> PM) e Delivery (fases 6-12: PM -> Developer -> Review -> QA -> Committer -> Publish -> Close). Registrar comandos `ocf:discovery` e `ocf:delivery` no opencode.json.
+- Impact: Simplifica o uso do pipeline — usuários podem invocar um único comando para executar todas as fases de discovery ou delivery, em vez de invocar cada agente individualmente.
+- Business rules:
+  1. Discovery agent DEVE orquestrar fases 1-6 sequencialmente (PO -> CTO -> Tech Lead -> PO -> QA -> PM)
+  2. Delivery agent DEVE orquestrar fases 6-12 sequencialmente (PM -> Developer -> Review -> QA -> Committer -> Publish -> Close)
+  3. Após promoção (fase 6), fases 7-11 DEVEM executar automaticamente sem confirmação do usuário
+  4. Fase 12 (Close Requester) DEVE pausar após criação da MR — apenas dispara quando MR é merged
+  5. Comandos `ocf:discovery` e `ocf:delivery` DEVEM ser registrados no opencode.json
+  6. agents/README.md e agents/development/README.md DEVEM listar os novos agentes orquestradores
+  7. workflow.md DEVE documentar os agentes orquestradores
+- Suggested fix: Criar agents/development/discovery.md e agents/development/delivery.md com instruções completas de orquestração. Atualizar READMEs e workflow.md. Registrar comandos no opencode.json.
+
 ### 39. Disparo de pipeline de desenvolvimento por comentário remoto `@aibot:develop`
 - Status: in-publish
 - Type: feat
@@ -316,7 +324,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Base branch: main
 - Reviewers: 3 (devops, runtime, security)
 - Remote: #30
-- PR: -
+- PR: #31
 - Location: scripts/aibot-watcher.sh, scripts/aibot-watcher.service, scripts/aibot-watcher.timer, scripts/setup-aibot-watcher.sh, scripts/remote.sh, scripts/sync_github_issues.sh, scripts/tests/*, standards/aibot-messages.md, agents/development/aibot.md, opencode.json, workflow.md, aibot-repos.json, Makefile
 - Description: Criar um watcher (systemd timer) que observa comentários em issues remotas (GitHub/GitLab) e, ao detectar `@aibot:develop`, dispara o pipeline completo de desenvolvimento da issue comentada (equivalente a `/ocf:develop <id>`), terminando em senior review, QA, criação de MR e um comentário padrão do aibot avisando que o desenvolvimento terminou e o MR está pronto para revisão/merge. Issues não rastreadas localmente são recusadas com mensagem padrão. Execução via `opencode run --attach` no servidor web existente, com per-repo flock para concorrência serial e paralelismo entre repos.
 - Impact: Permite que qualquer pessoa (ou o próprio aibot) dispare desenvolvimento completo de issues pequenas via comentário remoto, sem acesso ao terminal — pipelines paralelos por repo no servidor.
@@ -333,7 +341,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   10. Todas as mensagens DEVEM seguir `standards/aibot-messages.md` e ser postadas pelo subagente `development/aibot` via comando `ocf:aibot-notify` — uma mensagem por trigger.
   11. A detecção de provider DEVE usar `scripts/remote.sh` (extraído de `sync_github_issues.sh`) baseada em `remote.origin.url`.
   12. O watcher DEVE rodar como systemd timer+service (`OnCalendar=*:0/2`, `Persistent=true`, `TimeoutStartSec=0`) sob o usuário opencode; DEVE fazer health-check do web server (127.0.0.1:4096) antes de disparar e skip+log quando estiver down.
-  13. O `--auto` DEVE ser usado apenas se a permission config do servidor negar explicitamente operações perigosas; a fronteira de segurança efetiva = allowlist de repos + gate de issue rastreada + modelo confiável + deny rules explícitas (validadas pelo revisor de security como gate). As deny rules vinculam a sessão principal/comando, o agente `aibot` e o `develop-router`; os agentes de implementação (`developer`/`devs/*`) rodam com bash irrestrito sob `--auto` (permissão de agente substitui a global) e têm apenas deny rules de EDIT para arquivos críticos — o gate de segurança DEVE refletir esse limite com precisão (não superestimar a proteção).
+  13. O `--auto` DEVE ser usado apenas se a permission config do servidor negar explicitamente operações perigosas; a fronteira de segurança efetiva = allowlist de repos + gate de issue rastreada + modelo pinado + deny rules explícitas (validadas pelo revisor de security como gate). A cadeia de permissões usa findLast (a ÚLTIMA regra que casa vence): (a) bash global com ~21 padrões destrutivos negados (rm -rf, push --force, reset --hard, clean -f, branch -D, mkfs, dd, curl|sh, chmod -R 777, chown -R, shutdown/reboot) — vinculam a sessão principal/comando e TODOS os agentes sem config de bash própria (`developer`/`devs/*` herdam a lista); (b) agentes granulares `aibot` e `develop-router` (catch-all deny + allows específicos gh/glab/git e git/promote/create_issue) com denies de git destrutivo (push --force, reset --hard, clean -f, branch -D) APÓS o `git *: allow`; (c) EDIT: catch-all `ask`/`allow` PRIMEIRO e denies específicos de arquivos críticos (opencode.json, aibot-repos.json, aibot-watcher.sh, state/**, ~/.ssh/**) DEPOIS — sob `--auto` o deny vence; `aibot`/`develop-router` têm `edit: deny` total; (d) READ: `aibot` nega `~/.ssh/**` e `state/**`.
   14. O watcher NÃO DEVE pollear merge/PR status — isso permanece exclusivo de `ocf:check-pr`/close-requester.
   15. Cursor, lock e state DEVEM viver em `~/.config/opencode/state/aibot/` (cursor = último comentário processado; lock = arquivo flock); nenhum secret armazenado.
   16. `workflow.md` DEVE documentar o watcher como novo entry point que alimenta o pipeline contínuo.
@@ -358,11 +366,14 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   16. Comentário em PR não dispara; apenas issue comments.
   17. `aibot-repos.json` com workspace vazio/inexistente → recusa com mensagem padrão e saída limpa.
   18. Matriz de provider: github / gitlab / remote desconhecido → handling correto cada.
-  19. Security review: com `--auto`, um edit de arquivo crítico do opencode (opencode.json, aibot-repos.json, aibot-watcher.sh, state/**, ~/.ssh/**) é negado por deny rules (globais e de agente) presentes e provadas; os agentes de implementação têm bash irrestrito sob `--auto` (limite documentado e refletido no gate).
+  19. Security review: com `--auto`, um edit/bash de arquivo crítico do opencode (opencode.json, aibot-repos.json, aibot-watcher.sh, state/**, ~/.ssh/**) é negado por deny rules EFETIVAS — provadas por simulação da resolução findLast: no `opencode.json` o catch-all `~/.config/opencode/**: ask` vem ANTES dos denies específicos (deny vence); no `developer.md` o `"*": allow` vem antes dos denies (deny vence); nos agentes granulares os denies de git destrutivo vêm DEPOIS de `git *: allow`; o `developer` não tem mais `bash: allow` (herda a lista global de denies).
   20. `workflow.md` documenta o novo entry point e a fronteira de no-merge-polling.
 - Suggested fix: Criar `scripts/remote.sh` (extrair de sync_github_issues.sh), `aibot-repos.json`, `standards/aibot-messages.md`, `agents/development/aibot.md`, comando `ocf:aibot-notify`, `scripts/aibot-watcher.sh` + unit/timer templates, hardening de permission rules, e documentar em `workflow.md`.
 - Notes (implementação — revisores validarem):
   1. CWD quirk: o watcher resolve o tracker do workspace preferindo `.opencode/known_issues.md` com entries reais, caindo para `<workspace>/known_issues.md` (o repo de config do opencode tem template vazio em `.opencode/`). Para o exemplo `pereirawe/opencode-flow`, um trigger real dispararia `ocf:develop` a partir do workspace root, onde `promote.sh` resolve o tracker por CWD (`.opencode/known_issues.md` vazio) → "Issue not found" → mensagem `cannot-develop`. Projetos padrão (tracker real em `.opencode/`) funcionam normalmente.
-  2. Fronteira de segurança (AC 19): deny rules explícitas em `opencode.json` valem sob `--auto`. Pela semântica de merge do opencode, config de bash de um agente substitui a global para aquele agente — as deny rules protegem a sessão principal/comando e agentes sem `bash` próprio; agentes dev com `bash: allow` ficam fora dessa camada específica (o revisor de security valida o gate). O agente `aibot` usa permissão granular (catch-all deny + allow gh/glab/git).
-  3. Testes: 98 assertions em `scripts/tests/` (test_remote 12, test_watcher_unit 34, test_watcher_e2e 49, test_sync_regression 3) passando via `make test-scripts` — cobrem BR 1-18 e AC 2-18 (AC 1/19/20 verificados estaticamente; exigem runtime). O e2e usa mocks de gh/glab/opencode/curl injetados via PATH. `sync_github_issues.sh --dry-run` idêntico antes/depois da extração de `remote.sh` (AC 12).
+  2. Fronteira de segurança (AC 19): a cadeia EFETIVA (2º ciclo de review) = allowlist de repos + gate de issue rastreada + modelo pinado + bash global deny (~21 padrões) herdado pela sessão principal/comando e por agentes sem bash própria (`developer`, `devs/*`) + agentes granulares (`aibot`, `develop-router`: catch-all deny + allows específicos + denies de git destrutivo após `git *: allow`) + denies de EDIT por arquivo crítico com catch-all `ask`/`allow` ANTES dos denies (findLast → deny vence sob `--auto`) + `edit: deny` total nos agentes granulares + read denies de `~/.ssh/**` e `state/**` no `aibot`. O limite NÃO é superestimado: comandos não negados continuam permitidos sob `--auto` (ex.: o `developer` edita livremente arquivos do projeto).
+  3. Testes: 121 assertions em `scripts/tests/` (test_remote 12, test_watcher_unit 38, test_watcher_e2e 68, test_sync_regression 3) passando via `make test-scripts` — cobrem BR 1-18 e AC 2-18 (AC 1/19/20 verificados estaticamente; exigem runtime). AC 11 (`cannot-develop`) é coberto por dois cenários e2e (MOCK_DEVELOP_EXIT e MOCK_DEVELOP_NO_MR). O e2e usa mocks de gh/glab/opencode/curl injetados via PATH. `sync_github_issues.sh --dry-run` idêntico antes/depois da extração de `remote.sh` (AC 12).
   4. Senior review (1º ciclo): devops APPROVE; runtime REQUEST CHANGES (B1: `--` quebra no opencode 1.18.7; B2: modelo bare não resolve; M1: PR comments disparam no GitHub; M2: token em code fence dispara); security REQUEST CHANGES (B1 gate: deny rules não vinculam agentes de implementação; M1: PR comments). Correções aplicadas: sem `--`, modelo qualificado, filtro de PR no fetch, fence-awareness, deny rules de EDIT (globais e de agente), MAX_TRIGGERS_PER_TICK, cursor init no primeiro run, senha via env, streaming de log, `.gitignore` com `state/`, `systemd-analyze verify` no setup, health-check com `-f`, logs de falha. BR 7/13 e AC 19 atualizados para o formulário real.
+  5. Senior review (2º ciclo — correções implementadas): runtime F1 (cap não avança cursor — trigger deferido é reexaminado no próximo tick; e2e S16 reescrito para assertar o deferral), F2 (mocks MOCK_DEVELOP_EXIT/MOCK_DEVELOP_NO_MR cobrem AC 11 — cannot-develop sem MR), F3 (asserts de argv do comando BR 7: attach/auto, modelo qualificado, sem `--`), F5 (has_token ignora blocos HTML `<pre>`/`<code>`, incluindo atributos e aninhamento; mawk não suporta `[^>]` — casamento via `.*>`; linha com tag de abertura E fechamento conta como um toggle); security F1 (catch-all edit `ask` movido ANTES dos denies no opencode.json), F2 (developer.md: `"*": allow` primeiro + denies depois; `bash: allow` removido → herda a lista global de denies), F4 (denies de git destrutivo após `git *: allow` em `aibot`/`develop-router`), F5 (read denies de `~/.ssh/**` e `state/**` no `aibot`), F6/F7/F8 (comentário do notify, `per_page=100` no fetch de issues, `write_cursor` atômico). Devops findings (custo de API do polling, rotação de logs, sudo/idempotência do setup) deixados como follow-ups NÃO-bloqueantes.
+
+### 40. AIBot nativo em GitHub Actions / GitLab CI com imagem Docker do opencode config

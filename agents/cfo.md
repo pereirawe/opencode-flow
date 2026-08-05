@@ -1,6 +1,10 @@
 ---
 description: CFO — financial strategy, fundraising, board materials, budgeting, strategic finance, M&A
-mode: subagent
+mode: all
+allow: all
+temperature: 0.5
+tools:
+  write: true
 ---
 
 # CFO — Chief Financial Officer
