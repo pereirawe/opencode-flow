@@ -427,3 +427,82 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   6. Diretório sem git (TMPDIR) → `--status` diagnostica; `--run` não quebra (fallback documentado).
 - Suggested fix: Criar `scripts/test-runner.sh` (detecção de runner, bootstrap env, fingerprint via `git rev-parse HEAD` + `git status --porcelain` + hashes de arquivos alterados, cache JSON em `.opencode/test-cache/`, modos check/run/status). Criar `skills/development/test-runner/SKILL.md` com protocolo e fallback. Adicionar permissão da skill em opencode.json. Atualizar prompts: developer.md, devs/golang.md, devs/python.md, senior-reviewers/README.md, quality-analyst.md, committer.md, delivery.md. Delegar pre_commit.sh ao runner. Adicionar testes em scripts/tests/test_test_runner.sh. Documentar em workflow.md e standards/commits.md.
 
+### 48. Sincronização bidirecional de issues com Jira Cloud (cards, status e comentários)
+- Status: ready
+- Type: feat
+- Severity: high
+- Report: PO
+- Base branch: main
+- Reviewers: 2 (devops, security)
+- Remote: -
+- PR: -
+- Location: scripts/sync-jira.sh (novo), scripts/config.sh, scripts/create_issue.sh, scripts/promote.sh, scripts/close_issue.sh, opencode.json, standards/issues.md, standards/pt/issues.md, standards/es/issues.md, standards/mcp-registry.md, scripts/README.md, scripts/tests/
+- Description: Integrar o pipeline com Jira Cloud (REST v3): ao criar/registrar uma issue (`ocf:discovery` / `ocf:develop` / `scripts/create_issue.sh`), criar o card no backlog do Jira se não existir (campo novo `Jira: DEV-123`); se a chave já existir, vincular o card à issue da `known_issues.md`. Sincronizar automaticamente TODAS as transições de status (backlog→ready→in-progress→in-review→in-qa→in-publish→resolved) para o workflow do Jira via mapa configurável por projeto. Alinhar comentários do repositório → Jira (uma via). Sync via script `sync-jira.sh` (curl REST v3) + hooks nos scripts existentes + comando dedicado `ocf:sync-jira` para reconciliação completa. MCP Jira registrado opcionalmente em `mcpServers` para consultas de agente (backlog view) — o sync do pipeline vive em script (determinístico, headless, testável em CI).
+- Impact: Unifica o tracking — cada issue do pipeline tem contraparte real no backlog do Jira com status, comentários e refinamento sincronizados automaticamente entre `known_issues.md` e o Jira. Elimina dupla manutenção e garante que stakeholders no Jira vejam o progresso real. Reforça `known_issues.md` como fonte de verdade única (Jira é espelho; local→remoto sempre vence).
+- Business rules:
+  1. O provider DEVE ser Jira Cloud via REST v3; autenticação por Basic Auth (email + API token) ou Bearer, com token lido EXCLUSIVAMENTE de variável de ambiente (`JIRA_API_TOKEN`) — nunca commitado, nunca em logs.
+  2. A configuração DEVE ser lida de `.opencode/jira.json` (projeto) ou env vars (`JIRA_BASE_URL`, `JIRA_PROJECT_KEY`, `JIRA_EMAIL`); sem config válida o sync DEVE ficar desabilitado e os scripts DEVEM se comportar exatamente como hoje (zero chamadas Jira).
+  3. A identificação da issue no Jira DEVE usar o campo novo `- Jira: <KEY-N> | -` na `known_issues.md` (ex: `DEV-123`), separado do campo `Remote:` (que continua exclusivo do provider git GitHub/GitLab).
+  4. Ao criar/registrar uma issue com `Jira: -` e Jira habilitado, o pipeline DEVE criar o card no backlog do Jira com título e descrição (body) da issue e preencher `Jira: <KEY-N>`.
+  5. Se `Jira:` já estiver preenchido, NENHUMA criação duplicada DEVE ocorrer (idempotência; no-op com warning).
+  6. Cada transição de status em `known_issues.md` DEVE refletir no Jira via mapa automático completo e configurável por projeto (`statusMap` no jira.json), com defaults documentados: backlog→To Do, ready→To Do (refinado), in-progress→In Progress, in-review→In Review, in-qa→QA/Testing, in-publish→Ready for Release/Published, resolved→Done/Closed.
+  7. O sync DEVE ser disparado por hooks nos scripts existentes (`create_issue.sh` → criação do card; `promote.sh` → transições de status; `close_issue.sh` → resolved→Done) + comando dedicado `ocf:sync-jira` que reconcilia todas as issues com `Jira:` preenchido em um único run.
+  8. O sync DEVE ser não-bloqueante: falha de rede/API/autenticação DEVE logar warning e NUNCA interromper o pipeline nem alterar o status local.
+  9. Transições não permitidas pelo workflow do Jira DEVEM ser tratadas como no-op com warning — sem crash.
+  10. Comentários DEVEM ser sincronizados do repositório → Jira (uma via) via endpoint de comentários do REST v3; sem loop de comentários Jira→repo.
+  11. O campo `- Jira:` DEVE ser documentado em `standards/issues.md` e traduções (pt/es) como opcional (default `-`).
+  12. Nenhum segredo (token/email) DEVE aparecer em logs, mensagens ou arquivos versionados.
+- Acceptance criteria:
+  1. Com Jira configurado (mock/recording da API), `scripts/create_issue.sh <id>` cria card no backlog e preenche `Jira: <KEY-N>` na `known_issues.md`.
+  2. Rodar `create_issue.sh` novamente para a mesma issue NÃO cria card duplicado (`Jira:` preenchido → no-op).
+  3. `scripts/promote.sh <id>` (backlog→ready e ready→in-progress) dispara transição no Jira com o status mapeado correto.
+  4. `scripts/close_issue.sh <id>` em `resolved` transiciona o card para Done/Closed no Jira.
+  5. `ocf:sync-jira` reconcilia todas as issues com `Jira:` preenchido em um único run (status local → Jira).
+  6. Sem config Jira (sem jira.json e sem env vars), TODOS os scripts existentes funcionam exatamente como hoje (regressão zero).
+  7. Com `JIRA_BASE_URL` apontando para host inacessível, o pipeline completa com warning e o status local avança (não-bloqueante).
+  8. Transição inválida no workflow Jira → warning, sem erro fatal.
+  9. Nenhum valor de `JIRA_API_TOKEN`/`JIRA_EMAIL` aparece em arquivos versionados nem em logs (verificação por grep nos testes).
+  10. `standards/issues.md`, `standards/pt/issues.md` e `standards/es/issues.md` documentam o campo `Jira:`.
+  11. Testes automatizados em `scripts/tests/` cobrem: criação, idempotência, mapeamento de status, falha de rede e estado desabilitado.
+  12. `opencode.json` válido após registrar o comando `ocf:sync-jira` e o MCP Jira opcional.
+- Suggested fix: (1) criar `scripts/sync-jira.sh` (core REST v3: create-card, transition, add-comment, get-by-key; idempotente; não-bloqueante; auth via `JIRA_API_TOKEN`), (2) adicionar suporte a Jira em `scripts/config.sh` (leitura de `.opencode/jira.json` + env vars), (3) hookar `create_issue.sh`, `promote.sh` e `close_issue.sh`, (4) registrar `ocf:sync-jira` (e MCP Jira opcional) no `opencode.json`, (5) documentar o campo `Jira:` em standards (en/pt/es) e o MCP Jira em `standards/mcp-registry.md`, (6) testes em `scripts/tests/` + docs em `scripts/README.md`. Origem: Proposal 2026-08-06-1 em `prioritization.md`.
+
+### 49. Agente de setor OWASP e Cybersecurity (consultor + revisor + gate)
+- Status: ready
+- Type: feat
+- Severity: high
+- Report: PO
+- Base branch: main
+- Reviewers: 2 (security, runtime)
+- Remote: -
+- PR: -
+- Location: agents/development/security-owasp.md (novo), agents/development/senior-reviewers/security.md, agents/development/committer.md, skills/development/security/*/SKILL.md (6 novos), opencode.json, agents/development/README.md, workflow.md
+- Description: Criar agente `development/security-owasp` (setor development) que consolida o perfil de segurança do pipeline: consultor de políticas e arquitetura, revisor de código em MRs (senior reviewer perfil `security`), executor de auditorias on-demand e gate de bloqueio para vulnerabilidades critical/high. Entregue como agente + skills OWASP dedicadas (`owasp-top10`, `owasp-asvs`, `owasp-wstg`, `owasp-samm`, `threat-modeling`, `secure-code-review`), dominando Top 10 + ASVS + WSTG + SAMM. Segue o locale do projeto via locale-loader.
+- Impact: Habilita consultoria, revisão e políticas de segurança em qualquer momento do ciclo — o agente atua como senior reviewer de segurança em MRs, é convocável on-demand para auditorias/tarefas específicas, e impede que vulnerabilidades critical/high atinjam o merge. Substitui o revisor de segurança genérico atual por um especialista OWASP completo, sem duplicação (security.md delega ao novo agente).
+- Business rules:
+  1. O agente DEVE ser criado como `agents/development/security-owasp.md` (formato opencode com frontmatter válido: description, mode, temperature, permission) no setor development, SEM modelo pinado (resolução da issue #45).
+  2. O agente DEVE poder atuar em 3 modos: (a) consultor — políticas de segurança, arquitetura e conformidade; (b) revisor — senior reviewer de segurança em MRs; (c) executor on-demand — auditorias e tarefas específicas a qualquer momento.
+  3. O agente DEVE poder ser registrado como revisor de perfil `security` no campo `- Reviewers:` das issues.
+  4. O agente DEVE recusar/negar a aprovação de MR quando encontrar vulnerabilidades de severidade critical ou high, reportando com evidências e recomendação de correção; findings críticos são registrados como bloqueantes no review.
+  5. O agente DEVE dominar OWASP Top 10 (2021), ASVS 4.0, WSTG e SAMM como frameworks de referência.
+  6. As skills DEVEM ser criadas sob `skills/development/security/` com SKILL.md por framework (top10, asvs, wstg, samm, threat-modeling, secure-code-review), seguindo o padrão setorial existente (skills/development/go|python).
+  7. As skills DEVEM registrar os CWE mapeados por categoria OWASP Top 10 e os níveis de verificação ASVS (L1/L2/L3).
+  8. O agente DEVE seguir o locale do projeto via locale-loader (relatórios e recomendações no idioma de `.opencode/locale`), mantendo termos técnicos em inglês.
+  9. O agente DEVE publicar relatórios de auditoria em arquivo local (`.opencode/reviews/security-<target>-<timestamp>.md`) ANTES de postar/comentar qualquer coisa.
+  10. O agente NÃO DEVE modificar código — apenas reportar; correções são feitas pelo developer no fluxo normal. `permission.edit` DEVE negar edição fora de `.opencode/reviews/**`.
+  11. O agente DEVE integrar com o gate do committer: vulnerabilidade critical/high não-resolvida (quando o perfil `security` estiver nos Reviewers) impede `in-publish` — via gate de verificação no committer + loop natural de revisão (recusa → QA devolve → dev corrige → re-revisão), sem alterar a política de não-bloqueio do committer.
+  12. O `senior-reviewers/security.md` existente DEVE ser evoluído para delegar a revisão ao agente OWASP (sem duplicação de conteúdo), preservando a resolução do perfil `security` no mecanismo de revisores.
+- Acceptance criteria:
+  1. `agents/development/security-owasp.md` existe com frontmatter válido (description, mode: subagent, temperature, permission) e sem campo de modelo.
+  2. O prompt do agente contém os 3 modos de atuação (consultor/revisor/executor on-demand) e a regra de bloqueio critical/high (BR 4).
+  3. `skills/development/security/` contém 6 SKILL.md com frontmatter válido (name + description): owasp-top10, owasp-asvs, owasp-wstg, owasp-samm, threat-modeling, secure-code-review.
+  4. A skill owasp-top10 contém a tabela CWE por categoria; a skill owasp-asvs contém os níveis L1/L2/L3.
+  5. As 6 skills estão registradas como `allow` em `permission.skill` no `opencode.json` (JSON válido após a mudança).
+  6. `agents/development/senior-reviewers/security.md` delega a revisão ao agente security-owasp (sem checklist duplicado).
+  7. `agents/development/committer.md` inclui o gate de verificação de segurança (perfil `security` presente → security review aprovado, sem critical/high não-resolvido).
+  8. O agente segue o locale do projeto via locale-loader (BR 8 verificável por teste com `.opencode/locale` = pt).
+  9. O relatório é salvo em `.opencode/reviews/` antes de qualquer postagem/comentário (BR 9).
+  10. Edição fora de `.opencode/reviews/**` é negada (BR 10).
+  11. `agents/development/README.md` lista o novo agente e `workflow.md`/docs refletem o gate de segurança.
+- Suggested fix: (1) criar `agents/development/security-owasp.md` com frontmatter (subagent, temperature 0.1, permission: edit allow apenas `.opencode/reviews/**`, bash allow) e prompt com os 3 modos + regra de bloqueio + locale-loader; (2) criar `skills/development/security/` com os 6 SKILL.md (top10 com tabela CWE, asvs com níveis L1/L2/L3, wstg com casos de teste, samm com maturity model, threat-modeling com STRIDE, secure-code-review com checklist de revisão); (3) evoluir `agents/development/senior-reviewers/security.md` para delegar ao security-owasp; (4) adicionar gate de verificação de segurança ao `agents/development/committer.md`; (5) registrar as 6 skills em `permission.skill` no `opencode.json`; (6) atualizar `agents/development/README.md` e `workflow.md`. Origem: Proposal 2026-08-06-2 em `prioritization.md`.
+

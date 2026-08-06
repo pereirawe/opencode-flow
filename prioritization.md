@@ -122,6 +122,47 @@ at proposal time. Unknown rules will be captured during discovery refinement.
 - Dependencies: Base ja existente (pipeline ocf:develop, publish-requester, close-requester, scripts create/promote).
 - Proposed issue type: feat
 
+### Proposal 2026-08-06-1: Sincronização bidirecional de issues com Jira Cloud
+- Priority: high
+- Business value: Unifica o tracking de trabalho — cada issue do pipeline tem contraparte real no backlog do Jira, com status, comentários e refinamento sincronizados automaticamente entre `known_issues.md` e o Jira. Elimina dupla manutenção e garante que stakeholders no Jira vejam o progresso real (aprovado, refinado, em desenvolvimento, em revisão, publicado).
+- Target sprint: next
+- Description: Integrar o pipeline com Jira Cloud via MCP/API. Ao criar ou registrar uma issue (`ocf:discovery` / `ocf:develop`), criar o card no backlog do Jira se ele não existir; se já existir, vincular o card à issue padrão. Identificação pela chave do projeto (ex: `DEV-123`) usando o prefixo do projeto Jira. Sincronizar automaticamente cada transição de status do pipeline (backlog→ready→in-progress→in-review→in-qa→in-publish→resolved) para o workflow do Jira, e alinhar comentários/refinamento entre repositório e Jira.
+- Business rules:
+  1. Jira Cloud DEVE ser o provider alvo (REST v3, MCP oficial do Atlassian).
+  2. A identificação da issue Jira DEVE usar a chave do projeto (ex: `DEV-123`) — prefixo + número sequencial.
+  3. Ao registrar uma issue nova, o pipeline DEVE criar o card no backlog do Jira se a chave não existir.
+  4. Se a chave Jira já existir, o pipeline DEVE vincular o card à issue padrão em `known_issues.md` (novo campo `Jira:` ou reuso de `Remote:`).
+  5. Cada transição de status em `known_issues.md` DEVE refletir automaticamente no workflow do Jira (mapa completo).
+  6. Comentários, refinamento e demais informações DEVEM estar alinhados entre repositório e Jira (sincronização de comentários).
+  7. O mapa de status pipeline→Jira DEVE ser configurável por projeto (nomes de status do workflow do Jira variam).
+- Stakeholders: PO, PM, Dev, QA, Committer, equipe que consome o Jira
+- Rationale: O usuário quer que a issue do repositório e do Jira estejam sincronizadas em todas as etapas — aprovado, refinado, em desenvolvimento, em revisão. Sem integração, o status diverge e o time do Jira não tem visibilidade do pipeline.
+- Dependencies: Config existente de `mcpServers` em opencode.json (hoje: GitHub, Notion); scripts `create_issue.sh`, `promote.sh`, `close_issue.sh`; padrão de campo `Remote:`.
+- Proposed issue type: feat
+
+### Proposal 2026-08-06-2: Agente de setor OWASP e Cybersecurity (consultor + revisor + gate)
+- Priority: high
+- Business value: Habilita consultoria, revisão e políticas de segurança em qualquer momento do ciclo — o agente atua como senior reviewer de segurança em MRs, é convocável on-demand para auditorias/tarefas específicas, e pode bloquear MRs quando vulnerabilidades critical/high são encontradas. Substitui o revisor de segurança genérico atual por um especialista OWASP completo.
+- Target sprint: next
+- Description: Criar agente `development/security-owasp` (setor development) que consolida o perfil de segurança do pipeline: consultor de políticas e arquitetura, revisor de código em MRs (senior reviewer perfil `security`), executor de auditorias on-demand e gate de bloqueio para vulnerabilidades critical/high. Entregue como agente + skills OWASP dedicadas (`owasp-top10`, `owasp-asvs`, `owasp-wstg`, `owasp-samm`, `threat-modeling`, `secure-code-review`), dominando Top 10 + ASVS + WSTG + SAMM. Segue o locale do projeto via locale-loader.
+- Business rules:
+  1. O agente DEVE ser criado como `agents/development/security-owasp.md` (formato opencode com frontmatter válido) no setor development.
+  2. O agente DEVE poder atuar em 3 modos: (a) consultor — políticas de segurança, arquitetura e conformidade; (b) revisor — senior reviewer de segurança em MRs; (c) executor on-demand — auditorias e tarefas específicas a qualquer momento.
+  3. O agente DEVE poder ser registrado como revisor de perfil `security` no campo `- Reviewers:` das issues.
+  4. O agente DEVE bloquear/recusar a aprovação de MR quando encontrar vulnerabilidades de severidade critical ou high, reportando com evidências e recomendação de correção.
+  5. O agente DEVE dominar OWASP Top 10 (2021), ASVS 4.0, WSTG e SAMM como frameworks de referência.
+  6. As skills DEVM ser criadas sob `skills/development/security/` com SKILL.md por framework (top10, asvs, wstg, samm, threat-modeling, secure-code-review).
+  7. As skills DEVM registrar os CWE mapeados por categoria OWASP Top 10 e os níveis de verificação ASVS (L1/L2/L3).
+  8. O agente DEVE seguir o locale do projeto via locale-loader (relatórios e recomendações no idioma de `.opencode/locale`), mantendo termos técnicos em inglês.
+  9. O agente DEVE publicar relatórios de auditoria em arquivo local (ex: `.opencode/reviews/security-<target>-<timestamp>.md`) antes de postar/comentar qualquer coisa.
+  10. O agente NÃO DEVE modificar código — apenas reportar; correções são feitas pelo developer no fluxo normal.
+  11. O agente DEVE integrar com o gate do committer: vulnerabilidade critical/high não resolvida impede `in-publish`.
+  12. O `senior-reviewers/security.md` existente DEVE ser avaliado para evolução em vez de duplicação (perfil de revisor pode delegar ao agente OWASP).
+- Stakeholders: Dev, Senior Reviewers, QA, Committer, PO, time de segurança
+- Rationale: O pipeline hoje só tem um revisor de segurança genérico (checklist curto). O usuário quer um especialista que aja como consultor, revisor e gate a qualquer momento, com base OWASP completa e skills carregáveis — elevando a segurança de entregas a um padrão verificável.
+- Dependencies: Estrutura de skills existente (`skills/development/go|python`), padrão de senior reviewers (`agents/development/senior-reviewers/`), committer gate (`agents/development/committer.md`), locale-loader.
+- Proposed issue type: feat
+
 ### Proposal 2026-08-05-1: Skills externas via clone + `skills.paths` (vendor), sem copia
 - Priority: high
 - Business value: Skills externas (taste-skill, motion-design, color-expert, etc.) passam a ser carregadas in-place a partir de clones git em `~/.config/opencode/vendor/`, atualizáveis com `git pull` sem reimportar. Elimina divergência entre o upstream e o conteúdo copiado, reduz manutenção e torna o comportamento padrão para futuras importações.
