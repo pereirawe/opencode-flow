@@ -469,7 +469,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Base branch: main
 - Reviewers: 1 (devops)
 - Remote: #42
-- PR: -
+- PR: #43
 - Location: scripts/reset-web.sh (novo), opencode.json (ocf:reset-web, ocf:stop-web), scripts/README.md, Makefile
 - Description: O serviço systemd `opencode` (web) está documentado e tem comandos de criar (`ocf:setup-web`/`setup-web.sh`) e reiniciar (`ocf:restart-web`), mas NÃO há comando de parar nem de zerar o cache/sessões. O banco de sessões em `~/.local/share/opencode/opencode.db` cresce (atualmente ~1,6 GB) e o usuário quer a capacidade de zerar as sessões e reiniciar o serviço.
 - Impact: Gestão completa do serviço (criar/parar/reiniciar/status/zerar sessões); resolve o problema de cache/sessões acumuladas do servidor web com um comando seguro.
