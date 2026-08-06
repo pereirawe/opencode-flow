@@ -456,7 +456,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Base branch: issue-43-external-skills-vendor-clone
 - Reviewers: 1 (runtime)
 - Remote: #36
-- PR: #37
+- PR: #38
 - Location: opencode.json (permission.skill), skills/README.md, vendor/ (gitignored)
 - Description: Revisar e importar um novo lote de skills externas seguindo a estratégia vendor da issue #43 (clone em `~/.config/opencode/vendor/` + `skills.paths`, NUNCA `npx skills add`). Lote: cto-os-skills, agent-skills-marketing (seo-geo), claude-skills (senior-frontend), marketing-skills (google-search-console, youtube-seo), next-skills (next-best-practices), claude-code-nextjs-skills (nextjs-seo), wispbit-ai/skills (python-expert-best-practices-code-review), dot-skills (tailwind), eachlabs/skills (poster-design-generation), claude-supercode-skills (business-analyst).
 - Impact: Disponibiliza skills de CTO/OS, marketing (SEO), frontend (senior, Next.js, Tailwind), Python code review e geração de posters — carregadas in-place, atualizáveis com `git pull`, sem cópia.
