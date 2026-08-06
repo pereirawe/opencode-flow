@@ -50,6 +50,25 @@ Every commit MUST follow `standards/commits.md`:
 
 Run `/ocf:commit` or `make commit` to create a properly structured commit.
 
+## Skill Management (external skills)
+
+**External (third-party) skills MUST be kept as git clones in
+`~/.config/opencode/vendor/` and loaded in-place via `skills.paths` in
+`opencode.json` — NEVER copied into `skills/`.**
+
+- Import: `scripts/skill-vendor.sh add <git-url|owner/repo> [--sparse <paths...>]`
+  (or `/ocf:import-skill` / `skill: skill-importer`).
+- Update: `scripts/skill-vendor.sh update <name>` — plain `git pull`, no re-import.
+- List: `scripts/skill-vendor.sh list`; remove: `scripts/skill-vendor.sh remove <name>`.
+- Repos with many skills use sparse checkout (`--sparse <paths...>`) so only the
+  desired skills load.
+- Skill identity is the frontmatter `name` of each `SKILL.md` (not the folder name).
+- `vendor/**` is gitignored; third-party content is never versioned in this repo.
+- Skills written/curated natively for this config live in `skills/<sector>/`.
+
+See `conventions.md` (Skill Management) and `decisions.md` (ADR 2026-08-05)
+for rationale.
+
 ## Local Helpers
 
 ```

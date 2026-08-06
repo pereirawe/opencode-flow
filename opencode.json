@@ -97,6 +97,10 @@
         "ocf:aibot-notify": {
             "template": "Post exactly ONE standardized aibot message to a remote issue. Arguments: <remote-issue-id> <message-key> [<pr-number>]. The message-key is one of: success | already-in-progress | already-resolved | not-tracked | cannot-develop. Read the templates from standards/aibot-messages.md, select the one for <message-key>, and substitute {issue_id} (and {mr_link} for success — resolve via `gh pr view <n> --json url --jq .url` / `glab mr view <n> --json web_url --jq .web_url`, with fallback built from `git remote get-url origin`). Detect the remote provider (GitHub -> gh, GitLab -> glab) from the workspace git remote. Then invoke the development/aibot subagent via `task:` with subagent_type 'development/aibot', passing: workspace directory, remote issue id, message key, PR number (if provided) and provider. The subagent posts the message to the remote issue (gh issue comment / glab issue comment) in PT-BR, one message per trigger. Do NOT post anything else and NEVER post the token `@aibot:develop`. Report success or failure; failures are non-blocking.",
             "description": "Post standardized aibot message to a remote issue"
+        },
+        "ocf:import-skill": {
+            "template": "Import an external skill from a git repository using the vendor clone strategy. Ask the user for the source: a git URL (`https://github.com/owner/repo`) or `owner/repo` shorthand. If the repo contains multiple skills and the user only wants specific ones, ask which folders (relative to the repo root) to check out as sparse paths. Then run `$SCRIPTS_DIR/skill-vendor.sh add <url> [--sparse <paths...>]` — this clones the repo into `~/.config/opencode/vendor/`, discovers every SKILL.md frontmatter name, and registers each as `allow` in `permission.skill` (atomic write to opencode.json). If the repo is already vendored, run `skill-vendor.sh update <name>` instead. Report the installed path and discovered skill names, and tell the user to restart opencode (or restart the web service) for the skills to appear. Never copy skills into `skills/`.",
+            "description": "Import external skills as git clones via skill-vendor.sh"
         }
     },
     "permission": {
@@ -193,7 +197,14 @@
             "sales-psychology": "allow",
             "design-taste-frontend": "allow",
             "redesign-existing-projects": "allow",
-            "minimalist-ui": "allow"
+            "minimalist-ui": "allow",
+            "motion-design": "allow",
+            "color-expert": "allow",
+            "icon-generator": "allow",
+            "brand-to-design-md": "allow",
+            "responsive-craft": "allow",
+            "ux-flow-designer": "allow",
+            "frontend-designer": "allow"
         },
         "external_directory": {
             "~/.config/opencode/**": "allow",
@@ -223,5 +234,10 @@
                 }
             }
         }
+    },
+    "skills": {
+        "paths": [
+            "~/.config/opencode/vendor"
+        ]
     }
 }

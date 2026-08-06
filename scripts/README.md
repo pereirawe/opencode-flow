@@ -19,10 +19,29 @@ Shell helpers for issue lifecycle management.
 | `aibot-watcher.service` | Systemd oneshot unit template for the watcher (issue #39) |
 | `aibot-watcher.timer` | Systemd timer template (`OnCalendar=*:0/2`) for the watcher (issue #39) |
 | `setup-aibot-watcher.sh` | Install/uninstall the aibot watcher systemd timer + service |
-| `import_claude_skill.sh` | Import skills from claude-code-templates |
+| `skill-vendor.sh` | Manage external skills as git clones in `~/.config/opencode/vendor/` (add/update/list/remove) — loaded via `skills.paths`, never copied |
+| `import_claude_skill.sh` | Deprecated shim — delegates to `skill-vendor.sh add` |
 | `config.sh` | Shared configuration sourced by other scripts |
 | `setup-web.sh` | Install/update opencode web systemd service for headless operation |
 | `opencode.service` | Systemd service template — replicated to other machines via `setup-web.sh` |
+
+## Skill Vendor (external skills)
+
+External skills are kept as **git clones** in `~/.config/opencode/vendor/` and
+loaded in-place via `"skills": { "paths": ["~/.config/opencode/vendor"] }` in
+`opencode.json`. They are never copied into `skills/`.
+
+```bash
+scripts/skill-vendor.sh add <git-url|owner/repo> [--sparse <paths...>]
+scripts/skill-vendor.sh update <name>      # git pull — no re-import
+scripts/skill-vendor.sh list
+scripts/skill-vendor.sh remove <name>      # also unregisters its skills
+```
+
+Repos with multiple skills use sparse checkout so only the desired skills load
+(e.g. `taste-skill --sparse skills/taste-skill skills/redesign-skill
+skills/minimalist-skill`). `vendor/` is gitignored. See
+`skills/shared/skill-importer/SKILL.md` for the agent-facing workflow.
 
 ## Web Service
 

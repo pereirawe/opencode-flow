@@ -2,13 +2,26 @@
 
 Reusable capabilities organized by business sector.
 
+> **External skills** (design, motion, color, etc.) are NOT copied here — they
+> live as git clones in `~/.config/opencode/vendor/` and are loaded in-place
+> via `skills.paths` in `opencode.json`. Manage them with
+> `scripts/skill-vendor.sh` (add/update/list/remove).
+
 ## Design
+
+External (vendor clone of `Leonxlnx/taste-skill`):
 
 | Skill | Purpose |
 |-------|---------|
 | `design-taste-frontend` | Anti-slop UI — landing pages, portfolios, redesigns. Reads brief, infers design direction, ships non-templated interfaces (default) |
 | `redesign-existing-projects` | Audit-first redesign — upgrades existing sites/apps to premium quality |
 | `minimalist-ui` | Notion/Linear-style — clean editorial, warm monochrome, typographic contrast |
+
+Other design skills from vendor: `motion-design` (LottieFiles/motion-design-skill),
+`color-expert` (meodai/skill.color-expert), `icon-generator` (anhao/icon-generator-skill),
+`brand-to-design-md` (shaom/brand-to-design-md-skill), `responsive-craft`
+(kylezantos/responsive-craft), `ux-flow-designer` (ThomasPraun/ux-flow-designer),
+`frontend-designer` (kozz36/frontend-designer-skill, sparse `versions/v3.0`).
 
 Mapeamento de casos de uso → skill:
 
@@ -115,9 +128,8 @@ Mapeamento de casos de uso → skill:
 | `issue-manager` | Maintain tracked work register (`known_issues.md`) |
 | `locale-loader` | Load locale-appropriate standards based on `.opencode/locale` |
 | `graphify` | Generate Mermaid.js diagrams from code structure |
-| `skill-importer` | Import skills from claude-code-templates into opencode |
+| `skill-importer` | Import external skills as git clones into `vendor/` (clone strategy — no copy) |
 | `skill-creator` | Guide for creating high-quality, Anthropic-compatible skills |
 
-Imported skills (seo-optimizer, skill-creator) come from
-[claude-code-templates](https://aitmpl.com). Use `skill: skill-importer`
-to import more.
+To import an external skill from a git repo, use `skill: skill-importer` or
+`scripts/skill-vendor.sh add <git-url|owner/repo>`.
