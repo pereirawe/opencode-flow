@@ -39,6 +39,16 @@ assert_eq "repo-color" "$(ls "$VENDOR")" "add clones into vendor/<repo-basename>
 assert_contains "$VENDOR/repo-color/SKILL.md" "name: test-color" "add preserves SKILL.md"
 assert_contains "$CONFIG" '"test-color": "allow"' "add registers skill in permission.skill"
 
+# --- add with quoted frontmatter name (name: "quoted-name") ---
+srcq="$TMP/repo-quoted"
+mkdir -p "$srcq"
+printf -- '---\nname: "quoted-name"\ndescription: quoted\n---\n\n# quoted\n' > "$srcq/SKILL.md"
+git -C "$srcq" init -q
+git -C "$srcq" add -A
+git -C "$srcq" -c user.name=t -c user.email=t@t commit -qm "add quoted"
+bash "$SCRIPT" add "$srcq" >/dev/null
+assert_contains "$CONFIG" '"quoted-name": "allow"' "add unquotes frontmatter name"
+
 # --- add --sparse (multi-skill repo, only one folder checked out) ---
 multi="$TMP/repo-multi"
 make_skill_repo "$multi" "want-a" "skills/want-a/SKILL.md" "a"
