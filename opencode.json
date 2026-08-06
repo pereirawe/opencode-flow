@@ -250,7 +250,7 @@
     },
     "skills": {
         "paths": [
-            "/home/william_pereira/.config/opencode/vendor"
+            "~/.config/opencode/vendor"
         ]
     }
 }

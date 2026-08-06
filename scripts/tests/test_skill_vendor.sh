@@ -101,4 +101,82 @@ else
   t_fail "config is no longer valid JSON"
 fi
 
+# --- name safety: remove rejects traversal names ---
+for bad in ".." "." "a/b" "/etc"; do
+  if bash "$SCRIPT" remove "$bad" >/dev/null 2>&1; then
+    t_fail "remove '$bad' must be rejected (traversal)"
+  else
+    t_ok "remove '$bad' rejected"
+  fi
+done
+if [[ -d "$VENDOR" ]]; then
+  t_ok "vendor dir untouched by traversal attempts"
+else
+  t_fail "vendor dir missing after traversal attempts"
+fi
+
+# --- update rejects traversal names too ---
+if bash "$SCRIPT" update ".." >/dev/null 2>&1; then
+  t_fail "update '..' must be rejected"
+else
+  t_ok "update '..' rejected"
+fi
+
+# --- multi-word frontmatter name registers as a whole ---
+srcw="$TMP/repo-multiword"
+mkdir -p "$srcw"
+printf -- '---\nname: My Cool Skill\n---\n\n# x\n' > "$srcw/SKILL.md"
+git -C "$srcw" init -q
+git -C "$srcw" add -A
+git -C "$srcw" -c user.name=t -c user.email=t@t commit -qm "add multiword"
+bash "$SCRIPT" add "$srcw" >/dev/null
+assert_contains "$CONFIG" '"My Cool Skill": "allow"' "multi-word name registered whole"
+if grep -qF '"My": "allow"' "$CONFIG" || grep -qF '"Cool": "allow"' "$CONFIG"; then
+  t_fail "multi-word name must not be word-split"
+else
+  t_ok "multi-word name not word-split"
+fi
+
+# --- inline YAML comment in name is stripped ---
+srcc="$TMP/repo-comment"
+mkdir -p "$srcc"
+printf -- '---\nname: clean-name # trailing comment\n---\n\n# x\n' > "$srcc/SKILL.md"
+git -C "$srcc" init -q
+git -C "$srcc" add -A
+git -C "$srcc" -c user.name=t -c user.email=t@t commit -qm "add comment"
+bash "$SCRIPT" add "$srcc" >/dev/null
+assert_contains "$CONFIG" '"clean-name": "allow"' "inline YAML comment stripped"
+if grep -qF "trailing comment" "$CONFIG"; then
+  t_fail "inline comment must not leak into the registered name"
+else
+  t_ok "inline comment not leaked"
+fi
+
+# --- CRLF frontmatter is handled ---
+srcl="$TMP/repo-crlf"
+mkdir -p "$srcl"
+printf -- '---\r\nname: crlf-skill\r\ndescription: x\r\n---\r\n\r\n# x\r\n' > "$srcl/SKILL.md"
+git -C "$srcl" init -q
+git -C "$srcl" add -A
+git -C "$srcl" -c user.name=t -c user.email=t@t commit -qm "add crlf"
+bash "$SCRIPT" add "$srcl" >/dev/null
+assert_contains "$CONFIG" '"crlf-skill": "allow"' "CRLF frontmatter name parsed"
+
+# --- add on an existing dir exits non-zero ---
+if bash "$SCRIPT" add "$srcw" >/dev/null 2>&1; then
+  t_fail "add of an already-vendored repo must fail"
+else
+  t_ok "add of already-vendored repo fails"
+fi
+
+# --- repo name with trailing slash is normalized ---
+srcs="$TMP/repo-slash/"
+make_skill_repo "${srcs%/}" "slash-skill" "SKILL.md" "x"
+bash "$SCRIPT" add "${srcs%/}" >/dev/null 2>&1 || bash "$SCRIPT" add "$srcs" >/dev/null
+if [[ -d "$VENDOR/repo-slash" ]]; then
+  t_ok "trailing-slash repo name normalized"
+else
+  t_fail "trailing-slash repo name not normalized (got: $(ls "$VENDOR"))"
+fi
+
 t_finish
