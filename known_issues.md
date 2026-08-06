@@ -447,3 +447,70 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   8. Comando `ocf:import-skill` registrado no opencode.json.
   9. Testes em `scripts/tests/` cobrem `skill-vendor.sh` (add/update/remove/list) e passam via `make test-scripts`.
 - Suggested fix: Implementar conforme BR 1-11. Criar `scripts/skill-vendor.sh`; clonar repos em vendor (taste-skill com sparse); atualizar opencode.json (skills.paths + permission.skill) e .gitignore; git rm das cópias em skills/design; reescrever skill-importer; registrar regra em AGENTS.md/conventions.md/decisions.md; criar comando ocf:import-skill; adicionar testes.
+
+### 44. Revisar e importar novo lote de skills externas (design/dev/marketing) via vendor
+- Status: in-publish
+- Type: feat
+- Severity: medium
+- Report: william_pereira
+- Base branch: issue-43-external-skills-vendor-clone
+- Reviewers: 1 (runtime)
+- Remote: #36
+- PR: #38
+- Location: opencode.json (permission.skill), skills/README.md, vendor/ (gitignored)
+- Description: Revisar e importar um novo lote de skills externas seguindo a estratégia vendor da issue #43 (clone em `~/.config/opencode/vendor/` + `skills.paths`, NUNCA `npx skills add`). Lote: cto-os-skills, agent-skills-marketing (seo-geo), claude-skills (senior-frontend), marketing-skills (google-search-console, youtube-seo), next-skills (next-best-practices), claude-code-nextjs-skills (nextjs-seo), wispbit-ai/skills (python-expert-best-practices-code-review), dot-skills (tailwind), eachlabs/skills (poster-design-generation), claude-supercode-skills (business-analyst).
+- Impact: Disponibiliza skills de CTO/OS, marketing (SEO), frontend (senior, Next.js, Tailwind), Python code review e geração de posters — carregadas in-place, atualizáveis com `git pull`, sem cópia.
+- Business rules:
+  1. A importação DEVE usar `scripts/skill-vendor.sh add <url> [--sparse <paths...>]` — nunca `npx skills add`.
+  2. Cada repo DEVE ser revisado (descrição, estrutura do SKILL.md, name no frontmatter) antes de registrar em `permission.skill`.
+  3. Repos com múltiplas skills DEVEM usar sparse checkout limitando às skills desejadas.
+  4. Skills importadas DEVEM ser habilitadas em `permission.skill`; skills não desejadas do mesmo clone não DEVEM ser registradas.
+  5. Skills duplicadas (mesmo `name` de frontmatter em arquivos múltiplos de um repo, ex.: versions/) DEVEM ser evitadas via sparse.
+  6. `skills/README.md` DEVE listar as novas skills com seus repos de origem.
+  7. Se um repo estiver indisponível/broken, DEVE ser documentado (não bloqueante).
+  8. A issue #44 depende da #43 (base branch é a branch da #43) — só existe na branch de trabalho.
+- Acceptance criteria:
+  1. Todos os repos disponíveis do lote estão clonados em `~/.config/opencode/vendor/`.
+  2. `permission.skill` contém as skills desejadas (seo-geo, senior-frontend, google-search-console, youtube-seo, next-best-practices, nextjs-seo, python-expert-best-practices-code-review, tailwind, poster-design-generation, cto-architecture-decision, cto-engineering-metrics, cto-risk-resilience, cto-technology-roadmap).
+  3. Nenhuma skill duplicada registrada (sem IDs repetidos).
+  4. `opencode.json` continua válido (JSON parse OK) e `bash -n` passa nos scripts.
+  5. `skills/README.md` documenta o lote com repos de origem.
+  6. `make test-scripts` continua passando (sem regressão nos testes da #43).
+- Suggested fix: (1) registrar a issue e promover na branch da #43; (2) revisar cada repo (gh api / README / estrutura); (3) `skill-vendor.sh add` com sparse quando necessário; (4) atualizar skills/README.md; (5) rodar testes; (6) commitar e seguir o pipeline (review → QA → committer → MR).
+- Notes (implementação — revisores validarem):
+  1. **Indisponíveis (não bloqueantes)**: `vercel-labs/next-skills` foi movido para `vercel/next.js` (branch canary, pasta `skills/`) e a skill `next-best-practices` foi dividida em docs embutidas no framework — NÃO existe mais como skill. `404kidwiz/claude-supercode-skills` retorna 404 (repo não encontrado) — `business-analyst` não importável. Nota: `next-best-practices` foi importada de `laguagu/claude-code-nextjs-skills` (mesmo nome, outro repo).
+  2. **Symlinks**: `alirezarezvani/claude-skills` usa symlinks em `.codex/skills/*` apontando para `engineering-team/skills/*`; o sparse aponta para o alvo real (`engineering-team/skills/senior-frontend`), não o symlink.
+  3. **Nomes com aspas**: `name: "senior-frontend"` (YAML quoted) — `skill-vendor.sh` agora desquoteia; caso coberto por teste.
+  4. **Colisão de nomes**: `wispbit-ai/skills` e `eachlabs/skills` têm o mesmo basename — `skill-vendor.sh` qualifica com owner (`eachlabs-skills`); caso coberto por lógica nova.
+  5. **Fix no skill-vendor.sh durante a #44**: `sparse-checkout set --skip-checks` para dirs ocultos, desquote de `name`, colisão de basename — testados em `scripts/tests/test_skill_vendor.sh`.
+
+### 45. Remover modelos definidos dos agentes e deletar o agente Anderson
+- Status: in-publish
+- Type: chore
+- Severity: medium
+- Report: william_pereira
+- Base branch: issue-44-review-import-new-skills-batch
+- Reviewers: 1 (runtime)
+- Remote: #39
+- PR: #40
+- Location: agents/designer.md, agents/ceo.md, agents/development/anderson.md, opencode.json, workflow.md, agents/development/publish-requester.md, prioritization.md, standards/aibot-messages.md
+- Description: Remover o campo `model:` do frontmatter de todos os agentes (designer, ceo, anderson) — os modelos fixados causam bloqueios (ex.: `minimax/MiniMax-M2.5` inválido no Anderson) — e deletar o agente Anderson por completo (sem utilidade real, gasta tokens em cada MR).
+- Impact: Agentes passam a usar o modelo padrão da sessão/config (sem lock por agente); elimina falhas por modelo inválido; pipeline mais barato e sem o feedback simulado do Anderson.
+- Business rules:
+  1. `model:` DEVE ser removido do frontmatter de TODOS os agentes em `agents/**/*.md`.
+  2. Nenhum agente DEVE reter `model:` ou `variant:` residual.
+  3. `agents/development/anderson.md` DEVE ser removido (git rm).
+  4. O comando `ocf:anderson-feedback` DEVE ser removido do `opencode.json` (que permanece JSON válido).
+  5. `workflow.md` DEVE remover as etapas 11.5 e 10.5 do Anderson e manter o fluxo contínuo (sem renumerar etapas de forma a quebrar referências).
+  6. O `publish-requester` NÃO DEVE mais disparar o Anderson após criar MR.
+  7. Referências ao Anderson em `prioritization.md` e `standards/aibot-messages.md` DEVEM ser limpas (apenas histórico, não o registro).
+  8. Entradas históricas (issue #20 em known_issues.md/resolved_issues.md) NÃO DEVEM ser editadas.
+- Acceptance criteria:
+  1. `grep -rn "^model:" agents/` retorna vazio.
+  2. `agents/development/anderson.md` não existe (nem no git).
+  3. `ocf:anderson-feedback` ausente do `opencode.json` (JSON parse OK).
+  4. `workflow.md` sem menção a Anderson.
+  5. `publish-requester.md` sem disparo do Anderson.
+  6. `grep -rni "anderson"` limpo exceto entradas históricas (known_issues #20, resolved_issues, priorization histórico, aibot-messages sem a comparação).
+  7. `make test-scripts` continua passando.
+- Suggested fix: (1) git rm agents/development/anderson.md; (2) remover `model:` de designer.md e ceo.md; (3) remover bloco `ocf:anderson-feedback` do opencode.json; (4) limpar workflow.md (11.5/10.5), publish-requester.md, prioritization.md, aibot-messages.md; (5) registrar issue, promover, revisar, MR.
