@@ -83,11 +83,23 @@
             "description": "Orchestrate full delivery pipeline (PM -> Developer -> Review -> QA -> Committer -> Publish -> Close)"
         },
         "ocf:restart-web": {
-            "template": "Restart the opencode web service. Run `sudo systemctl restart opencode` to apply the latest configuration changes (agents, skills, commands) to the running web instance. If the service is not found, run `$SCRIPTS_DIR/setup-web.sh --user <user> --bin <path>` to install it first. Report the service status after restart.",
+            "template": "Restart the opencode web service. IMPORTANT: `sudo systemctl` needs an interactive terminal for the password prompt and CANNOT be run from inside the agent session — do NOT attempt it. Instead, show the user the exact command to run in their own terminal: `sudo systemctl restart opencode`, and explain it applies the latest config changes (agents, skills, commands). You may check current state read-only (no sudo) with `systemctl is-active opencode` and report it. If the service is not installed, point the user to `scripts/setup-web.sh` (or `ocf:setup-web`).",
             "description": "Restart opencode web service to apply configuration changes"
         },
+        "ocf:start-web": {
+            "template": "Start the opencode web service. IMPORTANT: `sudo systemctl` needs an interactive terminal and CANNOT be run from inside the agent session — do NOT attempt it. Show the user the exact command to run in their own terminal: `sudo systemctl start opencode`, and explain what it does. You may check state read-only (no sudo) with `systemctl is-active opencode`. If the service is not installed, report that and point to `ocf:setup-web`.",
+            "description": "Start the opencode web service"
+        },
+        "ocf:stop-web": {
+            "template": "Stop the opencode web service. IMPORTANT: `sudo systemctl` needs an interactive terminal and CANNOT be run from inside the agent session — do NOT attempt it. Show the user the exact command to run in their own terminal: `sudo systemctl stop opencode`, and explain they can bring it back with `sudo systemctl start opencode` (`ocf:start-web`). You may check state read-only (no sudo) with `systemctl is-active opencode`.",
+            "description": "Stop the opencode web service"
+        },
+        "ocf:reset-web": {
+            "template": "Reset the opencode web service (clear accumulated session DB and restart). The full reset uses `sudo systemctl` internally, which needs an interactive terminal and CANNOT be run from inside the agent session — do NOT attempt it. Instead: (1) run the read-only preview yourself: `$SCRIPTS_DIR/reset-web.sh --list` (no sudo needed) to show the current session DB size (can be GBs); (2) show the user the exact command to run in their own terminal: `bash $SCRIPTS_DIR/reset-web.sh` (or `make reset-web`), explaining it stops the service, moves the session DB to a timestamped backup in `~/.local/share/opencode/backups/`, clears the log dir, and restarts — auth.json/account.json preserved. Ask them to run it in a terminal and report the result.",
+            "description": "Stop opencode web, clear session cache/DB, and restart"
+        },
         "ocf:setup-web": {
-            "template": "Install or update the opencode web systemd service. Run `$SCRIPTS_DIR/setup-web.sh` with optional --user and --bin flags. If not provided, ask the user for the system user and path to the opencode binary. The service file is stored at `$SCRIPTS_DIR/opencode.service` and can be replicated to other machines. After setup, report the service status.",
+            "template": "Install or update the opencode web systemd service. IMPORTANT: `setup-web.sh` uses `sudo` internally (systemctl/tee) and CANNOT be run from inside the agent session (no terminal for the password prompt) — do NOT attempt it. Show the user the exact command to run in their own terminal: `sudo scripts/setup-web.sh --user <user> --bin <path-to-opencode>`, and explain it installs/updates the `opencode.service` from the versioned template. The service file is stored at `$SCRIPTS_DIR/opencode.service` and can be replicated to other machines.",
             "description": "Install or update the opencode web systemd service"
         },
         "ocf:aibot-notify": {
