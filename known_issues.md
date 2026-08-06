@@ -462,7 +462,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Suggested fix: Criar `scripts/setup-nginx.sh` + `scripts/nginx-opencode.conf`, pinar `--hostname/--port` no `opencode.service`, adicionar `--with-nginx` ao `setup-web.sh`, atualizar `ocf:setup-web`/`ocf:restart-web` no opencode.json e documentar no `scripts/README.md`.
 
 ### 47. Reset de sessões e gestão completa do serviço opencode web (stop/reset)
-- Status: ready
+- Status: in-progress
 - Type: feat
 - Severity: medium
 - Report: william_pereira
