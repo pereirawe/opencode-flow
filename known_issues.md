@@ -449,7 +449,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Suggested fix: Implementar conforme BR 1-11. Criar `scripts/skill-vendor.sh`; clonar repos em vendor (taste-skill com sparse); atualizar opencode.json (skills.paths + permission.skill) e .gitignore; git rm das cópias em skills/design; reescrever skill-importer; registrar regra em AGENTS.md/conventions.md/decisions.md; criar comando ocf:import-skill; adicionar testes.
 
 ### 44. Revisar e importar novo lote de skills externas (design/dev/marketing) via vendor
-- Status: in-review
+- Status: in-publish
 - Type: feat
 - Severity: medium
 - Report: william_pereira
