@@ -411,3 +411,39 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   6. `opencode.json` válido após a mudança.
   7. Agente acessível via Tab/@designer.
 - Suggested fix: (1) rodar `npx skills add https://github.com/Leonxlnx/taste-skill --skill design-taste-frontend` na raiz, (2) repetir para redesign-existing-projects e minimalist-ui, (3) criar `agents/designer.md` com o conteúdo fornecido, (4) registrar skills.paths se instalado fora do padrão, (5) documentar mapeamento de casos de uso.
+
+### 43. Skills externas via clone + `skills.paths` (vendor dir), sem copia
+- Status: ready
+- Type: feat
+- Severity: medium
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (devops, runtime)
+- Remote: -
+- PR: -
+- Location: opencode.json, .gitignore, scripts/skill-vendor.sh (novo), scripts/import_claude_skill.sh, skills/shared/skill-importer/SKILL.md, skills/design/*, AGENTS.md, conventions.md, decisions.md, commands/ocf:import-skill.md (novo), scripts/README.md
+- Description: Mudar a estratégia de importação de skills externas de "copiar para `skills/<sector>/`" (import_claude_skill.sh / npx skills add) para "clonar em `~/.config/opencode/vendor/` e carregar in-place via `skills.paths`". Migrar as 3 design skills do taste-skill (issue #42) para o clone sparse, importar os 7 novos repos de design (motion-design, color-expert, icon-generator, brand-to-design, responsive-craft, ux-flow-designer, frontend-designer), e registrar a regra como padrão para todas as sessões futuras.
+- Impact: Skills externas passam a ser atualizáveis com `git pull` sem reimportar; elimina divergência com o upstream; reduz contexto e manutenção; qualquer sessão/agente sabe o comportamento padrão de importação.
+- Business rules:
+  1. Skills externas DEVEM ser mantidas como clones git em `~/.config/opencode/vendor/` (um clone por repo upstream), NUNCA copiadas para `skills/`.
+  2. `opencode.json` DEVE registrar `"skills": { "paths": ["~/.config/opencode/vendor"] }` para o loader varrer `**/SKILL.md` recursivamente.
+  3. `vendor/**` DEVE estar no `.gitignore` (não versionar conteúdo de terceiros).
+  4. O script `scripts/skill-vendor.sh` DEVE gerenciar vendor: `add <url|owner/repo> [--sparse <paths>]`, `update <name>`, `list`, `remove <name>`.
+  5. O `skill-importer` skill DEVE usar a estratégia de clone (sem cópia) e continuar registrado em `permission.skill`.
+  6. Repos com múltiplas skills DEVEM usar sparse checkout para carregar apenas as skills desejadas (ex.: taste-skill → skills/taste-skill, skills/redesign-skill, skills/minimalist-skill).
+  7. A identidade da skill é o campo `name` do frontmatter do SKILL.md (não o nome da pasta) — IDs existentes (design-taste-frontend, redesign-existing-projects, minimalist-ui) DEVEM ser preservados.
+  8. As 3 design skills copiadas em `skills/design/` DEVEM ser removidas (git rm) e substituídas pelo clone do taste-skill em vendor.
+  9. As skills importadas DEVEM ser habilitadas em `permission.skill`; skills não listadas do mesmo clone permanecem com o default.
+  10. A regra DEVE ser registrada como padrão em AGENTS.md (carregado em toda sessão) + ADR em decisions.md + seção em conventions.md + comando `ocf:import-skill`.
+  11. A atualização DEVE ser `git -C <vendor>/<repo> pull` (via `skill-vendor.sh update`) — nunca reimportar do zero.
+- Acceptance criteria:
+  1. `~/.config/opencode/vendor/` contém clones do taste-skill (sparse, 3 skills) e dos 7 novos repos.
+  2. `opencode.json` válido com `skills.paths` → vendor e `permission.skill` para todas as skills importadas (design-taste-frontend, redesign-existing-projects, minimalist-ui, motion-design, color-expert, icon-generator, brand-to-design, responsive-craft, ux-flow-designer, frontend-designer).
+  3. `.gitignore` contém `vendor/` e `git status` não lista conteúdo de terceiros.
+  4. `skills/design/` removido do repo e do disco (conteúdo passa a vir do clone).
+  5. `scripts/skill-vendor.sh` existe com subcomandos add/update/list/remove; `bash -n` passa.
+  6. `skill-importer` SKILL.md descreve a estratégia de clone (sem referência a cópia).
+  7. AGENTS.md, conventions.md e decisions.md documentam a regra.
+  8. Comando `ocf:import-skill` registrado no opencode.json.
+  9. Testes em `scripts/tests/` cobrem `skill-vendor.sh` (add/update/remove/list) e passam via `make test-scripts`.
+- Suggested fix: Implementar conforme BR 1-11. Criar `scripts/skill-vendor.sh`; clonar repos em vendor (taste-skill com sparse); atualizar opencode.json (skills.paths + permission.skill) e .gitignore; git rm das cópias em skills/design; reescrever skill-importer; registrar regra em AGENTS.md/conventions.md/decisions.md; criar comando ocf:import-skill; adicionar testes.
