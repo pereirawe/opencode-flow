@@ -420,7 +420,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Base branch: main
 - Reviewers: 2 (devops, runtime)
 - Remote: #35
-- PR: -
+- PR: #37
 - Location: opencode.json, .gitignore, scripts/skill-vendor.sh (novo), scripts/import_claude_skill.sh, skills/shared/skill-importer/SKILL.md, skills/design/*, AGENTS.md, conventions.md, decisions.md, commands/ocf:import-skill.md (novo), scripts/README.md
 - Description: Mudar a estratégia de importação de skills externas de "copiar para `skills/<sector>/`" (import_claude_skill.sh / npx skills add) para "clonar em `~/.config/opencode/vendor/` e carregar in-place via `skills.paths`". Migrar as 3 design skills do taste-skill (issue #42) para o clone sparse, importar os 7 novos repos de design (motion-design, color-expert, icon-generator, brand-to-design, responsive-craft, ux-flow-designer, frontend-designer), e registrar a regra como padrão para todas as sessões futuras.
 - Impact: Skills externas passam a ser atualizáveis com `git pull` sem reimportar; elimina divergência com o upstream; reduz contexto e manutenção; qualquer sessão/agente sabe o comportamento padrão de importação.
@@ -456,7 +456,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Base branch: issue-43-external-skills-vendor-clone
 - Reviewers: 1 (runtime)
 - Remote: #36
-- PR: -
+- PR: #37
 - Location: opencode.json (permission.skill), skills/README.md, vendor/ (gitignored)
 - Description: Revisar e importar um novo lote de skills externas seguindo a estratégia vendor da issue #43 (clone em `~/.config/opencode/vendor/` + `skills.paths`, NUNCA `npx skills add`). Lote: cto-os-skills, agent-skills-marketing (seo-geo), claude-skills (senior-frontend), marketing-skills (google-search-console, youtube-seo), next-skills (next-best-practices), claude-code-nextjs-skills (nextjs-seo), wispbit-ai/skills (python-expert-best-practices-code-review), dot-skills (tailwind), eachlabs/skills (poster-design-generation), claude-supercode-skills (business-analyst).
 - Impact: Disponibiliza skills de CTO/OS, marketing (SEO), frontend (senior, Next.js, Tailwind), Python code review e geração de posters — carregadas in-place, atualizáveis com `git pull`, sem cópia.
