@@ -1,49 +1,63 @@
 ---
 name: skill-importer
-description: Import skills from claude-code-templates (npx) into opencode's skill system. Copies SKILL.md to ~/.config/opencode/skills/ and registers in opencode.json.
+description: Import external skills (GitHub/GitLab) into opencode as git clones. Clones the repo into ~/.config/opencode/vendor/ and registers each discovered skill in opencode.json — never copies SKILL.md files into skills/. Use when importing skills from a repository URL, owner/repo shorthand, or when asked to install a third-party skill.
 compatibility: opencode
 ---
 
 ## What I do
 
-Import a skill from the `claude-code-templates` registry into opencode's local
-skill system so it becomes available via the `skill` tool.
+Import an external skill (or a repo containing several skills) into opencode
+using the **vendor clone strategy** — the upstream repo is cloned in-place and
+loaded via `skills.paths`, so it can be updated with `git pull` and never
+diverges from upstream.
+
+## Why clone instead of copy
+
+- Upstream content stays in its own git repo — update with `git pull`, no re-import.
+- No divergence: the skill is always the upstream version, never a stale copy.
+- Skills are loaded recursively via `skills.paths` (`**/SKILL.md` scan).
+- Third-party content stays out of the config repo (vendor/ is gitignored).
 
 ## Workflow
 
-1. **Ask the user** which skill path to import (e.g. `business-marketing/seo-optimizer`)
-2. **Ask which sector** the skill belongs to: `development`, `marketing`, `bi`, `sales`, `finance`, or `shared`
-3. **Run** `scripts/import_claude_skill.sh <skill-path> <sector>` to:
-   - Fetch the SKILL.md from claude-code-templates
-   - Copy the entire skill directory to `~/.config/opencode/skills/<sector>/<name>/`
-   - Register `"<name>": "allow"` in `opencode.json` under `permission.skill`
-4. **Report** the installed path and tell the user to start a new session
-   for the skill to appear in `available_skills`
+1. **Ask the user** for the source: a git URL (`https://github.com/owner/repo`)
+   or `owner/repo` shorthand. If they mention multiple repos, repeat per repo.
+2. **Determine sparse paths** (optional): if the repo contains many skills and
+   the user only wants specific ones, ask which folders (relative to the repo
+   root) contain the desired skills, e.g. `skills/taste-skill
+   skills/redesign-skill`.
+3. **Run** `scripts/skill-vendor.sh add <url> [--sparse <paths...>]` to:
+   - Clone the repo into `~/.config/opencode/vendor/<name>`
+   - Discover every `SKILL.md` with a frontmatter `name` inside the clone
+   - Register each discovered skill as `"<name>": "allow"` in
+     `opencode.json` under `permission.skill` (atomic write)
+4. **Report** the installed path, the discovered skill names, and tell the
+   user to start a new session (or restart the opencode web service) for the
+   skills to appear in `available_skills`.
 
-## Import script
-
-The helper is at `scripts/import_claude_skill.sh`. Call it directly:
+## Helper script
 
 ```bash
-scripts/import_claude_skill.sh business-marketing/seo-optimizer
+# full clone (single-skill repos)
+scripts/skill-vendor.sh add meodai/skill.color-expert
+
+# sparse clone (multi-skill repos — only desired folders checked out)
+scripts/skill-vendor.sh add Leonxlnx/taste-skill --sparse skills/taste-skill skills/redesign-skill skills/minimalist-skill
+
+# refresh a vendored repo
+scripts/skill-vendor.sh update taste-skill
+
+# list vendored repos and their skills
+scripts/skill-vendor.sh list
+
+# remove a vendored repo (and unregister its skills)
+scripts/skill-vendor.sh remove taste-skill
 ```
-
-## Example skills from claude-code-templates
-
-| Category | Path |
-|----------|------|
-| Business/Marketing | `business-marketing/seo-optimizer` |
-| Document Processing | `pdf-processing-pro`, `docx`, `xlsx`, `pptx` |
-| Development | `mcp-builder`, `skill-creator`, `webapp-testing` |
-| Creative | `algorithmic-art`, `canvas-design` |
-| Official Anthropic | See `anthropics/skills` in the registry |
-
-Browse all available skills at https://aitmpl.com
 
 ## Rules
 
-- Always use `--yes` flag to skip prompts during install
-- Only import skills (not agents, commands, MCPs — use `--skill` flag)
-- Preserve the original SKILL.md content — do not modify
-- Register in opencode.json so the skill permission is granted
-- Clean up temp files after import
+- NEVER copy SKILL.md files into `skills/` — use the vendor clone strategy.
+- Never modify vendored content in place; upstream changes arrive via `git pull`.
+- Register skills via `skill-vendor.sh add` (which handles `permission.skill`).
+- Keep `vendor/` out of the config repo (already in `.gitignore`).
+- After any change, remind the user to restart opencode for skills to load.

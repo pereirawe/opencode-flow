@@ -41,7 +41,7 @@ The `ceo` agent orchestrates cross-sector execution.
 | `review-external` | External branch/MR review |
 | `senior-reviewers/*` | Specialized domain reviewers (10 roles) |
 | `devs/*` | Language-specific implementation agents |
-| `designer` | Frontend product agent — brief → explore → plan → build → review, powered by `skills/design/*` (taste-skill) |
+| `designer` | Frontend product agent — brief → explore → plan → build → review, powered by the taste-skill design skills from the vendor clone (`vendor/taste-skill`) |
 
 ## Marketing
 | Agent | Function |
