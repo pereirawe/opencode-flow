@@ -460,3 +460,33 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   14. Durante a instalação, o usuário é perguntado sobre abrir portas no firewall; README documenta as instruções manuais.
   15. Handshake WebSocket (wss) funciona através do proxy.
 - Suggested fix: Criar `scripts/setup-nginx.sh` + `scripts/nginx-opencode.conf`, pinar `--hostname/--port` no `opencode.service`, adicionar `--with-nginx` ao `setup-web.sh`, atualizar `ocf:setup-web`/`ocf:restart-web` no opencode.json e documentar no `scripts/README.md`.
+
+### 47. Reset de sessões e gestão completa do serviço opencode web (stop/reset)
+- Status: in-publish
+- Type: feat
+- Severity: medium
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 1 (devops)
+- Remote: #42
+- PR: #43
+- Location: scripts/reset-web.sh (novo), opencode.json (ocf:reset-web, ocf:stop-web), scripts/README.md, Makefile
+- Description: O serviço systemd `opencode` (web) está documentado e tem comandos de criar (`ocf:setup-web`/`setup-web.sh`) e reiniciar (`ocf:restart-web`), mas NÃO há comando de parar nem de zerar o cache/sessões. O banco de sessões em `~/.local/share/opencode/opencode.db` cresce (atualmente ~1,6 GB) e o usuário quer a capacidade de zerar as sessões e reiniciar o serviço.
+- Impact: Gestão completa do serviço (criar/parar/reiniciar/status/zerar sessões); resolve o problema de cache/sessões acumuladas do servidor web com um comando seguro.
+- Business rules:
+  1. `scripts/reset-web.sh` DEVE parar o serviço systemd `opencode`, limpar o banco de sessões e reiniciar o serviço.
+  2. A limpeza DEVE visar `~/.local/share/opencode/opencode.db*` (e `log/`), usando `${XDG_DATA_HOME:-$HOME/.local/share}/opencode` como base — auth.json e account.json DEVEM ser preservados.
+  3. Antes de remover, o banco DEVE ser movido para um backup timestamped em `<data-dir>/backups/opencode.db.<YYYYmmdd-HHMMSS>`.
+  4. Se o serviço não existir, o script DEVE abortar com erro claro (sem criar banco novo às cegas).
+  5. O script DEVE aceitar `--list`/`--dry-run` para mostrar o tamanho do banco e o que seria limpo, sem agir.
+  6. Comandos `ocf:reset-web` e `ocf:stop-web` DEVEM ser registrados no opencode.json.
+  7. A documentação (scripts/README.md) DEVE cobrir: criar, parar, reiniciar, status e zerar sessões.
+  8. O reset DEVE ser seguro para rodar via `sudo systemctl` (service user william_pereira).
+- Acceptance criteria:
+  1. `scripts/reset-web.sh` existe e `bash -n` passa.
+  2. `reset-web.sh --list` mostra o tamanho do banco de sessões sem modificar nada.
+  3. Rodar o reset: stop → backup timestamped → remove opencode.db* → start; auth.json/account.json permanecem.
+  4. `ocf:reset-web` e `ocf:stop-web` registrados no opencode.json (JSON válido).
+  5. `scripts/README.md` documenta criar/parar/reiniciar/status/zerar sessões.
+  6. `make test-scripts` continua passando (sem regressão).
+- Suggested fix: criar `scripts/reset-web.sh` (stop → backup → limpa db/log → start, com `--list`/`--dry-run`), registrar `ocf:reset-web` e `ocf:stop-web` no opencode.json, atualizar `scripts/README.md` e `Makefile`, e seguir o pipeline.
