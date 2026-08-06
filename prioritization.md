@@ -119,7 +119,7 @@ at proposal time. Unknown rules will be captured during discovery refinement.
   9. Cada repo disparado DEVE ter um workspace/branch isolado (`issue-<id>-<slug>`) para permitir pipelines paralelos.
 - Stakeholders: PO, Dev, PM, Senior Reviewers, QA, Committer, Publish Requester
 - Rationale: Automatiza o ciclo completo a partir de um simples comentario remoto; habilita aibot a resolver pequenas issues em paralelo.
-- Dependencies: Base ja existente (pipeline ocf:develop, publish-requester, anderson, close-requester, scripts create/promote).
+- Dependencies: Base ja existente (pipeline ocf:develop, publish-requester, close-requester, scripts create/promote).
 - Proposed issue type: feat
 
 ### Proposal 2026-08-05-1: Skills externas via clone + `skills.paths` (vendor), sem copia
