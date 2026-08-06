@@ -2,6 +2,33 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 45. Remover modelos definidos dos agentes e deletar o agente Anderson
+- Resolved: 2026-08-05
+- Type: chore
+- Report: william_pereira
+- Reviewers: 1
+- Remote: #39
+- Severity: medium
+- Summary: Remover o campo `model:` do frontmatter de todos os agentes (designer, ceo, anderson) — os modelos fixados causam bloqueios (ex. — (1) git rm agents/development/anderson.md; (2) remover `model:` de designer.md e ceo.md; (3) remover bloco `ocf:anderson-feedback` do opencode.json; (4) limpar workflow.md (11.5/10.5), publish-requester.md, prioritization.md, aibot-messages.md; (5) registrar issue, promover, revisar, MR.
+
+### 44. Revisar e importar novo lote de skills externas (design/dev/marketing) via vendor
+- Resolved: 2026-08-05
+- Type: feat
+- Report: william_pereira
+- Reviewers: 1
+- Remote: #36
+- Severity: medium
+- Summary: Revisar e importar um novo lote de skills externas seguindo a estratégia vendor da issue #43 (clone em `~/.config/opencode/vendor/` + `skills.paths`, NUNCA `npx skills add`). Lote — (1) registrar a issue e promover na branch da #43; (2) revisar cada repo (gh api / README / estrutura); (3) `skill-vendor.sh add` com sparse quando necessário; (4) atualizar skills/README.md; (5) rodar testes; (6) commitar e seguir o pipeline (review → QA → committer → MR).
+
+### 43. Skills externas via clone + `skills.paths` (vendor dir), sem copia
+- Resolved: 2026-08-05
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #35
+- Severity: medium
+- Summary: Mudar a estratégia de importação de skills externas de "copiar para `skills/<sector>/`" (import_claude_skill.sh / npx skills add) para "clonar em `~/.config/opencode/vendor/` e carregar in-place via `skills.paths`". Migrar as 3 design skills do taste-skill (issue #42) para o clone sparse, importar os 7 novos repos de design (motion-design, color-expert, icon-generator, brand-to-design, responsive-craft, ux-flow-designer, frontend-designer), e registrar a regra como padrão para todas as sessões futuras. — Implementar conforme BR 1-11. Criar `scripts/skill-vendor.sh`; clonar repos em vendor (taste-skill com sparse); atualizar opencode.json (skills.paths + permission.skill) e .gitignore; git rm das cópias em skills/design; reescrever skill-importer; registrar regra em AGENTS.md/conventions.md/decisions.md; criar comando ocf:import-skill; adicionar testes.
+
 ### 39. Disparo de pipeline de desenvolvimento por comentário remoto `@aibot:develop`
 - Resolved: 2026-08-04
 - Type: feat
