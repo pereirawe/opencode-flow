@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 CONFIG_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
-.PHONY: scan-issues review help promote close-issue bootstrap init maintain update review-external sync-issues close-merged bump-version restart-web setup-web test-scripts
+.PHONY: scan-issues review help promote close-issue bootstrap init maintain update review-external sync-issues close-merged bump-version restart-web stop-web reset-web setup-web test-scripts
 
 help:
 	@echo "OpenCode Flow — Targets:"
@@ -16,6 +16,8 @@ help:
 	@echo ""
 	@echo "== Web Service =="
 	@echo "  make restart-web             — restart opencode web service (apply config changes)"
+	@echo "  make stop-web                — stop opencode web service"
+	@echo "  make reset-web               — clear session cache/DB and restart opencode web"
 	@echo "  make setup-web               — install/update systemd service for opencode web"
 	@echo ""
 	@echo "== Quality =="
@@ -95,6 +97,16 @@ restart-web:
 	@echo "[make] restart-web"
 	@sudo systemctl restart opencode
 	@echo "Service restarted."
+
+stop-web:
+	@echo "[make] stop-web"
+	@sudo systemctl stop opencode
+	@echo "Service stopped."
+
+reset-web:
+	@echo "[make] reset-web"
+	@bash $(CONFIG_DIR)scripts/reset-web.sh --list
+	@bash $(CONFIG_DIR)scripts/reset-web.sh
 
 setup-web:
 	@echo "[make] setup-web"
