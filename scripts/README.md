@@ -81,13 +81,34 @@ Ou usar o script automatizado:
 ./scripts/setup-web.sh
 
 # Install/update (non-interactive)
-sudo ./scripts/setup-web.sh --user william-pereira --bin /home/william-pereira/.opencode/bin/opencode
+sudo ./scripts/setup-web.sh --user william_pereira --bin /home/william_pereira/.opencode/bin/opencode
 
 # Remove service
 ./scripts/setup-web.sh --uninstall
 
 # Restart after config changes (agents, skills, commands)
 sudo systemctl restart opencode
+```
+
+### Gestão completa do serviço
+
+| Ação | Comando | `ocf:` |
+|------|---------|--------|
+| Criar/instalar/atualizar | `scripts/setup-web.sh [--user U] [--bin P]` | `ocf:setup-web` |
+| Parar | `sudo systemctl stop opencode` | `ocf:stop-web` |
+| Reiniciar | `sudo systemctl restart opencode` | `ocf:restart-web` |
+| Status | `systemctl status opencode --no-pager` | — |
+| Zerar sessões + reiniciar | `scripts/reset-web.sh` | `ocf:reset-web` |
+
+**Zerar o cache/sessões** (`scripts/reset-web.sh`): o banco de sessões
+(`~/.local/share/opencode/opencode.db`) cresce com o uso (pode chegar a GBs).
+O reset faz `stop` → move o banco para um backup timestamped em
+`~/.local/share/opencode/backups/` → limpa `log/` → `start`. `auth.json` e
+`account.json` são preservados. Use `--list` para ver o tamanho antes de agir:
+
+```bash
+./scripts/reset-web.sh --list     # mostra serviço/data-dir/tamanho do DB (sem alterar)
+./scripts/reset-web.sh            # stop -> backup -> limpa -> start
 ```
 
 The service file (`scripts/opencode.service`) is version-controlled here.

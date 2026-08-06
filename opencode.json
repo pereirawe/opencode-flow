@@ -86,6 +86,14 @@
             "template": "Restart the opencode web service. Run `sudo systemctl restart opencode` to apply the latest configuration changes (agents, skills, commands) to the running web instance. If the service is not found, run `$SCRIPTS_DIR/setup-web.sh --user <user> --bin <path>` to install it first. Report the service status after restart.",
             "description": "Restart opencode web service to apply configuration changes"
         },
+        "ocf:stop-web": {
+            "template": "Stop the opencode web service. Run `sudo systemctl stop opencode` and report the result. Use `ocf:start-web`/`ocf:restart-web` to bring it back. If the service is not found, report that no service is installed.",
+            "description": "Stop the opencode web service"
+        },
+        "ocf:reset-web": {
+            "template": "Reset the opencode web service: clear accumulated session state (the session DB) and restart. Run `$SCRIPTS_DIR/reset-web.sh --list` first to show the current session DB size (it can grow to GBs), then confirm with the user before wiping. Then run `$SCRIPTS_DIR/reset-web.sh` — this stops the service, moves the session DB to a timestamped backup in `~/.local/share/opencode/backups/`, clears the log dir, and restarts. auth.json/account.json are preserved. Report the backup path and new service state.",
+            "description": "Stop opencode web, clear session cache/DB, and restart"
+        },
         "ocf:setup-web": {
             "template": "Install or update the opencode web systemd service. Run `$SCRIPTS_DIR/setup-web.sh` with optional --user and --bin flags. If not provided, ask the user for the system user and path to the opencode binary. The service file is stored at `$SCRIPTS_DIR/opencode.service` and can be replicated to other machines. After setup, report the service status.",
             "description": "Install or update the opencode web systemd service"
