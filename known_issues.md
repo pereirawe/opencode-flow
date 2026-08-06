@@ -485,7 +485,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   5. **Fix no skill-vendor.sh durante a #44**: `sparse-checkout set --skip-checks` para dirs ocultos, desquote de `name`, colisão de basename — testados em `scripts/tests/test_skill_vendor.sh`.
 
 ### 45. Remover modelos definidos dos agentes e deletar o agente Anderson
-- Status: in-review
+- Status: in-publish
 - Type: chore
 - Severity: medium
 - Report: william_pereira
