@@ -413,13 +413,13 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Suggested fix: (1) rodar `npx skills add https://github.com/Leonxlnx/taste-skill --skill design-taste-frontend` na raiz, (2) repetir para redesign-existing-projects e minimalist-ui, (3) criar `agents/designer.md` com o conteúdo fornecido, (4) registrar skills.paths se instalado fora do padrão, (5) documentar mapeamento de casos de uso.
 
 ### 43. Skills externas via clone + `skills.paths` (vendor dir), sem copia
-- Status: ready
+- Status: in-progress
 - Type: feat
 - Severity: medium
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 2 (devops, runtime)
-- Remote: -
+- Remote: #35
 - PR: -
 - Location: opencode.json, .gitignore, scripts/skill-vendor.sh (novo), scripts/import_claude_skill.sh, skills/shared/skill-importer/SKILL.md, skills/design/*, AGENTS.md, conventions.md, decisions.md, commands/ocf:import-skill.md (novo), scripts/README.md
 - Description: Mudar a estratégia de importação de skills externas de "copiar para `skills/<sector>/`" (import_claude_skill.sh / npx skills add) para "clonar em `~/.config/opencode/vendor/` e carregar in-place via `skills.paths`". Migrar as 3 design skills do taste-skill (issue #42) para o clone sparse, importar os 7 novos repos de design (motion-design, color-expert, icon-generator, brand-to-design, responsive-craft, ux-flow-designer, frontend-designer), e registrar a regra como padrão para todas as sessões futuras.
