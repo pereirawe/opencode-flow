@@ -412,3 +412,51 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   7. Agente acessível via Tab/@designer.
 - Suggested fix: (1) rodar `npx skills add https://github.com/Leonxlnx/taste-skill --skill design-taste-frontend` na raiz, (2) repetir para redesign-existing-projects e minimalist-ui, (3) criar `agents/designer.md` com o conteúdo fornecido, (4) registrar skills.paths se instalado fora do padrão, (5) documentar mapeamento de casos de uso.
 
+
+### 46. nginx como requisito + HTTPS local para o opencode web service
+- Status: ready
+- Type: feat
+- Severity: high
+- Report: PO
+- Base branch: main
+- Reviewers: 2 (devops, runtime)
+- Remote: -
+- PR: -
+- Location: scripts/setup-web.sh, scripts/setup-nginx.sh, scripts/nginx-opencode.conf, scripts/opencode.service, opencode.json, scripts/README.md
+- Description: Adicionar nginx como requisito do setup e expor o opencode web (que roda via systemd em 127.0.0.1:4096) através de um reverse proxy com HTTPS local. Cria `setup-nginx.sh` + template `nginx-opencode.conf`, orquestrados por `setup-web.sh --with-nginx`. Certificado via mkcert para `https://opencode.local`, redirecionando HTTP→HTTPS, com seleção inteligente de porta HTTP (80 → 8080 → 8081 → próxima livre, pois a porta 80 está ocupada pelo container docker gateway-go-nginx-1).
+- Impact: Elimina acesso manual a localhost:4096; padroniza `https://opencode.local`; garante serviço systemd com bind estável; segurança TLS local sem warnings.
+- Business rules:
+  1. `setup-web.sh` DEVE aceitar `--with-nginx`; quando presente, DEVE invocar `setup-nginx.sh` como parte do fluxo de instalação/atualização.
+  2. `setup-nginx.sh` DEVE instalar o pacote nginx (full) se ausente, usando o gerenciador de pacotes detectado de `/etc/os-release` (apt para Debian/Ubuntu, dnf para RHEL-family).
+  3. O certificado DEVE usar mkcert como ÚNICO mecanismo (`mkcert -install` com CAROOT preservado; leaf cert para `<hostname>`, `127.0.0.1`, `::1` em `/etc/opencode/certs/`). Se mkcert ausente, DEVE abortar com erro claro — sem fallback self-signed.
+  4. A porta HTTP DEVE ser selecionada automaticamente: tenta 80; se ocupada, 8080; se ocupada, 8081; assim por diante até a próxima livre. A porta HTTPS é sempre 443.
+  5. Se a porta 443 estiver ocupada, o setup DEVE abortar com erro claro antes de escrever qualquer configuração.
+  6. HTTP (`http://opencode.local:<porta-http>`) DEVE responder 301 redirect para `https://opencode.local`.
+  7. A config nginx DEVE ser renderizada de `scripts/nginx-opencode.conf` com `server_name <hostname>`, `listen <porta-http>` + `443 ssl`, `proxy_pass http://127.0.0.1:4096`, `X-Forwarded-Proto https`, headers de WebSocket upgrade e `proxy_read_timeout 3600s`.
+  8. `scripts/opencode.service` DEVE pinar `ExecStart` com `web --hostname 127.0.0.1 --port 4096` (evita drift que quebraria o proxy).
+  9. Certificados DEVEM ficar em `/etc/opencode/certs/` (cert 0644, key 0640, root:root).
+  10. O setup DEVE ser idempotente (rodar 2x não quebra nada) e NÃO DEVE modificar vhosts existentes nem o container docker que ocupa a porta 80.
+  11. `--uninstall` DEVE remover apenas o footprint nginx do opencode (site config + `/etc/opencode/certs/`); DEVE manter o pacote nginx, outros vhosts, a CA mkcert, o serviço opencode e a entrada em `/etc/hosts`.
+  12. O hostname DEVE ser parametrizável via `--hostname` (default `opencode.local`).
+  13. A documentação de `setup-web.sh` DEVE referenciar `william_pereira` (underscore), nunca `william-pereira`.
+  14. O setup DEVE garantir a entrada `<hostname> → 127.0.0.1` em `/etc/hosts` de forma idempotente (adiciona se faltar, não duplica).
+  15. Durante a instalação, o setup DEVE PERGUNTAR ao usuário se deseja abrir as portas HTTP/HTTPS escolhidas (ou portas customizadas) no firewall ativo, e DEVE documentar no README instruções manuais para abrir portas após a instalação.
+  16. Após o setup, `nginx -t` DEVE passar, o nginx DEVE ser recarregado, e o serviço opencode DEVE permanecer ativo em `127.0.0.1:4096`.
+  17. O restart do serviço (`ocf:restart-web`) DEVE continuar funcionando após o nginx ser adicionado.
+- Acceptance criteria:
+  1. `./setup-web.sh --user william_pereira --bin /home/william_pereira/.opencode/bin/opencode --with-nginx` completa com exit 0 nesta máquina (porta 80 ocupada por docker, 443 livre).
+  2. `nginx -t` reporta sucesso após o setup.
+  3. A porta HTTP selecionada está livre e é a próxima disponível na sequência 80→8080→8081→...
+  4. `curl -sI http://opencode.local:<porta-http>/` retorna 301 com `Location: https://opencode.local/...`.
+  5. `curl --cacert "$(mkcert -CAROOT)/rootCA.pem" https://opencode.local/` retorna 200 com a UI do opencode web.
+  6. `systemctl cat opencode` mostra `--hostname 127.0.0.1 --port 4096` no ExecStart.
+  7. `systemctl is-active opencode nginx` → ambos `active`.
+  8. Rodar `setup-nginx.sh` uma segunda vez exit 0; sem server blocks duplicados.
+  9. Uma requisição proxied carrega `X-Forwarded-Proto: https`.
+  10. `setup-nginx.sh --uninstall` remove `/etc/nginx/conf.d/opencode.conf` e `/etc/opencode/certs/`; `nginx -t` ainda passa; pacote nginx ainda instalado; container docker da porta 80 intacto; entrada `/etc/hosts` mantida; serviço opencode ativo.
+  11. `ocf:restart-web` funciona e `https://opencode.local` está acessível depois.
+  12. `setup-web.sh --help` e o comment de usage mostram `william_pereira`.
+  13. `/etc/hosts` contém `opencode.local → 127.0.0.1` exatamente uma vez após double setup.
+  14. Durante a instalação, o usuário é perguntado sobre abrir portas no firewall; README documenta as instruções manuais.
+  15. Handshake WebSocket (wss) funciona através do proxy.
+- Suggested fix: Criar `scripts/setup-nginx.sh` + `scripts/nginx-opencode.conf`, pinar `--hostname/--port` no `opencode.service`, adicionar `--with-nginx` ao `setup-web.sh`, atualizar `ocf:setup-web`/`ocf:restart-web` no opencode.json e documentar no `scripts/README.md`.
