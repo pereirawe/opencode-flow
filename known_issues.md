@@ -420,7 +420,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Base branch: main
 - Reviewers: 2 (devops, runtime)
 - Remote: #35
-- PR: -
+- PR: #37
 - Location: opencode.json, .gitignore, scripts/skill-vendor.sh (novo), scripts/import_claude_skill.sh, skills/shared/skill-importer/SKILL.md, skills/design/*, AGENTS.md, conventions.md, decisions.md, commands/ocf:import-skill.md (novo), scripts/README.md
 - Description: Mudar a estratégia de importação de skills externas de "copiar para `skills/<sector>/`" (import_claude_skill.sh / npx skills add) para "clonar em `~/.config/opencode/vendor/` e carregar in-place via `skills.paths`". Migrar as 3 design skills do taste-skill (issue #42) para o clone sparse, importar os 7 novos repos de design (motion-design, color-expert, icon-generator, brand-to-design, responsive-craft, ux-flow-designer, frontend-designer), e registrar a regra como padrão para todas as sessões futuras.
 - Impact: Skills externas passam a ser atualizáveis com `git pull` sem reimportar; elimina divergência com o upstream; reduz contexto e manutenção; qualquer sessão/agente sabe o comportamento padrão de importação.
