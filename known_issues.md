@@ -471,9 +471,15 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   8. A issue #44 depende da #43 (base branch é a branch da #43) — só existe na branch de trabalho.
 - Acceptance criteria:
   1. Todos os repos disponíveis do lote estão clonados em `~/.config/opencode/vendor/`.
-  2. `permission.skill` contém as skills desejadas (seo-geo, senior-frontend, google-search-console, youtube-seo, next-best-practices, nextjs-seo, python-expert-best-practices-code-review, tailwind, poster-design-generation, business-analyst, cto-os).
+  2. `permission.skill` contém as skills desejadas (seo-geo, senior-frontend, google-search-console, youtube-seo, next-best-practices, nextjs-seo, python-expert-best-practices-code-review, tailwind, poster-design-generation, cto-architecture-decision, cto-engineering-metrics, cto-risk-resilience, cto-technology-roadmap).
   3. Nenhuma skill duplicada registrada (sem IDs repetidos).
   4. `opencode.json` continua válido (JSON parse OK) e `bash -n` passa nos scripts.
   5. `skills/README.md` documenta o lote com repos de origem.
   6. `make test-scripts` continua passando (sem regressão nos testes da #43).
 - Suggested fix: (1) registrar a issue e promover na branch da #43; (2) revisar cada repo (gh api / README / estrutura); (3) `skill-vendor.sh add` com sparse quando necessário; (4) atualizar skills/README.md; (5) rodar testes; (6) commitar e seguir o pipeline (review → QA → committer → MR).
+- Notes (implementação — revisores validarem):
+  1. **Indisponíveis (não bloqueantes)**: `vercel-labs/next-skills` foi movido para `vercel/next.js` (branch canary, pasta `skills/`) e a skill `next-best-practices` foi dividida em docs embutidas no framework — NÃO existe mais como skill. `404kidwiz/claude-supercode-skills` retorna 404 (repo não encontrado) — `business-analyst` não importável. Nota: `next-best-practices` foi importada de `laguagu/claude-code-nextjs-skills` (mesmo nome, outro repo).
+  2. **Symlinks**: `alirezarezvani/claude-skills` usa symlinks em `.codex/skills/*` apontando para `engineering-team/skills/*`; o sparse aponta para o alvo real (`engineering-team/skills/senior-frontend`), não o symlink.
+  3. **Nomes com aspas**: `name: "senior-frontend"` (YAML quoted) — `skill-vendor.sh` agora desquoteia; caso coberto por teste.
+  4. **Colisão de nomes**: `wispbit-ai/skills` e `eachlabs/skills` têm o mesmo basename — `skill-vendor.sh` qualifica com owner (`eachlabs-skills`); caso coberto por lógica nova.
+  5. **Fix no skill-vendor.sh durante a #44**: `sparse-checkout set --skip-checks` para dirs ocultos, desquote de `name`, colisão de basename — testados em `scripts/tests/test_skill_vendor.sh`.

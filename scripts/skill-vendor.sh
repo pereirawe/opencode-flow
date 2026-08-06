@@ -53,7 +53,12 @@ skill_name() {
   awk '
     NR==1 && /^---$/ {infm=1; next}
     infm && /^---$/ {exit}
-    infm && /^name:[[:space:]]/ {sub(/^name:[[:space:]]*/, ""); print; exit}
+    infm && /^name:[[:space:]]/ {
+      sub(/^name:[[:space:]]*/, "")
+      gsub(/^["'\''\t ]+|["'\''\t ]+$/, "")
+      print
+      exit
+    }
   ' "$f" 2>/dev/null
 }
 
@@ -113,7 +118,8 @@ if changed:
 
 cmd_add() {
   [[ "$#" -ge 1 ]] || { echo "Usage: skill-vendor.sh add <url|owner/repo> [--sparse <paths...>]"; exit 1; }
-  local url name args=() sparse=()
+  local url name args=() sparse=() orig
+  orig="$1"
   url="$(normalize_url "$1")"
   name="$(repo_name "$1")"
   shift
@@ -122,6 +128,17 @@ cmd_add() {
     shift
     [[ "$#" -ge 1 ]] || { echo "--sparse requires at least one path"; exit 1; }
     sparse=("$@")
+  fi
+
+  # Name collision: if the vendor dir already exists under a different upstream,
+  # qualify with the owner (e.g. wispbit-ai/skills vs eachlabs/skills).
+  if [[ -d "$VENDOR_DIR/$name/.git" ]]; then
+    local existing
+    existing="$(git -C "$VENDOR_DIR/$name" config --get remote.origin.url 2>/dev/null || true)"
+    if [[ -n "$existing" && "$existing" != "$url" ]]; then
+      name="$(printf '%s' "$url" | sed -E 's#.*[:/]([^/:]+)/[^/]+$#\1#')-$name"
+      echo "[skill-vendor] '$orig' collides with an existing vendor dir — using '$name'"
+    fi
   fi
 
   if [[ -d "$VENDOR_DIR/$name" ]]; then
@@ -134,7 +151,7 @@ cmd_add() {
   if [[ "${#sparse[@]}" -gt 0 ]]; then
     echo "[skill-vendor] cloning $url (sparse: ${sparse[*]})"
     git clone --depth 1 --filter=blob:none --sparse "$url" "$VENDOR_DIR/$name" >/dev/null
-    git -C "$VENDOR_DIR/$name" sparse-checkout set "${sparse[@]}"
+    git -C "$VENDOR_DIR/$name" sparse-checkout set --skip-checks "${sparse[@]}"
   else
     echo "[skill-vendor] cloning $url"
     git clone --depth 1 "$url" "$VENDOR_DIR/$name" >/dev/null
