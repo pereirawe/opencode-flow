@@ -5,7 +5,7 @@ set -euo pipefail
 #
 # Usage:
 #   ./setup-web.sh                    # interactive (asks for user/binary path)
-#   ./setup-web.sh --user william-pereira --bin /home/william-pereira/.opencode/bin/opencode
+#   ./setup-web.sh --user william_pereira --bin /home/william_pereira/.opencode/bin/opencode
 #   ./setup-web.sh --uninstall        # remove the service
 
 OPENCODE_BIN="${OPENCODE_BIN:-}"
