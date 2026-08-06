@@ -204,7 +204,20 @@
             "brand-to-design-md": "allow",
             "responsive-craft": "allow",
             "ux-flow-designer": "allow",
-            "frontend-designer": "allow"
+            "frontend-designer": "allow",
+            "cto-architecture-decision": "allow",
+            "cto-engineering-metrics": "allow",
+            "cto-risk-resilience": "allow",
+            "cto-technology-roadmap": "allow",
+            "seo-geo": "allow",
+            "senior-frontend": "allow",
+            "google-search-console": "allow",
+            "youtube-seo": "allow",
+            "next-best-practices": "allow",
+            "nextjs-seo": "allow",
+            "python-expert-best-practices-code-review": "allow",
+            "tailwind": "allow",
+            "poster-design-generation": "allow"
         },
         "external_directory": {
             "~/.config/opencode/**": "allow",
