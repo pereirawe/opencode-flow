@@ -438,7 +438,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   11. A atualização DEVE ser `git -C <vendor>/<repo> pull` (via `skill-vendor.sh update`) — nunca reimportar do zero.
 - Acceptance criteria:
   1. `~/.config/opencode/vendor/` contém clones do taste-skill (sparse, 3 skills) e dos 7 novos repos.
-  2. `opencode.json` válido com `skills.paths` → vendor e `permission.skill` para todas as skills importadas (design-taste-frontend, redesign-existing-projects, minimalist-ui, motion-design, color-expert, icon-generator, brand-to-design, responsive-craft, ux-flow-designer, frontend-designer).
+  2. `opencode.json` válido com `skills.paths` → vendor e `permission.skill` para todas as skills importadas (design-taste-frontend, redesign-existing-projects, minimalist-ui, motion-design, color-expert, icon-generator, brand-to-design-md, responsive-craft, ux-flow-designer, frontend-designer).
   3. `.gitignore` contém `vendor/` e `git status` não lista conteúdo de terceiros.
   4. `skills/design/` removido do repo e do disco (conteúdo passa a vir do clone).
   5. `scripts/skill-vendor.sh` existe com subcomandos add/update/list/remove; `bash -n` passa.
