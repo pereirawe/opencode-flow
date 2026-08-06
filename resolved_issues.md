@@ -2,6 +2,15 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 47. Reset de sessões e gestão completa do serviço opencode web (stop/reset)
+- Resolved: 2026-08-06
+- Type: feat
+- Report: william_pereira
+- Reviewers: 1
+- Remote: #42
+- Severity: medium
+- Summary: O serviço systemd `opencode` (web) está documentado e tem comandos de criar (`ocf:setup-web`/`setup-web.sh`) e reiniciar (`ocf:restart-web`), mas NÃO há comando de parar nem de zerar o cache/sessões. O banco de sessões em `~/.local/share/opencode/opencode.db` cresce (atualmente ~1,6 GB) e o usuário quer a capacidade de zerar as sessões e reiniciar o serviço. — criar `scripts/reset-web.sh` (stop → backup → limpa db/log → start, com `--list`/`--dry-run`), registrar `ocf:reset-web` e `ocf:stop-web` no opencode.json, atualizar `scripts/README.md` e `Makefile`, e seguir o pipeline.
+
 ### 45. Remover modelos definidos dos agentes e deletar o agente Anderson
 - Resolved: 2026-08-05
 - Type: chore
