@@ -165,10 +165,6 @@ exclusive to `ocf:check-pr` and the Close Requester (step 12).
 11. **Publish Requester** — create merge/pull request after Committer gate passes.
     Does not re-validate gates — trusts Committer signal (`Status: in-publish`).
     Does not ask for confirmation — creates the MR automatically.
-11.5 **Anderson** — simulated end-user feedback. Triggered automatically after
-    Publish Requester. Reads only PR title + body (not diff), posts a single
-    PT-BR comment in leigo-ansioso-paulistano tone. Informational only — non-
-    blocking. If gh/glab is unavailable, logs error and continues.
 12. **Close Requester** — does not poll or check automatically. Only acts when
     explicitly triggered by a merge notification. After MR/PR is merged, closes
     the remote issue on GitHub/GitLab, updates `known_issues.md` status to
@@ -222,7 +218,6 @@ Use `ocf:discovery` to start the discovery pipeline and `ocf:delivery` to execut
    - Approved → `in-qa`
 9. Committer gate passed → `in-publish`
 10. MR/PR created → `in-publish`
-10.5 Anderson posts user-feedback comment on PR (non-blocking)
 11. MR/PR approved and merged → `in-publish` (PR merged but issue not yet closed)
 12. Close Requester closes remote issue and archives → `resolved`
 

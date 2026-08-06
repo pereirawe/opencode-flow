@@ -21,7 +21,8 @@ Other design skills from vendor: `motion-design` (LottieFiles/motion-design-skil
 `color-expert` (meodai/skill.color-expert), `icon-generator` (anhao/icon-generator-skill),
 `brand-to-design-md` (shaom/brand-to-design-md-skill), `responsive-craft`
 (kylezantos/responsive-craft), `ux-flow-designer` (ThomasPraun/ux-flow-designer),
-`frontend-designer` (kozz36/frontend-designer-skill, sparse `versions/v3.0`).
+`frontend-designer` (kozz36/frontend-designer-skill, sparse `versions/v3.0`),
+`poster-design-generation` (eachlabs/skills, sparse `skills/poster-design-generation`).
 
 Mapeamento de casos de uso → skill:
 
@@ -31,6 +32,30 @@ Mapeamento de casos de uso → skill:
 | Redesenhar algo existente | `redesign-existing-projects` |
 | UI tipo Notion/Linear (minimalista) | `minimalist-ui` |
 | Soft UI / glassmorphism | sem skill dedicada — seguir `design-taste-frontend` com vibe "glassy"/"soft" |
+
+## External batch (issue #44)
+
+Imported as vendor clones (issue #43 strategy) — full list via `scripts/skill-vendor.sh list`.
+
+| Skill | Origin repo | Notes |
+|-------|-------------|-------|
+| `seo-geo` | whyashthakker/agent-skills-marketing | sparse `.claude/skills/seo-geo` |
+| `senior-frontend` | alirezarezvani/claude-skills | sparse `engineering-team/skills/senior-frontend` (symlink target) |
+| `google-search-console` | kostja94/marketing-skills | sparse `skills/analytics/seo/google-search-console` |
+| `youtube-seo` | kostja94/marketing-skills | sparse `skills/platforms/youtube` |
+| `next-best-practices` | laguagu/claude-code-nextjs-skills | sparse `skills/next-best-practices` |
+| `nextjs-seo` | laguagu/claude-code-nextjs-skills | sparse `skills/nextjs-seo` |
+| `python-expert-best-practices-code-review` | wispbit-ai/skills | sparse `skills/python-expert-best-practices-code-review` |
+| `tailwind` | pproenca/dot-skills | sparse `skills/.curated/tailwind` |
+| `poster-design-generation` | eachlabs/skills | sparse `skills/poster-design-generation` |
+| `cto-architecture-decision` | rinaldofesta/cto-os-skills | full clone |
+| `cto-engineering-metrics` | rinaldofesta/cto-os-skills | full clone |
+| `cto-risk-resilience` | rinaldofesta/cto-os-skills | full clone |
+| `cto-technology-roadmap` | rinaldofesta/cto-os-skills | full clone |
+
+Not available (documented): `next-best-practices` from `vercel-labs/next-skills`
+(moved to `vercel/next.js`, split into framework-bundled docs) and
+`business-analyst` from `404kidwiz/claude-supercode-skills` (repo 404).
 
 ## Development
 

@@ -119,7 +119,27 @@ at proposal time. Unknown rules will be captured during discovery refinement.
   9. Cada repo disparado DEVE ter um workspace/branch isolado (`issue-<id>-<slug>`) para permitir pipelines paralelos.
 - Stakeholders: PO, Dev, PM, Senior Reviewers, QA, Committer, Publish Requester
 - Rationale: Automatiza o ciclo completo a partir de um simples comentario remoto; habilita aibot a resolver pequenas issues em paralelo.
-- Dependencies: Base ja existente (pipeline ocf:develop, publish-requester, anderson, close-requester, scripts create/promote).
+- Dependencies: Base ja existente (pipeline ocf:develop, publish-requester, close-requester, scripts create/promote).
+- Proposed issue type: feat
+
+### Proposal 2026-08-05-1: Skills externas via clone + `skills.paths` (vendor), sem copia
+- Priority: high
+- Business value: Skills externas (taste-skill, motion-design, color-expert, etc.) passam a ser carregadas in-place a partir de clones git em `~/.config/opencode/vendor/`, atualizáveis com `git pull` sem reimportar. Elimina divergência entre o upstream e o conteúdo copiado, reduz manutenção e torna o comportamento padrão para futuras importações.
+- Target sprint: next
+- Description: Mudar a estratégia de importação de skills externas de "copiar para `skills/<sector>/`" para "clonar em `~/.config/opencode/vendor/` e registrar via `skills.paths`". Migrar as design skills existentes do taste-skill (issue #42) para o novo esquema, importar a nova lista de repos de design (motion-design, color-expert, icon-generator, brand-to-design, responsive-craft, ux-flow-designer, frontend-designer), e registrar a regra como padrão para que agentes em outras sessões sigam o mesmo comportamento (AGENTS.md, decisions.md, skill-importer, comando `ocf:import-skill`, script `skill-vendor.sh`).
+- Business rules:
+  1. Skills externas DEVEM ser mantidas como clones git em `~/.config/opencode/vendor/` (um clone por repo upstream), NUNCA copiadas para `skills/`.
+  2. `opencode.json` DEVE registrar `skills.paths` apontando para `vendor/` para o loader varrer `**/SKILL.md` recursivamente.
+  3. `vendor/**` DEVE estar no `.gitignore` (não versionar conteúdo de terceiros).
+  4. O script `skill-vendor.sh` DEVE gerenciar vendor: `add <url> [--sparse <paths>]`, `update <name>`, `list`, `remove <name>`.
+  5. O `skill-importer` skill DEVE usar a estratégia de clone e DEVE ser registrado em `permission.skill`.
+  6. Repos com múltiplas skills DEVEM usar sparse checkout para carregar apenas as skills desejadas.
+  7. A identidade da skill é o `name` do frontmatter do SKILL.md (não o nome da pasta) — IDs existentes (design-taste-frontend, redesign-existing-projects, minimalist-ui) DEVEM ser preservados.
+  8. As 3 design skills copiadas (skills/design/*) DEVEM ser removidas e substituídas pelo clone do taste-skill.
+  9. A regra DEVE estar visível em sessões futuras via AGENTS.md + ADR em decisions.md + comando `ocf:import-skill`.
+- Stakeholders: Dev, designer, PO, QA
+- Rationale: A importação por cópia (npx skills add / import_claude_skill.sh) cria divergência com o upstream e exige reimportação manual para atualizar. O clone in-place resolve isso e é o modo recomendado para skills de terceiros.
+- Dependencies: Issue #42 (merged, main já contém as design skills).
 - Proposed issue type: feat
 
 ### Proposal 2026-08-05-1: Skills externas via clone + `skills.paths` (vendor), sem copia
