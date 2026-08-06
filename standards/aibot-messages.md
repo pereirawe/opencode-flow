@@ -7,8 +7,8 @@ issues remotas (GitHub/GitLab) durante o ciclo do `aibot-watcher` (issue #39).
 
 1. **Uma mensagem por trigger** — cada evento (comentário `@aibot:develop`
    processado) gera exatamente UMA mensagem, escolhida pela chave da mensagem.
-2. **Idioma**: PT-BR, tom objetivo e cordial (o aibot é um assistente de dev,
-   não o Anderson — sem gírias ou ansiedade de leigo).
+2. **Idioma**: PT-BR, tom objetivo e cordial (o aibot é um assistente de dev —
+   sem gírias ou ansiedade de leigo).
 3. **Provider**: GitHub → `gh issue comment <remote-id> --body-file -` (ou
    `--body`); GitLab → `glab issue comment <remote-id> --message ...`.
 4. **Placeholders**:

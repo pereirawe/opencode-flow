@@ -483,3 +483,34 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   3. **Nomes com aspas**: `name: "senior-frontend"` (YAML quoted) — `skill-vendor.sh` agora desquoteia; caso coberto por teste.
   4. **Colisão de nomes**: `wispbit-ai/skills` e `eachlabs/skills` têm o mesmo basename — `skill-vendor.sh` qualifica com owner (`eachlabs-skills`); caso coberto por lógica nova.
   5. **Fix no skill-vendor.sh durante a #44**: `sparse-checkout set --skip-checks` para dirs ocultos, desquote de `name`, colisão de basename — testados em `scripts/tests/test_skill_vendor.sh`.
+
+### 45. Remover modelos definidos dos agentes e deletar o agente Anderson
+- Status: in-publish
+- Type: chore
+- Severity: medium
+- Report: william_pereira
+- Base branch: issue-44-review-import-new-skills-batch
+- Reviewers: 1 (runtime)
+- Remote: #39
+- PR: #40
+- Location: agents/designer.md, agents/ceo.md, agents/development/anderson.md, opencode.json, workflow.md, agents/development/publish-requester.md, prioritization.md, standards/aibot-messages.md
+- Description: Remover o campo `model:` do frontmatter de todos os agentes (designer, ceo, anderson) — os modelos fixados causam bloqueios (ex.: `minimax/MiniMax-M2.5` inválido no Anderson) — e deletar o agente Anderson por completo (sem utilidade real, gasta tokens em cada MR).
+- Impact: Agentes passam a usar o modelo padrão da sessão/config (sem lock por agente); elimina falhas por modelo inválido; pipeline mais barato e sem o feedback simulado do Anderson.
+- Business rules:
+  1. `model:` DEVE ser removido do frontmatter de TODOS os agentes em `agents/**/*.md`.
+  2. Nenhum agente DEVE reter `model:` ou `variant:` residual.
+  3. `agents/development/anderson.md` DEVE ser removido (git rm).
+  4. O comando `ocf:anderson-feedback` DEVE ser removido do `opencode.json` (que permanece JSON válido).
+  5. `workflow.md` DEVE remover as etapas 11.5 e 10.5 do Anderson e manter o fluxo contínuo (sem renumerar etapas de forma a quebrar referências).
+  6. O `publish-requester` NÃO DEVE mais disparar o Anderson após criar MR.
+  7. Referências ao Anderson em `prioritization.md` e `standards/aibot-messages.md` DEVEM ser limpas (apenas histórico, não o registro).
+  8. Entradas históricas (issue #20 em known_issues.md/resolved_issues.md) NÃO DEVEM ser editadas.
+- Acceptance criteria:
+  1. `grep -rn "^model:" agents/` retorna vazio.
+  2. `agents/development/anderson.md` não existe (nem no git).
+  3. `ocf:anderson-feedback` ausente do `opencode.json` (JSON parse OK).
+  4. `workflow.md` sem menção a Anderson.
+  5. `publish-requester.md` sem disparo do Anderson.
+  6. `grep -rni "anderson"` limpo exceto entradas históricas (known_issues #20, resolved_issues, priorization histórico, aibot-messages sem a comparação).
+  7. `make test-scripts` continua passando.
+- Suggested fix: (1) git rm agents/development/anderson.md; (2) remover `model:` de designer.md e ceo.md; (3) remover bloco `ocf:anderson-feedback` do opencode.json; (4) limpar workflow.md (11.5/10.5), publish-requester.md, prioritization.md, aibot-messages.md; (5) registrar issue, promover, revisar, MR.
