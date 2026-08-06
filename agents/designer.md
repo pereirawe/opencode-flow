@@ -4,7 +4,6 @@ description: >
   Use when you need to build, iterate, or redesign interfaces from a description.
   Invoke with @designer or select with Tab.
 mode: all
-model: anthropic/claude-sonnet-4-20250514
 permission:
   edit:
     "*": ask
