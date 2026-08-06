@@ -18,4 +18,7 @@ if [[ -z "${1:-}" ]]; then
 fi
 
 echo "[import_claude_skill] deprecated — delegating to skill-vendor.sh add $*" >&2
-exec "$(dirname "$0")/skill-vendor.sh" add "$@"
+if ! exec "$(dirname "$0")/skill-vendor.sh" add "$@"; then
+  echo "[import_claude_skill] import failed — the calling convention changed: pass a git URL or owner/repo (the old 'skill-path sector' syntax is gone). See scripts/skill-vendor.sh." >&2
+  exit 1
+fi

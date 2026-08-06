@@ -28,6 +28,12 @@ if [[ -z "$cmd" ]]; then
   exit 1
 fi
 
+# validate_name <name> — a vendor dir name must be a single path component
+# (no /, no . or ..) to keep remove/update/add confined to VENDOR_DIR.
+validate_name() {
+  [[ -n "$1" && "$1" != "." && "$1" != ".." && "$1" != */* ]]
+}
+
 # normalize_url <url|owner/repo|local-path> — print a cloneable source
 normalize_url() {
   local u="$1"
@@ -41,6 +47,7 @@ normalize_url() {
 # repo_name <url> — print the local directory name for a repo URL
 repo_name() {
   local u="$1"
+  u="${u%/}"                            # strip trailing slash
   u="${u##*/}"
   u="${u%.git}"
   [[ -n "$u" ]] || { echo "could not derive repo name from '$1'" >&2; exit 1; }
@@ -51,9 +58,16 @@ repo_name() {
 skill_name() {
   local f="$1"
   awk '
+    { gsub(/\r$/, "") }                    # tolerate CRLF line endings
     NR==1 && /^---$/ {infm=1; next}
     infm && /^---$/ {exit}
-    infm && /^name:[[:space:]]/ {sub(/^name:[[:space:]]*/, ""); print; exit}
+    infm && /^name:[[:space:]]/ {
+      sub(/^name:[[:space:]]*/, "")
+      sub(/[[:space:]]#.*$/, "")          # strip inline YAML comments
+      gsub(/^["'\''\t ]+|["'\''\t ]+$/, "")
+      print
+      exit
+    }
   ' "$f" 2>/dev/null
 }
 
@@ -65,6 +79,11 @@ discover_skills() {
     n="$(skill_name "$f")"
     [[ -n "$n" ]] && printf '%s\t%s\n' "$f" "$n"
   done < <(find "$dir" -name SKILL.md -type f 2>/dev/null)
+}
+
+# discover_names <dir> — print unique frontmatter names in a clone (one per line)
+discover_names() {
+  discover_skills "$1" | cut -f2 | sort -u
 }
 
 # config_register_skills <name...> — add each skill to permission.skill (atomic)
@@ -111,9 +130,41 @@ if changed:
 ' "$OPENCODE_CONFIG" "$@"
 }
 
+# config_existing_skills <name...> — print names already registered as allow
+config_existing_skills() {
+  [[ "$#" -gt 0 ]] || return 0
+  python3 -c '
+import json, sys
+cfg = json.load(open(sys.argv[1], encoding="utf-8"))
+sk = cfg.get("permission", {}).get("skill", {})
+want = set(sys.argv[2:])
+print(" ".join(sorted(n for n in want if n in sk)))
+' "$OPENCODE_CONFIG" "$@"
+}
+
+# clone_repo <url> <dir> [sparse paths...] — clone with partial-clone fallback
+clone_repo() {
+  local url="$1" dir="$2"
+  shift 2
+  mkdir -p "$VENDOR_DIR"
+  if [[ "$#" -gt 0 ]]; then
+    echo "[skill-vendor] cloning $url (sparse: $*)"
+    if ! git clone --depth 1 --filter=blob:none --sparse "$url" "$dir" >/dev/null 2>&1; then
+      rm -rf "$dir"
+      echo "[skill-vendor] partial clone unsupported — falling back to shallow sparse clone"
+      git clone --depth 1 --sparse "$url" "$dir" >/dev/null
+    fi
+    git -C "$dir" sparse-checkout set --skip-checks "$@"
+  else
+    echo "[skill-vendor] cloning $url"
+    git clone --depth 1 "$url" "$dir" >/dev/null
+  fi
+}
+
 cmd_add() {
   [[ "$#" -ge 1 ]] || { echo "Usage: skill-vendor.sh add <url|owner/repo> [--sparse <paths...>]"; exit 1; }
-  local url name args=() sparse=()
+  local url name sparse=() orig
+  orig="$1"
   url="$(normalize_url "$1")"
   name="$(repo_name "$1")"
   shift
@@ -124,32 +175,43 @@ cmd_add() {
     sparse=("$@")
   fi
 
+  validate_name "$name" || { echo "[skill-vendor] invalid repo name '$name' for '$orig'"; exit 1; }
+
+  # Name collision: if the vendor dir already exists under a different upstream,
+  # qualify with the owner (e.g. wispbit-ai/skills vs eachlabs/skills).
+  if [[ -d "$VENDOR_DIR/$name/.git" ]]; then
+    local existing
+    existing="$(git -C "$VENDOR_DIR/$name" config --get remote.origin.url 2>/dev/null || true)"
+    if [[ -n "$existing" && "$existing" != "$url" ]]; then
+      name="$(printf '%s' "$url" | sed -E 's#.*[:/]([^/:]+)/[^/]+$#\1#')-$name"
+      echo "[skill-vendor] '$orig' collides with an existing vendor dir — using '$name'"
+    fi
+  fi
+
   if [[ -d "$VENDOR_DIR/$name" ]]; then
     echo "[skill-vendor] '$name' already exists at $VENDOR_DIR/$name"
     echo "[skill-vendor] run 'skill-vendor.sh update $name' to refresh it"
     exit 1
   fi
 
-  mkdir -p "$VENDOR_DIR"
-  if [[ "${#sparse[@]}" -gt 0 ]]; then
-    echo "[skill-vendor] cloning $url (sparse: ${sparse[*]})"
-    git clone --depth 1 --filter=blob:none --sparse "$url" "$VENDOR_DIR/$name" >/dev/null
-    git -C "$VENDOR_DIR/$name" sparse-checkout set "${sparse[@]}"
-  else
-    echo "[skill-vendor] cloning $url"
-    git clone --depth 1 "$url" "$VENDOR_DIR/$name" >/dev/null
-  fi
+  clone_repo "$url" "$VENDOR_DIR/$name" "${sparse[@]}"
 
-  local names
-  names="$(discover_skills "$VENDOR_DIR/$name" | cut -f2 | sort -u)"
-  if [[ -z "$names" ]]; then
+  local -a names_arr=()
+  local s
+  while IFS= read -r s; do names_arr+=("$s"); done <<< "$(discover_names "$VENDOR_DIR/$name")"
+
+  if [[ "${#names_arr[@]}" -eq 0 ]]; then
     echo "[skill-vendor] WARNING: no SKILL.md with frontmatter name found under $VENDOR_DIR/$name"
   else
-    config_register_skills $names
-    local s
-    while IFS= read -r s; do
+    local dupes
+    dupes="$(config_existing_skills "${names_arr[@]}")"
+    config_register_skills "${names_arr[@]}"
+    for s in "${names_arr[@]}"; do
       echo "[skill-vendor] registered skill '$s' in permission.skill"
-    done <<< "$names"
+    done
+    if [[ -n "$dupes" ]]; then
+      echo "[skill-vendor] WARNING: skills already registered by another vendor repo: $dupes"
+    fi
   fi
   echo "[skill-vendor] cloned '$name' → $VENDOR_DIR/$name (update with 'skill-vendor.sh update $name')"
 }
@@ -157,22 +219,25 @@ cmd_add() {
 cmd_update() {
   local name="${1:-}"
   [[ -n "$name" ]] || { echo "Usage: skill-vendor.sh update <name>"; exit 1; }
+  validate_name "$name" || { echo "[skill-vendor] invalid vendor name '$name'"; exit 1; }
   local dir="$VENDOR_DIR/$name"
   [[ -d "$dir/.git" ]] || { echo "[skill-vendor] '$name' not found in $VENDOR_DIR"; exit 1; }
   echo "[skill-vendor] pulling $name"
   git -C "$dir" pull
   git -C "$dir" sparse-checkout reapply 2>/dev/null || true
-  local names
-  names="$(discover_skills "$dir" | cut -f2 | sort -u)"
-  [[ -z "$names" ]] || config_register_skills $names
+  local -a names_arr=()
+  local s
+  while IFS= read -r s; do names_arr+=("$s"); done <<< "$(discover_names "$dir")"
+  [[ "${#names_arr[@]}" -eq 0 ]] || config_register_skills "${names_arr[@]}"
   echo "[skill-vendor] '$name' updated"
 }
 
 cmd_list() {
-  [[ -d "$VENDOR_DIR" ]] || { echo "[skill-vendor] vendor dir empty ($VENDOR_DIR)"; exit 0; }
-  local dir name remote commit skills
+  [[ -d "$VENDOR_DIR" ]] || { echo "[skill-vendor] no vendor dir yet ($VENDOR_DIR)"; exit 0; }
+  local dir name remote commit skills found=0
   for dir in "$VENDOR_DIR"/*/; do
     [[ -d "$dir/.git" ]] || continue
+    found=1
     name="$(basename "$dir")"
     remote="$(git -C "$dir" config --get remote.origin.url 2>/dev/null || echo "?")"
     commit="$(git -C "$dir" rev-parse --short HEAD 2>/dev/null || echo "?")"
@@ -180,18 +245,25 @@ cmd_list() {
     printf '%-24s %-60s %s\n' "$name" "$remote" "$commit"
     [[ -n "$skills" ]] && printf '  skills: %s\n' "$skills"
   done
+  [[ "$found" -eq 1 ]] || echo "[skill-vendor] vendor dir is empty ($VENDOR_DIR)"
 }
 
 cmd_remove() {
   local name="${1:-}"
   [[ -n "$name" ]] || { echo "Usage: skill-vendor.sh remove <name>"; exit 1; }
+  validate_name "$name" || { echo "[skill-vendor] invalid vendor name '$name'"; exit 1; }
   local dir="$VENDOR_DIR/$name"
   [[ -d "$dir/.git" ]] || { echo "[skill-vendor] '$name' not found in $VENDOR_DIR"; exit 1; }
-  local names
-  names="$(discover_skills "$dir" | cut -f2 | sort -u)"
+  local -a names_arr=()
+  local s
+  while IFS= read -r s; do names_arr+=("$s"); done <<< "$(discover_names "$dir")"
   rm -rf "$dir"
-  [[ -z "$names" ]] || config_unregister_skills $names
-  echo "[skill-vendor] removed '$name' (skills unregistered: ${names:-none})"
+  if [[ "${#names_arr[@]}" -gt 0 ]]; then
+    config_unregister_skills "${names_arr[@]}"
+    echo "[skill-vendor] removed '$name' (skills unregistered: ${names_arr[*]})"
+  else
+    echo "[skill-vendor] removed '$name' (no skills registered)"
+  fi
 }
 
 case "$cmd" in
