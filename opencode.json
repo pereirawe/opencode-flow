@@ -86,6 +86,10 @@
             "template": "Restart the opencode web service. Run `sudo systemctl restart opencode` to apply the latest configuration changes (agents, skills, commands) to the running web instance. If the service is not found, run `$SCRIPTS_DIR/setup-web.sh --user <user> --bin <path>` to install it first. Report the service status after restart.",
             "description": "Restart opencode web service to apply configuration changes"
         },
+        "ocf:start-web": {
+            "template": "Start the opencode web service. Run `sudo systemctl start opencode` and report the result. If the service is not found, report that no service is installed (use `ocf:setup-web`).",
+            "description": "Start the opencode web service"
+        },
         "ocf:stop-web": {
             "template": "Stop the opencode web service. Run `sudo systemctl stop opencode` and report the result. Use `ocf:start-web`/`ocf:restart-web` to bring it back. If the service is not found, report that no service is installed.",
             "description": "Stop the opencode web service"

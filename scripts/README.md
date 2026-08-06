@@ -95,6 +95,7 @@ sudo systemctl restart opencode
 | Ação | Comando | `ocf:` |
 |------|---------|--------|
 | Criar/instalar/atualizar | `scripts/setup-web.sh [--user U] [--bin P]` | `ocf:setup-web` |
+| Iniciar | `sudo systemctl start opencode` | `ocf:start-web` |
 | Parar | `sudo systemctl stop opencode` | `ocf:stop-web` |
 | Reiniciar | `sudo systemctl restart opencode` | `ocf:restart-web` |
 | Status | `systemctl status opencode --no-pager` | — |

@@ -24,7 +24,6 @@ set -euo pipefail
 
 SERVICE_NAME="${OPENCODE_WEB_SERVICE:-opencode}"
 DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/opencode"
-DB="$DATA_DIR/opencode.db"
 BACKUP_DIR="$DATA_DIR/backups"
 LOG_DIR="$DATA_DIR/log"
 MODE="full"
@@ -43,13 +42,13 @@ done
 
 svc() { ${RESET_SUDO:-sudo} systemctl "$@"; }
 
-db_exists() { [[ -f "$DB" ]]; }
+db_exists() { compgen -G "$DATA_DIR/opencode.db*" >/dev/null; }
 
 if [[ "$MODE" == "list" ]]; then
   echo "[reset-web] Service:  $SERVICE_NAME ($(systemctl is-active "$SERVICE_NAME" 2>/dev/null || echo 'unknown'))"
   echo "[reset-web] Data dir: $DATA_DIR"
   if db_exists; then
-    echo "[reset-web] Session DB: $DB ($(du -sh "$DB" | cut -f1))"
+    echo "[reset-web] Session DB: $DATA_DIR/opencode.db* ($(du -ch "$DATA_DIR"/opencode.db* 2>/dev/null | tail -1 | cut -f1))"
   else
     echo "[reset-web] Session DB: not found (nothing to clear)"
   fi
@@ -57,8 +56,16 @@ if [[ "$MODE" == "list" ]]; then
   exit 0
 fi
 
+# Root guard: as root, $HOME is /root and DATA_DIR would resolve to the wrong
+# place — a silent no-op that still restarts the live service. Refuse to run
+# as root; use sudo only for the systemctl calls.
+if [[ "$EUID" -eq 0 ]]; then
+  echo "[reset-web] ERROR: run as the service user (e.g. william_pereira), not root — the data dir is \$HOME-based" >&2
+  exit 1
+fi
+
 # Guard: the service must exist — do not create a fresh DB for a missing unit.
-if ! systemctl cat "$SERVICE_NAME" >/dev/null 2>&1; then
+if ! svc cat "$SERVICE_NAME" >/dev/null 2>&1; then
   echo "[reset-web] ERROR: service '$SERVICE_NAME' not found — run scripts/setup-web.sh first" >&2
   exit 1
 fi
@@ -66,22 +73,27 @@ fi
 echo "[reset-web] Stopping service $SERVICE_NAME..."
 svc stop "$SERVICE_NAME"
 
+# Never move a live DB: abort if the service is still active.
+if systemctl is-active --quiet "$SERVICE_NAME" 2>/dev/null; then
+  echo "[reset-web] ERROR: service still active after stop — aborting before clearing the session DB" >&2
+  exit 1
+fi
+
 mkdir -p "$BACKUP_DIR"
-TS="$(date +%Y%m%d-%H%M%S)"
+TS="$(date +%Y%m%d-%H%M%S)-$$"
 moved=0
-for f in "$DB" "$DB-wal" "$DB-shm"; do
-  if [[ -f "$f" ]]; then
-    mv "$f" "$BACKUP_DIR/$(basename "$f").$TS"
-    echo "[reset-web] backed up $(basename "$f") → backups/"
-    moved=1
-  fi
+for f in "$DATA_DIR"/opencode.db*; do
+  [[ -f "$f" ]] || continue
+  mv "$f" "$BACKUP_DIR/$(basename "$f").$TS"
+  echo "[reset-web] backed up $(basename "$f") → backups/"
+  moved=1
 done
 if [[ "$moved" -eq 0 ]]; then
   echo "[reset-web] no session DB files to clear"
 fi
 
 if [[ -d "$LOG_DIR" ]]; then
-  rm -f "$LOG_DIR"/* 2>/dev/null || true
+  find "$LOG_DIR" -maxdepth 1 -type f -delete 2>/dev/null || true
   echo "[reset-web] cleared log dir"
 fi
 

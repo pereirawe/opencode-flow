@@ -98,6 +98,11 @@ restart-web:
 	@sudo systemctl restart opencode
 	@echo "Service restarted."
 
+start-web:
+	@echo "[make] start-web"
+	@sudo systemctl start opencode
+	@echo "Service started."
+
 stop-web:
 	@echo "[make] stop-web"
 	@sudo systemctl stop opencode
@@ -106,7 +111,12 @@ stop-web:
 reset-web:
 	@echo "[make] reset-web"
 	@bash $(CONFIG_DIR)scripts/reset-web.sh --list
-	@bash $(CONFIG_DIR)scripts/reset-web.sh
+	@read -p "Zerar sessoes e reiniciar o servico? (s/N) " c; \
+	if [ "$$c" = "s" ] || [ "$$c" = "S" ]; then \
+	  bash $(CONFIG_DIR)scripts/reset-web.sh; \
+	else \
+	  echo "Cancelado."; \
+	fi
 
 setup-web:
 	@echo "[make] setup-web"
