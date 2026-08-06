@@ -92,6 +92,11 @@ sudo systemctl restart opencode
 
 ### Gestão completa do serviço
 
+> **Terminal:** os comandos usam `sudo systemctl` — rode-os **no seu terminal**,
+> não de dentro do opencode (o agente não tem terminal para a senha do sudo).
+> Os comandos `ocf:start-web`/`ocf:stop-web`/`ocf:restart-web`/`ocf:reset-web`/
+> `ocf:setup-web` apenas mostram o comando certo para você executar.
+
 | Ação | Comando | `ocf:` |
 |------|---------|--------|
 | Criar/instalar/atualizar | `scripts/setup-web.sh [--user U] [--bin P]` | `ocf:setup-web` |
