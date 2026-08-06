@@ -491,7 +491,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Report: william_pereira
 - Base branch: issue-44-review-import-new-skills-batch
 - Reviewers: 1 (runtime)
-- Remote: -
+- Remote: #39
 - PR: -
 - Location: agents/designer.md, agents/ceo.md, agents/development/anderson.md, opencode.json, workflow.md, agents/development/publish-requester.md, prioritization.md, standards/aibot-messages.md
 - Description: Remover o campo `model:` do frontmatter de todos os agentes (designer, ceo, anderson) — os modelos fixados causam bloqueios (ex.: `minimax/MiniMax-M2.5` inválido no Anderson) — e deletar o agente Anderson por completo (sem utilidade real, gasta tokens em cada MR).
