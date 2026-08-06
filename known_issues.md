@@ -449,13 +449,13 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Suggested fix: Implementar conforme BR 1-11. Criar `scripts/skill-vendor.sh`; clonar repos em vendor (taste-skill com sparse); atualizar opencode.json (skills.paths + permission.skill) e .gitignore; git rm das cópias em skills/design; reescrever skill-importer; registrar regra em AGENTS.md/conventions.md/decisions.md; criar comando ocf:import-skill; adicionar testes.
 
 ### 44. Revisar e importar novo lote de skills externas (design/dev/marketing) via vendor
-- Status: ready
+- Status: in-progress
 - Type: feat
 - Severity: medium
 - Report: william_pereira
 - Base branch: issue-43-external-skills-vendor-clone
 - Reviewers: 1 (runtime)
-- Remote: -
+- Remote: #36
 - PR: -
 - Location: opencode.json (permission.skill), skills/README.md, vendor/ (gitignored)
 - Description: Revisar e importar um novo lote de skills externas seguindo a estratégia vendor da issue #43 (clone em `~/.config/opencode/vendor/` + `skills.paths`, NUNCA `npx skills add`). Lote: cto-os-skills, agent-skills-marketing (seo-geo), claude-skills (senior-frontend), marketing-skills (google-search-console, youtube-seo), next-skills (next-best-practices), claude-code-nextjs-skills (nextjs-seo), wispbit-ai/skills (python-expert-best-practices-code-review), dot-skills (tailwind), eachlabs/skills (poster-design-generation), claude-supercode-skills (business-analyst).
