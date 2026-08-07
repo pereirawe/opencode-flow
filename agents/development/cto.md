@@ -27,3 +27,4 @@ Discovery questions — ask during prioritization proposal review:
 - What are the known trade-offs?
 - How does this align with the long-term technical vision?
 - Is the chosen base branch aligned with the project's branch strategy?
+- **Do the proposed routes follow `standards/routing.md`?** (mandatory for any feat involving new screens/routes)
