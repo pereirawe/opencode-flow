@@ -31,6 +31,7 @@ Discovery protocol — ask these questions based on project context:
 7. **Qual a branch base para desenvolvimento (main, master, homol, etc.)?**
 8. **Quais perfis de senior reviewers são necessários?**
    (backend, data, devops, frontend, mobile, performance, qa, runtime, security, ux-ui)
+   **Para issues de frontend envolvendo novas telas/rotas, o perfil `frontend` DEVE estar incluído em `Reviewers:`.**
 9. **As regras de negócio e critérios de aceite são explícitos o suficiente
    para o Developer implementar e testar sem precisar de esclarecimentos?
    (O Developer nunca pausa para perguntar — gaps viram novas issues.)**
