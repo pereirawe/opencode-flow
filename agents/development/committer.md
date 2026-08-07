@@ -27,6 +27,7 @@ Gates:
 3. Business rules documented (for feat types) ✅
 4. Tests passing ✅
 5. QA gate passed ✅
+6. **Routing standard referenced** — for frontend feat issues involving new screens/routes, verify `standards/routing.md` is referenced in `Business rules:`. Report missing reference but do not block.
 
 Rules:
 - Do not make code changes unless explicitly asked

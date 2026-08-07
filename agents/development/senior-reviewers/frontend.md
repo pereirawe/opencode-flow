@@ -17,5 +17,6 @@ Focus on:
 - Accessibility compliance
 - Bundle size and loading performance
 - Testing strategy (unit, integration, visual)
+- **Route conformity** — verify new routes follow `standards/routing.md` (check the project's `.opencode/standards/routing.md` when it exists)
 
 When called, review frontend aspects of the code.

@@ -17,5 +17,6 @@ Focus on:
 - Responsive behavior
 - Interaction patterns and feedback
 - Error messaging clarity
+- **Route conformity** — verify new routes follow `standards/routing.md` from a UX perspective (URL clarity, discoverability, consistency with existing patterns)
 
 When called, review UX/UI aspects of the code.
