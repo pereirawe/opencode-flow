@@ -86,7 +86,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Suggested fix: Remover open do ciclo de vida ou fazer create_issue.sh transicionar ready→open ao criar remote com sucesso.
 
 ### 26. `standards/issues.md` não documenta campo `Base branch:` e sintaxe de perfis em `Reviewers:`
-- Status: in-progress
+- Status: in-review
 - Type: doc
 - Severity: medium
 - Report: opencode
