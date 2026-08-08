@@ -421,7 +421,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Base branch: main
 - Reviewers: 2 (devops, runtime)
 - Remote: -
-- PR: -
+- PR: #48
 - Location: scripts/setup-web.sh, scripts/setup-nginx.sh, scripts/nginx-opencode.conf, scripts/opencode.service, opencode.json, scripts/README.md
 - Description: Adicionar nginx como requisito do setup e expor o opencode web (que roda via systemd em 127.0.0.1:4096) através de um reverse proxy com HTTPS local. Cria `setup-nginx.sh` + template `nginx-opencode.conf`, orquestrados por `setup-web.sh --with-nginx`. Certificado via mkcert para `https://opencode.local`, redirecionando HTTP→HTTPS, com seleção inteligente de porta HTTP (80 → 8080 → 8081 → próxima livre, pois a porta 80 está ocupada pelo container docker gateway-go-nginx-1).
 - Impact: Elimina acesso manual a localhost:4096; padroniza `https://opencode.local`; garante serviço systemd com bind estável; segurança TLS local sem warnings.
