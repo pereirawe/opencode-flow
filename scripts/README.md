@@ -23,6 +23,8 @@ Shell helpers for issue lifecycle management.
 | `import_claude_skill.sh` | Deprecated shim — delegates to `skill-vendor.sh add` |
 | `config.sh` | Shared configuration sourced by other scripts |
 | `setup-web.sh` | Install/update opencode web systemd service for headless operation |
+| `setup-nginx.sh` | Install nginx reverse proxy with mkcert HTTPS for opencode web |
+| `nginx-opencode.conf` | Nginx config template — HTTP→HTTPS redirect + reverse proxy to :4096 |
 | `opencode.service` | Systemd service template — replicated to other machines via `setup-web.sh` |
 
 ## Skill Vendor (external skills)
@@ -121,6 +123,75 @@ The service file (`scripts/opencode.service`) is version-controlled here.
 To replicate to another machine: copy the repo, run `setup-web.sh` pointing at
 the target user and opencode binary path. After installation, access the web
 UI at `http://<host>:4096` (default port).
+
+### Nginx Reverse Proxy (HTTPS)
+
+Add `--with-nginx` to `setup-web.sh` to set up a **mkcert-backed HTTPS reverse
+proxy** that exposes the opencode web service through `https://opencode.local`:
+
+```bash
+# Full setup: service + nginx
+sudo ./scripts/setup-web.sh --user william_pereira \
+  --bin /home/william_pereira/.opencode/bin/opencode \
+  --with-nginx
+
+# Custom hostname
+sudo ./scripts/setup-web.sh --with-nginx --hostname opencode.myproject.local
+```
+
+What `setup-nginx.sh` does:
+
+1. **Installs nginx** (via apt for Debian/Ubuntu, dnf for RHEL-family) if missing.
+2. **Checks mkcert** — aborts with a clear error if not found (no self-signed fallback).
+3. **Selects HTTP port**: tries 80 → 8080 → 8081 → … (port 80 is occupied by
+   docker on this machine).
+4. **Checks port 443** is free — aborts if occupied.
+5. **Adds `/etc/hosts`** entry (`<hostname> → 127.0.0.1`) — idempotent.
+6. **Generates certs** via `mkcert` for `<hostname>`, `127.0.0.1`, `::1` into
+   `/etc/opencode/certs/` (cert 644, key 640, root:root).
+7. **Renders** `nginx-opencode.conf` with HTTP→HTTPS redirect (301),
+   WebSocket upgrade headers, `proxy_read_timeout 3600s`, and
+   `X-Forwarded-Proto https`.
+8. **Tests & reloads** nginx (`nginx -t` + `systemctl reload nginx`).
+9. **Asks** about opening firewall ports (ufw/firewalld/iptables).
+
+**Idempotent**: running twice does not duplicate config blocks or `/etc/hosts`
+entries. Never touches existing vhosts or the docker container on port 80.
+
+Uninstall only the opencode footprint:
+
+```bash
+sudo ./scripts/setup-nginx.sh --uninstall
+# Removes: /etc/nginx/conf.d/opencode.conf, /etc/opencode/certs/
+# Keeps:   nginx package, other vhosts, mkcert CA, /etc/hosts entry, opencode service
+```
+
+#### Firewall
+
+During installation the script asks about opening ports. For manual setup:
+
+```bash
+# ufw
+sudo ufw allow <http-port>/tcp && sudo ufw allow 443/tcp
+
+# firewalld
+sudo firewall-cmd --add-port=<http-port>/tcp --permanent
+sudo firewall-cmd --add-port=443/tcp --permanent
+sudo firewall-cmd --reload
+
+# iptables (runtime only — use iptables-save to persist)
+sudo iptables -A INPUT -p tcp --dport <http-port> -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+```
+
+#### Running standalone
+
+`setup-nginx.sh` can also be invoked directly:
+
+```bash
+sudo ./scripts/setup-nginx.sh --hostname opencode.local
+sudo ./scripts/setup-nginx.sh --hostname opencode.local --non-interactive  # skip firewall prompt
+```
 
 ## Aibot Watcher (issue #39)
 
