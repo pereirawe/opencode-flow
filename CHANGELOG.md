@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.8.0 (2026-08-08)
+
+- **feat(telegram): mandatory telegram notifications for all agents** — every agent now sends Telegram alerts on task completion (success/failure) and when user input is required, with no confirmation prompt; credentials from `.opencode/telegram.env`
+- **feat(web): web service reset, stop, and full lifecycle management** — `ocf:reset-web` / `ocf:start-web` / `ocf:stop-web` commands with session DB cleanup; `reset-web.sh` archives old sessions and restarts cleanly
+- **feat(skills): vendor clone strategy for external skills** — third-party skills now live in `~/.config/opencode/vendor/` as git clones, loaded via `skills.paths`; `skill-vendor.sh` manages import/update/remove; 7 new design skills imported
+- **feat(design): designer agent + taste-skill integration** — `designer` agent creates polished UIs from descriptions following brief → explore → plan → build → review; 3 design-taste skills for landing pages, redesigns, and minimalist UI
+- **feat(aibot): remote pipeline trigger via `@aibot:develop` comment** — watcher service detects comments on remote issues and fires full develop pipeline, ending with MR creation and automated aibot response messages
+- **fix(web): ocf commands show sudo commands for terminal** — web service commands now display terminal instructions instead of attempting sudo from agent sessions
+- **feat(tech-lead): enforce frontend reviewer profile** — tech lead now requires frontend reviewer when issues affect frontend components
+
 ## 1.7.1 (2026-08-04)
 
 - **fix: preserve full `resolved_issues.md` archive on close** — replaced `tail -n +4` (which truncated 3 lines of existing content on every close, causing progressive data loss) with a prepend that always rewrites the 4-line header and appends all existing entries via awk, plus atomic `mktemp`/`mv` in the target directory; hardened to keep corrupted entries and clean orphaned temp files
