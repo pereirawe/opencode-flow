@@ -12,11 +12,15 @@ Seguimiento en dos niveles:
 - Type: bug | feat | doc | chore
 - Severity: critical | high | medium | low
 - Report: <nombre-usuario> | <nombre-modelo>
-- Reviewers: <número> (definido durante promoción, default 1)
+- Base branch: <default-branch> | <branch-name>
+- Reviewers: <número> (<perfil1>, <perfil2>)
 - Remote: - | #<id-remoto>
+- PR: - | #<pr-number>
 - Location: <ruta-archivo>:<líneas>
 - Description: <descripción breve>
 - Impact: <qué o quién es afectado>
+- Business rules: <reglas de negocio específicas, restricciones y reglas de dominio>
+- Acceptance criteria: <qué debe ser verdadero para que la issue se considere completa>
 - Suggested fix: <enfoque o siguiente paso>
 ```
 
