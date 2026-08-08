@@ -414,7 +414,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 
 
 ### 46. nginx como requisito + HTTPS local para o opencode web service
-- Status: in-review
+- Status: in-publish
 - Type: feat
 - Severity: high
 - Report: PO
