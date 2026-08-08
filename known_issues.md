@@ -93,7 +93,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Base branch: main
 - Reviewers: 1 (docs)
 - Remote: #45
-- PR: -
+- PR: #47
 - Location: standards/issues.md, standards/pt/issues.md, standards/es/issues.md, known_issues.md:8-22
 - Description: O formato canônico em standards/issues.md omite o campo `- Base branch:` e a sintaxe `(<profile1>, <profile2>)` para Reviewers, que estão presentes no header real do known_issues.md e são consumidos por scripts. O mesmo problema existe em standards/es/issues.md (falta Base branch e perfil) e standards/pt/issues.md (falta perfil).
 - Impact: Agentes/usuários que leem standards/issues.md produzem entries sem campos obrigatórios para os scripts.
