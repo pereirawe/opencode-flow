@@ -13,7 +13,7 @@ Rastreamento em dois níveis:
 - Severity: critical | high | medium | low
 - Report: <nome-usuário> | <nome-modelo>
 - Base branch: <default-branch> | <branch-name>
-- Reviewers: <número> (definido durante discovery, default 1)
+- Reviewers: <número> (<perfil1>, <perfil2>)
 - Remote: - | #<id-remoto>
 - PR: - | #<pr-number>
 - Location: <caminho-arquivo>:<linhas>

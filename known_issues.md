@@ -86,14 +86,14 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Suggested fix: Remover open do ciclo de vida ou fazer create_issue.sh transicionar ready→open ao criar remote com sucesso.
 
 ### 26. `standards/issues.md` não documenta campo `Base branch:` e sintaxe de perfis em `Reviewers:`
-- Status: ready
+- Status: in-publish
 - Type: doc
 - Severity: medium
 - Report: opencode
 - Base branch: main
 - Reviewers: 1 (docs)
-- Remote: -
-- PR: -
+- Remote: #45
+- PR: #47
 - Location: standards/issues.md, standards/pt/issues.md, standards/es/issues.md, known_issues.md:8-22
 - Description: O formato canônico em standards/issues.md omite o campo `- Base branch:` e a sintaxe `(<profile1>, <profile2>)` para Reviewers, que estão presentes no header real do known_issues.md e são consumidos por scripts. O mesmo problema existe em standards/es/issues.md (falta Base branch e perfil) e standards/pt/issues.md (falta perfil).
 - Impact: Agentes/usuários que leem standards/issues.md produzem entries sem campos obrigatórios para os scripts.
@@ -420,7 +420,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Report: PO
 - Base branch: main
 - Reviewers: 2 (devops, runtime)
-- Remote: -
+- Remote: #46
 - PR: #48
 - Location: scripts/setup-web.sh, scripts/setup-nginx.sh, scripts/nginx-opencode.conf, scripts/opencode.service, opencode.json, scripts/README.md
 - Description: Adicionar nginx como requisito do setup e expor o opencode web (que roda via systemd em 127.0.0.1:4096) através de um reverse proxy com HTTPS local. Cria `setup-nginx.sh` + template `nginx-opencode.conf`, orquestrados por `setup-web.sh --with-nginx`. Certificado via mkcert para `https://opencode.local`, redirecionando HTTP→HTTPS, com seleção inteligente de porta HTTP (80 → 8080 → 8081 → próxima livre, pois a porta 80 está ocupada pelo container docker gateway-go-nginx-1).
