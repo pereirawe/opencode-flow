@@ -2,6 +2,24 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 46. nginx como requisito + HTTPS local para o opencode web service
+- Resolved: 2026-08-08
+- Type: feat
+- Report: PO
+- Reviewers: 2
+- Remote: #46
+- Severity: high
+- Summary: Adiciona nginx como reverse proxy com HTTPS local via mkcert. setup-nginx.sh (313 linhas) com seleção inteligente de porta HTTP, template nginx-opencode.conf com 301 redirect/WebSocket/HTTPS, setup-web.sh --with-nginx, opencode.service com ExecStart pinado, firewall detection, idempotente.
+
+### 26. `standards/issues.md` não documenta campo `Base branch:` e sintaxe de perfis em `Reviewers:`
+- Resolved: 2026-08-08
+- Type: doc
+- Report: opencode
+- Reviewers: 1
+- Remote: #45
+- Severity: medium
+- Summary: Atualiza os 3 arquivos de standards (en, pt, es) para incluir - Base branch:, sintaxe correta de Reviewers: <number> (<profile1>, <profile2>), e campos ausentes no ES (PR, Business rules, Acceptance criteria) para paridade completa entre idiomas.
+
 ### 47. Reset de sessões e gestão completa do serviço opencode web (stop/reset)
 - Resolved: 2026-08-06
 - Type: feat
