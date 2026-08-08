@@ -1,5 +1,6 @@
 {
     "$schema": "https://opencode.ai/config.json",
+    "subagent_depth": 2,
     "instructions": [
         "~/.config/opencode/AGENTS.md",
         "~/.config/opencode/workflow.md",
@@ -109,6 +110,10 @@
         "ocf:import-skill": {
             "template": "Import an external skill from a git repository using the vendor clone strategy. Ask the user for the source: a git URL (`https://github.com/owner/repo`) or `owner/repo` shorthand. If the repo contains multiple skills and the user only wants specific ones, ask which folders (relative to the repo root) to check out as sparse paths. Then run `$SCRIPTS_DIR/skill-vendor.sh add <url> [--sparse <paths...>]` — this clones the repo into `~/.config/opencode/vendor/`, discovers every SKILL.md frontmatter name, and registers each as `allow` in `permission.skill` (atomic write to opencode.json). If the repo is already vendored, run `skill-vendor.sh update <name>` instead. Report the installed path and discovered skill names, and tell the user to restart opencode (or restart the web service) for the skills to appear. Never copy skills into `skills/`.",
             "description": "Import external skills as git clones via skill-vendor.sh"
+        },
+        "ocf:telegram-notify": {
+            "template": "Send a Telegram notification to the user. This is for MANUAL use — agents should use the telegram-notifier skill instead. Read the message from the user. Run `$HOME/.config/opencode/scripts/telegram-notify.sh --title \"<title>\" \"<message>\"`. If no title is provided, omit --title. The script loads credentials from .opencode/telegram.env automatically. Report success or failure.",
+            "description": "Send a manual Telegram notification"
         }
     },
     "permission": {
@@ -225,7 +230,8 @@
             "nextjs-seo": "allow",
             "python-expert-best-practices-code-review": "allow",
             "tailwind": "allow",
-            "poster-design-generation": "allow"
+            "poster-design-generation": "allow",
+            "telegram-notifier": "allow"
         },
         "external_directory": {
             "~/.config/opencode/**": "allow",
