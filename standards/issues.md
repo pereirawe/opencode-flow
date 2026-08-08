@@ -12,7 +12,8 @@ Two-tier issue tracking:
 - Type: bug | feat | doc | chore
 - Severity: critical | high | medium | low
 - Report: <user-name> | <model-name>
-- Reviewers: <number> (set during discovery, default 1)
+- Base branch: <default-branch> | <branch-name>
+- Reviewers: <number> (<profile1>, <profile2>)
 - Remote: - | #<remote-id>
 - PR: - | #<pr-number>
 - Location: <file-path>:<line-numbers>
