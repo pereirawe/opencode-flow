@@ -1,3 +1,21 @@
+## Mandatory Telegram Notifications
+
+**Every agent MUST send a Telegram notification in these two situations:**
+
+1. **Task/command completed** — whether success or failure. Notify the result.
+2. **User input needed** — when the agent asks a question and the user may be
+   away from the terminal.
+
+Use the `telegram-notifier` skill or run the script directly:
+
+```bash
+$HOME/.config/opencode/scripts/telegram-notify.sh --title "Título" "Mensagem"
+```
+
+Credentials are loaded from `~/.config/opencode/.opencode/telegram.env`.
+**Do NOT ask the user if they want a notification — just send it.**
+If credentials are missing, the script fails gracefully and work continues.
+
 ## OpenCode Configuration
 
 Entrypoints:
