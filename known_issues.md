@@ -521,7 +521,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Base branch: main
 - Reviewers: 2 (security, runtime)
 - Remote: #50
-- PR: -
+- PR: #51
 - Location: agents/development/develop-router.md:11-20, workflow.md (security boundary section)
 - Description: O agente `develop-router` (usado pelo `/ocf:develop`) define bash com catch-all `"*": deny` e allow patterns com paths RELATIVOS (`"scripts/promote.sh *"`, `"scripts/create_issue.sh *"`). No fluxo real, executado a partir do workspace do projeto alvo, os scripts são invocados com caminho ABSOLUTO (`$HOME/.config/opencode/scripts/promote.sh`, `$SCRIPTS_DIR/create_issue.sh`). O pattern relativo não casa → o catch-all `"*": deny` bloqueia → erro "The user has specified a rule which prevents you from using this specific tool call" em TODO ciclo de develop. Comandos essenciais de orquestração (ls/cat/head/which para detecção de linguagem, telegram-notify.sh exigido pelo AGENTS.md, gh/glab) também são negados pelo catch-all.
 - Impact: Todo `/ocf:develop` falha na promoção (promote/create_issue) — o pipeline de entrega fica impossibilitado de rodar via router. Violação do AGENTS.md (telegram-notify obrigatório). Foi observado em logs de 2026-08-10 (07:22–11:05) com dezenas de denials em `create_issue.sh 110`, `ls go.mod pyproject.toml ...`, `telegram-notify.sh`, `gh pr view`, etc.
