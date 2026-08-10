@@ -17,8 +17,11 @@ permission:
     "git clean -f*": deny
     "git branch -D *": deny
     "*scripts/promote.sh *": allow
+    "*SCRIPTS_DIR/promote.sh *": allow
     "*scripts/create_issue.sh *": allow
+    "*SCRIPTS_DIR/create_issue.sh *": allow
     "*scripts/telegram-notify.sh *": allow
+    "*SCRIPTS_DIR/telegram-notify.sh *": allow
     "gh *": allow
     "glab *": allow
   task:
