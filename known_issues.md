@@ -227,20 +227,6 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Impact: Issues GitLab em status resolved nunca são fechadas automaticamente pelo sync. Detecção quebra com mudanças de versão do glab.
 - Suggested fix: Usar `glab issue view --json state --jq '.state'` se suportado. Adicionar lógica de close para GitLab resolved.
 
-### 36. `scan_issues.sh` usa globs hardcoded que não cobrem diretórios do projeto
-- Status: in-publish
-- Type: chore
-- Severity: low
-- Report: opencode
-- Base branch: main
-- Reviewers: 1
-- Remote: -
-- PR: #49
-- Location: scripts/scan_issues.sh:10-11
-- Description: O script escaneia apenas `./src ./cmd ./internal ./*.go ./*.py ./*.js ./*.ts ./*.rs`. Projetos com layouts diferentes (monorepo, app/, lib/, scripts/) são ignorados.
-- Impact: scan-issues pode reportar "no issues" quando há issues em diretórios não listados. Scripts shell em scripts/ nunca são escaneados.
-- Suggested fix: Incluir scripts/ nos targets. Adicionar suporte a config `.opencode/scan-patterns` ou escanear a raiz com .gitignore-aware tool.
-
 ### 37. Delegar `ocf:develop` para router e agentes Go/Python
 - Status: in-progress
 - Type: feat

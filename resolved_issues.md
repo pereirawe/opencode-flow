@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 36. `scan_issues.sh` usa globs hardcoded que não cobrem diretórios do projeto
+- Resolved: 2026-08-10
+- Type: chore
+- Report: opencode
+- Reviewers: 1
+- Remote: -
+- PR: #49
+- Severity: low
+- Summary: Added `./scripts` to default scan targets and `.opencode/scan-patterns` config file for project-defined targets. Removed duplicate `TODO` from PATTERN regex.
+
 ### 46. nginx como requisito + HTTPS local para o opencode web service
 - Resolved: 2026-08-08
 - Type: feat
