@@ -4,12 +4,21 @@ source "$(dirname "$0")/config.sh"
 
 echo "[scan-issues] Running static scan..."
 
-# Basic heuristics — extend patterns for your project language
-PATTERN="TODO|FIXME|HACK|XXX|SECURITY|TODO|BUG|WORKAROUND"
+PATTERN="TODO|FIXME|HACK|XXX|SECURITY|BUG|WORKAROUND"
 TARGETS=()
-for glob in ./src ./cmd ./internal ./*.go ./*.py ./*.js ./*.ts ./*.rs; do
+for glob in ./src ./cmd ./internal ./scripts ./*.go ./*.py ./*.js ./*.ts ./*.rs; do
   [ -e "$glob" ] || [ -L "$glob" ] && TARGETS+=("$glob")
 done
+
+if [ -f ".opencode/scan-patterns" ]; then
+  echo "[scan-issues] Loading custom scan patterns from .opencode/scan-patterns"
+  while IFS= read -r line || [ -n "$line" ]; do
+    [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+    for glob in $line; do
+      [ -e "$glob" ] || [ -L "$glob" ] && TARGETS+=("$glob")
+    done
+  done < ".opencode/scan-patterns"
+fi
 
 echo "[scan-issues] Searching risky patterns..."
 

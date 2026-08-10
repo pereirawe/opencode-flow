@@ -228,14 +228,14 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Suggested fix: Usar `glab issue view --json state --jq '.state'` se suportado. Adicionar lógica de close para GitLab resolved.
 
 ### 36. `scan_issues.sh` usa globs hardcoded que não cobrem diretórios do projeto
-- Status: backlog
+- Status: in-publish
 - Type: chore
 - Severity: low
 - Report: opencode
 - Base branch: main
 - Reviewers: 1
 - Remote: -
-- PR: -
+- PR: #49
 - Location: scripts/scan_issues.sh:10-11
 - Description: O script escaneia apenas `./src ./cmd ./internal ./*.go ./*.py ./*.js ./*.ts ./*.rs`. Projetos com layouts diferentes (monorepo, app/, lib/, scripts/) são ignorados.
 - Impact: scan-issues pode reportar "no issues" quando há issues em diretórios não listados. Scripts shell em scripts/ nunca são escaneados.
