@@ -228,7 +228,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Suggested fix: Usar `glab issue view --json state --jq '.state'` se suportado. Adicionar lógica de close para GitLab resolved.
 
 ### 36. `scan_issues.sh` usa globs hardcoded que não cobrem diretórios do projeto
-- Status: in-review
+- Status: in-qa
 - Type: chore
 - Severity: low
 - Report: opencode
