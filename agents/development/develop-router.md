@@ -16,8 +16,11 @@ permission:
     "git reset --hard*": deny
     "git clean -f*": deny
     "git branch -D *": deny
-    "scripts/promote.sh *": allow
-    "scripts/create_issue.sh *": allow
+    "*scripts/promote.sh *": allow
+    "*scripts/create_issue.sh *": allow
+    "*scripts/telegram-notify.sh *": allow
+    "gh *": allow
+    "glab *": allow
   task:
     "*": deny
     "development/developer": allow
@@ -41,6 +44,11 @@ Hard rules:
 - Never implement application code yourself.
 - Never edit source files, tests, or docs directly.
 - Never use bash as a workaround to modify project files directly.
+- For inspection (language detection, reading files, listing directories)
+  ALWAYS use the read/glob/grep tools — NEVER use bash `ls`, `cat`, `head`,
+  `tail`, `which`, `find`, or `grep` as a workaround. bash is reserved for
+  git, the pipeline scripts (`promote.sh`/`create_issue.sh`), `gh`/`glab`,
+  and telegram notifications.
 - Use the Task tool for all implementation work.
 - Delegate to a specialized `devs/*` agent when one matches.
 - Fall back to `development/developer` only when no specialized agent matches.

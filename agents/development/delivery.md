@@ -11,7 +11,7 @@ permission:
     "known_issues.md": allow
   bash:
     "*": deny
-    "scripts/*.sh *": allow
+    "*scripts/*.sh *": allow
     "git *": allow
 ---
 
