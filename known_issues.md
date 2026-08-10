@@ -227,15 +227,44 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Impact: Issues GitLab em status resolved nunca são fechadas automaticamente pelo sync. Detecção quebra com mudanças de versão do glab.
 - Suggested fix: Usar `glab issue view --json state --jq '.state'` se suportado. Adicionar lógica de close para GitLab resolved.
 
+### 55. Decisão de discovery: conteúdo mock PT-BR com switcher EN/ES na landing
+- Status: ready
+- Type: feat
+- Severity: low
+- Report: ux-ui
+- Base branch: main
+- Reviewers: 2 (frontend, ux-ui)
+- Remote: #55
+- PR: -
+- Location: `src/app/landing/`, `src/lib/mock/`
+- Description: A landing tags.vizzupy.com tem o chrome (nav, hero, botões) localizado via i18n, mas o conteúdo mock (FAQ, cases, features de planos, idealPara, mensagens WhatsApp, JSON-LD) é PT-BR estático — com o switcher em EN/ES a página fica mista (UI EN + conteúdo PT). O conteúdo mock precisa ser traduzido aos 3 locales ou o switcher deve ser ocultado até que o conteúdo esteja completo.
+- Impact: Experiência inconsistente para usuários EN/ES; JSON-LD em PT para todas as locales.
+- Business rules:
+  1. Refinar no discovery: documentar a limitação (conteúdo mock PT-BR até o backend real) ou traduzir os mocks para os 3 locales.
+  2. Se manter PT-BR, considerar ocultar o switcher de idioma da landing até ter conteúdo traduzido.
+  3. As 4 tool pages + 4 history pages DEVERÃO ter generateMetadata() com locale-aware metadata.
+  4. JSON-LD deve seguir o padrão do domain-checker para cada locale.
+  5. O switcher de idioma DEVE funcionar corretamente com conteúdo traduzido em todos os 3 locales.
+  6. A decisão de traduzir vs. ocultar o switcher DEVE ser documentada no discovery.
+- Acceptance criteria:
+  1. O switcher de idioma da landing é removido ou o conteúdo mock é traduzido aos 3 locales (pt, en, es).
+  2. Todas as pages de landing (FAQ, cases, features) contêm conteúdo em pt, en e es.
+  3. JSON-LD no conteúdo mock segue o padrão do domain-checker.
+  4. `tsc --noEmit` sem erros; `npm test` passa.
+  5. O switcher não está mais visível na landing quando o conteúdo estiver completo.
+- Suggested fix: Sessão de discovery PO → CTO; afeta também issues 47-51 do EPIC 44.
+
+---
+
 ### 36. `scan_issues.sh` usa globs hardcoded que não cobrem diretórios do projeto
-- Status: backlog
+- Status: in-publish
 - Type: chore
 - Severity: low
 - Report: opencode
 - Base branch: main
 - Reviewers: 1
 - Remote: -
-- PR: -
+- PR: #49
 - Location: scripts/scan_issues.sh:10-11
 - Description: O script escaneia apenas `./src ./cmd ./internal ./*.go ./*.py ./*.js ./*.ts ./*.rs`. Projetos com layouts diferentes (monorepo, app/, lib/, scripts/) são ignorados.
 - Impact: scan-issues pode reportar "no issues" quando há issues em diretórios não listados. Scripts shell em scripts/ nunca são escaneados.
