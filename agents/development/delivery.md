@@ -41,7 +41,9 @@ Execute these phases **in sequence**, invoking each agent automatically:
 - Router selects language-specific implementation agent or falls back to `developer`
 - Implement the feature/fix according to business rules and acceptance criteria
 - Write automated tests alongside implementation
-- Run tests and self-review
+- Run tests via the `test-runner` skill (`scripts/test-runner.sh`) — fresh cache
+  → reuse; no cache → run and populate; never re-run an unchanged suite
+- Self-review
 - Update status to `in-review`
 - **Do NOT pause for user confirmation** — proceed automatically to senior review
 

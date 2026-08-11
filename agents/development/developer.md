@@ -28,6 +28,19 @@ Responsibilities:
   After implementing, run tests, self-review, update status to `in-review`, and
   automatically proceed — the pipeline is continuous without user interaction.
 
+### Test results (run via test-runner)
+
+Always validate tests through `scripts/test-runner.sh` — never ad hoc
+`go test` / `pytest` / `npm test`. Load the `test-runner` skill for the
+protocol.
+
+- **Cache fresh** (`--check` exit 0) → reuse the cached report; do NOT re-run
+  an unchanged suite.
+- **No cache** (`--check` exit 3 or runner missing) → run `--run` to populate
+  the cache and use the result for your own verification.
+- The cache never blocks: if the runner fails for any reason, run the project's
+  tests directly and use the outcome.
+
 When called, implement the assigned feature or fix from `known_issues.md`.
 If business rules are missing or unclear, flag the gap as a new issue in
 `known_issues.md` and proceed with what is defined — do not block the pipeline.
