@@ -21,6 +21,10 @@ Responsibilities:
 - Collaborate with Developer and Test Automation agents
 - After senior review, verify that all identified issues were addressed
   before confirming quality gate
+- Confirm tests via `scripts/test-runner.sh --check` (the `test-runner` skill):
+  a fresh cache proves the suite passed for the current code — do not re-run an
+  unchanged suite. Only run (`--run`) when the cache is stale or you need your
+  own verification; the cache never blocks — without it, run and use the result.
 
 When called during discovery/refinement, ask context-based questions.
 When called during pipeline execution (post-senior-review), run the

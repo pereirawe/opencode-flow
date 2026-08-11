@@ -231,7 +231,8 @@
             "python-expert-best-practices-code-review": "allow",
             "tailwind": "allow",
             "poster-design-generation": "allow",
-            "telegram-notifier": "allow"
+            "telegram-notifier": "allow",
+            "test-runner": "allow"
         },
         "external_directory": {
             "~/.config/opencode/**": "allow",
