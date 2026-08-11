@@ -13,7 +13,9 @@ Responsibilities:
 - Confirm all identified issues from senior review have been addressed
 - For feature issues (`feat` type), verify `Business rules:` field is populated
   in the issue entry — report if missing but do not block
-- Verify tests pass and conventions are followed
+- Verify tests pass — via `scripts/test-runner.sh --check` (the `test-runner`
+  skill): a fresh cache OR a recent successful `--run` satisfies the "Tests
+  passing" gate. Never re-run an unchanged suite.
 - Ensure `known_issues.md` reflects any new findings
 - Set issue status to `in-publish` after all gates pass
 - If a gate fails, document what failed in `known_issues.md` and let the
