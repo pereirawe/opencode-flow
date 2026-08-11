@@ -2,6 +2,15 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 58. develop-router bloqueado: allow patterns bash usam paths relativos que não casam com invocação real
+- Resolved: 2026-08-11
+- Type: bug
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #50
+- Severity: critical
+- Summary: O agente `develop-router` (usado pelo `/ocf:develop`) define bash com catch-all `"*" — Em `agents/development/develop-router.md`, trocar os allow patterns para casar path absoluto
+
 ### 59. Test runner único com cache de resultados (fingerprint) para agentes de development
 - Resolved: 2026-08-11
 - Type: feat
