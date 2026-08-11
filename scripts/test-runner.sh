@@ -278,7 +278,7 @@ cmd_run() {
   # passed" signal that check/committer/pre_commit rely on.
   if [[ "$filtered" == "1" ]]; then
     mkdir -p "$CACHE_DIR"
-    outfile="$(log_path "$runner")"
+    outfile="$(printf '%s/%s-%s-filtered.log' "$CACHE_DIR" "$(branch_name)" "$runner")"
     $cmd "${EXTRA_ARGS[@]}" >"$outfile" 2>&1 || code=$?
     printf 'test-runner: %s (exit %s) — full output: %s\n' "$([ "$code" -eq 0 ] && echo PASS || echo FAIL)" "$code" "$outfile"
     exit "$code"

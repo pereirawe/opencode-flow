@@ -190,4 +190,44 @@ printf 'package main\n\nvar x = 4\n' > "$repo/main.go"
 rc=$(cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --check >/dev/null 2>&1; echo $?)
 assert_eq "3" "$rc" "--check com cache fresco PORÉM falho sai exit 3 (B4)"
 
+# --- 14. caminho com espaços invalida o fingerprint (B3) ---
+reset_mock
+echo "0" > "$MOCK_EXIT_FILE"
+printf 'package main\n\nvar x = 5\n' > "$repo/main.go"
+( cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run >/dev/null 2>&1 )
+fp_space="$(awk -F= '/^fingerprint=/{print $2}' "$repo/.opencode/test-cache/$branch-go.result")"
+mkdir -p "$repo/dir with space"
+printf 'package main\n\nvar y = 1\n' > "$repo/dir with space/extra_test.go"
+reset_mock
+( cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run >/dev/null 2>&1 )
+assert_eq "1" "$(invocations)" "arquivo com espaço re-executa o runner (B3)"
+fp_after="$(awk -F= '/^fingerprint=/{print $2}' "$repo/.opencode/test-cache/$branch-go.result")"
+if [[ "$fp_space" != "$fp_after" ]]; then
+  t_ok "arquivo com espaço muda o fingerprint (B3)"
+else
+  t_fail "arquivo com espaço NÃO mudou o fingerprint (B3)"
+fi
+rm -rf "$repo/dir with space"
+reset_mock
+( cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run >/dev/null 2>&1 )
+assert_eq "1" "$(invocations)" "deleção de arquivo com espaço re-executa (B3)"
+
+# --- 15. run filtrado usa log separado, não sobrescreve o da suite (improvement) ---
+reset_mock
+echo "0" > "$MOCK_EXIT_FILE"
+printf 'package main\n\nvar x = 6\n' > "$repo/main.go"
+( cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run >/dev/null 2>&1 )
+full_log="$repo/.opencode/test-cache/$branch-go.log"
+if [[ -f "$full_log" ]]; then
+  t_ok "log da suite existe antes do run filtrado"
+else
+  t_fail "log da suite não existe antes do run filtrado"
+fi
+( cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run -- -run TestFoo >/dev/null 2>&1 )
+if [[ -f "$repo/.opencode/test-cache/$branch-go-filtered.log" ]]; then
+  t_ok "run filtrado cria log separado (-filtered.log)"
+else
+  t_fail "run filtrado NÃO criou log separado"
+fi
+
 t_finish
