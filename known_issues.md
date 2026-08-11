@@ -594,35 +594,6 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   13. `bash -n` clean on all modified scripts; full `make test-scripts` suite passes.
 - Suggested fix: Add `Opened`/`Ready`/`Started` to the known_issues.md entry format and stamping logic in promote.sh (Ready on backlog→ready, Started on ready→in-progress, backfill `Opened` set-if-absent) and create_issue.sh (`Opened` on remote success); extend close_issue.sh to stamp `Resolved` and compute `Durations` using `TZ=UTC date -d "$d" +%s` with per-component guards/floors and the dup guard preserved; update standards/issues.md (en+pt+es) and standards/resolved-issue.md (en); add scripts/tests/test_timestamps.sh (t01–t25). Rebase onto #56 after it lands (shared standards/issues.md + workflow.md).
 
-### 58. develop-router bloqueado: allow patterns bash usam paths relativos que não casam com invocação real
-- Status: in-publish
-- Type: bug
-- Severity: critical
-- Report: william_pereira
-- Base branch: main
-- Reviewers: 2 (security, runtime)
-- Remote: #50
-- PR: #51
-- Location: agents/development/develop-router.md:11-20, workflow.md (security boundary section)
-- Description: O agente `develop-router` (usado pelo `/ocf:develop`) define bash com catch-all `"*": deny` e allow patterns com paths RELATIVOS (`"scripts/promote.sh *"`, `"scripts/create_issue.sh *"`). No fluxo real, executado a partir do workspace do projeto alvo, os scripts são invocados com caminho ABSOLUTO (`$HOME/.config/opencode/scripts/promote.sh`, `$SCRIPTS_DIR/create_issue.sh`). O pattern relativo não casa → o catch-all `"*": deny` bloqueia → erro "The user has specified a rule which prevents you from using this specific tool call" em TODO ciclo de develop. Comandos essenciais de orquestração (ls/cat/head/which para detecção de linguagem, telegram-notify.sh exigido pelo AGENTS.md, gh/glab) também são negados pelo catch-all.
-- Impact: Todo `/ocf:develop` falha na promoção (promote/create_issue) — o pipeline de entrega fica impossibilitado de rodar via router. Violação do AGENTS.md (telegram-notify obrigatório). Foi observado em logs de 2026-08-10 (07:22–11:05) com dezenas de denials em `create_issue.sh 110`, `ls go.mod pyproject.toml ...`, `telegram-notify.sh`, `gh pr view`, etc.
-- Business rules:
-  1. Os allow patterns de bash do `develop-router` DEVEM casar tanto invocações relativas quanto ABSOLUTAS (`$SCRIPTS_DIR`/`$HOME/.config/opencode/scripts/`) dos scripts `promote.sh` e `create_issue.sh`.
-  2. O catch-all `"*": deny` DEVE ser preservado como base (boundary de segurança do workflow.md) — a correção é de allow patterns, não de remoção do deny.
-  3. As deny rules destrutivas de git (`git push --force*`, `git reset --hard*`, `git clean -f*`, `git branch -D *`) DEVEM permanecer DEPOIS de `git *: allow` (findLast) e após a correção.
-  4. `telegram-notify.sh` DEVE ser permitido para o router (AGENTS.md obriga notificação de conclusão/falha).
-  5. Comandos read-only de orquestração usados na detecção de linguagem (ls/cat/head/which, e `gh *`/`glab *`) DEVEM ser permitidos OU substituídos pelo uso de ferramentas glob/read/grep no prompt do router.
-  6. O router NÃO DEVE editar arquivos (edit: deny preservado) — só bash read-only + scripts de pipeline.
-  7. Nenhum comando `*` além dos allow explícitos DEVE ser liberado.
-- Acceptance criteria:
-  1. `$HOME/.config/opencode/scripts/promote.sh <id>` e `/home/<user>/.config/opencode/scripts/create_issue.sh <id>` (paths absolutos) são ALLOWED pelo bash do develop-router.
-  2. `scripts/promote.sh <id>` (path relativo) continua ALLOWED.
-  3. `git push --force`, `git reset --hard`, `git clean -f`, `git branch -D` continuam DENIED.
-  4. `telegram-notify.sh` roda sem deny no router.
-  5. `ls`/`cat`/`head`/`which` de arquivos do workspace ou `gh *`/`glab *` não disparam o erro de permissão (ou o prompt usa glob/read/grep).
-  6. `edit` permanece deny no router.
-  7. `/ocf:develop` numa issue `ready` conclui a promoção (promote + create_issue) sem erro de permissão.
-- Suggested fix: Em `agents/development/develop-router.md`, trocar os allow patterns para casar path absoluto: `"*scripts/promote.sh *": allow` e `"*scripts/create_issue.sh *": allow` (ou `"$HOME/.config/opencode/scripts/*.sh *"` + variante relativa). Adicionar `"*scripts/telegram-notify.sh *": allow`. Adicionar allow de `gh *`/`glab *` e de comandos read-only de inspeção (`ls *`, `cat *`, `head *`, `which *`) OU instruir o router no prompt a usar as ferramentas glob/read/grep em vez de bash para inspeção. Manter deny destrutivos de git após `git *: allow` e `edit: deny`. Validar com sessão `/ocf:develop` real.
 ### 59. Test runner único com cache de resultados (fingerprint) para agentes de development
 - Status: in-publish
 - Type: feat
