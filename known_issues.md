@@ -240,19 +240,44 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Description: A landing tags.vizzupy.com tem o chrome (nav, hero, botões) localizado via i18n, mas o conteúdo mock (FAQ, cases, features de planos, idealPara, mensagens WhatsApp, JSON-LD) é PT-BR estático — com o switcher em EN/ES a página fica mista (UI EN + conteúdo PT). O conteúdo mock precisa ser traduzido aos 3 locales ou o switcher deve ser ocultado até que o conteúdo esteja completo.
 - Impact: Experiência inconsistente para usuários EN/ES; JSON-LD em PT para todas as locales.
 - Business rules:
-  1. Refinar no discovery: documentar a limitação (conteúdo mock PT-BR até o backend real) ou traduzir os mocks para os 3 locales.
-  2. Se manter PT-BR, considerar ocultar o switcher de idioma da landing até ter conteúdo traduzido.
-  3. As 4 tool pages + 4 history pages DEVERÃO ter generateMetadata() com locale-aware metadata.
-  4. JSON-LD deve seguir o padrão do domain-checker para cada locale.
-  5. O switcher de idioma DEVE funcionar corretamente com conteúdo traduzido em todos os 3 locales.
-  6. A decisão de traduzir vs. ocultar o switcher DEVE ser documentada no discovery.
+  1. Todo conteúdo mock (FAQ, cases, features, WhatsApp, JSON-LD) DEVE ser traduzido a 3 locales: pt, en, es. Nenhum locale isento.
+  2. O switcher (EN/ES) DEVE permanecer funcional e visível. Selecionar locale DEVE renderizar o conteúdo correspondente.
+  3. O switcher DEVE ser ocultado SOMENTE quando todos os 3 locales tiverem conteúdo completo — é um fallback, não o caminho primário.
+  4. JSON-LD DEVE seguir o padrão domain-checker para cada locale com @type, @context e locale específicos.
+  5. Mensagens WhatsApp DEVEM ser locale-aware — cada template traduzido aos 3 locales.
+  6. O fallback DEVE usar pt como locale primário quando nenhum locale for selecionado ou não traduzido.
+  7. O switcher DEVE persistir a preferência de locale via NEXT_LOCALE cookie (já existente, middleware cookie-driven).
+  8. O conteúdo mock DEVE estar completo antes de ocultar o switcher — sem localização parcial.
+  9. WhatsApp NÃO DEVE renderizar em locale sem tradução.
+  10. O switcher DEVE ser implementado como componente client-side (React context + i18n) — sem locale switching server-side.
+  11. Modelo de dados dos mocks: exports com locale keys (`export const faqs = { pt: [...], en: [...], es: [...] }`) — sem mover para messages JSON (opção B do discovery). Os arquivos de mock são tree-shakeable e já testados; manter esse padrão.
+  12. Currency locale-aware: `formatBRL()` em planos.ts DEVE usar o locale ativo (pt→R$, en→BRL, es→BRL) — não hardcoded pt-BR.
+  13. Pluralização locale-aware: labels como "tag"/"tags" em planos-personal.tsx DEVEM usar o locale ativo.
+  14. CDC e referências legais BR-only DEVEM ser removidas da renderização EN/ES ou adaptadas com equivalente local.
+  15. Labels de unidade ("/mês") e valores de feature ("Sim", "Não", "Básicos", "Patrocinado") DEVEM ser locale-aware.
+  16. Hero SVG aria-label e siteConfig.tagline ("Aqui pertinho!") DEVEM ser traduzidos aos 3 locales.
+  17. JSON-LD por locale DEVE passar no Google Rich Results Test.
+  18. NOTA: generateMetadata() das tool pages (BR5 antigo) pertence à issue #105, NÃO a esta issue. Escopo desta issue limita-se ao landing page (tags.vizzupy.com).
 - Acceptance criteria:
-  1. O switcher de idioma da landing é removido ou o conteúdo mock é traduzido aos 3 locales (pt, en, es).
-  2. Todas as pages de landing (FAQ, cases, features) contêm conteúdo em pt, en e es.
-  3. JSON-LD no conteúdo mock segue o padrão do domain-checker.
-  4. `tsc --noEmit` sem erros; `npm test` passa.
-  5. O switcher não está mais visível na landing quando o conteúdo estiver completo.
-- Suggested fix: Sessão de discovery PO → CTO; afeta também issues 47-51 do EPIC 44.
+  1. Todos os blocos de mock (FAQ, cases, features, WhatsApp, JSON-LD) existem em pt, en, es.
+  2. O switcher é visível e funcional — ao clicar EN/ES o conteúdo muda.
+  3. O switcher é ocultado quando todos os 3 locales têm conteúdo completo.
+  4. O switcher persiste a preferência via NEXT_LOCALE cookie.
+  5. JSON-LD segue o padrão domain-checker por locale.
+  6. WhatsApp messages renderizam corretamente nos 3 locales.
+  7. Fallback para pt funciona quando locale ausente ou inválido.
+  8. Sem console errors ao trocar de locale.
+  9. Currency (formatBRL) usa o locale ativo (R$/BRL).
+  10. Pluralização usa o locale ativo.
+  11. CDC e referências legais BR são ocultadas/adaptadas para EN/ES.
+  12. "Sim"/"Não"/"Básicos"/"Patrocinado" são locale-aware.
+  13. "/mês" é locale-aware.
+  14. Hero SVG aria-label é traduzido.
+  15. JSON-LD de cada locale passa no Google Rich Results Test.
+  16. Navegação com browser back/forward mantém o locale correto.
+  17. Googlebot sem cookie recebe fallback pt consistente.
+  18. tsc --noEmit sem erros; npm test passa.
+- Suggested fix: ~40h total (12h tradução + 5h JSON-LD + 5h WhatsApp + 6h switcher + 7h testes + 5h edge cases). Modelo: locale-keyed exports nos arquivos mock existentes. Sessão de discovery PO → CTO → Tech Lead → QA concluída. Afeta também issues 47-51 do EPIC 44. NOTA: generateMetadata das tool pages é escopo da issue #105.
 
 ---
 
@@ -411,6 +436,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   7. Agente acessível via Tab/@designer.
 - Suggested fix: (1) rodar `npx skills add https://github.com/Leonxlnx/taste-skill --skill design-taste-frontend` na raiz, (2) repetir para redesign-existing-projects e minimalist-ui, (3) criar `agents/designer.md` com o conteúdo fornecido, (4) registrar skills.paths se instalado fora do padrão, (5) documentar mapeamento de casos de uso.
 
+
 ### 48. Sincronização bidirecional de issues com Jira Cloud (cards, status e comentários)
 - Status: ready
 - Type: feat
@@ -451,6 +477,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   12. `opencode.json` válido após registrar o comando `ocf:sync-jira` e o MCP Jira opcional.
 - Suggested fix: (1) criar `scripts/sync-jira.sh` (core REST v3: create-card, transition, add-comment, get-by-key; idempotente; não-bloqueante; auth via `JIRA_API_TOKEN`), (2) adicionar suporte a Jira em `scripts/config.sh` (leitura de `.opencode/jira.json` + env vars), (3) hookar `create_issue.sh`, `promote.sh` e `close_issue.sh`, (4) registrar `ocf:sync-jira` (e MCP Jira opcional) no `opencode.json`, (5) documentar o campo `Jira:` em standards (en/pt/es) e o MCP Jira em `standards/mcp-registry.md`, (6) testes em `scripts/tests/` + docs em `scripts/README.md`. Origem: Proposal 2026-08-06-1 em `prioritization.md`.
 
+
 ### 49. Agente de setor OWASP e Cybersecurity (consultor + revisor + gate)
 - Status: ready
 - Type: feat
@@ -489,4 +516,155 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   10. Edição fora de `.opencode/reviews/**` é negada (BR 10).
   11. `agents/development/README.md` lista o novo agente e `workflow.md`/docs refletem o gate de segurança.
 - Suggested fix: (1) criar `agents/development/security-owasp.md` com frontmatter (subagent, temperature 0.1, permission: edit allow apenas `.opencode/reviews/**`, bash allow) e prompt com os 3 modos + regra de bloqueio + locale-loader; (2) criar `skills/development/security/` com os 6 SKILL.md (top10 com tabela CWE, asvs com níveis L1/L2/L3, wstg com casos de teste, samm com maturity model, threat-modeling com STRIDE, secure-code-review com checklist de revisão); (3) evoluir `agents/development/senior-reviewers/security.md` para delegar ao security-owasp; (4) adicionar gate de verificação de segurança ao `agents/development/committer.md`; (5) registrar as 6 skills em `permission.skill` no `opencode.json`; (6) atualizar `agents/development/README.md` e `workflow.md`. Origem: Proposal 2026-08-06-2 em `prioritization.md`.
+
+### 56. Mandatory `Tests:` field captured during discovery (test standards pre-development)
+- Status: ready
+- Type: feat
+- Severity: medium
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (qa, docs)
+- Remote: -
+- PR: -
+- Location: standards/issues.md (en+pt+es), workflow.md, agents/development/product-owner.md, agents/development/quality-analyst.md, agents/development/discovery.md, known_issues.md (header Format block)
+- Description: Make the `Tests:` field a mandatory part of every new issue entry, captured during discovery (QA pre-development, Phase 5), so developers write tests against documented `scenario → outcome` definitions instead of inventing them ad-hoc during development.
+- Impact: Eliminates rework in dev sessions — every issue carries test standards before development, so Developer and QA know exactly what to verify up front; shrinks senior-review/QA loops. Docs+agents only — no script changes, no test surface.
+- Business rules:
+  1. `Tests:` field MUST be defined for every NEW issue before development starts — captured during the discovery phase, never added ad-hoc during development.
+  2. `Tests:` is MANDATORY in every new issue entry. For `doc`/`chore` types, the literal `- Tests: -` is permitted (no test surface). For `feat`/`bug` types, at least one `scenario → outcome` line is REQUIRED and the value may NEVER be `-`.
+  3. Scenario depth is a FLOOR with no upper bound: severity `critical`/`high` → ≥3 `scenario → outcome` lines; `medium` → ≥2; `low` → ≥1. If `- Severity:` is missing at QA validation time, the medium floor (≥2) applies.
+  4. The `Tests:` conventions MUST be documented in standards/issues.md (en, pt, es) and in workflow.md (discovery pipeline section).
+  5. Applies to ALL new issues going forward; existing in-flight issues in known_issues.md are NOT retroactively rewritten (MR diff is limited to the files in Location).
+  6. Enforcement is "verified by QA pre-development review (Phase 5) and senior reviewers" — NOT enforced by scripts. No script gate is added or claimed by this issue.
+  7. Missing or insufficient `Tests:` discovered during senior review or post-review QA = `incomplete-spec` (discovery gap), NOT a bug — per standards/code-review.md the issue returns to discovery refinement to capture the missing scenarios.
+  8. The QA pre-development checklist (validate testability, apply severity floor, medium fallback when Severity missing, incomplete-spec tagging) MUST be written into the quality-analyst.md agent prompt.
+  9. The product-owner.md prompt MUST instruct the PO to drive `Tests:` capture (`scenario → outcome`) during the discovery conversation, alongside business rules.
+  10. The discovery.md orchestrator MUST include the QA pre-development `Tests:` validation as part of Phase 5, before PM promotion.
+  11. known_issues.md header Format block MUST document the new `- Tests:` field with the `scenario → outcome` convention.
+- Acceptance criteria:
+  1. `- Tests:` appears in the known_issues.md header Format block and in standards/issues.md en+pt+es, with the scenario→outcome convention and the severity floor rules (≥3 critical/high, ≥2 medium, ≥1 low; medium floor when Severity missing).
+  2. Enforcement wording in standards/issues.md and workflow.md reads exactly "verified by QA pre-development review (Phase 5) and senior reviewers" — no wording claims script/lint enforcement. An optional future promote.sh/lint gate is recorded only as a follow-up note, NOT in the AC.
+  3. quality-analyst.md prompt contains the QA pre-development checklist: validate testability of `Tests:`, apply severity floor, medium fallback when `- Severity:` missing, tag `incomplete-spec` when `Tests:` missing/insufficient.
+  4. product-owner.md prompt instructs the PO to drive `Tests:` scenario→outcome capture during discovery.
+  5. discovery.md includes the Phase 5 QA pre-dev `Tests:` validation step before PM promotion.
+  6. workflow.md documents the `Tests:` field, the severity floors, and the incomplete-spec classification rule.
+  7. No existing issue entry in known_issues.md is modified (in-flight issues untouched); MR diff scope limited to the files in Location.
+  8. en/pt/es standards/issues.md parity spot-checked — all three updated consistently.
+- Suggested fix: Update the known_issues.md header Format block and standards/issues.md (en+pt+es) with the `- Tests:` field, severity floors, and enforcement wording; document the incomplete-spec classification in workflow.md; write the QA pre-dev checklist into quality-analyst.md; add the `Tests:` capture step to product-owner.md and the Phase 5 validation step to discovery.md. No script changes. Follow-up (NOT in this issue): optional promote.sh/lint gate.
+
+### 57. Time-tracking fields in issue lifecycle (Opened/Ready/Started/Resolved + Durations)
+- Status: ready
+- Type: feat
+- Severity: medium
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (runtime, devops)
+- Remote: -
+- PR: -
+- Location: scripts/promote.sh, scripts/create_issue.sh, scripts/close_issue.sh, standards/issues.md (en+pt+es), standards/resolved-issue.md (en), workflow.md, scripts/tests/test_timestamps.sh (NEW)
+- Description: Add timestamp fields (Opened, Ready, Started) to the known_issues.md entry format, stamp them on script status transitions (promote.sh, create_issue.sh), stamp Resolved at close time, and compute stage durations (Durations) into the resolved archive so per-stage cycle time can be measured.
+- Impact: Enables measuring per-stage cycle time (time in backlog, time to ready, dev time, total time to resolution) driving process improvement with real data. Touches the core lifecycle scripts — regression risk mitigated by the new plain-bash test suite. New-issues-only; no retroactive rewriting.
+- Business rules:
+  1. Timestamps recorded per-issue as fields in the known_issues.md entry (no separate tracking file): `- Opened: <YYYY-MM-DD>`, `- Ready: <YYYY-MM-DD>`, `- Started: <YYYY-MM-DD>`; `Resolved` and `Durations` are recorded at close time in the archive entry. Field order in known_issues.md: `Status` < `Opened` < `Ready` < `Started` (asserted by tests).
+  2. Scripts stamp timestamps on status transitions: promote.sh sets `Ready` on backlog→ready and `Started` on ready→in-progress; create_issue.sh sets `Opened` on remote creation success (if not already set); close_issue.sh sets `Resolved` (= close date / today) and computes durations for the archive.
+  3. `Opened` is stamped ONLY on remote creation success; when the remote is auto-created during promotion (mode 2), promote.sh backfills `Opened` set-if-absent with today's date (documented approximation).
+  4. Duration math MUST use UTC-anchored parse `TZ=UTC date -d "$d" +%s` (DST-robust). Naive local-epoch `/86400` day counting is REJECTED (fails the spring-forward DST scenario t21).
+  5. Guard start > end: render each component `-` BEFORE division; floor values at 0 (non-negative); `0d` when diff = 0; when ALL dates are missing, output the literal `- Durations: -`.
+  6. `Resolved` = close date (today); the total duration is relative to the close date.
+  7. Nothing depends on the unreachable `open` status (issue #25) — except create_issue.sh's legacy open path, which is preserved unchanged.
+  8. No trailer-sync via pre_commit.sh (issue #24): timestamp stamping is performed by the pipeline scripts directly, NOT by commit-trailer parsing.
+  9. Applies ONLY to new issues created after implementation; no retroactive reconstruction of existing known_issues.md entries or resolved_issues.md archive entries (existing archive entries preserved verbatim — backward compat).
+  10. Missing timestamps tolerated in the archive (fields optional, `-` allowed); durations computed only from available timestamps.
+  11. Idempotency required (issue #40 CI re-runs): re-running promote.sh/create_issue.sh/close_issue.sh on the same entry MUST NOT duplicate timestamps, corrupt fields, or append duplicate archive entries (exactly one archive entry after a double-run).
+  12. Durations = difference between relevant timestamps, computed at close time and stored in the archive entry.
+  13. Archive dup guard (issue #29) preserved: close_issue.sh continues to check for existing IDs in resolved_issues.md before appending.
+- Acceptance criteria:
+  1. NEW `scripts/tests/test_timestamps.sh` ships with the full scenario list t01–t25, including DST spring-forward (t21), double-run idempotency (t19), and prompt-bypass (t20); `make test-scripts` passes (run_all.sh auto-discovers test_*.sh).
+  2. Field order asserted: `Status` < `Opened` < `Ready` < `Started` in known_issues.md entries.
+  3. Existing pipeline gates unchanged — regression assertions for promote/create/close behavior (t07, t13).
+  4. Archive backward compat: existing resolved_issues.md entries preserved verbatim; exactly one archive entry after a double-run of close_issue.sh.
+  5. standards/resolved-issue.md (en) reconciled with actual script output — add `Severity` and `Durations` after `Resolved`, drop the legacy `PR` field; en/pt/es standards/issues.md parity spot-checked.
+  6. Tests deterministic/self-contained: mock `date` and mock `gh`/`glab` via PATH, no network, no TTY.
+  7. promote.sh stamps `Ready` (backlog→ready) and `Started` (ready→in-progress), and backfills `Opened` set-if-absent when auto-creating the remote.
+  8. create_issue.sh stamps `Opened` only on remote creation success.
+  9. close_issue.sh stamps `Resolved` (today) and computes per-component durations with the guard/floor rules (`-` per component on start>end, `0d` when diff=0, literal `- Durations: -` when all missing).
+  10. Duration math passes the DST spring-forward scenario (t21) using `TZ=UTC date -d "$d" +%s`.
+  11. No dependency introduced on the unreachable `open` status; create_issue.sh legacy open path unchanged.
+  12. Idempotency verified: re-running each script on the same entry produces no duplicate or corrupted fields.
+  13. `bash -n` clean on all modified scripts; full `make test-scripts` suite passes.
+- Suggested fix: Add `Opened`/`Ready`/`Started` to the known_issues.md entry format and stamping logic in promote.sh (Ready on backlog→ready, Started on ready→in-progress, backfill `Opened` set-if-absent) and create_issue.sh (`Opened` on remote success); extend close_issue.sh to stamp `Resolved` and compute `Durations` using `TZ=UTC date -d "$d" +%s` with per-component guards/floors and the dup guard preserved; update standards/issues.md (en+pt+es) and standards/resolved-issue.md (en); add scripts/tests/test_timestamps.sh (t01–t25). Rebase onto #56 after it lands (shared standards/issues.md + workflow.md).
+
+### 58. develop-router bloqueado: allow patterns bash usam paths relativos que não casam com invocação real
+- Status: in-publish
+- Type: bug
+- Severity: critical
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (security, runtime)
+- Remote: #50
+- PR: #51
+- Location: agents/development/develop-router.md:11-20, workflow.md (security boundary section)
+- Description: O agente `develop-router` (usado pelo `/ocf:develop`) define bash com catch-all `"*": deny` e allow patterns com paths RELATIVOS (`"scripts/promote.sh *"`, `"scripts/create_issue.sh *"`). No fluxo real, executado a partir do workspace do projeto alvo, os scripts são invocados com caminho ABSOLUTO (`$HOME/.config/opencode/scripts/promote.sh`, `$SCRIPTS_DIR/create_issue.sh`). O pattern relativo não casa → o catch-all `"*": deny` bloqueia → erro "The user has specified a rule which prevents you from using this specific tool call" em TODO ciclo de develop. Comandos essenciais de orquestração (ls/cat/head/which para detecção de linguagem, telegram-notify.sh exigido pelo AGENTS.md, gh/glab) também são negados pelo catch-all.
+- Impact: Todo `/ocf:develop` falha na promoção (promote/create_issue) — o pipeline de entrega fica impossibilitado de rodar via router. Violação do AGENTS.md (telegram-notify obrigatório). Foi observado em logs de 2026-08-10 (07:22–11:05) com dezenas de denials em `create_issue.sh 110`, `ls go.mod pyproject.toml ...`, `telegram-notify.sh`, `gh pr view`, etc.
+- Business rules:
+  1. Os allow patterns de bash do `develop-router` DEVEM casar tanto invocações relativas quanto ABSOLUTAS (`$SCRIPTS_DIR`/`$HOME/.config/opencode/scripts/`) dos scripts `promote.sh` e `create_issue.sh`.
+  2. O catch-all `"*": deny` DEVE ser preservado como base (boundary de segurança do workflow.md) — a correção é de allow patterns, não de remoção do deny.
+  3. As deny rules destrutivas de git (`git push --force*`, `git reset --hard*`, `git clean -f*`, `git branch -D *`) DEVEM permanecer DEPOIS de `git *: allow` (findLast) e após a correção.
+  4. `telegram-notify.sh` DEVE ser permitido para o router (AGENTS.md obriga notificação de conclusão/falha).
+  5. Comandos read-only de orquestração usados na detecção de linguagem (ls/cat/head/which, e `gh *`/`glab *`) DEVEM ser permitidos OU substituídos pelo uso de ferramentas glob/read/grep no prompt do router.
+  6. O router NÃO DEVE editar arquivos (edit: deny preservado) — só bash read-only + scripts de pipeline.
+  7. Nenhum comando `*` além dos allow explícitos DEVE ser liberado.
+- Acceptance criteria:
+  1. `$HOME/.config/opencode/scripts/promote.sh <id>` e `/home/<user>/.config/opencode/scripts/create_issue.sh <id>` (paths absolutos) são ALLOWED pelo bash do develop-router.
+  2. `scripts/promote.sh <id>` (path relativo) continua ALLOWED.
+  3. `git push --force`, `git reset --hard`, `git clean -f`, `git branch -D` continuam DENIED.
+  4. `telegram-notify.sh` roda sem deny no router.
+  5. `ls`/`cat`/`head`/`which` de arquivos do workspace ou `gh *`/`glab *` não disparam o erro de permissão (ou o prompt usa glob/read/grep).
+  6. `edit` permanece deny no router.
+  7. `/ocf:develop` numa issue `ready` conclui a promoção (promote + create_issue) sem erro de permissão.
+- Suggested fix: Em `agents/development/develop-router.md`, trocar os allow patterns para casar path absoluto: `"*scripts/promote.sh *": allow` e `"*scripts/create_issue.sh *": allow` (ou `"$HOME/.config/opencode/scripts/*.sh *"` + variante relativa). Adicionar `"*scripts/telegram-notify.sh *": allow`. Adicionar allow de `gh *`/`glab *` e de comandos read-only de inspeção (`ls *`, `cat *`, `head *`, `which *`) OU instruir o router no prompt a usar as ferramentas glob/read/grep em vez de bash para inspeção. Manter deny destrutivos de git após `git *: allow` e `edit: deny`. Validar com sessão `/ocf:develop` real.
+### 59. Test runner único com cache de resultados (fingerprint) para agentes de development
+- Status: in-publish
+- Type: feat
+- Severity: high
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (qa, runtime)
+- Remote: #52
+- PR: #53
+- Location: scripts/test-runner.sh (NEW), skills/development/test-runner/SKILL.md (NEW), scripts/tests/test_test_runner.sh (NEW), agents/development/developer.md, agents/development/devs/golang.md, agents/development/devs/python.md, agents/development/senior-reviewers/README.md, agents/development/quality-analyst.md, agents/development/committer.md, agents/development/delivery.md, scripts/pre_commit.sh, workflow.md, standards/commits.md
+- Description: Criar `scripts/test-runner.sh` — entrypoint único de testes para agentes de development, com bootstrap de ambiente, detecção de runner, fingerprint de mudanças e cache de resultados em `.opencode/test-cache/`. Uma skill `test-runner` documenta o protocolo (check/run/status) para qualquer agente. Prompts de developer, devs/*, senior-reviewers, quality-analyst, committer e delivery passam a consumir o cache quando fresco e rodar testes apenas quando há mudança mínima. `pre_commit.sh` delega ao runner.
+- Impact: Elimina execuções repetidas da mesma suite com saída idêntica (developer → senior review → QA → committer rodam o mesmo código 5–7x). Reduz erros de ambiente repetidos (cada agente invoca comando próprio e perde diagnóstico com `2>/dev/null`). Padroniza diagnóstico e reduz tempo de ciclo e tokens.
+- Business rules:
+  1. `scripts/test-runner.sh` DEVE ser o entrypoint único de testes para agentes — nunca comandos ad hoc (`go test`, `pytest`, `npm test`).
+  2. O script DEVE detectar o runner automaticamente (go/cargo/npm/pytest/poetry) e fazer bootstrap de ambiente (venv, node_modules) com diagnóstico claro em caso de erro de ambiente.
+  3. O script DEVE suportar: `--check` (cache válido? exit 0 + caminho do relatório; sem cache válido exit 3), `--run` (executa, grava cache, imprime resumo + exit code), `--status` (estado legível).
+  4. Fingerprint DEVE ser hash de `git rev-parse HEAD` + arquivos de código/teste alterados (tracked + unstaged). Mudança mínima → fingerprint muda → re-executa.
+  5. Cache DEVE ficar em `.opencode/test-cache/<branch>-<runner>.result` e ser gitignored.
+  6. Cache NUNCA DEVE bloquear: se não há cache válido ou o script falha, o agente DEVE rodar os testes direto e usar o resultado para o próprio uso.
+  7. A skill `test-runner` DEVE documentar o protocolo (check/run/status) e o fallback.
+  8. Os prompts DEVEM instruir: cache fresco → reutiliza; sem cache → roda e popula; não bloquear em ausência de cache.
+  9. `committer.md` gate "Tests passing" DEVE ser satisfeito por cache fresco OU execução recente bem-sucedida — nunca re-rodar suite idêntica.
+  10. `senior-reviewers` DEVE confirmar testes via cache quando fresco; testes pontuais do domínio são livres.
+  11. `pre_commit.sh` DEVE delegar ao runner (cache-aware) e NÃO rodar suite completa em todo commit sem verificação de fingerprint.
+- Acceptance criteria:
+  1. `scripts/test-runner.sh` existe, é executável e `bash -n` limpo; suporta `--check`/`--run`/`--status`.
+  2. `--check` sem cache válido sai com exit 3; com cache válido sai exit 0 e imprime o caminho do relatório.
+  3. `--run` em projeto com runner detectado executa a suite, grava `.opencode/test-cache/<branch>-<runner>.result`, imprime resumo e exit code.
+  4. Fingerprint muda quando um arquivo de código/teste é editado (teste prova); sem mudança, `--check` continua exit 0.
+  5. Sem git repo, o script ainda funciona (fingerprint baseado em mtime/conteúdo) ou diagnostica claramente.
+  6. Erro de ambiente (runner ausente, deps faltando) produz mensagem clara de diagnóstico, não falha silenciosa (`2>/dev/null` removido).
+  7. `skills/development/test-runner/SKILL.md` documenta protocolo + fallback; registro `permission.skill` adicionado.
+  8. Prompts de developer, devs/golang, devs/python, senior-reviewers/README, quality-analyst, committer e delivery referenciam o runner/cache.
+  9. `pre_commit.sh` delega ao runner e não roda suite completa sem checar fingerprint.
+  10. `scripts/tests/test_test_runner.sh` cobre: check válido/inválido, run popula cache, re-run não re-executa, fingerprint muda com edição, fallback sem git, diagnóstico de ambiente; `make test-scripts` passa.
+  11. `workflow.md` e `standards/commits.md` documentam o runner e a regra de re-uso.
+- Tests:
+  1. `scripts/tests/run_all.sh` → todas as suites (incluindo test_test_runner.sh) passam: exit 0.
+  2. Mock runner em PATH → `test-runner.sh --run` grava cache com fingerprint e exit code corretos.
+  3. Repetir `--run` com mesma fingerprint → saída vem do cache (runner mock NÃO é chamado de novo; contador de invocações prova).
+  4. Tocar arquivo de teste → fingerprint muda → `--run` re-executa (contador de invocações incrementa).
+  5. `--check` antes de qualquer `--run` → exit 3; depois de `--run` → exit 0 + caminho do relatório.
+  6. Diretório sem git (TMPDIR) → `--status` diagnostica; `--run` não quebra (fallback documentado).
+- Suggested fix: Criar `scripts/test-runner.sh` (detecção de runner, bootstrap env, fingerprint via `git rev-parse HEAD` + `git status --porcelain` + hashes de arquivos alterados, cache JSON em `.opencode/test-cache/`, modos check/run/status). Criar `skills/development/test-runner/SKILL.md` com protocolo e fallback. Adicionar permissão da skill em opencode.json. Atualizar prompts: developer.md, devs/golang.md, devs/python.md, senior-reviewers/README.md, quality-analyst.md, committer.md, delivery.md. Delegar pre_commit.sh ao runner. Adicionar testes em scripts/tests/test_test_runner.sh. Documentar em workflow.md e standards/commits.md.
 
