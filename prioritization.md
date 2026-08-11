@@ -172,5 +172,26 @@ at proposal time. Unknown rules will be captured during discovery refinement.
 - Stakeholders: PM, PO, Developer, QA
 - Rationale: The pipeline currently has no timing data; stage durations are unknowable. Cheap to add while touching standards.
 - Dependencies: Must stay consistent with the real lifecycle scripts actually drive (promote.sh sets in-progress, close_issue.sh archives). Issue #25 (open unreachable) means the `open` status should NOT be part of the timestamp design. Issue #24 (trailer sync claims) means timestamp stamping must be done by scripts directly, NOT via pre_commit trailer parsing.
+
+### Proposal 2026-08-11-1: Test runner único com cache de resultados (fingerprint) para agentes de development
+- Priority: high
+- Business value: Elimina execuções repetidas da mesma suite de testes com saída idêntica ao longo do pipeline (developer → senior review → QA → committer), reduzindo tempo de ciclo, tokens e erros de ambiente. Cada agente continua apto a rodar testes para o próprio uso quando não há cache — o cache é otimização, nunca bloqueio.
+- Target sprint: next
+- Description: Criar `scripts/test-runner.sh` (entrypoint único de testes com bootstrap de ambiente, detecção de runner, fingerprint de mudanças e cache em `.opencode/test-cache/`) + skill `test-runner` que qualquer agente de development carrega quando precisa validar testes. Atualizar os prompts de developer, devs/golang, devs/python, senior-reviewers (README), quality-analyst, committer, delivery e delegar `pre_commit.sh` ao runner para que todos consumam cache quando fresco e rodem só com mudança mínima.
+- Business rules:
+  1. `scripts/test-runner.sh` DEVE ser o entrypoint único de testes para agentes — nunca comandos ad hoc (`go test`, `pytest`, `npm test`).
+  2. O script DEVE detectar o runner automaticamente (go/cargo/npm/pytest/poetry) e fazer bootstrap de ambiente (venv, node_modules) com diagnóstico claro em caso de erro de ambiente.
+  3. O script DEVE suportar: `--check` (cache válido? exit 0 + caminho do relatório; sem cache válido exit 3), `--run` (executa, grava cache, imprime resumo + exit code), `--status` (estado legível).
+  4. Fingerprint DEVE ser hash de `git rev-parse HEAD` + arquivos de código/teste alterados (tracked + unstaged). Mudança mínima → fingerprint muda → re-executa.
+  5. Cache DEVE ficar em `.opencode/test-cache/<branch>-<runner>.result` e ser gitignored.
+  6. Cache NUNCA DEVE bloquear: se não há cache válido ou o script falha, o agente DEVE rodar os testes direto e usar o resultado para o próprio uso.
+  7. A skill `test-runner` DEVE documentar o protocolo (check/run/status) e o fallback.
+  8. Os prompts DEVEM instruir: cache fresco → reutiliza; sem cache → roda e popula; não bloquear em ausência de cache.
+  9. `committer.md` gate "Tests passing" DEVE ser satisfeito por cache fresco OU execução recente bem-sucedida — nunca re-rodar suite idêntica.
+  10. `senior-reviewers` DEVE confirmar testes via cache quando fresco; testes pontuais do domínio são livres.
+  11. `pre_commit.sh` DEVE delegar ao runner (cache-aware) e NÃO rodar suite completa em todo commit sem verificação de fingerprint.
+- Stakeholders: Developer, QA, Senior Reviewers, Committer, Publish Requester
+- Rationale: O mesmo código é testado 5–7x por ciclo com saída idêntica; erros de ambiente se repetem porque cada agente invoca comando próprio. Entrypoint único + fingerprint + cache elimina a repetição e padroniza diagnóstico.
+- Dependencies: Base de scripts existente (scripts/tests/, make test-scripts); skills em `skills/<sector>/`.
 - Proposed issue type: feat
 

@@ -12,7 +12,11 @@ before corrections are applied and the Publish Requester creates the MR.
 
 All senior reviewers must:
 - Verify acceptance criteria defined in the issue are met
-- Confirm tests were written and pass
+- Confirm tests were written and pass — prefer `scripts/test-runner.sh --check`
+  (via the `test-runner` skill): a fresh cache confirms the suite passed for
+  the current code without re-running it. Only re-run when the cache is stale
+  or you need a domain-specific test (use `--run -- <filter>`). Never re-run an
+  unchanged suite.
 - Register any new issues found in `known_issues.md`
 - Ensure `known_issues.md` status reflects current state
 - Distinguish bugs from missing business rules:
