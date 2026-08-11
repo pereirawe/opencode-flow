@@ -137,6 +137,8 @@ empty="$TMP/empty"
 mkdir -p "$empty"
 out=$(cd "$empty" && bash "$SCRIPT" --run 2>&1 || true)
 assert_contains <(printf '%s' "$out") "no test runner detected" "runner ausente produz diagnóstico claro"
+rc=$(cd "$empty" && bash "$SCRIPT" --run >/dev/null 2>&1; echo $?)
+assert_eq "2" "$rc" "--run sem runner exit 2 (cannot run, não falha de teste)"
 rc=$(cd "$empty" && bash "$SCRIPT" --check >/dev/null 2>&1; echo $?)
 assert_eq "3" "$rc" "--check sem runner exit 3"
 
@@ -146,5 +148,46 @@ mkdir -p "$noproj"
 printf '{"dependencies":{}}\n' > "$noproj/package.json"
 out=$(cd "$noproj" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run 2>&1 || true)
 assert_contains <(printf '%s' "$out") "no 'test' script" "package.json sem test script é diagnosticado"
+
+# --- 11. filtro (--run -- <args>) NÃO toca o cache compartilhado (B1) ---
+reset_mock
+# garante um cache completo FRESCO e PASSANDO primeiro (invalida o de falha do teste 6)
+echo "0" > "$MOCK_EXIT_FILE"
+printf 'package main\n\nvar x = 11\n' > "$repo/main.go"
+( cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run >/dev/null 2>&1 )
+fp_full="$(awk -F= '/^fingerprint=/{print $2}' "$repo/.opencode/test-cache/$branch-go.result")"
+# run filtrado — deve executar de verdade e NÃO sobrescrever o cache
+reset_mock
+rc=$(cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run -- -run TestFoo >/dev/null 2>&1; echo $?)
+assert_eq "0" "$rc" "--run com filtro exit 0"
+assert_eq "1" "$(invocations)" "run filtrado executa o runner (não usa cache)"
+fp_after="$(awk -F= '/^fingerprint=/{print $2}' "$repo/.opencode/test-cache/$branch-go.result")"
+assert_eq "$fp_full" "$fp_after" "run filtrado NÃO sobrescreve o cache compartilhado (B1)"
+rc=$(cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --check >/dev/null 2>&1; echo $?)
+assert_eq "0" "$rc" "--check continua válido após run filtrado"
+
+# --- 12. deleção de arquivo invalida o fingerprint (B2) ---
+reset_mock
+printf 'package main\n\nvar x = 3\n' > "$repo/extra.go"
+( cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run >/dev/null 2>&1 )
+fp_before="$(awk -F= '/^fingerprint=/{print $2}' "$repo/.opencode/test-cache/$branch-go.result")"
+rm "$repo/extra.go"
+reset_mock
+( cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run >/dev/null 2>&1 )
+assert_eq "1" "$(invocations)" "deleção de arquivo re-executa o runner (B2)"
+fp_after="$(awk -F= '/^fingerprint=/{print $2}' "$repo/.opencode/test-cache/$branch-go.result")"
+if [[ "$fp_before" != "$fp_after" ]]; then
+  t_ok "deleção muda o fingerprint (B2)"
+else
+  t_fail "deleção NÃO mudou o fingerprint (B2)"
+fi
+
+# --- 13. cache fresco de suite FALHADA não satisfaz --check (B4) ---
+reset_mock
+echo "1" > "$MOCK_EXIT_FILE"
+printf 'package main\n\nvar x = 4\n' > "$repo/main.go"
+( cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run >/dev/null 2>&1 )
+rc=$(cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --check >/dev/null 2>&1; echo $?)
+assert_eq "3" "$rc" "--check com cache fresco PORÉM falho sai exit 3 (B4)"
 
 t_finish
