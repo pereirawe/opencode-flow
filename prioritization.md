@@ -142,6 +142,37 @@ at proposal time. Unknown rules will be captured during discovery refinement.
 - Dependencies: Issue #42 (merged, main já contém as design skills).
 - Proposed issue type: feat
 
+### Proposal 2026-08-10-1: Always create test standards pre-development
+- Priority: high
+- Business value: Eliminates rework in dev sessions — every issue carries test standards/definitions before development, so the Developer and QA know exactly what to verify up front, and senior review/QA loops shrink.
+- Target sprint: next
+- Description: Mandate that every issue includes explicit test standards/definitions BEFORE development begins. Define a `Tests:` field convention in standards/issues.md (additional field, already hinted there), document in workflow.md that test standards are defined during discovery (QA pre-development phase), and update the discovery pipeline (development/product-owner, development/quality-analyst, development/discovery agents) so every `feat`/`bug` issue carries test scenarios. Prevents rework: developers write tests against documented scenarios instead of inventing them.
+- Business rules:
+  1. `Tests:` field MUST be defined for every issue before development (discovery phase), not added ad-hoc during development.
+  2. `Tests:` conventions MUST be documented in standards/issues.md and workflow.md.
+  3. Applies to all new issues (feat and bug); existing in-flight issues are not retroactively rewritten.
+  4. QA pre-development phase validates testability of the `Tests:` field.
+- Stakeholders: Developer, QA, Senior Reviewers, PM, PO
+- Rationale: Rework is the biggest waste in the pipeline; test standards up front cut review loops and QA rework.
+- Dependencies: Issue #32 (test automation gap for scripts) is related but separate; this issue is about process standards, not script test coverage.
+- Proposed issue type: feat
+
+### Proposal 2026-08-10-2: Time-tracking fields in issue lifecycle
+- Priority: medium
+- Business value: Enables measuring per-stage cycle time (time in backlog, time to ready, dev time, total time to resolution). Drives process improvement with real data.
+- Target sprint: next
+- Description: Add timestamp fields to the issue entry format in standards/issues.md (opened, ready, in-progress/started, finished/resolved) and carry them into the resolved archive (standards/resolved-issue.md). Scripts stamp timestamps: create_issue.sh and/or promote.sh stamp when opened; promote.sh stamps when moved to ready (backlog→ready) and to in-progress (ready→in-progress); close_issue.sh stamps finished date and computes stage durations for the archive. Only for NEW issues; tolerate missing timestamps in existing entries/archive.
+- Business rules:
+  1. Timestamps recorded per-issue as fields in known_issues.md entries (no separate tracking file).
+  2. Each timestamp field: `- Opened: <date>`, `- Ready: <date>`, `- Started: <date>`, `- Resolved: <date>` (dates, YYYY-MM-DD).
+  3. Scripts stamp timestamps on status transitions: promote.sh (backlog→ready sets Ready; ready→in-progress sets Started), create_issue.sh (sets Opened when remote created, if not already set), close_issue.sh (sets Resolved and computes durations).
+  4. Applies ONLY to new issues created after implementation; no retroactive reconstruction.
+  5. Missing timestamps tolerated in archive (fields optional, "-" allowed).
+  6. Duration = difference between relevant timestamps, computed at close time and stored in the archive entry.
+- Stakeholders: PM, PO, Developer, QA
+- Rationale: The pipeline currently has no timing data; stage durations are unknowable. Cheap to add while touching standards.
+- Dependencies: Must stay consistent with the real lifecycle scripts actually drive (promote.sh sets in-progress, close_issue.sh archives). Issue #25 (open unreachable) means the `open` status should NOT be part of the timestamp design. Issue #24 (trailer sync claims) means timestamp stamping must be done by scripts directly, NOT via pre_commit trailer parsing.
+
 ### Proposal 2026-08-11-1: Test runner único com cache de resultados (fingerprint) para agentes de development
 - Priority: high
 - Business value: Elimina execuções repetidas da mesma suite de testes com saída idêntica ao longo do pipeline (developer → senior review → QA → committer), reduzindo tempo de ciclo, tokens e erros de ambiente. Cada agente continua apto a rodar testes para o próprio uso quando não há cache — o cache é otimização, nunca bloqueio.
