@@ -133,24 +133,35 @@ bootstrap_env() {
 
 # --- fingerprint ------------------------------------------------------------
 
+# List changed paths (tracked modified/deleted/staged + untracked), NUL-delimited
+# so paths with spaces/special chars are handled exactly (`-z` disables C-quoting).
+changed_paths() {
+  {
+    git diff --name-only -z
+    git diff --cached --name-only -z
+    git ls-files --others --exclude-standard -z
+  } 2>/dev/null
+}
+
 compute_fingerprint() {
   local buf=""
   if git rev-parse --git-dir >/dev/null 2>&1; then
     buf+="HEAD:$(git rev-parse HEAD 2>/dev/null || echo unknown)\n"
-    local changed f df
-    changed="$(git status --porcelain 2>/dev/null | cut -c4- || true)"
-    while IFS= read -r f; do
+    local f df
+    while IFS= read -r -d '' f; do
       [[ -z "$f" ]] && continue
       [[ "$f" =~ $EXCLUDE_RE ]] && continue
+      # Path name is always included so deletions/renames change the fingerprint
+      buf+="path:$f\n"
       if [[ -f "$f" ]]; then
         buf+="$f:$(sha256sum "$f" 2>/dev/null | cut -d' ' -f1)\n"
       elif [[ -d "$f" ]]; then
-        while IFS= read -r df; do
+        while IFS= read -r -d '' df; do
           [[ "$df" =~ $EXCLUDE_RE ]] && continue
           [[ -f "$df" ]] && buf+="$df:$(sha256sum "$df" 2>/dev/null | cut -d' ' -f1)\n"
-        done < <(find "$f" -type f 2>/dev/null || true)
+        done < <(find "$f" -type f -print0 2>/dev/null || true)
       fi
-    done <<< "$changed"
+    done < <(changed_paths)
   else
     local f
     while IFS= read -r f; do
@@ -198,6 +209,14 @@ read_cache() {
   fi
 }
 
+cache_exit_code() {
+  local runner="$1"
+  local file
+  file="$(cache_path "$runner")"
+  [[ -f "$file" ]] || { echo 255; return; }
+  awk -F= '/^exit_code=/{print $2}' "$file" 2>/dev/null || echo 255
+}
+
 # --- modes -------------------------------------------------------------------
 
 runner_name() {
@@ -219,61 +238,72 @@ cmd_check() {
   fi
   local fp
   fp="$(compute_fingerprint)"
-  if [[ "$(read_cache "$runner" "$fp")" == "1" ]]; then
-    log "cache fresh: $(cache_path "$runner")"
+  if [[ "$(read_cache "$runner" "$fp")" == "1" && "$(cache_exit_code "$runner")" == "0" ]]; then
+    log "cache fresh and passing: $(cache_path "$runner")"
     printf '%s\n' "$(cache_path "$runner")"
     exit 0
   fi
-  log "no fresh cache (exit 3)"
+  log "no fresh passing cache (exit 3)"
   exit 3
 }
 
 cmd_run() {
   local runner
-  runner="$(runner_name)" || { log "fallback: run the project's tests directly and use the result."; exit 1; }
+  runner="$(runner_name)" || { log "fallback: run the project's tests directly and use the result."; exit 2; }
   if [[ -z "$runner" ]]; then
     log "no test runner detected (no go.mod/Cargo.toml/package.json/pyproject.toml/requirements.txt)"
     log "fallback: run the project's tests directly and use the result."
-    exit 1
-  fi
-
-  local fp
-  fp="$(compute_fingerprint)"
-
-  if [[ "$(read_cache "$runner" "$fp")" == "1" ]]; then
-    local code out
-    code="$(awk -F= '/^exit_code=/{print $2}' "$(cache_path "$runner")" 2>/dev/null || echo 1)"
-    out="$(awk -F= '/^output=/{print $2}' "$(cache_path "$runner")" 2>/dev/null || true)"
-    log "reusing cached result (fingerprint unchanged) — exit $code, log: $CACHE_DIR/$out"
-    printf 'test-runner: cached (exit %s) — full output: %s\n' "$code" "$CACHE_DIR/$out"
-    exit "$code"
+    exit 2
   fi
 
   local cmd
   cmd="$(build_command "$runner")"
   if [[ "$cmd" == "__missing__" ]]; then
     log "ERROR: pytest not available. Create a venv ('python3 -m venv .venv && .venv/bin/pip install -e \".[dev]\"') or install pytest."
-    exit 1
+    log "fallback: run the project's tests directly and use the result."
+    exit 2
   fi
 
   bootstrap_env "$runner"
 
-  log "running: $cmd ${EXTRA_ARGS[*]:-}"
-  mkdir -p "$CACHE_DIR"
-  local outfile
-  outfile="$(log_path "$runner")"
-
   local code=0
-  if [[ ${#EXTRA_ARGS[@]} -gt 0 ]]; then
+  local outfile=""
+  local filtered=0
+  [[ ${#EXTRA_ARGS[@]} -gt 0 ]] && filtered=1
+
+  log "running: $cmd ${EXTRA_ARGS[*]:-}"
+
+  # Filtered (domain-specific) runs never touch the shared cache — they are
+  # for the agent's own verification and would otherwise poison the "suite
+  # passed" signal that check/committer/pre_commit rely on.
+  if [[ "$filtered" == "1" ]]; then
+    mkdir -p "$CACHE_DIR"
+    outfile="$(log_path "$runner")"
     $cmd "${EXTRA_ARGS[@]}" >"$outfile" 2>&1 || code=$?
-  else
-    $cmd >"$outfile" 2>&1 || code=$?
+    printf 'test-runner: %s (exit %s) — full output: %s\n' "$([ "$code" -eq 0 ] && echo PASS || echo FAIL)" "$code" "$outfile"
+    exit "$code"
   fi
+
+  local fp
+  fp="$(compute_fingerprint)"
+
+  if [[ "$(read_cache "$runner" "$fp")" == "1" ]]; then
+    local cached_code cached_out
+    cached_code="$(cache_exit_code "$runner")"
+    cached_out="$(awk -F= '/^output=/{print $2}' "$(cache_path "$runner")" 2>/dev/null || true)"
+    log "reusing cached result (fingerprint unchanged) — exit $cached_code, log: $CACHE_DIR/$cached_out"
+    printf 'test-runner: cached (exit %s) — full output: %s\n' "$cached_code" "$CACHE_DIR/$cached_out"
+    exit "$cached_code"
+  fi
+
+  mkdir -p "$CACHE_DIR"
+  outfile="$(log_path "$runner")"
+  $cmd >"$outfile" 2>&1 || code=$?
 
   write_cache "$runner" "$fp" "$code" "$outfile"
 
   log "exit $code — summary:"
-  awk 'END{print} NR==1{print; exit}' "$outfile" 2>/dev/null || true
+  awk 'NR==1{first=$0} {last=$0} END{print "first: " first; print "last: " last}' "$outfile" 2>/dev/null || true
   printf 'test-runner: %s (exit %s) — full output: %s\n' "$([ "$code" -eq 0 ] && echo PASS || echo FAIL)" "$code" "$outfile"
   exit "$code"
 }

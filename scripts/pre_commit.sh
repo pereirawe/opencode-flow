@@ -5,14 +5,22 @@ source "$(dirname "$0")/config.sh"
 echo "[pre-commit] Running checks..."
 
 # Run tests via the shared test-runner (cache-aware fingerprint): identical
-# code is never re-tested. Falls back gracefully when no runner is detected.
+# code is never re-tested. Exit codes: 0=pass, 1=test failure, 2=cannot run
+# (no runner/no suite) -> skip gracefully, 3=check: no fresh cache.
 RUNNER="$(dirname "$0")/test-runner.sh"
 if [[ -x "$RUNNER" ]]; then
-  if ! "$RUNNER" --check >/dev/null 2>&1; then
-    echo "[pre-commit] No fresh test cache — running tests via test-runner.sh"
-    "$RUNNER" --run || { echo "[pre-commit] Tests failed (see .opencode/test-cache/)"; exit 1; }
-  else
+  if "$RUNNER" --check >/dev/null 2>&1; then
     echo "[pre-commit] Fresh test cache found — skipping re-run (tests unchanged)"
+  else
+    echo "[pre-commit] No fresh test cache — running tests via test-runner.sh"
+    rc=0
+    "$RUNNER" --run || rc=$?
+    if [[ "$rc" -eq 2 ]]; then
+      echo "[pre-commit] No test runner/suite — skipping tests (exit 2)"
+    elif [[ "$rc" -ne 0 ]]; then
+      echo "[pre-commit] Tests failed (see .opencode/test-cache/)"
+      exit 1
+    fi
   fi
 else
   echo "[pre-commit] test-runner.sh not found — falling back to direct detection"

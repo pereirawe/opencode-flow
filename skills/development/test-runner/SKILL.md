@@ -23,17 +23,22 @@ Args adicionais após `--` são passados ao comando de teste
 ## Regras para o agente
 
 1. **Sempre use o runner** — nunca `go test`, `pytest`, `npm test` ad hoc.
-2. **Cache fresco → reutilize.** `--check` com exit 0 significa que o código
-   não mudou desde a última execução: use o relatório cacheado, não re-rote.
-3. **Sem cache → rode para o seu próprio uso.** `--check` exit 3 (ou runner
-   ausente) não é bloqueio: rode `--run` e use o resultado para a sua
-   validação.
+2. **Cache fresco e passando → reutilize.** `--check` com exit 0 significa que o
+   código não mudou desde a última execução **e** a suite passou: use o
+   relatório cacheado, não re-rote.
+3. **Sem cache válido → rode para o seu próprio uso.** `--check` exit 3 não é
+   bloqueio: rode `--run` e use o resultado para a sua validação.
 4. **Cache nunca bloqueia.** Se o script falhar por qualquer motivo, rode os
    testes diretamente e siga com o resultado.
 5. **Testes pontuais do domínio** (ex.: um teste específico que você quer
-   verificar) são livres — use `--run -- <filtro>`.
-6. **Exit codes** de `--run`: `0` = suite passou; `!=0` = falhou. O relatório
-   completo fica em `.opencode/test-cache/<branch>-<runner>.log`.
+   verificar) são livres — use `--run -- <filtro>`. Runs filtrados NUNCA tocam
+   o cache compartilhado: executam de verdade e não afetam o sinal "suite
+   passou" que check/committer/pre_commit consomem.
+6. **Exit codes** de `--run`: `0` = suite passou; `1` = suite falhou; `2` =
+   impossível rodar (sem runner/suite) — trata `2` como "sem testes", não como
+   falha. O relatório completo fica em `.opencode/test-cache/<branch>-<runner>.log`.
+7. **`--check`** exit 0 apenas quando há cache fresco E a última execução passou
+   (`exit_code=0`). Cache fresco de suite falhada → exit 3.
 
 ## Onde o cache fica
 
