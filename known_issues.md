@@ -382,3 +382,48 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   7. Agente acessível via Tab/@designer.
 - Suggested fix: (1) rodar `npx skills add https://github.com/Leonxlnx/taste-skill --skill design-taste-frontend` na raiz, (2) repetir para redesign-existing-projects e minimalist-ui, (3) criar `agents/designer.md` com o conteúdo fornecido, (4) registrar skills.paths se instalado fora do padrão, (5) documentar mapeamento de casos de uso.
 
+### 59. Test runner único com cache de resultados (fingerprint) para agentes de development
+- Status: in-progress
+- Type: feat
+- Severity: high
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (qa, runtime)
+- Remote: #52
+- PR: -
+- Location: scripts/test-runner.sh (NEW), skills/development/test-runner/SKILL.md (NEW), scripts/tests/test_test_runner.sh (NEW), agents/development/developer.md, agents/development/devs/golang.md, agents/development/devs/python.md, agents/development/senior-reviewers/README.md, agents/development/quality-analyst.md, agents/development/committer.md, agents/development/delivery.md, scripts/pre_commit.sh, workflow.md, standards/commits.md
+- Description: Criar `scripts/test-runner.sh` — entrypoint único de testes para agentes de development, com bootstrap de ambiente, detecção de runner, fingerprint de mudanças e cache de resultados em `.opencode/test-cache/`. Uma skill `test-runner` documenta o protocolo (check/run/status) para qualquer agente. Prompts de developer, devs/*, senior-reviewers, quality-analyst, committer e delivery passam a consumir o cache quando fresco e rodar testes apenas quando há mudança mínima. `pre_commit.sh` delega ao runner.
+- Impact: Elimina execuções repetidas da mesma suite com saída idêntica (developer → senior review → QA → committer rodam o mesmo código 5–7x). Reduz erros de ambiente repetidos (cada agente invoca comando próprio e perde diagnóstico com `2>/dev/null`). Padroniza diagnóstico e reduz tempo de ciclo e tokens.
+- Business rules:
+  1. `scripts/test-runner.sh` DEVE ser o entrypoint único de testes para agentes — nunca comandos ad hoc (`go test`, `pytest`, `npm test`).
+  2. O script DEVE detectar o runner automaticamente (go/cargo/npm/pytest/poetry) e fazer bootstrap de ambiente (venv, node_modules) com diagnóstico claro em caso de erro de ambiente.
+  3. O script DEVE suportar: `--check` (cache válido? exit 0 + caminho do relatório; sem cache válido exit 3), `--run` (executa, grava cache, imprime resumo + exit code), `--status` (estado legível).
+  4. Fingerprint DEVE ser hash de `git rev-parse HEAD` + arquivos de código/teste alterados (tracked + unstaged). Mudança mínima → fingerprint muda → re-executa.
+  5. Cache DEVE ficar em `.opencode/test-cache/<branch>-<runner>.result` e ser gitignored.
+  6. Cache NUNCA DEVE bloquear: se não há cache válido ou o script falha, o agente DEVE rodar os testes direto e usar o resultado para o próprio uso.
+  7. A skill `test-runner` DEVE documentar o protocolo (check/run/status) e o fallback.
+  8. Os prompts DEVEM instruir: cache fresco → reutiliza; sem cache → roda e popula; não bloquear em ausência de cache.
+  9. `committer.md` gate "Tests passing" DEVE ser satisfeito por cache fresco OU execução recente bem-sucedida — nunca re-rodar suite idêntica.
+  10. `senior-reviewers` DEVE confirmar testes via cache quando fresco; testes pontuais do domínio são livres.
+  11. `pre_commit.sh` DEVE delegar ao runner (cache-aware) e NÃO rodar suite completa em todo commit sem verificação de fingerprint.
+- Acceptance criteria:
+  1. `scripts/test-runner.sh` existe, é executável e `bash -n` limpo; suporta `--check`/`--run`/`--status`.
+  2. `--check` sem cache válido sai com exit 3; com cache válido sai exit 0 e imprime o caminho do relatório.
+  3. `--run` em projeto com runner detectado executa a suite, grava `.opencode/test-cache/<branch>-<runner>.result`, imprime resumo e exit code.
+  4. Fingerprint muda quando um arquivo de código/teste é editado (teste prova); sem mudança, `--check` continua exit 0.
+  5. Sem git repo, o script ainda funciona (fingerprint baseado em mtime/conteúdo) ou diagnostica claramente.
+  6. Erro de ambiente (runner ausente, deps faltando) produz mensagem clara de diagnóstico, não falha silenciosa (`2>/dev/null` removido).
+  7. `skills/development/test-runner/SKILL.md` documenta protocolo + fallback; registro `permission.skill` adicionado.
+  8. Prompts de developer, devs/golang, devs/python, senior-reviewers/README, quality-analyst, committer e delivery referenciam o runner/cache.
+  9. `pre_commit.sh` delega ao runner e não roda suite completa sem checar fingerprint.
+  10. `scripts/tests/test_test_runner.sh` cobre: check válido/inválido, run popula cache, re-run não re-executa, fingerprint muda com edição, fallback sem git, diagnóstico de ambiente; `make test-scripts` passa.
+  11. `workflow.md` e `standards/commits.md` documentam o runner e a regra de re-uso.
+- Tests:
+  1. `scripts/tests/run_all.sh` → todas as suites (incluindo test_test_runner.sh) passam: exit 0.
+  2. Mock runner em PATH → `test-runner.sh --run` grava cache com fingerprint e exit code corretos.
+  3. Repetir `--run` com mesma fingerprint → saída vem do cache (runner mock NÃO é chamado de novo; contador de invocações prova).
+  4. Tocar arquivo de teste → fingerprint muda → `--run` re-executa (contador de invocações incrementa).
+  5. `--check` antes de qualquer `--run` → exit 3; depois de `--run` → exit 0 + caminho do relatório.
+  6. Diretório sem git (TMPDIR) → `--status` diagnostica; `--run` não quebra (fallback documentado).
+- Suggested fix: Criar `scripts/test-runner.sh` (detecção de runner, bootstrap env, fingerprint via `git rev-parse HEAD` + `git status --porcelain` + hashes de arquivos alterados, cache JSON em `.opencode/test-cache/`, modos check/run/status). Criar `skills/development/test-runner/SKILL.md` com protocolo e fallback. Adicionar permissão da skill em opencode.json. Atualizar prompts: developer.md, devs/golang.md, devs/python.md, senior-reviewers/README.md, quality-analyst.md, committer.md, delivery.md. Delegar pre_commit.sh ao runner. Adicionar testes em scripts/tests/test_test_runner.sh. Documentar em workflow.md e standards/commits.md.
+
