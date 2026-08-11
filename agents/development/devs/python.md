@@ -236,7 +236,7 @@ When asked to implement or refactor Python code:
 8. Use dataclasses for simple state containers only when they simplify the design.
 9. Load Python skills when style, typing, or documentation becomes a primary concern.
 10. Write or update focused tests when the task requires them.
-11. Run the narrowest relevant validation available.
+11. Run the narrowest relevant validation available — via `scripts/test-runner.sh` (see the `test-runner` skill), never ad hoc. Fresh cache → reuse it; no cache → run and populate; the cache never blocks the work.
 
 ## Final Python quality gate
 
@@ -252,4 +252,4 @@ Before finishing a Python task, verify:
 - public docstrings were addressed when the task required them
 - tests were addressed when the task required them
 - no broad refactor was performed without approval
-- the narrowest relevant validation was run or the reason was reported
+- the narrowest relevant validation was run (via `scripts/test-runner.sh` — reuse fresh cache, populate on miss) or the reason was reported

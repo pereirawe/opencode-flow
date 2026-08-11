@@ -97,3 +97,11 @@ Every commit MUST include `Issue: #<id>` to link the change to a tracked issue.
 5. **Use `Status: in-progress`** when work continues
 6. **Use `Status: resolved` or `Closes #<id>`** when the change completes the issue
 7. **Known issues** file must be updated if the change affects tracked work
+
+## Pre-commit test run
+
+`pre_commit.sh` delegates the test run to `scripts/test-runner.sh`, which is
+cache-aware: identical code (same fingerprint) is never re-tested. If the cache
+is fresh, the suite is skipped and the cached result is reused. This applies to
+every agent that validates tests — developer, senior reviewers, QA, and
+committer — never run an unchanged suite more than once.

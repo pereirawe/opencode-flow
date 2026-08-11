@@ -144,24 +144,30 @@ exclusive to `ocf:check-pr` and the Close Requester (step 12).
    **When QA sends an issue back from `in-qa` to `in-progress`, the PM
    re-invokes the Developer agent to implement corrections, then notifies
    Senior Reviewers to re-review.**
-6. **Developer** — implement features, write automated tests, run tests, keep
-   `known_issues.md` in sync. Verify the feature branch is based on the correct
-   base branch before starting implementation. If business rules are missing or
-   unclear, flag the gap as a new issue in `known_issues.md` and proceed with
-   what is defined — do not block. **After implementation, update status to
-   `in-review` and proceed to senior review without asking the user.**
+6. **Developer** — implement features, write automated tests, run tests via
+   `scripts/test-runner.sh` (cache-aware — fresh cache is reused, no cache runs
+   and populates), keep `known_issues.md` in sync. Verify the feature branch is
+   based on the correct base branch before starting implementation. If business
+   rules are missing or unclear, flag the gap as a new issue in `known_issues.md`
+   and proceed with what is defined — do not block. **After implementation,
+   update status to `in-review` and proceed to senior review without asking the
+   user.**
 7. **Senior Reviewers** — review code using the count stored in `- Reviewers:`
     in the issue entry (set during discovery), verify acceptance criteria,
-   confirm tests were written and pass, identify issues
+   confirm tests were written and pass (via `test-runner --check` — fresh cache
+   suffices; only re-run when stale or for a domain-specific test), identify issues
 8. **Quality Analyst (post-review)** — verify quality after senior review,
    check that all identified issues were addressed and quality standards are met
+   (confirm tests via `test-runner --check`; do not re-run an unchanged suite)
 9. **Developer** — implement all corrections from senior review and QA (loop
    with QA until approved). Re-invoked by PM when status returns to
    `in-progress` from `in-qa`.
 10. **Committer** — verify pipeline gates: senior review completed, QA passed,
-    business rules documented (for `feat` types), tests passing. Sets status to
-    `in-publish` on approval. Reports findings without blocking — if a gate
-    fails, document what failed and let the pipeline continue to the next cycle.
+    business rules documented (for `feat` types), tests passing (satisfied by a
+    fresh `test-runner --check` cache or a recent successful run — never re-run
+    an unchanged suite). Sets status to `in-publish` on approval. Reports
+    findings without blocking — if a gate fails, document what failed and let
+    the pipeline continue to the next cycle.
 11. **Publish Requester** — create merge/pull request after Committer gate passes.
     Does not re-validate gates — trusts Committer signal (`Status: in-publish`).
     Does not ask for confirmation — creates the MR automatically.
@@ -234,7 +240,8 @@ Branches are created from the `Base branch:` field in the issue entry
 ### Definition of Done
 
 - Base branch correctly chosen and feature branch created from it
-- Tests written and passing (run before senior review)
+- Tests written and passing (run via `scripts/test-runner.sh` before senior
+  review; cache-aware — never re-run an unchanged suite)
 - Acceptance criteria met (verified by Senior Reviewers)
 - Business rules documented and implemented correctly
 - QA verified after senior review
@@ -245,7 +252,9 @@ Branches are created from the `Base branch:` field in the issue entry
 
 ### Pre-commit
 
-- Run tests for the project language
+- Run tests via `scripts/test-runner.sh` (cache-aware fingerprint — identical
+  code is never re-tested; delegates environment bootstrap and runner
+  detection)
 - Warn if `known_issues.md` not updated
 
 ### Pull/Merge Request
