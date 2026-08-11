@@ -2,6 +2,15 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 59. Test runner único com cache de resultados (fingerprint) para agentes de development
+- Resolved: 2026-08-11
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #52
+- Severity: high
+- Summary: Cria scripts/test-runner.sh (entrypoint único de testes com bootstrap de ambiente, detecção de runner, fingerprint e cache em .opencode/test-cache/), skill test-runner com protocolo check/run/status, prompts atualizados (developer, devs/*, senior-reviewers, quality-analyst, committer, delivery), pre_commit.sh delegado ao runner e testes scripts/tests/test_test_runner.sh. PR #53 merged.
+
 ### 46. nginx como requisito + HTTPS local para o opencode web service
 - Resolved: 2026-08-08
 - Type: feat
