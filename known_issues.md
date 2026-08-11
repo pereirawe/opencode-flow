@@ -382,6 +382,112 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   7. Agente acessível via Tab/@designer.
 - Suggested fix: (1) rodar `npx skills add https://github.com/Leonxlnx/taste-skill --skill design-taste-frontend` na raiz, (2) repetir para redesign-existing-projects e minimalist-ui, (3) criar `agents/designer.md` com o conteúdo fornecido, (4) registrar skills.paths se instalado fora do padrão, (5) documentar mapeamento de casos de uso.
 
+### 56. Mandatory `Tests:` field captured during discovery (test standards pre-development)
+- Status: ready
+- Type: feat
+- Severity: medium
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (qa, docs)
+- Remote: -
+- PR: -
+- Location: standards/issues.md (en+pt+es), workflow.md, agents/development/product-owner.md, agents/development/quality-analyst.md, agents/development/discovery.md, known_issues.md (header Format block)
+- Description: Make the `Tests:` field a mandatory part of every new issue entry, captured during discovery (QA pre-development, Phase 5), so developers write tests against documented `scenario → outcome` definitions instead of inventing them ad-hoc during development.
+- Impact: Eliminates rework in dev sessions — every issue carries test standards before development, so Developer and QA know exactly what to verify up front; shrinks senior-review/QA loops. Docs+agents only — no script changes, no test surface.
+- Business rules:
+  1. `Tests:` field MUST be defined for every NEW issue before development starts — captured during the discovery phase, never added ad-hoc during development.
+  2. `Tests:` is MANDATORY in every new issue entry. For `doc`/`chore` types, the literal `- Tests: -` is permitted (no test surface). For `feat`/`bug` types, at least one `scenario → outcome` line is REQUIRED and the value may NEVER be `-`.
+  3. Scenario depth is a FLOOR with no upper bound: severity `critical`/`high` → ≥3 `scenario → outcome` lines; `medium` → ≥2; `low` → ≥1. If `- Severity:` is missing at QA validation time, the medium floor (≥2) applies.
+  4. The `Tests:` conventions MUST be documented in standards/issues.md (en, pt, es) and in workflow.md (discovery pipeline section).
+  5. Applies to ALL new issues going forward; existing in-flight issues in known_issues.md are NOT retroactively rewritten (MR diff is limited to the files in Location).
+  6. Enforcement is "verified by QA pre-development review (Phase 5) and senior reviewers" — NOT enforced by scripts. No script gate is added or claimed by this issue.
+  7. Missing or insufficient `Tests:` discovered during senior review or post-review QA = `incomplete-spec` (discovery gap), NOT a bug — per standards/code-review.md the issue returns to discovery refinement to capture the missing scenarios.
+  8. The QA pre-development checklist (validate testability, apply severity floor, medium fallback when Severity missing, incomplete-spec tagging) MUST be written into the quality-analyst.md agent prompt.
+  9. The product-owner.md prompt MUST instruct the PO to drive `Tests:` capture (`scenario → outcome`) during the discovery conversation, alongside business rules.
+  10. The discovery.md orchestrator MUST include the QA pre-development `Tests:` validation as part of Phase 5, before PM promotion.
+  11. known_issues.md header Format block MUST document the new `- Tests:` field with the `scenario → outcome` convention.
+- Acceptance criteria:
+  1. `- Tests:` appears in the known_issues.md header Format block and in standards/issues.md en+pt+es, with the scenario→outcome convention and the severity floor rules (≥3 critical/high, ≥2 medium, ≥1 low; medium floor when Severity missing).
+  2. Enforcement wording in standards/issues.md and workflow.md reads exactly "verified by QA pre-development review (Phase 5) and senior reviewers" — no wording claims script/lint enforcement. An optional future promote.sh/lint gate is recorded only as a follow-up note, NOT in the AC.
+  3. quality-analyst.md prompt contains the QA pre-development checklist: validate testability of `Tests:`, apply severity floor, medium fallback when `- Severity:` missing, tag `incomplete-spec` when `Tests:` missing/insufficient.
+  4. product-owner.md prompt instructs the PO to drive `Tests:` scenario→outcome capture during discovery.
+  5. discovery.md includes the Phase 5 QA pre-dev `Tests:` validation step before PM promotion.
+  6. workflow.md documents the `Tests:` field, the severity floors, and the incomplete-spec classification rule.
+  7. No existing issue entry in known_issues.md is modified (in-flight issues untouched); MR diff scope limited to the files in Location.
+  8. en/pt/es standards/issues.md parity spot-checked — all three updated consistently.
+- Suggested fix: Update the known_issues.md header Format block and standards/issues.md (en+pt+es) with the `- Tests:` field, severity floors, and enforcement wording; document the incomplete-spec classification in workflow.md; write the QA pre-dev checklist into quality-analyst.md; add the `Tests:` capture step to product-owner.md and the Phase 5 validation step to discovery.md. No script changes. Follow-up (NOT in this issue): optional promote.sh/lint gate.
+
+### 57. Time-tracking fields in issue lifecycle (Opened/Ready/Started/Resolved + Durations)
+- Status: ready
+- Type: feat
+- Severity: medium
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (runtime, devops)
+- Remote: -
+- PR: -
+- Location: scripts/promote.sh, scripts/create_issue.sh, scripts/close_issue.sh, standards/issues.md (en+pt+es), standards/resolved-issue.md (en), workflow.md, scripts/tests/test_timestamps.sh (NEW)
+- Description: Add timestamp fields (Opened, Ready, Started) to the known_issues.md entry format, stamp them on script status transitions (promote.sh, create_issue.sh), stamp Resolved at close time, and compute stage durations (Durations) into the resolved archive so per-stage cycle time can be measured.
+- Impact: Enables measuring per-stage cycle time (time in backlog, time to ready, dev time, total time to resolution) driving process improvement with real data. Touches the core lifecycle scripts — regression risk mitigated by the new plain-bash test suite. New-issues-only; no retroactive rewriting.
+- Business rules:
+  1. Timestamps recorded per-issue as fields in the known_issues.md entry (no separate tracking file): `- Opened: <YYYY-MM-DD>`, `- Ready: <YYYY-MM-DD>`, `- Started: <YYYY-MM-DD>`; `Resolved` and `Durations` are recorded at close time in the archive entry. Field order in known_issues.md: `Status` < `Opened` < `Ready` < `Started` (asserted by tests).
+  2. Scripts stamp timestamps on status transitions: promote.sh sets `Ready` on backlog→ready and `Started` on ready→in-progress; create_issue.sh sets `Opened` on remote creation success (if not already set); close_issue.sh sets `Resolved` (= close date / today) and computes durations for the archive.
+  3. `Opened` is stamped ONLY on remote creation success; when the remote is auto-created during promotion (mode 2), promote.sh backfills `Opened` set-if-absent with today's date (documented approximation).
+  4. Duration math MUST use UTC-anchored parse `TZ=UTC date -d "$d" +%s` (DST-robust). Naive local-epoch `/86400` day counting is REJECTED (fails the spring-forward DST scenario t21).
+  5. Guard start > end: render each component `-` BEFORE division; floor values at 0 (non-negative); `0d` when diff = 0; when ALL dates are missing, output the literal `- Durations: -`.
+  6. `Resolved` = close date (today); the total duration is relative to the close date.
+  7. Nothing depends on the unreachable `open` status (issue #25) — except create_issue.sh's legacy open path, which is preserved unchanged.
+  8. No trailer-sync via pre_commit.sh (issue #24): timestamp stamping is performed by the pipeline scripts directly, NOT by commit-trailer parsing.
+  9. Applies ONLY to new issues created after implementation; no retroactive reconstruction of existing known_issues.md entries or resolved_issues.md archive entries (existing archive entries preserved verbatim — backward compat).
+  10. Missing timestamps tolerated in the archive (fields optional, `-` allowed); durations computed only from available timestamps.
+  11. Idempotency required (issue #40 CI re-runs): re-running promote.sh/create_issue.sh/close_issue.sh on the same entry MUST NOT duplicate timestamps, corrupt fields, or append duplicate archive entries (exactly one archive entry after a double-run).
+  12. Durations = difference between relevant timestamps, computed at close time and stored in the archive entry.
+  13. Archive dup guard (issue #29) preserved: close_issue.sh continues to check for existing IDs in resolved_issues.md before appending.
+- Acceptance criteria:
+  1. NEW `scripts/tests/test_timestamps.sh` ships with the full scenario list t01–t25, including DST spring-forward (t21), double-run idempotency (t19), and prompt-bypass (t20); `make test-scripts` passes (run_all.sh auto-discovers test_*.sh).
+  2. Field order asserted: `Status` < `Opened` < `Ready` < `Started` in known_issues.md entries.
+  3. Existing pipeline gates unchanged — regression assertions for promote/create/close behavior (t07, t13).
+  4. Archive backward compat: existing resolved_issues.md entries preserved verbatim; exactly one archive entry after a double-run of close_issue.sh.
+  5. standards/resolved-issue.md (en) reconciled with actual script output — add `Severity` and `Durations` after `Resolved`, drop the legacy `PR` field; en/pt/es standards/issues.md parity spot-checked.
+  6. Tests deterministic/self-contained: mock `date` and mock `gh`/`glab` via PATH, no network, no TTY.
+  7. promote.sh stamps `Ready` (backlog→ready) and `Started` (ready→in-progress), and backfills `Opened` set-if-absent when auto-creating the remote.
+  8. create_issue.sh stamps `Opened` only on remote creation success.
+  9. close_issue.sh stamps `Resolved` (today) and computes per-component durations with the guard/floor rules (`-` per component on start>end, `0d` when diff=0, literal `- Durations: -` when all missing).
+  10. Duration math passes the DST spring-forward scenario (t21) using `TZ=UTC date -d "$d" +%s`.
+  11. No dependency introduced on the unreachable `open` status; create_issue.sh legacy open path unchanged.
+  12. Idempotency verified: re-running each script on the same entry produces no duplicate or corrupted fields.
+  13. `bash -n` clean on all modified scripts; full `make test-scripts` suite passes.
+- Suggested fix: Add `Opened`/`Ready`/`Started` to the known_issues.md entry format and stamping logic in promote.sh (Ready on backlog→ready, Started on ready→in-progress, backfill `Opened` set-if-absent) and create_issue.sh (`Opened` on remote success); extend close_issue.sh to stamp `Resolved` and compute `Durations` using `TZ=UTC date -d "$d" +%s` with per-component guards/floors and the dup guard preserved; update standards/issues.md (en+pt+es) and standards/resolved-issue.md (en); add scripts/tests/test_timestamps.sh (t01–t25). Rebase onto #56 after it lands (shared standards/issues.md + workflow.md).
+
+### 58. develop-router bloqueado: allow patterns bash usam paths relativos que não casam com invocação real
+- Status: in-publish
+- Type: bug
+- Severity: critical
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (security, runtime)
+- Remote: #50
+- PR: #51
+- Location: agents/development/develop-router.md:11-20, workflow.md (security boundary section)
+- Description: O agente `develop-router` (usado pelo `/ocf:develop`) define bash com catch-all `"*": deny` e allow patterns com paths RELATIVOS (`"scripts/promote.sh *"`, `"scripts/create_issue.sh *"`). No fluxo real, executado a partir do workspace do projeto alvo, os scripts são invocados com caminho ABSOLUTO (`$HOME/.config/opencode/scripts/promote.sh`, `$SCRIPTS_DIR/create_issue.sh`). O pattern relativo não casa → o catch-all `"*": deny` bloqueia → erro "The user has specified a rule which prevents you from using this specific tool call" em TODO ciclo de develop. Comandos essenciais de orquestração (ls/cat/head/which para detecção de linguagem, telegram-notify.sh exigido pelo AGENTS.md, gh/glab) também são negados pelo catch-all.
+- Impact: Todo `/ocf:develop` falha na promoção (promote/create_issue) — o pipeline de entrega fica impossibilitado de rodar via router. Violação do AGENTS.md (telegram-notify obrigatório). Foi observado em logs de 2026-08-10 (07:22–11:05) com dezenas de denials em `create_issue.sh 110`, `ls go.mod pyproject.toml ...`, `telegram-notify.sh`, `gh pr view`, etc.
+- Business rules:
+  1. Os allow patterns de bash do `develop-router` DEVEM casar tanto invocações relativas quanto ABSOLUTAS (`$SCRIPTS_DIR`/`$HOME/.config/opencode/scripts/`) dos scripts `promote.sh` e `create_issue.sh`.
+  2. O catch-all `"*": deny` DEVE ser preservado como base (boundary de segurança do workflow.md) — a correção é de allow patterns, não de remoção do deny.
+  3. As deny rules destrutivas de git (`git push --force*`, `git reset --hard*`, `git clean -f*`, `git branch -D *`) DEVEM permanecer DEPOIS de `git *: allow` (findLast) e após a correção.
+  4. `telegram-notify.sh` DEVE ser permitido para o router (AGENTS.md obriga notificação de conclusão/falha).
+  5. Comandos read-only de orquestração usados na detecção de linguagem (ls/cat/head/which, e `gh *`/`glab *`) DEVEM ser permitidos OU substituídos pelo uso de ferramentas glob/read/grep no prompt do router.
+  6. O router NÃO DEVE editar arquivos (edit: deny preservado) — só bash read-only + scripts de pipeline.
+  7. Nenhum comando `*` além dos allow explícitos DEVE ser liberado.
+- Acceptance criteria:
+  1. `$HOME/.config/opencode/scripts/promote.sh <id>` e `/home/<user>/.config/opencode/scripts/create_issue.sh <id>` (paths absolutos) são ALLOWED pelo bash do develop-router.
+  2. `scripts/promote.sh <id>` (path relativo) continua ALLOWED.
+  3. `git push --force`, `git reset --hard`, `git clean -f`, `git branch -D` continuam DENIED.
+  4. `telegram-notify.sh` roda sem deny no router.
+  5. `ls`/`cat`/`head`/`which` de arquivos do workspace ou `gh *`/`glab *` não disparam o erro de permissão (ou o prompt usa glob/read/grep).
+  6. `edit` permanece deny no router.
+  7. `/ocf:develop` numa issue `ready` conclui a promoção (promote + create_issue) sem erro de permissão.
+- Suggested fix: Em `agents/development/develop-router.md`, trocar os allow patterns para casar path absoluto: `"*scripts/promote.sh *": allow` e `"*scripts/create_issue.sh *": allow` (ou `"$HOME/.config/opencode/scripts/*.sh *"` + variante relativa). Adicionar `"*scripts/telegram-notify.sh *": allow`. Adicionar allow de `gh *`/`glab *` e de comandos read-only de inspeção (`ls *`, `cat *`, `head *`, `which *`) OU instruir o router no prompt a usar as ferramentas glob/read/grep em vez de bash para inspeção. Manter deny destrutivos de git após `git *: allow` e `edit: deny`. Validar com sessão `/ocf:develop` real.
 ### 59. Test runner único com cache de resultados (fingerprint) para agentes de development
 - Status: in-publish
 - Type: feat

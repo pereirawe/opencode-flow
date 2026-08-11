@@ -11,8 +11,20 @@ permission:
     "known_issues.md": allow
   bash:
     "*": deny
-    "scripts/*.sh *": allow
+    "*scripts/promote.sh *": allow
+    "*scripts/create_issue.sh *": allow
+    "*scripts/close_issue.sh *": allow
+    "*scripts/telegram-notify.sh *": allow
+    "*SCRIPTS_DIR/promote.sh *": allow
+    "*SCRIPTS_DIR/create_issue.sh *": allow
+    "*SCRIPTS_DIR/close_issue.sh *": allow
+    "*SCRIPTS_DIR/telegram-notify.sh *": allow
     "git *": allow
+    "git push --force*": deny
+    "git push -f*": deny
+    "git reset --hard*": deny
+    "git clean -f*": deny
+    "git branch -D *": deny
 ---
 
 Orchestrate the complete delivery pipeline from tracked issue to merged MR.
