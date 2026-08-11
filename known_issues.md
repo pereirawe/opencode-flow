@@ -412,7 +412,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Suggested fix: (1) rodar `npx skills add https://github.com/Leonxlnx/taste-skill --skill design-taste-frontend` na raiz, (2) repetir para redesign-existing-projects e minimalist-ui, (3) criar `agents/designer.md` com o conteúdo fornecido, (4) registrar skills.paths se instalado fora do padrão, (5) documentar mapeamento de casos de uso.
 
 ### 59. Test runner único com cache de resultados (fingerprint) para agentes de development
-- Status: in-review
+- Status: in-publish
 - Type: feat
 - Severity: high
 - Report: william_pereira
