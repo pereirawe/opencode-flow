@@ -9,7 +9,7 @@ Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for fo
 - Reviewers: 2
 - Remote: #50
 - Severity: critical
-- Summary: O agente `develop-router` (usado pelo `/ocf:develop`) define bash com catch-all `"*" — Em `agents/development/develop-router.md`, trocar os allow patterns para casar path absoluto
+- Summary: Corrige o bug crítico de permissão do `develop-router` que bloqueava toda promoção via `/ocf:develop` (allow patterns bash usavam paths relativos que nunca casavam com as invocações absolutas). `develop-router.md` e `delivery.md` agora usam padrões wildcard-prefixed para scripts de pipeline (`$HOME`/`$SCRIPTS_DIR`), `gh`/`glab`, mantendo catch-all deny, edit deny e destructive-git denies. PR #51 merged.
 
 ### 59. Test runner único com cache de resultados (fingerprint) para agentes de development
 - Resolved: 2026-08-11
