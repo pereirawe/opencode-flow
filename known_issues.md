@@ -419,7 +419,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Base branch: main
 - Reviewers: 2 (qa, runtime)
 - Remote: #52
-- PR: -
+- PR: #53
 - Location: scripts/test-runner.sh (NEW), skills/development/test-runner/SKILL.md (NEW), scripts/tests/test_test_runner.sh (NEW), agents/development/developer.md, agents/development/devs/golang.md, agents/development/devs/python.md, agents/development/senior-reviewers/README.md, agents/development/quality-analyst.md, agents/development/committer.md, agents/development/delivery.md, scripts/pre_commit.sh, workflow.md, standards/commits.md
 - Description: Criar `scripts/test-runner.sh` — entrypoint único de testes para agentes de development, com bootstrap de ambiente, detecção de runner, fingerprint de mudanças e cache de resultados em `.opencode/test-cache/`. Uma skill `test-runner` documenta o protocolo (check/run/status) para qualquer agente. Prompts de developer, devs/*, senior-reviewers, quality-analyst, committer e delivery passam a consumir o cache quando fresco e rodar testes apenas quando há mudança mínima. `pre_commit.sh` delega ao runner.
 - Impact: Elimina execuções repetidas da mesma suite com saída idêntica (developer → senior review → QA → committer rodam o mesmo código 5–7x). Reduz erros de ambiente repetidos (cada agente invoca comando próprio e perde diagnóstico com `2>/dev/null`). Padroniza diagnóstico e reduz tempo de ciclo e tokens.
