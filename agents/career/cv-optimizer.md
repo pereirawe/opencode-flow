@@ -6,6 +6,7 @@ permission:
   edit:
     "*": deny
     "~/carreira/**": allow
+    "~/carreira/**/hub.json": deny
   bash:
     "*": deny
     "python3 *": allow
