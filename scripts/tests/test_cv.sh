@@ -240,13 +240,28 @@ hub = {
 json.dump(hub, open(os.path.join(tmp, "hub-desde-invalid.json"), "w"))
 EOF
 
+TMP_ENV="$TMP" python3 - <<'EOF' > "$TMP/hub-desde-future.json"
+import json, os, time
+tmp = os.environ["TMP_ENV"]
+hub = {
+  "dados_pessoais": {"nome": "T"}, "resumo": "r",
+  "experiencia": [], "educacao": [], "certificacoes": [], "projetos": [],
+  "idiomas": [], "links": [],
+  "skills": [{"nome": "Python", "desde": str(int(time.strftime("%Y")) + 5)}]
+}
+json.dump(hub, open(os.path.join(tmp, "hub-desde-future.json"), "w"))
+EOF
+
 set +e
 python3 "$VALIDATOR" "$TMP/hub-desde-valid.json" >/dev/null 2>&1
 rc_desde_ok=$?
 python3 "$VALIDATOR" "$TMP/hub-desde-invalid.json" >/dev/null 2>&1
 rc_desde_bad=$?
+python3 "$VALIDATOR" "$TMP/hub-desde-future.json" >/dev/null 2>&1
+rc_desde_future=$?
 set -e
 assert_eq "0" "$rc_desde_ok" "validate.py accepts a skill with valid desde (YYYY)"
 assert_eq "1" "$rc_desde_bad" "validate.py rejects a skill with malformed desde"
+assert_eq "1" "$rc_desde_future" "validate.py rejects a skill with future desde"
 
 t_finish
