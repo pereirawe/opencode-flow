@@ -40,7 +40,7 @@ bloqueia e isso viola os termos. Apenas o export oficial é aceito.
 3. **Extrair e consolidar** — o agente roda `pdftotext -layout` no PDF,
    estrutura o export do LinkedIn, consolida em `hub.json` (schema canônico)
    e gera `README.md`.
-4. **Validar** — `python3 scripts/cv/validate.py hub.json`; corrigir até exit 0.
+4. **Validar** — `python3 $SCRIPTS_DIR/cv/validate.py hub.json`; corrigir até exit 0.
 5. **Reportar** — caminho do `hub.json`, se a validação passou, e resumo das
    seções populadas. Informar que o próximo passo é `/ocf:cv-tailor`.
 

@@ -1,6 +1,6 @@
 ---
 name: cv-tailor
-description: Geração de currículo direcionado a uma vaga específica a partir do hub.json do candidato. Analisa a vaga (multi-portal: LinkedIn, Indeed, Gupy, site da empresa — texto colado ou arquivos do export oficial), extrai requisitos/keywords, faz gap analysis vs hub, adapta conteúdo (sem fabricar nada) e gera currículo HTML + PDF no idioma da vaga. Use quando precisar criar um currículo sob medida para uma candidatura (ocf:cv-tailor). Setor: career.
+description: Geração de currículo direcionado a uma vaga específica a partir do hub.json do candidato. Analisa a vaga (multi-portal, incluindo LinkedIn, Indeed, Gupy, site da empresa — texto colado ou arquivos do export oficial), extrai requisitos/keywords, faz gap analysis vs hub, adapta conteúdo (sem fabricar nada) e gera currículo HTML + PDF no idioma da vaga. Use quando precisar criar um currículo sob medida para uma candidatura (comando ocf:cv-tailor). Setor career.
 ---
 
 # CV Tailor — currículo direcionado a vaga
@@ -101,5 +101,5 @@ Reordene, destaque e reformule **apenas o que já existe no hub**:
 1. Escreva `index.html` com CSS inline/embutido: `@page { size: A4; margin:
    16-18mm }`, tipografia limpa (system fonts: `Helvetica, Arial,
    sans-serif`), seções claras.
-2. Rode `bash scripts/cv/pdf.sh index.html curriculo.pdf`.
+2. Rode `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
 3. Se o script falhar, reporte o erro do engine — nunca entregue um PDF vazio.

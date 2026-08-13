@@ -132,4 +132,4 @@ The `ceo` agent orchestrates cross-sector execution.
 | `cv-tailor` | Analyzes a job and generates a job-tailored resume PDF from the candidate hub |
 
 Each sector's agents are in `agents/<sector>/` and invoked via `task:` with
- `subagent_type: <sector>/<agent-name>`.
+`subagent_type: <sector>/<agent-name>`.

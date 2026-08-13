@@ -30,7 +30,7 @@ A vaga pode ser fornecida como:
 
 ### Fluxo
 
-1. **Validar hub** — `python3 scripts/cv/validate.py hub.json`.
+1. **Validar hub** — `python3 $SCRIPTS_DIR/cv/validate.py hub.json`.
 2. **Invocar o agente** `career/cv-tailor` via `task:` com o diretório do
    candidato e a vaga.
 3. **Analisar vaga** — requisitos obrigatórios/desejáveis, keywords, senioridade,
@@ -39,7 +39,7 @@ A vaga pode ser fornecida como:
    salva em `curriculos/<slug-da-vaga>/gap-analysis.md`.
 5. **Adaptar conteúdo** — reordenar/destacar/condensar apenas o que existe no
    hub; inferências marcadas `[INFERIDO]`; idioma = idioma da vaga.
-6. **Gerar PDF** — `bash scripts/cv/pdf.sh index.html curriculo.pdf`.
+6. **Gerar PDF** — `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
 
 ### Regras
 

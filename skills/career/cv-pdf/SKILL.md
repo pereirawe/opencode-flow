@@ -1,6 +1,6 @@
 ---
 name: cv-pdf
-description: Geração de currículo em PDF a partir de HTML — Chrome headless (--print-to-pdf, A4) com fallback LibreOffice. Use quando precisar converter o HTML do currículo direcionado em PDF, ou qualquer HTML em PDF A4. Setor: career.
+description: Geração de currículo em PDF a partir de HTML — Chrome headless (--print-to-pdf, A4) com fallback LibreOffice. Use quando precisar converter o HTML do currículo direcionado em PDF, ou qualquer HTML em PDF A4. Setor career.
 ---
 
 # CV PDF — HTML → PDF
@@ -10,7 +10,7 @@ Converte um arquivo HTML de currículo em PDF A4, pronto para ATS e envio.
 ## Comando
 
 ```bash
-bash scripts/cv/pdf.sh <input.html> <output.pdf> [chrome|libreoffice]
+bash $SCRIPTS_DIR/cv/pdf.sh <input.html> <output.pdf> [chrome|libreoffice]
 ```
 
 - `<input.html>` — arquivo HTML do currículo (deve conter `@page` CSS para A4).
@@ -44,5 +44,5 @@ Após gerar, confirme que o PDF:
 ## Fallback
 
 Se o Chrome falhar (ex.: sandbox/container), rode
-`bash scripts/cv/pdf.sh <input.html> <output.pdf> libreoffice`. O LibreOffice
+`bash $SCRIPTS_DIR/cv/pdf.sh <input.html> <output.pdf> libreoffice`. O LibreOffice
 converte o HTML com fidelidade menor de CSS, então revise o PDF resultante.

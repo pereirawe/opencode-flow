@@ -20,7 +20,33 @@ if [[ ! -f "$INPUT" ]]; then
 fi
 
 INPUT_ABS="$(realpath "$INPUT")"
-OUTPUT_ABS="$(realpath "$OUTPUT")"
+
+# Ensure the output directory exists before resolving it (realpath fails on
+# missing dirs, and Chrome won't create the parent).
+OUTPUT_DIR_RAW="$(dirname "$OUTPUT")"
+if [[ ! -d "$OUTPUT_DIR_RAW" ]]; then
+  mkdir -p "$OUTPUT_DIR_RAW" || { echo "error: cannot create output directory: $OUTPUT_DIR_RAW" >&2; exit 2; }
+fi
+if ! OUTPUT_DIR="$(realpath "$OUTPUT_DIR_RAW")"; then
+  echo "error: cannot resolve output directory: $OUTPUT_DIR_RAW" >&2
+  exit 2
+fi
+OUTPUT_ABS="$OUTPUT_DIR/$(basename "$OUTPUT")"
+
+# Build a URL-encoded file:// URL so paths with spaces / non-ASCII names work.
+file_url() {
+  local path="$1"
+  local encoded=""
+  local i c
+  for ((i = 0; i < ${#path}; i++)); do
+    c="${path:$i:1}"
+    case "$c" in
+      [a-zA-Z0-9/_.~-]) encoded+="$c" ;;
+      *) printf -v esc '%%%02X' "'$c"; encoded+="$esc" ;;
+    esac
+  done
+  printf 'file://%s' "$encoded"
+}
 
 render_chrome() {
   local chrome
@@ -32,6 +58,8 @@ render_chrome() {
 
   # Headless print-to-pdf: A4, no margins (content controls them via @page CSS),
   # prefer CSS page size when set.
+  local url
+  url="$(file_url "$INPUT_ABS")"
   "$chrome" \
     --headless=new \
     --disable-gpu \
@@ -39,8 +67,7 @@ render_chrome() {
     --disable-dev-shm-usage \
     --print-to-pdf="$OUTPUT_ABS" \
     --print-to-pdf-no-header \
-    --no-pdf-header-footer \
-    "file://$INPUT_ABS" >/dev/null 2>&1
+    "$url" >/dev/null 2>&1
 
   if [[ ! -s "$OUTPUT_ABS" ]]; then
     echo "error: Chrome produced an empty PDF" >&2
@@ -56,17 +83,23 @@ render_libreoffice() {
     return 1
   fi
 
-  local outdir
-  outdir="$(dirname "$OUTPUT_ABS")"
+  local outdir stem generated
+  outdir="$OUTPUT_DIR"
   mkdir -p "$outdir"
+  stem="$(basename "$INPUT_ABS")"
+  stem="${stem%.*}"
 
-  # LibreOffice converts to PDF into the same dir as the source.
-  "$lo" --headless --convert-to pdf --outdir "$outdir" "$INPUT_ABS" >/dev/null 2>&1
+  # LibreOffice converts to PDF into the same dir as the source — convert into
+  # a copy placed in the output dir so the generated PDF lands next to OUTPUT.
+  cp "$INPUT_ABS" "$outdir/$stem.html"
 
-  local generated="${INPUT_ABS%.html}.pdf"
+  "$lo" --headless --convert-to pdf --outdir "$outdir" "$outdir/$stem.html" >/dev/null 2>&1
+
+  generated="$outdir/$stem.pdf"
   if [[ -f "$generated" ]]; then
     mv -f "$generated" "$OUTPUT_ABS"
   fi
+  rm -f "$outdir/$stem.html"
   if [[ ! -s "$OUTPUT_ABS" ]]; then
     echo "error: LibreOffice produced an empty PDF" >&2
     return 1

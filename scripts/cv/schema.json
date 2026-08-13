@@ -7,9 +7,9 @@
   "additionalProperties": false,
   "required": ["dados_pessoais", "resumo", "experiencia", "educacao", "skills", "certificacoes", "projetos", "idiomas", "links"],
   "properties": {
-    "candidato": {
+    "dados_pessoais": {
       "type": "object",
-      "description": "Metadados do candidato. Obrigatório informar ao menos o nome.",
+      "description": "Dados pessoais do candidato. Obrigatório informar ao menos o nome.",
       "additionalProperties": false,
       "required": ["nome"],
       "properties": {
@@ -25,7 +25,6 @@
         "site": { "type": "string", "format": "uri" },
         "github": { "type": "string", "format": "uri" },
         "linkedin": { "type": "string", "format": "uri" },
-        "endereco_completo": { "type": "string" },
         "disponibilidade": { "type": "string" },
         "pretensao_salarial": { "type": "string" },
         "visto_trabalho": { "type": "string" }
@@ -33,7 +32,7 @@
     },
     "resumo": {
       "type": "string",
-      "description": "Resumo executivo do candidato. Pode ser um objeto locale-aware (pt/en/es) quando bilingue."
+      "description": "Resumo executivo do candidato no idioma padrão (sempre string). Para resumos por locale, use resumo_i18n."
     },
     "resumo_i18n": {
       "type": "object",
