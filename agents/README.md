@@ -129,6 +129,7 @@ The `ceo` agent orchestrates cross-sector execution.
 | Agent | Function |
 |-------|----------|
 | `cv-extractor` | Extracts candidate data (CV PDF + LinkedIn export + extras) into hub.json + README |
+| `cv-optimizer` | Analyzes the candidate hub — profile score, target jobs, CLT/PJ salary ranges, improvement plan |
 | `cv-tailor` | Analyzes a job and generates a job-tailored resume PDF from the candidate hub |
 
 Each sector's agents are in `agents/<sector>/` and invoked via `task:` with
