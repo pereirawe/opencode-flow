@@ -604,7 +604,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Base branch: main
 - Reviewers: 2 (backend, runtime)
 - Remote: #56
-- PR: -
+- PR: #57
 - Location: agents/career/cv-optimizer.md (novo), skills/career/cv-optimizer/SKILL.md (novo), commands/ocf:cv-optimize.md (novo), opencode.json, workflow.md, standards/README.md, agents/README.md, scripts/tests/test_cv.sh
 - Description: Criar o agente `career/cv-optimizer` + comando `ocf:cv-optimize <dir-candidato>` que roda após o `ocf:cv-hub` para aprimorar o perfil do candidato. Analisa qualificações gerais, calcula score do perfil (0-100 por seção + global), sugere perfis de vagas-alvo, avalia pretensão salarial de mercado CLT vs PJ (faixas `[INFERIDO]`), detecta lacunas de contexto no hub e gera um plano de ações priorizado. Entrega: relatório único `~/carreira/<candidato>/analise-perfil.md` (+ tasks.json opcional).
 - Impact: Transforma o hub de dados em um plano de melhoria acionável. O candidato sabe exatamente o que aprimorar (métricas nas conquistas, links em projetos, certificações, idiomas formais), qual vaga mirar, e quanto pedir (CLT vs PJ) antes de gerar currículos direcionados com o cv-tailor.
