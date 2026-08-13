@@ -61,6 +61,13 @@ def validate_hub(hub):
     for i, item in enumerate(hub.get("skills", [])):
         if isinstance(item, dict):
             check(item.get("nome"), f"skills[{i}].nome is required", errors)
+            desde = item.get("desde")
+            if desde is not None:
+                check(
+                    isinstance(desde, str) and len(desde) == 4 and desde.isdigit() and 1900 <= int(desde) <= 2100,
+                    f"skills[{i}].desde must be a year string (YYYY), got {desde!r}",
+                    errors,
+                )
 
     for i, item in enumerate(hub.get("certificacoes", [])):
         if isinstance(item, dict):

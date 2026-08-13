@@ -93,7 +93,7 @@
     },
     "skills": {
       "type": "array",
-      "description": "Habilidades com nível de proficiência. Nível default 'usar'.",
+      "description": "Habilidades com nível de proficiência. Nível default 'usar'. Prefira registrar 'desde' (ano de início) e calcular anos de experiência dinamicamente até hoje — um valor fixo de anos_experiencia fica desatualizado com o tempo.",
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -102,7 +102,8 @@
           "nome": { "type": "string" },
           "categoria": { "type": "string", "enum": ["linguagem", "framework", "ferramenta", "nuvem", "dado", "devops", "soft-skill", "metodologia", "outro", ""] },
           "nivel": { "type": "string", "enum": ["iniciante", "usar", "avancado", "especialista", ""] },
-          "anos_experiencia": { "type": "number", "minimum": 0 },
+          "desde": { "type": "string", "pattern": "^(19|20)[0-9]{2}$", "description": "Ano de início do uso da habilidade (ex.: 2018). Preferível a anos_experiencia fixo." },
+          "anos_experiencia": { "type": "number", "minimum": 0, "description": "Opcional quando 'desde' presente — recomenda-se calcular dinamicamente (ano atual - desde)." },
           "importancia": { "type": "string", "enum": ["principal", "secundaria", ""] }
         }
       }
