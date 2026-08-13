@@ -207,8 +207,61 @@ if [[ -f "$OPT_SKILL" ]]; then
   assert_contains "$OPT_SKILL" "NUNCA modificar \`hub.json\`" "cv-optimizer skill forbids hub.json edits"
   assert_contains "$OPT_SKILL" "validate.py" "cv-optimizer skill references hub validation"
   assert_contains "$OPT_SKILL" "analise-perfil.md" "cv-optimizer skill defines report output"
+  assert_contains "$OPT_SKILL" "analise-perfil.pdf" "cv-optimizer skill defines PDF output"
+  assert_contains "$OPT_SKILL" "NENHUM cabeçalho de metadados" "cv-optimizer skill forbids metadata header"
+  assert_contains "$OPT_SKILL" "desde" "cv-optimizer skill uses skill desde field"
+  assert_contains "$OPT_SKILL" "ano atual − \`desde\`" "cv-optimizer skill computes skill years dynamically"
 else
   t_fail "cv-optimizer skill missing at $OPT_SKILL"
 fi
+
+# validate.py must accept a valid 'desde' year and reject malformed ones
+TMP_ENV="$TMP" python3 - <<'EOF' > "$TMP/hub-desde-valid.json"
+import json, os
+tmp = os.environ["TMP_ENV"]
+hub = {
+  "dados_pessoais": {"nome": "T"}, "resumo": "r",
+  "experiencia": [], "educacao": [], "certificacoes": [], "projetos": [],
+  "idiomas": [], "links": [],
+  "skills": [{"nome": "Python", "desde": "2018"}]
+}
+json.dump(hub, open(os.path.join(tmp, "hub-desde-valid.json"), "w"))
+EOF
+
+TMP_ENV="$TMP" python3 - <<'EOF' > "$TMP/hub-desde-invalid.json"
+import json, os
+tmp = os.environ["TMP_ENV"]
+hub = {
+  "dados_pessoais": {"nome": "T"}, "resumo": "r",
+  "experiencia": [], "educacao": [], "certificacoes": [], "projetos": [],
+  "idiomas": [], "links": [],
+  "skills": [{"nome": "Python", "desde": "20a8"}]
+}
+json.dump(hub, open(os.path.join(tmp, "hub-desde-invalid.json"), "w"))
+EOF
+
+TMP_ENV="$TMP" python3 - <<'EOF' > "$TMP/hub-desde-future.json"
+import json, os, time
+tmp = os.environ["TMP_ENV"]
+hub = {
+  "dados_pessoais": {"nome": "T"}, "resumo": "r",
+  "experiencia": [], "educacao": [], "certificacoes": [], "projetos": [],
+  "idiomas": [], "links": [],
+  "skills": [{"nome": "Python", "desde": str(int(time.strftime("%Y")) + 5)}]
+}
+json.dump(hub, open(os.path.join(tmp, "hub-desde-future.json"), "w"))
+EOF
+
+set +e
+python3 "$VALIDATOR" "$TMP/hub-desde-valid.json" >/dev/null 2>&1
+rc_desde_ok=$?
+python3 "$VALIDATOR" "$TMP/hub-desde-invalid.json" >/dev/null 2>&1
+rc_desde_bad=$?
+python3 "$VALIDATOR" "$TMP/hub-desde-future.json" >/dev/null 2>&1
+rc_desde_future=$?
+set -e
+assert_eq "0" "$rc_desde_ok" "validate.py accepts a skill with valid desde (YYYY)"
+assert_eq "1" "$rc_desde_bad" "validate.py rejects a skill with malformed desde"
+assert_eq "1" "$rc_desde_future" "validate.py rejects a skill with future desde"
 
 t_finish

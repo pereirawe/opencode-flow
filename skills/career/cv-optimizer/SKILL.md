@@ -19,11 +19,39 @@ deve ser executado primeiro (o comando `ocf:cv-optimize` já trata isso).
 ## Saída
 
 ```
-~/carreira/<nome-candidato>/analise-perfil.md   # relatório único (principal)
-~/carreira/<nome-candidato>/tasks.json          # opcional — tarefas estruturadas
+~/carreira/<nome-candidato>/analise-perfil.md    # relatório (markdown)
+~/carreira/<nome-candidato>/analise-perfil.html  # relatório renderizado (para PDF)
+~/carreira/<nome-candidato>/analise-perfil.pdf   # relatório PDF (A4)
+~/carreira/<nome-candidato>/tasks.json           # opcional — tarefas estruturadas
 ```
 
 O relatório NÃO modifica `hub.json` — apenas reporta.
+
+## Formato do relatório
+
+O relatório **não deve conter cabeçalho de metadados** (sem linhas como
+"Gerado em:", "Fonte:", "Ferramenta:", "Nota:"). Comece diretamente pelo
+conteúdo:
+
+1. **Score do perfil** (global + por seção)
+2. **Qualificações gerais**
+3. **Perfis de vagas-alvo**
+4. **Mercado salarial (CLT vs PJ)**
+5. **Lacunas de contexto**
+6. **Plano de ações priorizado**
+
+As marcações `[INFERIDO]` ficam inline junto a cada estimativa — não como
+aviso no topo do documento.
+
+## Geração do PDF
+
+Após escrever o `analise-perfil.md`, gere também o PDF para facilitar leitura:
+
+1. Renderize o conteúdo em `analise-perfil.html` (A4 via `@page { size: A4;
+   margin: 16mm }`, tipografia limpa, headings semânticos — mesmo padrão do
+   cv-pdf).
+2. Rode `bash $SCRIPTS_DIR/cv/pdf.sh analise-perfil.html analise-perfil.pdf`.
+3. Se o engine falhar, reporte o erro — nunca entregue um PDF vazio.
 
 ## Protocolo de análise
 
@@ -40,8 +68,12 @@ O relatório NÃO modifica `hub.json` — apenas reporta.
 - **Senioridade inferida** — pela soma de anos de experiência, cargos mais
   recentes e profundidade das skills (júnior/pleno/sênior/especialista/lead).
   Sempre `[INFERIDO]`.
-- **Principais skills** — top skills por `nivel` e `importancia`, com anos de
-  experiência quando presentes.
+- **Principais skills** — top skills por `nivel` e `importancia`. Para cada
+  skill, registre **`desde` (ano de início)** e calcule os anos de experiência
+  **dinamicamente até o ano atual** (`ano_atual - desde`). Nunca use um
+  `anos_experiencia` fixo do hub como fato — ele fica desatualizado com o
+  tempo; se o hub tiver `desde`, recompute; se só tiver `anos_experiencia`,
+  use-o como referência mas marque a estimativa `[INFERIDO]`.
 - **Pontos fortes** — seções fortes (skills densas, conquistas com métrica,
   certificações, projetos com link).
 - **Pontos fracos** — seções vazias/rasas, datas ausentes, gaps de experiência,
@@ -57,7 +89,7 @@ Pontue cada seção com base em **completude e força**:
 | resumo | resumo presente, claro, com diferencial; idealmente bilingue (resumo_i18n) |
 | experiencia | cargos com datas, resumo, conquistas (métrica = bonus) |
 | educacao | instituições/cursos completos, status definido |
-| skills | quantidade, nível explícito, categorias, anos de experiência |
+| skills | quantidade, nível explícito, categorias, `desde`/anos de experiência (bonus: `desde` presente — permite calcular anos dinamicamente) |
 | certificacoes | presentes, com emissor e ano |
 | projetos | presentes, com descrição e link (link = bonus) |
 | idiomas | presentes, com nível formal (nota_escala = bonus) |
@@ -111,7 +143,8 @@ impacto do perfil:
 - Certificações sem ano/emissor/validade
 - Idiomas sem nível formal (nota_escala: B2/C1, IELTS...)
 - Experiência com datas ausentes ou gaps não explicados
-- Skills sem nível/anos de experiência
+- Skills sem nível OU sem `desde`/anos de experiência (a skill existe, mas não
+  é possível dimensionar senioridade — recomende registrar o ano de início)
 - Resumo sem diferencial/posicionamento
 - Seções totalmente ausentes (projetos, certificações, idiomas)
 
@@ -135,6 +168,12 @@ fechar gaps das vagas-alvo (cursos/certificações/idiomas), posicionamento.
 4. Nenhum dado sensível (CPF, endereço completo, banco) no relatório.
 5. Nada de vagas concretas/empresas/URLs — apenas perfis genéricos.
 6. Dados sensíveis já excluídos pelo cv-hub permanecem excluídos.
+7. NENHUM cabeçalho de metadados no relatório (sem "Gerado em:", "Fonte:",
+   "Ferramenta:", "Nota:" no topo) — comece direto pelo conteúdo. As
+   marcações `[INFERIDO]` são inline, não um aviso global.
+8. Anos de experiência de skills DEVEM ser calculados dinamicamente
+   (ano atual − `desde`) sempre que `desde` estiver presente no hub — nunca
+   exibir um `anos_experiencia` fixo como fato atual.
 
 ## tasks.json (opcional)
 

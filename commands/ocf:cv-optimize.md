@@ -1,7 +1,7 @@
 ## /ocf:cv-optimize <diretório-do-candidato>
 
 ---
-description: Analyze the candidate profile and generate an improvement plan — profile score, target job profiles, CLT vs PJ salary ranges, context gaps, and a prioritized action plan (analise-perfil.md)
+description: Analyze the candidate profile and generate an improvement plan — profile score, target job profiles, CLT vs PJ salary ranges, context gaps, and a prioritized action plan (analise-perfil.md + PDF)
 ---
 
 Analisa o perfil de um candidato a partir do hub (construído com
@@ -32,8 +32,11 @@ direcionados com `/ocf:cv-tailor`.
    - Faixas salariais CLT vs PJ (todas `[INFERIDO]` para revisão humana)
    - Lacunas de contexto no hub
    - Plano de ações priorizado (impacto × esforço)
-5. **Reportar** — caminho do relatório, score global, top ações e itens
-   `[INFERIDO]` que o candidato deve revisar.
+5. **Gerar PDF** — o agente renderiza `analise-perfil.html` e roda
+   `bash $SCRIPTS_DIR/cv/pdf.sh` para produzir `analise-perfil.pdf` (A4),
+   facilitando leitura/análise.
+6. **Reportar** — caminho do relatório (.md e .pdf), score global, top ações
+   e itens `[INFERIDO]` que o candidato deve revisar.
 
 ### Regras
 
@@ -41,3 +44,7 @@ direcionados com `/ocf:cv-tailor`.
 - O agente NÃO modifica `hub.json` — apenas reporta.
 - Sem busca web — vagas-alvo são perfis genéricos derivados da análise offline.
 - Nenhum dado sensível aparece no relatório.
+- NENHUM cabeçalho de metadados no relatório ("Gerado em:", "Fonte:",
+  "Ferramenta:", "Nota:") — comece direto pelo conteúdo; `[INFERIDO]` inline.
+- Anos de experiência de skills calculados dinamicamente (ano atual − `desde`)
+  sempre que `desde` existir no hub.
