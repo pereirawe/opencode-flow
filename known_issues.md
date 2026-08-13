@@ -594,3 +594,47 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   13. `bash -n` clean on all modified scripts; full `make test-scripts` suite passes.
 - Suggested fix: Add `Opened`/`Ready`/`Started` to the known_issues.md entry format and stamping logic in promote.sh (Ready on backlog→ready, Started on ready→in-progress, backfill `Opened` set-if-absent) and create_issue.sh (`Opened` on remote success); extend close_issue.sh to stamp `Resolved` and compute `Durations` using `TZ=UTC date -d "$d" +%s` with per-component guards/floors and the dup guard preserved; update standards/issues.md (en+pt+es) and standards/resolved-issue.md (en); add scripts/tests/test_timestamps.sh (t01–t25). Rebase onto #56 after it lands (shared standards/issues.md + workflow.md).
 
+
+### 60. Hub de currículo + geração de currículo direcionado a vaga (ocf:cv-hub / ocf:cv-tailor)
+- Status: ready
+- Type: feat
+- Severity: high
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (backend, runtime)
+- Remote: -
+- PR: -
+- Location: agents/career/* (novo), skills/career/* (novo), commands/ocf:cv-hub.md, commands/ocf:cv-tailor.md, opencode.json, workflow.md, standards/issues.md, scripts/cv/pdf.sh (novo), scripts/cv/schema.json (novo)
+- Description: Fluxo multi-agente de otimização de currículos para contratação acelerada. Fase 1 (hub): extrair dados de currículo PDF + export oficial LinkedIn + complementos opcionais e consolidar em `hub.json` (schema canônico para IA) + `README.md` humano, em diretório dedicado por candidato. Fase 2 (tailor): analisar vaga (multi-portal), extrair requisitos/keywords, fazer gap analysis vs hub, e gerar currículo direcionado em PDF (HTML → PDF via Chrome headless, fallback LibreOffice), no idioma da vaga.
+- Impact: Acelera candidaturas com currículos sob medida por vaga, maximizando match com ATS/keywords. Cria hub estruturado e reutilizável por candidato. Uso pessoal do william_pereira (proposta 2026-08-13-1).
+- Business rules:
+  1. O hub DEVE ser construído em diretório dedicado por candidato (`~/carreira/<nome-candidato>/`), padrão `hub.json` + `README.md` + `curriculos/` (PDFs/HTML gerados) + `entradas/` (originais: PDF currículo, export LinkedIn, complementos).
+  2. `hub.json` DEVE ser o schema canônico estruturado para análise de IA (seções: dados-pessoais, resumo, experiencia, educacao, skills, certificacoes, projetos, idiomas, links) — validável por script de schema (`scripts/cv/schema.json` + validação).
+  3. `README.md` DEVE ser gerado a partir do `hub.json` (resumo executivo humano) — nunca divergir do JSON.
+  4. Entrada mínima obrigatória: currículo em PDF. Export do LinkedIn e complementos são opcionais (hub flexível).
+  5. O fluxo do LinkedIn DEVE usar EXCLUSIVAMENTE exportação oficial (`https://www.linkedin.com/mypreferences/d/download-my-data`, opção "Baixe um arquivo de dados maior...") — NUNCA scraping de linkedin.com (bloqueio anti-bot).
+  6. A análise de vaga DEVE aceitar multi-portal: texto/URL colado pelo usuário de qualquer portal (LinkedIn, Indeed, Gupy, site da empresa) + export oficial LinkedIn quando aplicável.
+  7. `ocf:cv-tailor` DEVE extrair da vaga: requisitos obrigatórios, requisitos desejáveis, keywords/tecnologias, senioridade, idiomas, e mapping vs `hub.json` (gap analysis: requisito atendido/parcial/não atendido).
+  8. O currículo direcionado DEVE ser gerado em PDF (HTML → PDF via Chrome headless `--print-to-pdf`, com fallback LibreOffice), salvando também o HTML fonte em `curriculos/`.
+  9. O idioma do currículo gerado DEVE seguir o idioma da vaga (vaga em inglês → currículo em inglês); hub mantém dados brutos bilingues quando disponíveis.
+  10. O currículo direcionado DEVE adaptar conteúdo (summary, ordem de skills, projetos mais relevantes) SEM fabricar/mentir informações — apenas reordenar, destacar e reformular o que já existe no hub.
+  11. TODA informação gerada que não exista no hub DEVE ser marcada como placeholder/inferência (`[INFERIDO]`) para revisão humana — nunca silenciosa.
+  12. Nenhum dado pessoal sensível (telefone, e-mail, endereço) DEVE vazar para arquivos além do escopo do candidato; o currículo direcionado DEVE incluir contato apenas se presente no hub.
+  13. Os comandos DEVEM ser registrados em `opencode.json` como `ocf:cv-hub` e `ocf:cv-tailor`, apoiados por agentes/skills dedicados sob `agents/career/` e `skills/career/`.
+  14. O hub NÃO DEVE exigir rede: extração de PDF local via `pdftotext` (verificar disponibilidade; fallback Python) e parsing de arquivos locais do export LinkedIn.
+  15. PDFs gerados DEVEM ser A4, tipografia limpa (system fonts / Google Fonts offline), seções claras (contato, resumo, experiência, educação, skills, projetos) e prontos para ATS.
+- Acceptance criteria:
+  1. `agents/career/` contém agente de extração (cv-extractor) e agente de tailoring (cv-tailor) com frontmatter válido.
+  2. `skills/career/` contém skills (cv-hub, cv-tailor, cv-pdf) com SKILL.md válido e registradas em `permission.skill`.
+  3. `commands/ocf:cv-hub.md` e `commands/ocf:cv-tailor.md` existem e estão registrados em `opencode.json`.
+  4. `scripts/cv/pdf.sh` gera PDF A4 a partir de HTML via Chrome headless, com fallback LibreOffice.
+  5. `scripts/cv/schema.json` valida `hub.json` (script de validação com exit code).
+  6. `ocf:cv-hub` com um currículo PDF produz `hub.json` válido + `README.md` no diretório do candidato.
+  7. `ocf:cv-hub` aceita export LinkedIn (arquivos locais) e complementos opcionais sem quebrar.
+  8. `ocf:cv-tailor` com vaga colada/URL produz currículo PDF direcionado + HTML fonte, no idioma da vaga.
+  9. Gap analysis identifica requisitos atendidos/parciais/não atendidos e as adaptações feitas.
+  10. Nenhuma informação fabricada sem marcação `[INFERIDO]`.
+  11. Nenhum dado sensível vaza além do escopo do candidato.
+  12. `opencode.json` válido após registrar comandos, agentes e skills.
+  13. Documentação do fluxo LinkedIn oficial presente no comando `ocf:cv-hub`.
+- Suggested fix: Criar `agents/career/cv-extractor.md`, `agents/career/cv-tailor.md`, `skills/career/cv-hub/SKILL.md`, `skills/career/cv-tailor/SKILL.md`, `skills/career/cv-pdf/SKILL.md`, `commands/ocf:cv-hub.md`, `commands/ocf:cv-tailor.md`, `scripts/cv/pdf.sh`, `scripts/cv/schema.json`; registrar comandos/agentes/skills no `opencode.json`; documentar no `workflow.md`/`standards/issues.md`. Origem: Proposal 2026-08-13-1 em `prioritization.md`.
