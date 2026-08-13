@@ -203,6 +203,10 @@ resume-optimization flow (issue #60):
   `README.md`) from a CV PDF (required), official LinkedIn export (Download My
   Data — never scraping), and optional extras. Output lives in
   `~/carreira/<nome-candidato>/`.
+- `/ocf:cv-optimize <candidate-dir>` — analyze the candidate profile
+  (post-hub): profile score, target job profiles, CLT/PJ salary ranges
+  (`[INFERIDO]`), context gaps, and a prioritized improvement plan in
+  `analise-perfil.md`. Never fabricates; never modifies `hub.json`.
 - `/ocf:cv-tailor <candidate-dir> <job>` — analyze a job (multi-portal), gap
   analysis vs `hub.json`, and generate a job-tailored resume PDF (HTML → PDF,
   Chrome headless, fallback LibreOffice) in the job's language. Never
