@@ -2,6 +2,15 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 61. Agente de otimização do perfil — análise, plano de ações, mercado salarial e vagas-alvo (ocf:cv-optimize)
+- Resolved: 2026-08-13
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #56
+- Severity: high
+- Summary: Criar o agente `career/cv-optimizer` + comando `ocf:cv-optimize <dir-candidato>` que roda após o `ocf:cv-hub` para aprimorar o perfil do candidato. Analisa qualificações gerais, calcula score do perfil (0-100 por seção + global), sugere perfis de vagas-alvo, avalia pretensão salarial de mercado CLT vs PJ (faixas `[INFERIDO]`), detecta lacunas de contexto no hub e gera um plano de ações priorizado. Entrega — (1) criar `agents/career/cv-optimizer.md` (subagent, temperature 0.2, edit apenas ~/carreira/**, deny "*" primeiro); (2) criar `skills/career/cv-optimizer/SKILL.md` (protocolo de análise
+
 ### 60. Hub de currículo + geração de currículo direcionado a vaga (ocf:cv-hub / ocf:cv-tailor)
 - Resolved: 2026-08-13
 - Type: feat
