@@ -68,7 +68,7 @@ cat > "$TMP/resume.html" <<'HTMLEOF'
 </head><body><h1>Test Resume</h1><p>ATS-friendly text.</p></body></html>
 HTMLEOF
 
-CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || true)"
+CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
 if [[ -n "$CHROME" ]]; then
   set +e
   bash "$PDF_SH" "$TMP/resume.html" "$TMP/resume.pdf" chrome >/dev/null 2>&1
@@ -95,5 +95,73 @@ bash "$PDF_SH" "$TMP/missing.html" "$TMP/out.pdf" >/dev/null 2>&1
 rc_missing=$?
 set -e
 assert_eq "2" "$rc_missing" "pdf.sh exits 2 when the input HTML is missing"
+
+# pdf.sh should create the output dir when missing (regression for M1/M2)
+set +e
+bash "$PDF_SH" "$TMP/resume.html" "$TMP/deep/nested/out.pdf" chrome >/dev/null 2>&1
+rc_deep=$?
+set -e
+assert_eq "0" "$rc_deep" "pdf.sh creates a missing output directory"
+assert_eq "1" "$(test -s "$TMP/deep/nested/out.pdf" && echo 1 || echo 0)" "PDF written into created output dir"
+
+# validate.py must reject non-object dados_pessoais and non-string resumo
+TMP_ENV="$TMP" python3 - <<'EOF' > "$TMP/hub-badtypes.json"
+import json, os
+tmp = os.environ["TMP_ENV"]
+hub = {
+  "dados_pessoais": "not-an-object",
+  "resumo": 123,
+  "experiencia": [], "educacao": [], "skills": [], "certificacoes": [],
+  "projetos": [], "idiomas": [], "links": []
+}
+json.dump(hub, open(os.path.join(tmp, "hub-badtypes.json"), "w"))
+EOF
+
+set +e
+python3 "$VALIDATOR" "$TMP/hub-badtypes.json" >/dev/null 2>&1
+rc_badtypes=$?
+set -e
+assert_eq "1" "$rc_badtypes" "validate.py rejects non-object dados_pessoais and non-string resumo"
+
+# validate.py must handle a directory argument cleanly (exit 2, no traceback)
+set +e
+python3 "$VALIDATOR" "$TMP" >/dev/null 2>&1
+rc_dir=$?
+set -e
+assert_eq "2" "$rc_dir" "validate.py exits 2 (not traceback) for a directory argument"
+
+# --- LibreOffice fallback (mocked) ---
+# Mock libreoffice in PATH: it writes <outdir>/<stem>.pdf from the HTML copy in
+# outdir, then pdf.sh must move it to OUTPUT_ABS. Regression for the fallback
+# path when input and output are in different directories (review H1).
+MOCK_DIR="$TMP/mockbin"
+mkdir -p "$MOCK_DIR"
+cat > "$MOCK_DIR/libreoffice" <<'EOF'
+#!/usr/bin/env bash
+# Mock: emulate `libreoffice --headless --convert-to pdf --outdir OUT IN`
+outdir=""; input=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --outdir) outdir="$2"; shift 2 ;;
+    --convert-to) shift 2 ;;
+    *) input="$1"; shift ;;
+  esac
+done
+if [[ -z "$outdir" || -z "$input" ]]; then exit 1; fi
+stem="${input%.*}"; stem="$(basename "$stem")"
+# produce a real PDF so the -s check passes
+printf '%%PDF-1.4\n%%\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj\nxref\n0 3\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \ntrailer<</Size 3/Root 1 0 R>>\nstartxref\n97\n%%%%EOF\n' > "$outdir/$stem.pdf"
+EOF
+chmod +x "$MOCK_DIR/libreoffice"
+
+# Input in one dir, output in another — fallback must land at OUTPUT_ABS.
+mkdir -p "$TMP/in" "$TMP/out"
+cp "$TMP/resume.html" "$TMP/in/resume.html"
+set +e
+PATH="$MOCK_DIR:$PATH" bash "$PDF_SH" "$TMP/in/resume.html" "$TMP/out/curriculo.pdf" libreoffice >/dev/null 2>&1
+rc_lo=$?
+set -e
+assert_eq "0" "$rc_lo" "LibreOffice fallback succeeds with input and output in different dirs"
+assert_eq "1" "$(test -s "$TMP/out/curriculo.pdf" && echo 1 || echo 0)" "fallback PDF moved to OUTPUT_ABS (not stranded in input dir)"
 
 t_finish

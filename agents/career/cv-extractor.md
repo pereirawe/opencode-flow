@@ -4,17 +4,18 @@ mode: subagent
 temperature: 0.2
 permission:
   edit:
-    "~/carreira/**": allow
     "*": deny
+    "~/carreira/**": allow
   bash:
+    "*": deny
     "pdftotext*": allow
     "python3 *": allow
+    "*SCRIPTS_DIR/cv/validate.py*": allow
     "ls *": allow
     "mkdir -p *": allow
     "cp *": allow
     "mv *": allow
     "chmod *": allow
-    "*": deny
   read: allow
   glob: allow
   grep: allow
@@ -35,7 +36,7 @@ de um candidato a partir de: currículo em PDF (obrigatório), export oficial do
 - Estruturar o export do LinkedIn (arquivos sob `Profile/`, `Work/`, `Education/`,
   `Certifications/`).
 - Consolidar tudo em `hub.json` seguindo o schema canônico (skill `cv-hub`).
-- Validar com `python3 scripts/cv/validate.py hub.json` até exit 0.
+- Validar com `python3 $SCRIPTS_DIR/cv/validate.py hub.json` até exit 0.
 - Gerar `README.md` a partir do `hub.json`.
 
 ## Regras

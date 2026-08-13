@@ -1,6 +1,6 @@
 ---
 name: cv-hub
-description: Construção do hub de currículo de um candidato — extração de dados a partir de currículo PDF (pdftotext), export oficial do LinkedIn (Download My Data), e arquivos complementares, consolidação em hub.json (schema canônico para IA) + README.md humano. Use quando precisar criar ou atualizar o hub de dados de um candidato (ocf:cv-hub). Setor: career.
+description: Construção do hub de currículo de um candidato — extração de dados a partir de currículo PDF (pdftotext), export oficial do LinkedIn (Download My Data), e arquivos complementares, consolidação em hub.json (schema canônico para IA) + README.md humano. Use quando precisar criar ou atualizar o hub de dados de um candidato (comando ocf:cv-hub). Setor career.
 ---
 
 # CV Hub — construção do hub do candidato
@@ -44,7 +44,7 @@ humano). O hub é a base da geração de currículos direcionados (`cv-tailor`).
    `Certifications/`. Extraia para a estrutura do hub.
 4. **Consolidar no hub.json** — use o schema canônico (definição abaixo).
    Prefira os dados mais recentes; registre cada item em **uma** das fontes.
-5. **Validar** — rode `python3 scripts/cv/validate.py hub.json`. Corrija até
+5. **Validar** — rode `python3 $SCRIPTS_DIR/cv/validate.py hub.json`. Corrija até
    exit 0.
 6. **Gerar README.md** — derive do hub.json: nome, título, resumo, contato
    (somente se presente no hub), experiência, educação, skills principais,

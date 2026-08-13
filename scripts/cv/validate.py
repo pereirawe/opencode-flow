@@ -34,6 +34,11 @@ def validate_hub(hub):
     dados = hub.get("dados_pessoais", {})
     if isinstance(dados, dict):
         check("nome" in dados and dados.get("nome"), "dados_pessoais.nome is required", errors)
+    else:
+        check(False, "dados_pessoais must be an object", errors)
+
+    resumo = hub.get("resumo", "")
+    check(isinstance(resumo, str), "resumo must be a string", errors)
 
     for array_field in ["experiencia", "educacao", "skills", "certificacoes", "projetos", "idiomas", "links"]:
         val = hub.get(array_field, [])
@@ -86,6 +91,9 @@ def main():
     try:
         with open(path, "r", encoding="utf-8") as f:
             hub = json.load(f)
+    except IsADirectoryError:
+        print(f"path is a directory, not a file: {path}", file=sys.stderr)
+        return 2
     except FileNotFoundError:
         print(f"file not found: {path}", file=sys.stderr)
         return 2
