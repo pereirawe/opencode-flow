@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.9.0 (2026-08-13)
+
+- **feat(career): resume optimization flow — hub + job-tailored resume** — `ocf:cv-hub` builds a candidate hub (`hub.json` canonical schema + `README.md`) from CV PDF + official LinkedIn export (Download My Data, never scraping) + extras; `ocf:cv-tailor` analyzes a job (multi-portal), gap analysis vs hub, and generates a tailored resume PDF (HTML → PDF via Chrome headless, LibreOffice fallback) in the job's language; `cv-optimize` issue #61 registered (agent pending merge). Backed by `agents/career/*`, `skills/career/*` (cv-hub, cv-tailor, cv-pdf), `scripts/cv/*` (schema.json, validate.py, pdf.sh) and 23 script tests
+- **feat(auth): auth-architect skill + reviewer role** — dedicated skill for authentication/authorization architecture (JWT, OAuth 2.0, OIDC, RBAC/ABAC, multi-tenancy, token lifecycle, security hardening); README updated with the new senior reviewer role
+- **feat(test-runner): single test entrypoint with fingerprint cache** — `scripts/test-runner.sh` (`--check`/`--run`/`--status`) with environment bootstrap, runner detection, and result cache keyed on git HEAD + changed files; developer, reviewers, QA, committer, and `pre_commit.sh` reuse fresh cache and never re-run unchanged suites
+- **feat(nginx): reverse proxy with HTTPS via mkcert** — `setup-web.sh --with-nginx` configures nginx as reverse proxy to the opencode web service with local HTTPS, HTTP→HTTPS redirect, and WebSocket support
+
 ## 1.8.0 (2026-08-08)
 
 - **feat(telegram): mandatory telegram notifications for all agents** — every agent now sends Telegram alerts on task completion (success/failure) and when user input is required, with no confirmation prompt; credentials from `.opencode/telegram.env`
