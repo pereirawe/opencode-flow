@@ -1,0 +1,186 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://opencode.ai/schema/cv-hub.json",
+  "title": "Curriculum Hub",
+  "description": "Schema canônico do hub de currículo de um candidato. Fonte de verdade estruturada para análise de IA e geração de currículos direcionados.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["dados_pessoais", "resumo", "experiencia", "educacao", "skills", "certificacoes", "projetos", "idiomas", "links"],
+  "properties": {
+    "candidato": {
+      "type": "object",
+      "description": "Metadados do candidato. Obrigatório informar ao menos o nome.",
+      "additionalProperties": false,
+      "required": ["nome"],
+      "properties": {
+        "nome": { "type": "string", "minLength": 1 },
+        "apelido": { "type": "string" },
+        "titulo_profissional": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "telefone": { "type": "string" },
+        "cidade": { "type": "string" },
+        "estado": { "type": "string" },
+        "pais": { "type": "string" },
+        "data_nascimento": { "type": "string" },
+        "site": { "type": "string", "format": "uri" },
+        "github": { "type": "string", "format": "uri" },
+        "linkedin": { "type": "string", "format": "uri" },
+        "endereco_completo": { "type": "string" },
+        "disponibilidade": { "type": "string" },
+        "pretensao_salarial": { "type": "string" },
+        "visto_trabalho": { "type": "string" }
+      }
+    },
+    "resumo": {
+      "type": "string",
+      "description": "Resumo executivo do candidato. Pode ser um objeto locale-aware (pt/en/es) quando bilingue."
+    },
+    "resumo_i18n": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Resumo por locale: { pt: '...', en: '...', es: '...' }"
+    },
+    "experiencia": {
+      "type": "array",
+      "description": "Histórico profissional em ordem cronológica reversa (mais recente primeiro).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["empresa", "cargo"],
+        "properties": {
+          "empresa": { "type": "string" },
+          "cargo": { "type": "string" },
+          "inicio": { "type": "string", "description": "YYYY-MM ou YYYY" },
+          "fim": { "type": "string", "description": "YYYY-MM, YYYY ou 'atual'/'present'" },
+          "atual": { "type": "boolean" },
+          "local": { "type": "string" },
+          "tipo": { "type": "string", "enum": ["CLT", "PJ", "Freelance", "Estágio", "Trainee", "Tempo integral", "Meio período", "Remoto", "Presencial", "Híbrido", ""] },
+          "resumo": { "type": "string" },
+          "conquistas": {
+            "type": "array",
+            "description": "Realizações mensuráveis com impacto (ex.: métricas, % de melhoria).",
+            "items": { "type": "string" }
+          },
+          "responsabilidades": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "tecnologias": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "linguagem": { "type": "string", "description": "Idioma original do registro (pt/en/es)." }
+        }
+      }
+    },
+    "educacao": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["instituicao", "curso"],
+        "properties": {
+          "instituicao": { "type": "string" },
+          "curso": { "type": "string" },
+          "tipo": { "type": "string", "enum": ["Graduação", "Pós-graduação", "Mestrado", "Doutorado", "MBA", "Técnico", "Curso livre", "Bootcamp", "Ensino médio", ""] },
+          "inicio": { "type": "string" },
+          "fim": { "type": "string" },
+          "status": { "type": "string", "enum": ["Concluído", "Em andamento", "Trancado", "Interrompido", ""] },
+          "descricao": { "type": "string" }
+        }
+      }
+    },
+    "skills": {
+      "type": "array",
+      "description": "Habilidades com nível de proficiência. Nível default 'usar'.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["nome"],
+        "properties": {
+          "nome": { "type": "string" },
+          "categoria": { "type": "string", "enum": ["linguagem", "framework", "ferramenta", "nuvem", "dado", "devops", "soft-skill", "metodologia", "outro", ""] },
+          "nivel": { "type": "string", "enum": ["iniciante", "usar", "avancado", "especialista", ""] },
+          "anos_experiencia": { "type": "number", "minimum": 0 },
+          "importancia": { "type": "string", "enum": ["principal", "secundaria", ""] }
+        }
+      }
+    },
+    "certificacoes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["nome"],
+        "properties": {
+          "nome": { "type": "string" },
+          "emissor": { "type": "string" },
+          "ano": { "type": "string" },
+          "url": { "type": "string", "format": "uri" },
+          "validade": { "type": "string" }
+        }
+      }
+    },
+    "projetos": {
+      "type": "array",
+      "description": "Projetos pessoais, open-source, portfólio ou trabalhos relevantes.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["nome"],
+        "properties": {
+          "nome": { "type": "string" },
+          "descricao": { "type": "string" },
+          "link": { "type": "string", "format": "uri" },
+          "tecnologias": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "impacto": { "type": "string" },
+          "relevancia": { "type": "string", "enum": ["alta", "media", "baixa", ""] }
+        }
+      }
+    },
+    "idiomas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["idioma"],
+        "properties": {
+          "idioma": { "type": "string" },
+          "nivel": { "type": "string", "enum": ["básico", "intermediário", "avançado", "fluente", "nativo", "leitura", "conversação", ""] },
+          "nota_escala": { "type": "string", "description": "Ex.: B2, C1, IELTS 7.0" }
+        }
+      }
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["nome", "url"],
+        "properties": {
+          "nome": { "type": "string" },
+          "url": { "type": "string", "format": "uri" }
+        }
+      }
+    },
+    "fontes": {
+      "type": "array",
+      "description": "Lista de arquivos-fonte usados para construir o hub.",
+      "items": { "type": "string" }
+    },
+    "data_geracao": {
+      "type": "string",
+      "description": "Data de geração do hub em ISO 8601."
+    },
+    "version": {
+      "type": "integer",
+      "default": 1,
+      "description": "Versão do schema."
+    }
+  }
+}
