@@ -122,6 +122,10 @@
         "ocf:cv-tailor": {
             "template": "Generate a job-tailored resume PDF from the candidate's hub. Args: <candidate-directory> <job>. The job may be: pasted job description text (recommended), a local file (txt/html/pdf), official LinkedIn export files, or a URL (try curl -L respecting robots; LinkedIn always blocks — ask for pasted text, never bypass anti-bot). Validate the hub with python3 $SCRIPTS_DIR/cv/validate.py first; if missing, tell the user to run ocf:cv-hub. Then invoke the career/cv-tailor subagent via task: with the candidate directory and job. The subagent: analyzes the job (required/desirable requirements, keywords, seniority, language), performs gap analysis vs hub (saved to curriculos/<slug>/gap-analysis.md), adapts content — reorder/highlight/condense ONLY what exists in the hub, NEVER fabricate, mark inferences [INFERIDO] — in the job's language, generates index.html, and produces the PDF via bash $SCRIPTS_DIR/cv/pdf.sh (Chrome headless A4, fallback LibreOffice). Report the PDF path, gap analysis summary, and any [INFERIDO] items the candidate must review.",
             "description": "Generate job-tailored resume PDF from candidate hub"
+        },
+        "ocf:cv-optimize": {
+            "template": "Analyze a candidate's profile and generate an improvement plan. Args: <candidate-directory> (default ~/carreira/<name>). If hub.json does not exist or is invalid, first run the ocf:cv-hub flow (ask the user for the CV PDF path, official LinkedIn export if available, and extras), then continue. Validate with python3 $SCRIPTS_DIR/cv/validate.py (exit 0 required). Then invoke the career/cv-optimizer subagent via task: with the candidate directory. The subagent produces analise-perfil.md containing: profile score (0-100 per section + global, with textual justification), general qualifications (inferred seniority, top skills, strengths/weaknesses), target job profiles (offline — NEVER concrete jobs/companies/URLs), market salary ranges CLT vs PJ (ALL marked [INFERIDO] for human review, no fabricated sources), context gaps in the hub (missing metrics, unlinked projects, certifications without validity, informal language levels), and a prioritized action plan (impact x effort, P1-P3). Never fabricate data; never modify hub.json (report only); no sensitive data in the report. Report the report path, global score, top actions, and [INFERIDO] items to review.",
+            "description": "Analyze candidate profile and generate improvement plan (analise-perfil.md)"
         }
     },
     "permission": {
@@ -244,7 +248,8 @@
             "auth-architecture": "allow",
             "cv-hub": "allow",
             "cv-tailor": "allow",
-            "cv-pdf": "allow"
+            "cv-pdf": "allow",
+            "cv-optimizer": "allow"
         },
         "external_directory": {
             "~/.config/opencode/**": "allow",
