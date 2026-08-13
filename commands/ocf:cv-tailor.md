@@ -1,0 +1,55 @@
+## /ocf:cv-tailor <diretório-do-candidato> <vaga>
+
+---
+description: Generate a job-tailored resume PDF from the candidate hub — analyze the job, gap analysis vs hub.json, adapt content (never fabricate), HTML -> PDF in the job's language
+---
+
+Gera uma versão do currículo do candidato otimizada para uma vaga específica,
+a partir do `hub.json` do candidato (construído com `/ocf:cv-hub`). Analisa a
+vaga, faz gap analysis vs hub, adapta o conteúdo **sem fabricar nada** e
+produz o currículo em PDF (HTML → PDF via Chrome headless, fallback
+LibreOffice) no idioma da vaga.
+
+### Pré-requisito
+
+O candidato precisa de um hub válido em `~/carreira/<nome-candidato>/hub.json`.
+Se não existir, rode `/ocf:cv-hub` primeiro.
+
+### Uso
+
+```
+/ocf:cv-tailor ~/carreira/maria-silva "URL ou texto da vaga"
+```
+
+A vaga pode ser fornecida como:
+- **Texto colado** da descrição (recomendado — mais confiável);
+- **Arquivo local** (txt/html/pdf) com a descrição;
+- **Export oficial LinkedIn** (arquivos locais do Download My Data);
+- **URL** — tenta `curl -L` respeitando robots; LinkedIn bloqueia sempre, então
+  nesse caso pede o texto colado. Nunca contorna anti-bot.
+
+### Fluxo
+
+1. **Validar hub** — `python3 scripts/cv/validate.py hub.json`.
+2. **Invocar o agente** `career/cv-tailor` via `task:` com o diretório do
+   candidato e a vaga.
+3. **Analisar vaga** — requisitos obrigatórios/desejáveis, keywords, senioridade,
+   idiomas.
+4. **Gap analysis** — tabela requisito → atendido/parcial/não-atendido,
+   salva em `curriculos/<slug-da-vaga>/gap-analysis.md`.
+5. **Adaptar conteúdo** — reordenar/destacar/condensar apenas o que existe no
+   hub; inferências marcadas `[INFERIDO]`; idioma = idioma da vaga.
+6. **Gerar PDF** — `bash scripts/cv/pdf.sh index.html curriculo.pdf`.
+
+### Regras
+
+- NUNCA inventar experiência, skills, projetos, certificações ou contato.
+- Toda inferência/placeholder é marcada `[INFERIDO]` para revisão humana.
+- Contato apenas se presente no hub; dados sensíveis nunca.
+- PDF A4 pronto para ATS, tipografia limpa, headings semânticos.
+
+### Reporte ao usuário
+
+- Caminho do PDF gerado (`~/carreira/<nome>/curriculos/<slug>/curriculo.pdf`).
+- Resumo do gap analysis (requisitos atendidos/parciais/não-atendidos).
+- Lista de itens `[INFERIDO]` que o candidato deve revisar antes de enviar.
