@@ -544,6 +544,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 
 ### 61. Agente de otimização do perfil — análise, plano de ações, mercado salarial e vagas-alvo (ocf:cv-optimize)
 - Status: in-publish
+- Notes: Refinamento pós-review (PR #57 ainda aberto): (1) relatório sem cabeçalho de metadados ("Gerado em/Fonte/Ferramenta/Nota") — conteúdo direto, [INFERIDO] inline; (2) skills registram `desde` (ano de início) e anos calculados dinamicamente até hoje (schema.json + validate.py + cv-hub/cv-optimizer) — evita desatualização; (3) análise também gerada em PDF (analise-perfil.pdf via cv/pdf.sh).
 - Type: feat
 - Severity: high
 - Report: william_pereira
