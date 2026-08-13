@@ -84,6 +84,29 @@ if [[ -n "$CHROME" ]]; then
     else
       t_fail "generated PDF text not extractable (expected 'Test Resume')"
     fi
+    if [[ "$EXTRACTED" == *"file://"* ]]; then
+      t_fail "generated PDF contains a browser header (file:// URL leaked)"
+    else
+      t_ok "generated PDF has no browser header/footer"
+    fi
+  fi
+
+  # Non-ASCII output path (e.g. ~/carreira/joão-silva/) must render content,
+  # not Chrome's error page (regression for file_url UTF-8 encoding).
+  mkdir -p "$TMP/joão-silva"
+  cp "$TMP/resume.html" "$TMP/joão-silva/index.html"
+  set +e
+  bash "$PDF_SH" "$TMP/joão-silva/index.html" "$TMP/joão-silva/curriculo.pdf" chrome >/dev/null 2>&1
+  rc_accent=$?
+  set -e
+  assert_eq "0" "$rc_accent" "pdf.sh handles a non-ASCII output path"
+  if command -v pdftotext >/dev/null 2>&1 && [[ -s "$TMP/joão-silva/curriculo.pdf" ]]; then
+    ACCENTED="$(pdftotext "$TMP/joão-silva/curriculo.pdf" - 2>/dev/null || true)"
+    if [[ "$ACCENTED" == *"Test Resume"* ]]; then
+      t_ok "non-ASCII path renders the real content (not a Chrome error page)"
+    else
+      t_fail "non-ASCII path produced Chrome's error page instead of content"
+    fi
   fi
 else
   echo "skip - chrome not installed; pdf.sh chrome path not exercised"
@@ -163,5 +186,16 @@ rc_lo=$?
 set -e
 assert_eq "0" "$rc_lo" "LibreOffice fallback succeeds with input and output in different dirs"
 assert_eq "1" "$(test -s "$TMP/out/curriculo.pdf" && echo 1 || echo 0)" "fallback PDF moved to OUTPUT_ABS (not stranded in input dir)"
+
+# Same-dir invocation (the documented flow: pdf.sh index.html curriculo.pdf)
+# must also work — cp/mv "same file" guard (regression CRITICAL-1).
+mkdir -p "$TMP/samedir"
+cp "$TMP/resume.html" "$TMP/samedir/index.html"
+set +e
+PATH="$MOCK_DIR:$PATH" bash "$PDF_SH" "$TMP/samedir/index.html" "$TMP/samedir/curriculo.pdf" libreoffice >/dev/null 2>&1
+rc_samedir=$?
+set -e
+assert_eq "0" "$rc_samedir" "LibreOffice fallback succeeds in the same-dir invocation"
+assert_eq "1" "$(test -s "$TMP/samedir/curriculo.pdf" && echo 1 || echo 0)" "same-dir fallback PDF written"
 
 t_finish
