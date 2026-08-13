@@ -541,3 +541,41 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Suggested fix: Add `Opened`/`Ready`/`Started` to the known_issues.md entry format and stamping logic in promote.sh (Ready on backlog→ready, Started on ready→in-progress, backfill `Opened` set-if-absent) and create_issue.sh (`Opened` on remote success); extend close_issue.sh to stamp `Resolved` and compute `Durations` using `TZ=UTC date -d "$d" +%s` with per-component guards/floors and the dup guard preserved; update standards/issues.md (en+pt+es) and standards/resolved-issue.md (en); add scripts/tests/test_timestamps.sh (t01–t25). Rebase onto #56 after it lands (shared standards/issues.md + workflow.md).
 
 
+
+### 61. Agente de otimização do perfil — análise, plano de ações, mercado salarial e vagas-alvo (ocf:cv-optimize)
+- Status: ready
+- Type: feat
+- Severity: high
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (backend, runtime)
+- Remote: -
+- PR: -
+- Location: agents/career/cv-optimizer.md (novo), skills/career/cv-optimizer/SKILL.md (novo), commands/ocf:cv-optimize.md (novo), opencode.json, workflow.md, standards/README.md, agents/README.md, scripts/tests/test_cv.sh
+- Description: Criar o agente `career/cv-optimizer` + comando `ocf:cv-optimize <dir-candidato>` que roda após o `ocf:cv-hub` para aprimorar o perfil do candidato. Analisa qualificações gerais, calcula score do perfil (0-100 por seção + global), sugere perfis de vagas-alvo, avalia pretensão salarial de mercado CLT vs PJ (faixas `[INFERIDO]`), detecta lacunas de contexto no hub e gera um plano de ações priorizado. Entrega: relatório único `~/carreira/<candidato>/analise-perfil.md` (+ tasks.json opcional).
+- Impact: Transforma o hub de dados em um plano de melhoria acionável. O candidato sabe exatamente o que aprimorar (métricas nas conquistas, links em projetos, certificações, idiomas formais), qual vaga mirar, e quanto pedir (CLT vs PJ) antes de gerar currículos direcionados com o cv-tailor.
+- Business rules:
+  1. O comando `ocf:cv-optimize <dir-candidato>` DEVE rodar após o `ocf:cv-hub`; se `hub.json` não existir ou for inválido, DEVE invocar o fluxo do `cv-hub` primeiro (perguntando os caminhos das fontes) e então continuar.
+  2. O agente `career/cv-optimizer` DEVE ler e validar `hub.json` (`python3 $SCRIPTS_DIR/cv/validate.py`) antes de analisar; hub inválido → corrigir ou pedir reconstrução via cv-hub.
+  3. A análise DEVE cobrir: qualificações gerais (senioridade, principais skills, pontos fortes e pontos fracos), completude por seção do hub, e cobertura vs vagas-alvo.
+  4. O score do perfil DEVE ser numérico (0-100) com breakdown por seção (dados-pessoais, resumo, experiencia, educacao, skills, certificacoes, projetos, idiomas, links) e justificativa textual de cada nota.
+  5. A sugestão de vagas-alvo DEVE ser baseada em análise OFFLINE do hub (perfis de cargo/segmento/stack que o perfil encaixa) — SEM busca real de vagas na web (LinkedIn bloqueia; nenhuma vaga concreta é listada como fato).
+  6. A pretensão salarial de mercado DEVE ser entregue como faixas por senioridade/stack/região para CLT e PJ, TODAS marcadas `[INFERIDO]` e sem fabricar fontes — o candidato revisa e ajusta antes de usar.
+  7. A detecção de lacunas DEVE listar informações ausentes no hub que aumentariam contexto (ex.: conquistas sem métrica, projetos sem link, certificações sem validade, idiomas sem nível formal, gaps de datas na experiência).
+  8. O plano de ações DEVE ser priorizado (impacto estimado alto/médio/baixo × esforço) e incluir ações para: preencher lacunas do hub, fortalecer seções fracas, fechar gaps das vagas-alvo (cursos/certificações).
+  9. A entrega DEVE ser um relatório único `.md` em `~/carreira/<candidato>/analise-perfil.md`; um `tasks.json` estruturado pode acompanhar para futura integração com rastreamento de issues.
+  10. NENHUM dado inventado: toda inferência/estimativa (salário, vagas, impacto) DEVE ser marcada `[INFERIDO]`; nada de dados pessoais sensíveis.
+  11. O agente NÃO DEVE modificar o `hub.json` — apenas reportar; a edição é feita pelo usuário (ou num ciclo futuro de enriquecimento do hub).
+  12. Comando/agente/skill DEVEM seguir o padrão do setor career (agents/career/, skills/career/, commands/ocf:cv-*.md, permission edit apenas ~/carreira/**).
+- Acceptance criteria:
+  1. `agents/career/cv-optimizer.md` existe com frontmatter válido (description, mode, temperature, permission edit apenas ~/carreira/** com deny "*" primeiro).
+  2. `skills/career/cv-optimizer/SKILL.md` existe com frontmatter YAML válido e registrada em `permission.skill`.
+  3. `commands/ocf:cv-optimize.md` existe e está registrado em `opencode.json`.
+  4. `ocf:cv-optimize` com diretório sem `hub.json` invoca o fluxo cv-hub primeiro (documentado no comando).
+  5. O relatório `analise-perfil.md` inclui: score global + por seção, análise de qualificações, perfis de vagas-alvo, faixas salariais CLT/PJ `[INFERIDO]`, lacunas de contexto, plano de ações priorizado.
+  6. Nenhuma estimativa (salário/vagas/impacto) é apresentada sem marcação `[INFERIDO]`.
+  7. O agente NÃO modifica `hub.json` (verificado por teste ou pela regra de permissão edit).
+  8. `opencode.json` válido após registrar comando + agente + skill.
+  9. `workflow.md`/`standards/README.md`/`agents/README.md` documentam o cv-optimizer.
+  10. Testes em `scripts/tests/test_cv.sh` (ou novo test_cv_optimize.sh) validam a skill/validação do hub quando aplicável.
+- Suggested fix: (1) criar `agents/career/cv-optimizer.md` (subagent, temperature 0.2, edit apenas ~/carreira/**, deny "*" primeiro); (2) criar `skills/career/cv-optimizer/SKILL.md` (protocolo de análise: validação do hub, score por seção, vagas-alvo offline, faixas salariais [INFERIDO], lacunas, plano priorizado); (3) criar `commands/ocf:cv-optimize.md` (invoca cv-hub se necessário, depois o agente); (4) registrar comando/skill no `opencode.json`; (5) documentar em `workflow.md`, `standards/README.md`, `agents/README.md`. Origem: Proposal 2026-08-13-2 em `prioritization.md`.
