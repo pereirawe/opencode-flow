@@ -11,6 +11,7 @@ Exit codes:
 """
 import json
 import sys
+import time
 
 
 def check(cond, msg, errors):
@@ -64,10 +65,16 @@ def validate_hub(hub):
             desde = item.get("desde")
             if desde is not None:
                 check(
-                    isinstance(desde, str) and len(desde) == 4 and desde.isdigit() and 1900 <= int(desde) <= 2100,
-                    f"skills[{i}].desde must be a year string (YYYY), got {desde!r}",
+                    isinstance(desde, str) and len(desde) == 4 and desde.isdigit() and 1900 <= int(desde) <= 2099,
+                    f"skills[{i}].desde must be a year string (YYYY, 1900-2099), got {desde!r}",
                     errors,
                 )
+                if isinstance(desde, str) and desde.isdigit():
+                    check(
+                        int(desde) <= int(time.strftime("%Y")),
+                        f"skills[{i}].desde cannot be in the future ({desde})",
+                        errors,
+                    )
 
     for i, item in enumerate(hub.get("certificacoes", [])):
         if isinstance(item, dict):

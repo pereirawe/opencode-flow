@@ -1,7 +1,7 @@
 ## /ocf:cv-optimize <diretório-do-candidato>
 
 ---
-description: Analyze the candidate profile and generate an improvement plan — profile score, target job profiles, CLT vs PJ salary ranges, context gaps, and a prioritized action plan (analise-perfil.md)
+description: Analyze the candidate profile and generate an improvement plan — profile score, target job profiles, CLT vs PJ salary ranges, context gaps, and a prioritized action plan (analise-perfil.md + PDF)
 ---
 
 Analisa o perfil de um candidato a partir do hub (construído com
