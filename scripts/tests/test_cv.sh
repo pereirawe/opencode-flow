@@ -198,8 +198,6 @@ set -e
 assert_eq "0" "$rc_samedir" "LibreOffice fallback succeeds in the same-dir invocation"
 assert_eq "1" "$(test -s "$TMP/samedir/curriculo.pdf" && echo 1 || echo 0)" "same-dir fallback PDF written"
 
-t_finish
-
 # --- cv-optimizer contract ---
 # The skill/agent must not modify hub.json. Verify the skill file references
 # validate.py and mandates [INFERIDO] + never-modify-hub rules.
@@ -212,3 +210,5 @@ if [[ -f "$OPT_SKILL" ]]; then
 else
   t_fail "cv-optimizer skill missing at $OPT_SKILL"
 fi
+
+t_finish
