@@ -2,6 +2,15 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 60. Hub de currículo + geração de currículo direcionado a vaga (ocf:cv-hub / ocf:cv-tailor)
+- Resolved: 2026-08-13
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #54
+- Severity: high
+- Summary: Fluxo multi-agente de otimização de currículos para contratação acelerada. Fase 1 (hub) — Criar `agents/career/cv-extractor.md`, `agents/career/cv-tailor.md`, `skills/career/cv-hub/SKILL.md`, `skills/career/cv-tailor/SKILL.md`, `skills/career/cv-pdf/SKILL.md`, `commands/ocf:cv-hub.md`, `commands/ocf:cv-tailor.md`, `scripts/cv/pdf.sh`, `scripts/cv/schema.json`; registrar comandos/agentes/skills no `opencode.json`; documentar no `workflow.md`/`standards/issues.md`. Origem
+
 ### 58. develop-router bloqueado: allow patterns bash usam paths relativos que não casam com invocação real
 - Resolved: 2026-08-11
 - Type: bug
