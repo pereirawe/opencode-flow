@@ -236,3 +236,28 @@ at proposal time. Unknown rules will be captured during discovery refinement.
 - Dependencies: Base de scripts existente (scripts/tests/, make test-scripts); skills em `skills/<sector>/`.
 - Proposed issue type: feat
 
+### Proposal 2026-08-13-1: Hub de currículo + geração de currículo direcionado a vaga (otimização para contratação acelerada)
+- Priority: high
+- Business value: Permite ao candidato ter um hub central de dados (JSON mestre + README) a partir do currículo PDF + export oficial do LinkedIn + arquivos complementares, e gerar currículos PDF sob medida por vaga (multi-portal) em segundos — acelerando candidaturas e maximizando match com ATS/keywords.
+- Target sprint: next
+- Description: Criar fluxo multi-agente de otimização de currículos:
+  1. **Hub (ocf:cv-hub)**: recebe currículo em PDF (obrigatório) + export oficial do LinkedIn (`https://www.linkedin.com/mypreferences/d/download-my-data`, opção "Baixe um arquivo de dados maior...") + arquivos complementares opcionais (certificados, portfólio, projetos). Agentes extraem e consolidam dados em um hub por candidato em diretório dedicado (`~/carreira/<nome-candidato>/`): `hub.json` (fonte de verdade para análise de IA) + `README.md` (resumo humano).
+  2. **Tailor (ocf:cv-tailor)**: recebe o diretório do candidato + link/texto de vaga (LinkedIn via export/colado, ou qualquer portal), analisa a vaga, extrai requisitos/keywords, e gera versão do currículo direcionada à vaga via HTML → PDF (engine: Chrome headless `--print-to-pdf`; fallback LibreOffice). Idioma do currículo segue o idioma da vaga.
+- Business rules:
+  1. O hub DEVE ser construído em diretório dedicado por candidato (`~/carreira/<nome-candidato>/`), padrão `hub.json` + `README.md` + `curriculos/` (PDFs gerados) + `entradas/` (originais: PDF currículo, export LinkedIn, complementos).
+  2. `hub.json` DEVE ser o schema canônico estruturado para análise de IA (seções: dados-pessoais, resumo, experiencia, educacao, skills, certificacoes, projetos, idiomas, links) — validável por script de schema.
+  3. `README.md` DEVE ser gerado a partir do `hub.json` (resumo executivo humano), nunca editado manualmente em divergência com o JSON.
+  4. Entrada mínima obrigatória: currículo em PDF. Export do LinkedIn e complementos são opcionais (hub flexível).
+  5. O fluxo do LinkedIn DEVE usar EXCLUSIVAMENTE exportação oficial (documentada no comando: `https://www.linkedin.com/mypreferences/d/download-my-data`, opção "Baixe um arquivo de dados maior...") — NUNCA scraping anônimo/logado de linkedin.com (bloqueio anti-bot).
+  6. A análise de vaga DEVE aceitar multi-portal: texto/URL colado pelo usuário de qualquer portal (LinkedIn, Indeed, Gupy, site da empresa) + export oficial LinkedIn quando aplicável.
+  7. `ocf:cv-tailor` DEVE extrair da vaga: requisitos obrigatórios, requisitos desejáveis, keywords/tecnologias, senioridade, idiomas, e mapping vs `hub.json` (gap analysis: requisito atendido/parcial/não atendido).
+  8. O currículo direcionado DEVE ser gerado em PDF (HTML → PDF via Chrome headless `--print-to-pdf`, com fallback LibreOffice), salvando também o HTML fonte em `curriculos/`.
+  9. O idioma do currículo gerado DEVE seguir o idioma da vaga (vaga em inglês → currículo em inglês); hub mantém dados brutos bilingues quando disponíveis.
+  10. O currículo direcionado DEVE adaptar conteúdo (summary, ordem de skills, projetos mais relevantes) SEM fabricar/mentir informações — apenas reordenar, destacar e reformular o que já existe no hub.
+  11. TODA informação gerada que não exista no hub DEVE ser marcada como placeholder/inferência (`[INFERIDO]`) para revisão humana — nunca silenciosa.
+  12. Nenhum dado pessoal sensível (telefone, e-mail, endereço) DEVE vazar para arquivos além do escopo do candidato; o currículo direcionado DEVE incluir contato apenas se presente no hub.
+  13. Os comandos DEVEM ser registrados em `opencode.json` como `ocf:cv-hub` e `ocf:cv-tailor`, apoiados por agentes/skills dedicados sob `agents/career/` e `skills/career/`.
+- Stakeholders: Candidatos (uso pessoal do william_pereira), Recrutadores (lado consumidor do PDF), PO
+- Rationale: Processo manual de adaptação de currículo por vaga é lento e inconsistente; um hub estruturado permite geração rápida, rastreável e alinhada a ATS/keywords.
+- Dependencies: Chrome headless já instalado (151); LibreOffice (26.2) como fallback; PDF.js/`pdftotext` para extração de PDF (verificar disponibilidade); schema JSON próprio.
+- Proposed issue type: feat

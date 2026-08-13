@@ -27,6 +27,7 @@ Each business sector has its own agents and skills under `agents/<sector>/` and
 - `commercial` — Pricing, partnerships, deal desk, channel economics
 - `business-ops` — Process mapping, vendor management, capacity planning
 - `shared` — Cross-sector utilities (graphify, issue-manager, locale-loader, skill-creator, skill-importer)
+- `career` — Resume optimization: cv-hub (candidate hub from CV PDF + LinkedIn export), cv-tailor (job-tailored resume PDF), cv-pdf (HTML→PDF generation)
 
 When an agent or skill is sector-specific, file it under the corresponding
 sector directory. Cross-cutting capabilities go under `shared/`.
