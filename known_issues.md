@@ -542,13 +542,13 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 
 
 ### 60. Hub de currículo + geração de currículo direcionado a vaga (ocf:cv-hub / ocf:cv-tailor)
-- Status: ready
+- Status: in-progress
 - Type: feat
 - Severity: high
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 2 (backend, runtime)
-- Remote: -
+- Remote: #54
 - PR: -
 - Location: agents/career/* (novo), skills/career/* (novo), commands/ocf:cv-hub.md, commands/ocf:cv-tailor.md, opencode.json, workflow.md, standards/issues.md, scripts/cv/pdf.sh (novo), scripts/cv/schema.json (novo)
 - Description: Fluxo multi-agente de otimização de currículos para contratação acelerada. Fase 1 (hub): extrair dados de currículo PDF + export oficial LinkedIn + complementos opcionais e consolidar em `hub.json` (schema canônico para IA) + `README.md` humano, em diretório dedicado por candidato. Fase 2 (tailor): analisar vaga (multi-portal), extrair requisitos/keywords, fazer gap analysis vs hub, e gerar currículo direcionado em PDF (HTML → PDF via Chrome headless, fallback LibreOffice), no idioma da vaga.
