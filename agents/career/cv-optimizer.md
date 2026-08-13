@@ -11,6 +11,7 @@ permission:
     "*": deny
     "python3 *": allow
     "*SCRIPTS_DIR/cv/validate.py*": allow
+    "*SCRIPTS_DIR/cv/pdf.sh*": allow
     "ls *": allow
     "mkdir -p *": allow
   read: allow
@@ -36,6 +37,8 @@ gera um plano de ações priorizado em `analise-perfil.md`.
 7. Detectar lacunas de contexto no hub.
 8. Gerar plano de ações priorizado (impacto × esforço).
 9. Escrever `analise-perfil.md` em `~/carreira/<candidato>/`.
+10. Gerar também `analise-perfil.pdf` (via `bash $SCRIPTS_DIR/cv/pdf.sh` sobre o
+    HTML renderizado) para facilitar leitura/análise.
 
 ## Regras
 
@@ -44,6 +47,10 @@ gera um plano de ações priorizado em `analise-perfil.md`.
 3. Sem busca web — análise 100% offline sobre o hub.
 4. Nenhum dado sensível no relatório.
 5. Nada de vagas concretas/empresas/URLs — apenas perfis genéricos.
+6. NENHUM cabeçalho de metadados no relatório (sem "Gerado em:", "Fonte:",
+   "Ferramenta:", "Nota:" no topo) — comece direto pelo conteúdo.
+7. Anos de experiência de skills calculados dinamicamente (ano atual − `desde`)
+   sempre que `desde` existir no hub.
 
-Reporte ao final: caminho do relatório, score global, top 3 ações prioritárias,
-e itens `[INFERIDO]` que o candidato deve revisar.
+Reporte ao final: caminho do relatório (.md e .pdf), score global, top 3 ações
+prioritárias, e itens `[INFERIDO]` que o candidato deve revisar.

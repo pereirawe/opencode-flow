@@ -84,7 +84,7 @@ humano). O hub é a base da geração de currículos direcionados (`cv-tailor`).
   ],
   "skills": [
     { "nome": "Python", "categoria": "linguagem", "nivel": "avancado",
-      "anos_experiencia": 6, "importancia": "principal" }
+      "desde": "2018", "anos_experiencia": 6, "importancia": "principal" }
   ],
   "certificacoes": [
     { "nome": "AWS Solutions Architect", "emissor": "AWS", "ano": "2023" }
@@ -103,6 +103,11 @@ humano). O hub é a base da geração de currículos direcionados (`cv-tailor`).
   priorize o LinkedIn (mais granular) e mescle conquistas do currículo.
 - **Bilíngue**: quando o candidato fornecer resumos em mais de um idioma,
   use `resumo_i18n`. O `resumo` default é o do idioma do candidato.
+- **Skills**: sempre que possível, registre `desde` (ano de início do uso da
+  habilidade, ex.: 2018) em vez de (ou junto de) `anos_experiencia` fixo —
+  anos fixos ficam desatualizados com o tempo. Se a fonte só permite inferir
+  um ano de início (ex.: primeiro projeto/uso), registre `desde` e marque a
+  inferência `[INFERIDO]` na descrição.
 - **Nada inventado**: qualquer dado não presente nas fontes fica **ausente**
   do hub — nunca preencha com suposições. Dados inferidos de contexto devem
   ser marcados `[INFERIDO]` na descrição.
