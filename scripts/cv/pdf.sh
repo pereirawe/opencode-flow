@@ -34,7 +34,11 @@ fi
 OUTPUT_ABS="$OUTPUT_DIR/$(basename "$OUTPUT")"
 
 # Build a URL-encoded file:// URL so paths with spaces / non-ASCII names work.
+# LC_ALL=C makes ${#path} and substring indexing operate on BYTES, so each
+# byte of a UTF-8 char is percent-encoded (%C3%A9), not the Unicode codepoint
+# (%E9) — Chrome requires the former.
 file_url() {
+  local LC_ALL=C
   local path="$1"
   local encoded=""
   local i c
@@ -66,7 +70,7 @@ render_chrome() {
     --no-sandbox \
     --disable-dev-shm-usage \
     --print-to-pdf="$OUTPUT_ABS" \
-    --print-to-pdf-no-header \
+    --no-pdf-header-footer \
     "$url" >/dev/null 2>&1
 
   if [[ ! -s "$OUTPUT_ABS" ]]; then
@@ -91,15 +95,28 @@ render_libreoffice() {
 
   # LibreOffice converts to PDF into the same dir as the source — convert into
   # a copy placed in the output dir so the generated PDF lands next to OUTPUT.
-  cp "$INPUT_ABS" "$outdir/$stem.html"
+  # Guard the copy/move: when the input already lives in the output dir (the
+  # documented same-dir invocation) or basenames collide, `cp`/`mv` would fail
+  # with "same file".
+  local src_in_outdir=""
+  if [[ "$INPUT_ABS" == "$outdir/$stem.html" ]]; then
+    src_in_outdir=1
+  fi
+  if [[ -z "$src_in_outdir" ]]; then
+    cp "$INPUT_ABS" "$outdir/$stem.html"
+  fi
 
   "$lo" --headless --convert-to pdf --outdir "$outdir" "$outdir/$stem.html" >/dev/null 2>&1
 
   generated="$outdir/$stem.pdf"
   if [[ -f "$generated" ]]; then
-    mv -f "$generated" "$OUTPUT_ABS"
+    if [[ "$generated" != "$OUTPUT_ABS" ]]; then
+      mv -f "$generated" "$OUTPUT_ABS"
+    fi
   fi
-  rm -f "$outdir/$stem.html"
+  if [[ -z "$src_in_outdir" ]]; then
+    rm -f "$outdir/$stem.html"
+  fi
   if [[ ! -s "$OUTPUT_ABS" ]]; then
     echo "error: LibreOffice produced an empty PDF" >&2
     return 1
