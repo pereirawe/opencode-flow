@@ -597,13 +597,13 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 
 
 ### 61. Agente de otimização do perfil — análise, plano de ações, mercado salarial e vagas-alvo (ocf:cv-optimize)
-- Status: ready
+- Status: in-progress
 - Type: feat
 - Severity: high
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 2 (backend, runtime)
-- Remote: -
+- Remote: #56
 - PR: -
 - Location: agents/career/cv-optimizer.md (novo), skills/career/cv-optimizer/SKILL.md (novo), commands/ocf:cv-optimize.md (novo), opencode.json, workflow.md, standards/README.md, agents/README.md, scripts/tests/test_cv.sh
 - Description: Criar o agente `career/cv-optimizer` + comando `ocf:cv-optimize <dir-candidato>` que roda após o `ocf:cv-hub` para aprimorar o perfil do candidato. Analisa qualificações gerais, calcula score do perfil (0-100 por seção + global), sugere perfis de vagas-alvo, avalia pretensão salarial de mercado CLT vs PJ (faixas `[INFERIDO]`), detecta lacunas de contexto no hub e gera um plano de ações priorizado. Entrega: relatório único `~/carreira/<candidato>/analise-perfil.md` (+ tasks.json opcional).
