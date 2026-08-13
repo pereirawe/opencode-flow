@@ -597,7 +597,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 
 
 ### 61. Agente de otimização do perfil — análise, plano de ações, mercado salarial e vagas-alvo (ocf:cv-optimize)
-- Status: in-review
+- Status: in-publish
 - Type: feat
 - Severity: high
 - Report: william_pereira
