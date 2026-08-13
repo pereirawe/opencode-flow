@@ -596,7 +596,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 
 
 ### 60. Hub de currículo + geração de currículo direcionado a vaga (ocf:cv-hub / ocf:cv-tailor)
-- Status: in-progress
+- Status: in-review
 - Type: feat
 - Severity: high
 - Report: william_pereira
