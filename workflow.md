@@ -194,9 +194,24 @@ Two meta-agents orchestrate the pipeline phases:
 
 Use `ocf:discovery` to start the discovery pipeline and `ocf:delivery` to execute the delivery pipeline.
 
+### Career Sector (resume optimization)
+
+Outside the issue pipeline, the `career` sector provides a personal
+resume-optimization flow (issue #60):
+
+- `/ocf:cv-hub <candidate-dir>` — build the candidate hub (`hub.json` +
+  `README.md`) from a CV PDF (required), official LinkedIn export (Download My
+  Data — never scraping), and optional extras. Output lives in
+  `~/carreira/<nome-candidato>/`.
+- `/ocf:cv-tailor <candidate-dir> <job>` — analyze a job (multi-portal), gap
+  analysis vs `hub.json`, and generate a job-tailored resume PDF (HTML → PDF,
+  Chrome headless, fallback LibreOffice) in the job's language. Never
+  fabricates content; inferences are marked `[INFERIDO]`.
+
+Backed by `agents/career/*`, `skills/career/*`, and `scripts/cv/*`.
+
 > **Documentation** and **Test Automation** are ongoing activities that run in
 > parallel across all pipeline phases, not sequential gates.
-
 > `known_issues.md` is the single source of truth — every agent must keep it in sync.
 > **Business rules must be documented in every `feat` issue before promotion.**
 > Missing business rules found during review = incomplete spec, not a bug.
