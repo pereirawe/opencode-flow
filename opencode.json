@@ -232,7 +232,8 @@
             "tailwind": "allow",
             "poster-design-generation": "allow",
             "telegram-notifier": "allow",
-            "test-runner": "allow"
+            "test-runner": "allow",
+            "auth-architecture": "allow"
         },
         "external_directory": {
             "~/.config/opencode/**": "allow",

@@ -34,6 +34,7 @@ All senior reviewers must:
 | Frontend | UI components, state management, styling |
 | Data | Database queries, schemas, migrations |
 | Security | Auth, input validation, dependency vulnerabilities |
+| Auth Architect | Auth architecture, JWT, OAuth, RBAC, multi-tenancy, token lifecycle |
 | Performance | Optimization, caching, resource usage |
 | UX/UI | User experience, accessibility, design consistency |
 | Runtime | Environment configuration, build, packaging |
