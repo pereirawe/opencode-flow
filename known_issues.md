@@ -540,5 +540,413 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   13. `bash -n` clean on all modified scripts; full `make test-scripts` suite passes.
 - Suggested fix: Add `Opened`/`Ready`/`Started` to the known_issues.md entry format and stamping logic in promote.sh (Ready on backlog→ready, Started on ready→in-progress, backfill `Opened` set-if-absent) and create_issue.sh (`Opened` on remote success); extend close_issue.sh to stamp `Resolved` and compute `Durations` using `TZ=UTC date -d "$d" +%s` with per-component guards/floors and the dup guard preserved; update standards/issues.md (en+pt+es) and standards/resolved-issue.md (en); add scripts/tests/test_timestamps.sh (t01–t25). Rebase onto #56 after it lands (shared standards/issues.md + workflow.md).
 
+### 62. `[INFERIDO]` vaza para o HTML/PDF final do currículo gerado pelo cv-tailor (gate + fluxo de decisão humana)
+- Status: backlog
+- Type: bug
+- Severity: critical
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (docs, runtime)
+- Remote: -
+- PR: -
+- Location: skills/career/cv-tailor/SKILL.md:75-78, agents/career/cv-tailor.md:45, commands/ocf:cv-tailor.md:41,47, opencode.json:123, workflow.md:210-213, scripts/cv/check-inferido.sh (NEW), scripts/cv/pdf.sh, scripts/tests/test_cv.sh
+- Description: O fluxo cv-tailor instrui os agentes a marcar `[INFERIDO]` no HTML/PDF final (skill cv-tailor regra rígida 2, agente career/cv-tailor regra 2, comando ocf:cv-tailor, template do comando em opencode.json, workflow.md secção career). A etiqueta vaza para o artefacto partilhável: o recrutador vê "inferido"/"inventado" no PDF, o candidato não consegue partilhar o arquivo, e a qualidade percebida é quebrada. Correção: `[INFERIDO]` passa a ser permitido APENAS em artefactos internos de revisão humana; gate de verificação bloqueia qualquer ocorrência no HTML/PDF final; fluxo de validação humana com lista de inferências antes da geração.
+- Impact: CRÍTICO para o uso real do fluxo career — o principal artefacto de saída (PDF partilhável) fica inutilizável. Viola o princípio de qualidade percebida (currículo direcionado deve transparecer confiança). Afeta todas as gerações futuras de currículos.
+- Business rules:
+  1. `[INFERIDO]` DEVE ser permitido APENAS em artefactos internos de revisão humana: hub.json, analise-perfil.md, analise-perfil.pdf, gap-analysis.md e listas de inferências (ex.: `curriculos/<slug>/inferencias.md`).
+  2. NO output partilhável final — `curriculos/<slug>/index.html` e `curriculos/<slug>/curriculo.pdf` — NENHUM `[INFERIDO]` pode aparecer, nem variações case-insensitive: `[inferido]`, `[Inferido]`, "inferido".
+  3. Conteúdo inferido DEVE ser omitido, reformulado ou aprovado pelo candidato ANTES da geração — nunca embutido no output final.
+  4. DEVE existir um gate de verificação (script `scripts/cv/check-inferido.sh` ou hook no pdf.sh) que escaneie o HTML (e o texto do PDF via pdftotext quando disponível) e BLOQUEIE a geração com exit != 0 e mensagem clara listando as ocorrências.
+  5. Fluxo de validação humana: o agente DEVE listar todas as inferências em `curriculos/<slug>/inferencias.md` (ou no gap-analysis.md) e pedir decisão do candidato sobre cada uma (reformular/omitir, ou promover a facto apenas com confirmação de dado real) ANTES de gerar o HTML/PDF final.
+  6. As instruções que pedem "marcar [INFERIDO] no HTML/PDF" DEVEM ser removidas de: skill cv-tailor, agente career/cv-tailor, comando ocf:cv-tailor, template do comando em opencode.json e workflow.md (secção career).
+  7. cv-hub (hub.json) e cv-optimizer (analise-perfil.md/pdf, gap-analysis) MANTÊM `[INFERIDO]` nos artefactos internos — sem alteração de comportamento.
+  8. A verificação do PDF via pdftotext DEVE ser best-effort: se pdftotext não existir, o gate no HTML é autoritativo.
+  9. O gate DEVE ser invocado pelo agente cv-tailor ANTES de chamar pdf.sh e ANTES de reportar conclusão; o comando ocf:cv-tailor DEVE reportar a lista de inferências resolvidas (não-etiquetadas) que o candidato aprovou.
+  10. Testes em scripts/tests/test_cv.sh DEVEM cobrir: gate bloqueia HTML com `[INFERIDO]` (exit != 0), gate passa sem marcadores, skill cv-tailor não instrui mais marcação no HTML/PDF, fluxo inferencias.md documentado.
+- Acceptance criteria:
+  1. `scripts/cv/check-inferido.sh <html>` retorna exit 0 sem `[INFERIDO]` e exit 1 listando ocorrências quando presente (inclui variações case-insensitive).
+  2. Nenhum dos ficheiros-fonte (skill/agente/comando/opencode.json/workflow.md) instrui marcar `[INFERIDO]` no HTML/PDF.
+  3. O agente cv-tailor segue o fluxo: gap analysis + inferencias.md → decisão humana → HTML sem marcadores → gate passa → pdf.sh.
+  4. cv-hub/cv-optimizer continuam a marcar `[INFERIDO]` em artefactos internos (regressão zero).
+  5. PDF gerado não contém "inferido" no texto extraído (pdftotext quando disponível).
+  6. `make test-scripts` passa com os novos casos em test_cv.sh.
+- Tests:
+  1. HTML com `[INFERIDO]` → gate exit 1, mensagem lista ocorrência.
+  2. HTML com `[inferido]` (minúsculas) → gate exit 1.
+  3. HTML sem marcadores → gate exit 0, geração PDF prossegue.
+  4. skill cv-tailor não contém "no HTML/PDF" associado a `[INFERIDO]` → assert_contains negativo.
+  5. cv-optimizer skill mantém `[INFERIDO]` (regressão) → assert_contains positivo.
+- Suggested fix: (1) criar `scripts/cv/check-inferido.sh` (grep case-insensitive de `[INFERIDO]`/`[inferido]` no HTML; extensão best-effort pdftotext no PDF); (2) remover/reformular as instruções de marcação no HTML/PDF em skill/agente/comando/opencode.json/workflow.md, substituindo pelo fluxo de validação humana (inferencias.md + decisão do candidato antes da geração); (3) documentar o fluxo de decisão humana; (4) adicionar casos em scripts/tests/test_cv.sh; (5) executar #62 antes do #63 (arquivos partilhados cv-tailor/cv-pdf). Origem: Proposal 2026-08-14-1 em prioritization.md.
+
+### 63. Padrão de design de currículo ATS-friendly — standards/cv-design.md + template HTML/CSS de referência
+- Status: backlog
+- Type: feat
+- Severity: high
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (frontend, ux-ui)
+- Remote: -
+- PR: -
+- Location: standards/cv-design.md (NEW), skills/career/cv-pdf/templates/resume.html (NEW), skills/career/cv-pdf/SKILL.md, skills/career/cv-tailor/SKILL.md, agents/career/cv-tailor.md, commands/ocf:cv-tailor.md, opencode.json, workflow.md, scripts/tests/test_cv.sh
+- Description: Hoje o design do currículo é ad-hoc: regras mínimas no cv-pdf (A4, system fonts, headings semânticos) e uma linha ATS no cv-tailor; cada agente escreve CSS inline do zero. Não existe padrão documentado nem template. Entregar um padrão de design do setor career: documento `standards/cv-design.md` com regras concretas e testáveis (ATS, impressão A4/P&B, estilo sóbrio, regra de páginas por senioridade) + template HTML/CSS de referência (`skills/career/cv-pdf/templates/resume.html`) usado como base obrigatória pelo cv-tailor + atualização dos prompts dos agentes/skills para mandatar o padrão.
+- Impact: Alto — padroniza todos os currículos gerados, maximiza compatibilidade com ATS/recrutamento automatizado, garante impressão P&B legível e estética executiva sóbria; elimina variação de CSS ad-hoc entre gerações.
+- Business rules:
+  1. O padrão DEVE ser documentado em `standards/cv-design.md` com regras concretas e testáveis (não opiniões).
+  2. ATS-friendly: headings semânticos com seções padrão (Experiência, Educação, Skills, Certificações, Projetos, Idiomas); texto real selecionável (nunca texto em imagem); sem colunas/multicol que quebrem o parse; sem tabelas complexas; fontes seguras ATS (Helvetica/Arial/sans-serif, sem Google Fonts online); sem emoji/caracteres decorativos; datas em formato texto; contraste >= 4.5:1 (WCAG AA).
+  3. Imprimível: A4 com margens de 12–15mm; legível em preto-e-branco (nada de informação dependente de cor); sem fundos/imagens em print; `@media print` limpo.
+  4. Estilo sóbrio profissional: tipografia clara com hierarquia discreta (nome > título/seção > corpo); espaçamento generoso; máximo 1 cor de acento opcional e grayscale-safe; sem gradientes, sombras, bordas decorativas, emoji.
+  5. Regra de páginas por senioridade: Júnior/Pleno → 1 página; Sênior/Especialista/Lead → até 2 páginas; nunca 3+. Densidade: max ~600–700 palavras/página.
+  6. Template HTML/CSS de referência DEVE existir em `skills/career/cv-pdf/templates/resume.html` — o cv-tailor parte dele e adapta conteúdo, NUNCA escreve CSS do zero.
+  7. O template DEVE incluir `@page { size: A4; margin: 12-15mm }`, print CSS, e ser locale-aware (pt/en/es conforme hub/resumo_i18n).
+  8. Os prompts de cv-tailor (skill+agente+comando) e cv-pdf (skill) DEVEM mandatar o padrão: carregar `standards/cv-design.md` e usar o template.
+  9. O agente cv-tailor DEVE verificar conformidade com o padrão (checklist ATS/print/páginas) antes de gerar o PDF.
+- Acceptance criteria:
+  1. `standards/cv-design.md` existe com as regras das BR 2–5 documentadas de forma testável.
+  2. `skills/career/cv-pdf/templates/resume.html` existe com `@page A4 margin 12-15mm`, print CSS e estrutura locale-aware.
+  3. skill cv-pdf e skill cv-tailor referenciam `standards/cv-design.md` e o template (mandato).
+  4. agente career/cv-tailor e comando ocf:cv-tailor instruem o uso do template e a verificação de conformidade.
+  5. HTML gerado a partir do template não usa CSS ad-hoc que viole o padrão (verificação estrutural).
+  6. `make test-scripts` passa com novos casos em test_cv.sh (template existe, skills referenciam padrão, margens corretas).
+- Tests:
+  1. `skills/career/cv-pdf/templates/resume.html` existe e contém `@page` com A4 → assert_contains.
+  2. skill cv-pdf contém referência a `standards/cv-design.md` → assert_contains.
+  3. skill cv-tailor contém referência ao template/templates/resume.html → assert_contains.
+  4. Template tem margens 12–15mm (não 16-18mm antigo) → assert_contains "12mm".
+  5. Conteúdo do template não usa Google Fonts/emoji → assert_contains negativo.
+- Suggested fix: (1) convocar designer (agente `designer` + skills design-taste-frontend/minimalist-ui) para definir o padrão visual e o template de referência; (2) criar `standards/cv-design.md` (regras ATS/print/estilo/páginas); (3) criar `skills/career/cv-pdf/templates/resume.html` (template base locale-aware); (4) atualizar prompts cv-tailor (skill+agente+comando+opencode.json) e cv-pdf (skill) para mandatar o padrão; (5) adicionar testes em scripts/tests/test_cv.sh. Executar APÓS o #62 (arquivos partilhados; incorpora o estado consolidado do INFERIDO). Origem: Proposal 2026-08-14-2 em prioritization.md.
+
+---
+
+### 64. Standardize career sector language — English prompts, English hub.json schema, user-locale analysis outputs
+- Status: backlog
+- Type: feat
+- Severity: critical
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (runtime, docs)
+- Remote: -
+- PR: -
+- Location: agents/career/cv-extractor.md, agents/career/cv-optimizer.md, agents/career/cv-tailor.md, skills/career/cv-hub/SKILL.md, skills/career/cv-optimizer/SKILL.md, skills/career/cv-tailor/SKILL.md, skills/career/cv-pdf/SKILL.md, commands/ocf:cv-hub.md, commands/ocf:cv-optimize.md, commands/ocf:cv-tailor.md, scripts/cv/schema.json, scripts/cv/validate.py, scripts/tests/test_cv.sh, opencode.json:118-127
+- Description: Rewrite ALL career sector prompts (agents, skills, commands, schema descriptions, validator messages) in English. Migrate hub.json keys and ENUM values from Portuguese to English. Add locale rule: analysis files generated in the user's communication language; tailored resumes in the job offer's language.
+- Impact: Aligns the career sector with the rest of the config (English prompts), makes hub.json portable and tool-readable across locales, and ensures outputs meet the user in their language. English is the operational language of the pipeline; mixing Portuguese in agents/skills/schema keys creates friction in non-PT contexts and makes the hub harder to consume programmatically.
+- Business rules:
+  1. ALL career sector agent prompts, skill prompts, command bodies, schema descriptions, and validator error messages MUST be in English.
+  2. hub.json keys and ENUM values MUST be in English (snake_case). The schema is the canonical structure for all locales.
+  3. Analysis outputs (analise-perfil.md, gap-analysis.md, inferencias.md) MUST be generated in the language the user communicates in (detected from session locale or explicit user instruction).
+  4. Tailored resumes (curriculo.pdf/index.html) MUST be in the job offer's language (already correct — preserve this rule).
+  5. A migration helper or documented migration path MUST exist for existing hub.json files with Portuguese keys (pt→en).
+  6. schema.json descriptions and ENUM values MUST be in English.
+  7. validate.py error messages MUST be in English.
+  8. Command descriptions (frontmatter `description`) are already in English — preserve. Command bodies (instructions) MUST also be in English.
+  9. The `resumo` field becomes `summary`; `resumo_i18n` becomes `summary_i18n` with the same structure ({pt, en, es}).
+  10. opencode.json command templates for career (lines 118-127) are already in English — preserve and verify consistency with the new schema keys.
+  11. test_cv.sh fixtures MUST use English schema keys.
+  12. README.md generated from hub MUST follow the hub's language.
+  13. [INFERIDO] rules (from issue #62) MUST be preserved — the label stays in Portuguese as a domain constant (it's a protocol token, not a language choice); internal analysis files keep it, final resume PDFs never.
+  14. Issues #62 and #63 content MUST be consistent with the new English key names when they reference hub.json structure.
+- Acceptance criteria:
+  1. All career sector agent prompts (agents/career/*.md) are written in English.
+  2. All career sector skill prompts (skills/career/cv-*/SKILL.md frontmatter + body) are written in English.
+  3. All career sector command bodies (commands/ocf:cv-*.md) are written in English; frontmatter descriptions preserved in English.
+  4. hub.json schema keys are English (personal_info, experience, education, skills, certifications, projects, languages, links, summary, summary_i18n, generated_date, sources, name, company, title, institution, course, issuer, since, level, importance, city, state, country, availability, salary_expectation, work_visa, etc.).
+  5. schema.json ENUM values are in English (completed, in_progress, beginner, advanced, etc.).
+  6. validate.py error messages are in English.
+  7. test_cv.sh fixtures use English schema keys and pass.
+  8. opencode.json command templates (lines 118-127) are verified consistent with new English schema keys.
+  9. A migration helper or documented migration path exists for pt→en hub.json key conversion.
+  10. Analysis outputs respect the locale rule (generated in user's communication language).
+  11. Tailored resumes remain in the job offer's language (regression check).
+  12. [INFERIDO] rules from #62 are preserved (internal files keep it, final PDFs never).
+  13. `make test-scripts` passes with updated test fixtures.
+- Suggested fix: Rewrite all career prompts in English; migrate schema.json keys/enums to English and update validate.py accordingly; update test_cv.sh fixtures; provide a migration helper (scripts/cv/migrate-schema.py or documented manual steps); verify opencode.json consistency. Coordinate merge order: #62 → #64 → #63. Origem: Proposal 2026-08-14-3 em prioritization.md.
+
+### 65. Standard structure for career sector analysis reports — standards/cv-analysis.md + report templates
+- Status: backlog
+- Type: feat
+- Severity: high
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (docs, qa)
+- Remote: -
+- PR: -
+- Location: standards/cv-analysis.md (NEW), skills/career/cv-optimizer/SKILL.md, skills/career/cv-tailor/SKILL.md, agents/career/cv-optimizer.md, agents/career/cv-tailor.md, commands/ocf:cv-optimize.md, commands/ocf:cv-tailor.md
+- Description: Create `standards/cv-analysis.md` defining the canonical structure for ALL career sector report files: standard heading hierarchy, section order, table formats (gap analysis, score, actions), [INFERIDO] inline rules (internal files only — from #62), locale rules (output language = user communication language — from #64), and report-specific templates. Create HTML templates for analise-perfil.html (A4, same design language as cv-pdf). Apply the standard across cv-optimizer and cv-tailor skills/agents.
+- Impact: Ensures all analysis outputs share a consistent structure, making them predictable for the candidate and comparable across runs. Today each skill defines its own format ad-hoc.
+- Business rules:
+  1. `standards/cv-analysis.md` MUST exist and define the canonical structure for all career sector analysis reports.
+  2. All report files (analise-perfil.md, gap-analysis.md, inferencias.md) MUST follow the standard: consistent heading hierarchy, section order, table format, and [INFERIDO] inline convention.
+  3. The standard MUST mandate report language = user communication language (from #64 locale rule).
+  4. [INFERIDO] markers MUST be inline in internal reports (hub.json, analise-perfil.md, gap-analysis.md, inferencias.md) and NEVER in final resume PDFs (from #62).
+  5. HTML report templates (analise-perfil.html) MUST share the design language defined in standards/cv-design.md (from #63) — A4, sober style, ATS-clean headings.
+  6. Gap analysis tables MUST use a uniform format: requirement | match (atendido/parcial/not_met) | evidence in hub.
+  7. Score tables MUST use: section | score (0-100) | justification.
+  8. Action plan tables MUST use: id | action | impact | effort | priority | target_profile.
+  9. No metadata headers ("Gerado em:", "Fonte:", "Ferramenta:", "Nota:") — start directly with content (existing rule, preserved).
+  10. The standard MUST be referenced by cv-optimizer and cv-tailor skills/agents/commands.
+- Acceptance criteria:
+  1. `standards/cv-analysis.md` exists with the canonical structure rules.
+  2. cv-optimizer and cv-tailor skills reference standards/cv-analysis.md.
+  3. cv-optimizer and cv-tailor agents reference standards/cv-analysis.md.
+  4. ocf:cv-optimize and ocf:cv-tailor commands reference standards/cv-analysis.md.
+  5. Gap analysis tables use the uniform format (requirement | match | evidence).
+  6. Score tables use the uniform format (section | score | justification).
+  7. Action plan tables use the uniform format (id | action | impact | effort | priority | target_profile).
+  8. No metadata headers in any report.
+  9. Report language rule is documented and followed.
+  10. [INFERIDO] inline convention is documented and followed.
+- Suggested fix: Create `standards/cv-analysis.md`; update cv-optimizer and cv-tailor skills/agents/commands to reference it; create HTML template for analise-perfil.html. Execute after #64. Origem: Proposal 2026-08-14-4 em prioritization.md.
+
+### 66. Cover letter generation — ocf:cv-cover-letter
+- Status: backlog
+- Type: feat
+- Severity: high
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (frontend, ux-ui)
+- Remote: -
+- PR: -
+- Location: agents/career/cv-cover-letter.md (NEW), skills/career/cv-cover-letter/SKILL.md (NEW), commands/ocf:cv-cover-letter.md (NEW), opencode.json
+- Description: Create command `ocf:cv-cover-letter <candidate-dir> <job>`, agent `career/cv-cover-letter`, and skill `cv-cover-letter`. Given the candidate hub and a job description (same input as cv-tailor — pasted text, file, URL), generate a tailored cover letter in PDF (HTML→PDF via cv-pdf) in the job's language. Reuse the gap analysis from cv-tailor if available, or generate inline. Never fabricate content — only rephrase and highlight what exists in the hub. The cover letter follows the same design standard (standards/cv-design.md from #63) and analysis standard (standards/cv-analysis.md from #65).
+- Impact: A tailored cover letter is an essential complement to the tailored resume in job applications. Generates it from the hub + job analysis (same data already available to cv-tailor) with minimal new infrastructure.
+- Business rules:
+  1. Command `ocf:cv-cover-letter <candidate-dir> <job>` MUST generate a tailored cover letter PDF from the candidate's hub.json + job description.
+  2. The agent MUST validate hub.json before generating (same as cv-tailor).
+  3. Job input formats: same as cv-tailor (pasted text, file, LinkedIn export, URL with curl -L).
+  4. The cover letter MUST be in the job offer's language.
+  5. NEVER fabricate experience, skills, or achievements — only rephrase and highlight what exists in the hub.
+  6. The cover letter MUST follow the design standard (standards/cv-design.md — A4, sober, ATS-clean).
+  7. No [INFERIDO] markers in the final PDF — same rule as cv-tailor (#62).
+  8. Output structure: `~/carreira/<candidato>/cartas/<slug-da-vaga>/carta-apresentacao.pdf` + `index.html`.
+  9. If hub is missing/invalid, tell the user to run `ocf:cv-hub` first.
+  10. The cover letter MUST reference specific achievements from the hub that match the job's key requirements.
+  11. The agent MUST be registered in opencode.json (permission, skill allow) with `temperature: 0.2` and edit restricted to `~/carreira/**`.
+  12. The skill MUST be registered in `permission.skill` in opencode.json.
+- Acceptance criteria:
+  1. `agents/career/cv-cover-letter.md` exists with valid frontmatter.
+  2. `skills/career/cv-cover-letter/SKILL.md` exists with valid frontmatter.
+  3. `commands/ocf:cv-cover-letter.md` exists with usage instructions.
+  4. `opencode.json` registers the command and skill.
+  5. Cover letter PDF is generated in the job's language.
+  6. No [INFERIDO] markers in the final PDF.
+  7. Cover letter references specific hub achievements.
+  8. Cover letter follows standards/cv-design.md.
+  9. Cover letter follows standards/cv-analysis.md report structure.
+  10. Agent permissions restrict edit to `~/carreira/**`.
+  11. `make test-scripts` passes with new test cases.
+- Suggested fix: Create agent, skill, command; register in opencode.json; reuse cv-pdf for PDF generation; follow cv-design.md and cv-analysis.md standards. Execute after #64 and #65. Origem: Proposal 2026-08-14-5 em prioritization.md.
+
+### 67. LinkedIn profile optimization suggestions — ocf:cv-linkedin
+- Status: backlog
+- Type: feat
+- Severity: high
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 1 (docs)
+- Remote: -
+- PR: -
+- Location: agents/career/cv-linkedin.md (NEW), skills/career/cv-linkedin/SKILL.md (NEW), commands/ocf:cv-linkedin.md (NEW), opencode.json
+- Description: Create command `ocf:cv-linkedin <candidate-dir> [<job>]`, agent `career/cv-linkedin`, and skill `cv-linkedin`. Given the candidate hub and optionally a target job, generate LinkedIn profile optimization suggestions: optimized headline (≤220 chars), about section (≤2600 chars), skills section (top 50 ranked by relevance to target role), and featured section recommendations. Output as a markdown report (`linkedin-optimization.md`) in the user's communication language. NEVER involves scraping or modifying LinkedIn directly — the user copies/pastes suggestions manually.
+- Impact: Completes the LinkedIn workflow — today the sector only extracts FROM LinkedIn. The reverse operation (optimizing the LinkedIn profile TO match a target role) is high commercial value for recruiter discoverability.
+- Business rules:
+  1. Command `ocf:cv-linkedin <candidate-dir> [<job>]` MUST generate LinkedIn profile optimization suggestions from the candidate's hub.json.
+  2. If a job is provided, suggestions MUST be optimized for that target role; if not, suggestions MUST be optimized for the candidate's inferred seniority and target profiles (from cv-optimizer if available).
+  3. Suggestions MUST cover: headline (≤220 chars), about section (≤2600 chars), skills ranking (top 50), and featured section.
+  4. NEVER scrape or modify linkedin.com — all output is suggestions the user copies manually.
+  5. Output report: `~/carreira/<candidato>/linkedin-optimization.md` in the user's communication language.
+  6. NEVER fabricate content — only rephrase and highlight what exists in the hub.
+  7. No [INFERIDO] in the output file (it's an actionable suggestion file, not an internal analysis — same as final resume PDFs per #62).
+  8. The agent MUST validate hub.json before generating.
+  9. Character limits MUST respect LinkedIn's actual limits (headline 220, about 2600, skills 50).
+  10. The agent MUST be registered in opencode.json (permission, skill allow) with `temperature: 0.2` and edit restricted to `~/carreira/**`.
+  11. The skill MUST be registered in `permission.skill` in opencode.json.
+  12. The report MUST follow standards/cv-analysis.md (#65) structure.
+- Acceptance criteria:
+  1. `agents/career/cv-linkedin.md` exists with valid frontmatter.
+  2. `skills/career/cv-linkedin/SKILL.md` exists with valid frontmatter.
+  3. `commands/ocf:cv-linkedin.md` exists with usage instructions.
+  4. `opencode.json` registers the command and skill.
+  5. Suggestions cover headline (≤220), about (≤2600), skills (top 50), and featured section.
+  6. No scraping or modification of linkedin.com.
+  7. Output in user's communication language.
+  8. No [INFERIDO] in the output file.
+  9. Character limits respected.
+  10. Report follows standards/cv-analysis.md structure.
+  11. Agent permissions restrict edit to `~/carreira/**`.
+  12. `make test-scripts` passes with new test cases.
+- Suggested fix: Create agent, skill, command; register in opencode.json. Execute after #64 and #65. Origem: Proposal 2026-08-14-6 em prioritization.md.
+
+### 68. Interview preparation kit — ocf:cv-interview-prep
+- Status: backlog
+- Type: feat
+- Severity: high
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 1 (docs)
+- Remote: -
+- PR: -
+- Location: agents/career/cv-interview-prep.md (NEW), skills/career/cv-interview-prep/SKILL.md (NEW), commands/ocf:cv-interview-prep.md (NEW), opencode.json
+- Description: Create command `ocf:cv-interview-prep <candidate-dir> <job>`, agent `career/cv-interview-prep`, and skill `cv-interview-prep`. Given the candidate hub and a job description, generate: (1) likely interview questions for the role (behavioral + technical), (2) suggested STAR-format answers mapped to real experience from the hub, (3) questions the candidate should ask the interviewer, (4) technical topics to review based on the job's required skills. Output as `preparacao-entrevista.md` in the user's communication language. NEVER fabricate experience — STAR answers must reference real hub entries.
+- Impact: Bridges the gap between "having a good resume" and "performing well in the interview". The hub already contains the raw material for STAR answers — high commercial value.
+- Business rules:
+  1. Command `ocf:cv-interview-prep <candidate-dir> <job>` MUST generate a structured interview preparation kit.
+  2. The kit MUST include: likely questions (behavioral + technical), STAR answers mapped to hub experience, questions to ask the interviewer, and technical topics to review.
+  3. STAR answers MUST reference real achievements from the hub — NEVER fabricate experience.
+  4. Questions MUST be role-appropriate (derived from the job's requirements/seniority).
+  5. Output: `~/carreira/<candidato>/preparacao-entrevista.md` in the user's communication language.
+  6. No [INFERIDO] in the output (actionable prep file, not internal analysis).
+  7. The agent MUST validate hub.json before generating.
+  8. If a question cannot be answered from the hub (gap), the kit MUST flag it as a preparation gap to review.
+  9. The agent MUST be registered in opencode.json (permission, skill allow) with `temperature: 0.2` and edit restricted to `~/carreira/**`.
+  10. The skill MUST be registered in `permission.skill` in opencode.json.
+  11. The report MUST follow standards/cv-analysis.md (#65) structure.
+- Acceptance criteria:
+  1. `agents/career/cv-interview-prep.md` exists with valid frontmatter.
+  2. `skills/career/cv-interview-prep/SKILL.md` exists with valid frontmatter.
+  3. `commands/ocf:cv-interview-prep.md` exists with usage instructions.
+  4. `opencode.json` registers the command and skill.
+  5. Kit includes behavioral + technical questions, STAR answers, questions to ask, and technical topics.
+  6. STAR answers reference real hub entries.
+  7. Gaps are flagged as preparation gaps.
+  8. Output in user's communication language.
+  9. No [INFERIDO] in the output.
+  10. Report follows standards/cv-analysis.md structure.
+  11. Agent permissions restrict edit to `~/carreira/**`.
+  12. `make test-scripts` passes with new test cases.
+- Suggested fix: Create agent, skill, command; register in opencode.json. Execute after #64 and #65. Origem: Proposal 2026-08-14-7 em prioritization.md.
+
+### 69. ATS compatibility scoring of generated resume — ocf:cv-ats-score
+- Status: backlog
+- Type: feat
+- Severity: medium
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 1 (qa)
+- Remote: -
+- PR: -
+- Location: agents/career/cv-ats-score.md (NEW), skills/career/cv-ats-score/SKILL.md (NEW), commands/ocf:cv-ats-score.md (NEW), opencode.json
+- Description: Create command `ocf:cv-ats-score <candidate-dir> <job-slug>`, agent `career/cv-ats-score`, skill `cv-ats-score`. Given a generated resume PDF (from cv-tailor) and the original job description, extract text from the PDF (pdftotext), analyze keyword density vs the job's requirements, detect ATS red flags (tables, images, multi-column, missing standard sections), and produce a score (0-100) + actionable recommendations. Output as `ats-score.md` in the job's slug directory.
+- Impact: Closes the loop — generate, measure, optimize. Without it, the candidate has no feedback on whether the tailored resume actually matches the job's ATS keywords.
+- Business rules:
+  1. Command `ocf:cv-ats-score <candidate-dir> <job-slug>` MUST analyze the generated resume PDF against the original job description.
+  2. Analysis MUST extract text from the PDF via `pdftotext` (best-effort — if pdftotext unavailable, report limitation).
+  3. Analysis MUST cover: keyword density (job keywords found in resume vs total), ATS red flags (tables, images as text, multi-column layouts, missing standard sections — contact, experience, education, skills), and section detection score.
+  4. Score MUST be 0-100 with breakdown: keyword_match (40%), section_completeness (30%), format_compliance (30%).
+  5. Output: `~/carreira/<candidato>/curriculos/<slug>/ats-score.md` in the user's communication language.
+  6. The agent MUST be registered in opencode.json with bash allow for `pdftotext*`, `python3*`, `ls*`, `grep*`.
+  7. The skill MUST be registered in `permission.skill` in opencode.json.
+  8. The agent MUST NOT modify any files (read-only + report) — edit restricted to `~/carreira/**`.
+  9. Recommendations MUST be actionable and specific (e.g., "Add 'Kubernetes' to the skills section — it appears 5x in the job but 0x in your resume").
+  10. The report MUST follow standards/cv-analysis.md (#65) structure.
+- Acceptance criteria:
+  1. `agents/career/cv-ats-score.md` exists with valid frontmatter.
+  2. `skills/career/cv-ats-score/SKILL.md` exists with valid frontmatter.
+  3. `commands/ocf:cv-ats-score.md` exists with usage instructions.
+  4. `opencode.json` registers the command and skill.
+  5. Score is 0-100 with breakdown (keyword_match 40%, section_completeness 30%, format_compliance 30%).
+  6. ATS red flags detected (tables, images, multi-column, missing sections).
+  7. Recommendations are actionable and specific.
+  8. Output in user's communication language.
+  9. Report follows standards/cv-analysis.md structure.
+  10. Agent is read-only (no file modification besides the report).
+  11. `make test-scripts` passes with new test cases.
+- Suggested fix: Create agent, skill, command; register in opencode.json; use pdftotext for text extraction; compute score and recommendations. Execute after #64, #62, and #65. Origem: Proposal 2026-08-14-8 em prioritization.md.
+
+### 70. Hub update flow — incremental edits to existing hub.json
+- Status: backlog
+- Type: feat
+- Severity: high
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (runtime, docs)
+- Remote: -
+- PR: -
+- Location: commands/ocf:cv-hub-update.md (NEW) OR commands/ocf:cv-hub.md (--update flag), agents/career/cv-extractor.md, skills/career/cv-hub/SKILL.md, opencode.json
+- Description: Create command `ocf:cv-hub-update <candidate-dir>`, enhancing the existing cv-hub flow to support incremental edits. The user provides new information (pasted text, new PDF, new file) and the agent updates the existing hub.json with the new entries (new experience, skill, certification, project) without recreating the entire hub. Alternatively, accept manual edits to hub.json and validate + regenerate README.md. Command can also be `ocf:cv-hub <dir> --update`.
+- Impact: Today the only way to update the hub is to recreate it from scratch. Candidates frequently need to add a new experience, certification, or skill. An incremental update flow avoids re-processing the entire PDF/LinkedIn export.
+- Business rules:
+  1. Command `ocf:cv-hub-update <candidate-dir>` MUST update an existing hub.json with new entries without recreating the entire hub.
+  2. The command MUST accept new information as: pasted text, new PDF (pdftotext), new file, or manual key-value edits.
+  3. The agent MUST only ADD or UPDATE entries — it MUST NEVER delete existing entries without explicit confirmation.
+  4. After updating, the agent MUST re-validate with `python3 $SCRIPTS_DIR/cv/validate.py` and regenerate `README.md` from the updated hub.
+  5. If hub.json does not exist, the command MUST tell the user to run `ocf:cv-hub` first.
+  6. Duplicates MUST be detected and merged (same company+title+start_date in experience, same name in skills/certifications/projects).
+  7. The agent MUST preserve existing [INFERIDO] markers on entries that had them.
+  8. The agent MUST be registered in opencode.json with edit allow for `~/carreira/**` including `hub.json` (unlike cv-optimizer which denies hub.json edits).
+  9. The skill MUST extend (not replace) the existing cv-hub skill with update-mode instructions.
+  10. A diff/summary of changes MUST be reported to the user after the update.
+- Acceptance criteria:
+  1. `ocf:cv-hub-update <candidate-dir>` updates an existing hub.json without recreating it.
+  2. New entries (experience, skill, certification, project) are added correctly.
+  3. Existing entries are preserved (no data loss).
+  4. Duplicates are detected and merged.
+  5. [INFERIDO] markers on existing entries are preserved.
+  6. After update, validate.py passes and README.md is regenerated.
+  7. If hub.json does not exist, user is told to run ocf:cv-hub first.
+  8. A diff/summary of changes is reported.
+  9. Agent permissions allow hub.json edits (unlike cv-optimizer).
+  10. `make test-scripts` passes with new test cases.
+- Suggested fix: Extend cv-hub skill/agent with update mode; create command (separate or --update flag); register in opencode.json with hub.json edit permission. Execute after #64 (English schema). Origem: Proposal 2026-08-14-9 em prioritization.md.
+
+### 71. Keyword density and match percentage in gap analysis
+- Status: backlog
+- Type: feat
+- Severity: medium
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 1 (qa)
+- Remote: -
+- PR: -
+- Location: skills/career/cv-tailor/SKILL.md, agents/career/cv-tailor.md, commands/ocf:cv-tailor.md, standards/cv-analysis.md
+- Description: Enhance the cv-tailor gap analysis to include: (1) match percentage (requirements met / total requirements × 100), (2) keyword density map showing each job keyword and its count in the resume, (3) a coverage summary by section showing which resume sections contain the most job keywords. These metrics complement the ATS score (#69) and give the candidate actionable insight at the gap analysis stage.
+- Impact: A qualitative atendido/parcial/not_met classification is useful but not actionable enough. Quantifying the match gives the candidate a clear metric to optimize and compare across jobs.
+- Business rules:
+  1. The gap analysis in cv-tailor MUST include a match percentage (met / total × 100).
+  2. The gap analysis MUST include a keyword density map: each job keyword → count in the generated resume.
+  3. The gap analysis MUST include a coverage summary by section (which resume sections contain the most job keywords).
+  4. The match percentage MUST use weighted scoring: mandatory requirements weigh 2x, desirable 1x.
+  5. The keyword density MUST be computed on the final resume text (extracted from index.html or the PDF).
+  6. The gap analysis report MUST follow standards/cv-analysis.md (#65) table format.
+  7. The metrics MUST be computed in the cv-tailor skill/agent, not as a separate command (enhance existing, not new agent).
+  8. No new agent or command — this is an enhancement to cv-tailor.
+- Acceptance criteria:
+  1. Gap analysis includes match percentage (weighted: mandatory 2x, desirable 1x).
+  2. Gap analysis includes keyword density map (keyword → count in resume).
+  3. Gap analysis includes coverage summary by section.
+  4. Metrics computed on the final resume text (index.html or PDF).
+  5. Gap analysis report follows standards/cv-analysis.md table format.
+  6. No new agent or command created.
+  7. `make test-scripts` passes with new test cases.
+- Suggested fix: Enhance cv-tailor skill/agent with keyword density and match percentage logic; update gap-analysis.md format in standards/cv-analysis.md. Execute after #64 and #65. Origem: Proposal 2026-08-14-10 em prioritization.md.
+
+### 72. Technical corrections — validate.py, schema.json, agents/README, templates, curl security
+- Status: backlog
+- Type: chore
+- Severity: medium
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 1 (runtime)
+- Remote: -
+- PR: -
+- Location: scripts/cv/validate.py, scripts/cv/schema.json, agents/career/README.md (NEW), skills/career/cv-hub/SKILL.md, skills/career/cv-tailor/SKILL.md, agents/career/cv-tailor.md, commands/ocf:cv-tailor.md, opencode.json, scripts/tests/test_cv.sh
+- Description: Bundle of technical corrections: (D1) validate.py should use schema.json via jsonschema library with fallback to hand-rolled validator; (D2) improve validation — formats (email, url), nested required fields, summary_i18n, cross-field consistency (start < end in experience, since <= current year); (D3) create agents/career/README.md listing the 3 agents, responsibilities, flow, and commands; (D4) define README.md template for hub output; (D5) restrict or remove curl -L in cv-tailor (replace with "paste text" requirement to eliminate SSRF via file:// redirects).
+- Impact: Fixes latent bugs and structural gaps in the career sector infrastructure that reduce reliability and maintainability.
+- Business rules:
+  1. validate.py MUST use schema.json as the source of truth when jsonschema is available; fall back to the existing hand-rolled validator when jsonschema is not installed (zero dependency regression).
+  2. validate.py MUST validate email format (basic regex), URL format (basic regex), summary_i18n keys (pt/en/es), and cross-field: experience.start < experience.end (when end != "atual"/"present").
+  3. agents/career/README.md MUST exist and list: cv-extractor, cv-optimizer, cv-tailor (+ any new agents from #66/#67/#68/#69/#70), their responsibilities, the career flow, and the available commands.
+  4. A README.md template MUST be defined (in the cv-hub skill or standards/) showing the canonical structure of the human-readable hub README: name + title, contact, summary, experience, education, skills, certifications, projects, languages, links.
+  5. curl -L MUST be removed from cv-tailor agent permissions and skill instructions — replace with "ask user to paste job description text" (LinkedIn always blocks; other portals may have file:// redirects or SSRF vectors). The `curl -L*` bash permission in cv-tailor.md and the curl instructions in cv-tailor SKILL.md and command MUST be removed.
+  6. No existing functionality MUST break — all changes must pass `make test-scripts`.
+  7. test_cv.sh MUST be updated for any validation behavior changes.
+- Acceptance criteria:
+  1. validate.py uses schema.json via jsonschema when available; falls back to hand-rolled when not installed.
+  2. validate.py validates email format, URL format, summary_i18n keys, and cross-field date consistency.
+  3. agents/career/README.md exists and lists all career agents + commands.
+  4. README.md template is defined in the cv-hub skill or standards.
+  5. curl -L is removed from cv-tailor agent permissions and skill/command instructions.
+  6. `make test-scripts` passes with updated test_cv.sh.
+  7. No existing functionality breaks.
+- Suggested fix: Refactor validate.py to use schema.json; add format/cross-field validation; create agents/career/README.md; define README.md template; remove curl -L from cv-tailor. Execute after #64 (English schema). Origem: Proposal 2026-08-14-11 em prioritization.md.
+
 
 
