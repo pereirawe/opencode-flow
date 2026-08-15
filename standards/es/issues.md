@@ -18,6 +18,7 @@ Seguimiento en dos niveles:
 - Base branch: <default-branch> | <branch-name>
 - Reviewers: <número> (<perfil1>, <perfil2>)
 - Remote: - | #<id-remoto>
+- Jira: - | <KEY-N>
 - PR: - | #<pr-number>
 - Location: <ruta-archivo>:<líneas>
 - Description: <descripción breve>
@@ -27,6 +28,14 @@ Seguimiento en dos niveles:
 - Tests: <escenario → resultado, definidos durante el discovery>
 - Suggested fix: <enfoque o siguiente paso>
 ```
+
+`Jira:` es opcional (default `-`) — la clave de la issue en Jira Cloud (ej.:
+`DEV-123`) para la tarjeta espejo de esta issue cuando el sync de Jira está
+habilitado (issue #48). Es separado de `Remote:` (que continúa siendo
+exclusivo del provider git GitHub/GitLab). Lo completa `scripts/sync-jira.sh`
+(vía hooks en `create_issue.sh`/`promote.sh`/`close_issue.sh` o el comando
+`ocf:sync-jira`); el sync es no-bloqueante y el `Status:` local siempre gana
+sobre Jira.
 
 ### Timestamps (Opened / Ready / Started / Resolved + Durations)
 

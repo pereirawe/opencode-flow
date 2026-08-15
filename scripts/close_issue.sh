@@ -88,6 +88,17 @@ if [[ -n "$REMOTE_ID" && "$REMOTE_ID" != "-" ]]; then
   fi
 fi
 
+# Jira Cloud sync (issue #48): at close time the card is moved to the terminal
+# state (resolved → Done/Closed) for BOTH accepted statuses — the real pipeline
+# closes in-publish entries right after the PR merge and archives without ever
+# passing through resolved, so --terminal forces the resolved mapping (reviewer
+# finding). Runs before archiving (entry still present). Non-blocking (BR 8).
+if [[ "$STATUS" == "in-publish" || "$STATUS" == "resolved" ]] \
+   && "$SCRIPTS_DIR/sync-jira.sh" config >/dev/null 2>&1; then
+  "$SCRIPTS_DIR/sync-jira.sh" transition "$FILE" "$ID" --terminal \
+    || echo "[jira] Warning: Jira transition failed for issue $ID (non-blocking)"
+fi
+
 # Extract fields for archive
 TITLE=$(printf '%s\n' "$SECTION" | sed -n '1s/^### [0-9]*\. //p')
 TYPE=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Type:/ {print $2; exit}')
