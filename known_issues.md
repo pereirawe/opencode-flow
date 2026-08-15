@@ -407,7 +407,7 @@ See `standards/issues.md` for the full contract.
 
 
 ### 49. Agente de setor OWASP e Cybersecurity (consultor + revisor + gate)
-- Status: in-review
+- Status: in-publish
 - Opened: 2026-08-15
 - Started: 2026-08-15
 - Type: feat
