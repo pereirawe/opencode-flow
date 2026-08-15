@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Tests for the career CV scripts: scripts/cv/validate.py and scripts/cv/pdf.sh.
+# Tests for the career CV scripts: scripts/cv/validate.py, scripts/cv/pdf.sh,
+# and the scripts/cv/check-inferido.sh gate.
 # Self-contained: generates its own fixtures under a temp dir, no network, no TTY.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
@@ -10,6 +11,7 @@ t_begin "test_cv"
 CV_DIR="$SCRIPT_DIR/../cv"
 VALIDATOR="$CV_DIR/validate.py"
 PDF_SH="$CV_DIR/pdf.sh"
+CHECK_INFERIDO="$CV_DIR/check-inferido.sh"
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -198,10 +200,128 @@ set -e
 assert_eq "0" "$rc_samedir" "LibreOffice fallback succeeds in the same-dir invocation"
 assert_eq "1" "$(test -s "$TMP/samedir/curriculo.pdf" && echo 1 || echo 0)" "same-dir fallback PDF written"
 
+# --- check-inferido.sh gate ---
+# The gate blocks [INFERIDO] markers (case-insensitive) in the FINAL HTML/PDF.
+# Internal artifacts (hub.json, gap-analysis.md, inferencias.md) keep them.
+
+# 1. HTML with uppercase [INFERIDO] -> exit 1, occurrence listed
+cat > "$TMP/inferido-upper.html" <<'HTMLEOF'
+<!DOCTYPE html><html><body><h1>Dev</h1><p>Nível de inglês [INFERIDO]</p></body></html>
+HTMLEOF
+set +e
+CHECK_OUT="$(bash "$CHECK_INFERIDO" "$TMP/inferido-upper.html" 2>&1)"
+rc_gate_upper=$?
+set -e
+assert_eq "1" "$rc_gate_upper" "gate exits 1 when HTML contains [INFERIDO]"
+if [[ "$CHECK_OUT" == *"[INFERIDO]"* ]]; then
+  t_ok "gate error message lists the occurrence"
+else
+  t_fail "gate error message does not list the occurrence: $CHECK_OUT"
+fi
+
+# 2. HTML with lowercase [inferido] -> exit 1
+cat > "$TMP/inferido-lower.html" <<'HTMLEOF'
+<!DOCTYPE html><html><body><h1>Dev</h1><p>Curso [inferido]</p></body></html>
+HTMLEOF
+set +e
+bash "$CHECK_INFERIDO" "$TMP/inferido-lower.html" >/dev/null 2>&1
+rc_gate_lower=$?
+set -e
+assert_eq "1" "$rc_gate_lower" "gate exits 1 for lowercase [inferido]"
+
+# 3. HTML without markers -> exit 0 (PDF generation may proceed)
+cat > "$TMP/inferido-clean.html" <<'HTMLEOF'
+<!DOCTYPE html><html><body><h1>Dev</h1><p>Curso de inglês — nível avançado.</p></body></html>
+HTMLEOF
+set +e
+bash "$CHECK_INFERIDO" "$TMP/inferido-clean.html" >/dev/null 2>&1
+rc_gate_clean=$?
+set -e
+assert_eq "0" "$rc_gate_clean" "gate exits 0 for a clean HTML without markers"
+
+# 4. Gate usage error without arguments -> exit 2
+set +e
+bash "$CHECK_INFERIDO" >/dev/null 2>&1
+rc_gate_usage=$?
+set -e
+assert_eq "2" "$rc_gate_usage" "gate exits 2 without arguments"
+
+# 5. Missing file -> exit 2
+set +e
+bash "$CHECK_INFERIDO" "$TMP/nope.html" >/dev/null 2>&1
+rc_gate_missing=$?
+set -e
+assert_eq "2" "$rc_gate_missing" "gate exits 2 for a missing file"
+
+# 6. PDF input scanned via pdftotext when available (best-effort)
+if command -v pdftotext >/dev/null 2>&1; then
+  if [[ -s "$TMP/resume.pdf" ]]; then
+    set +e
+    bash "$CHECK_INFERIDO" "$TMP/resume.pdf" >/dev/null 2>&1
+    rc_gate_pdf=$?
+    set -e
+    assert_eq "0" "$rc_gate_pdf" "gate exits 0 for a clean PDF (pdftotext path)"
+  fi
+fi
+
+# 7. PDF containing [INFERIDO] text must be BLOCKED via pdftotext (BR 10)
+if command -v pdftotext >/dev/null 2>&1 && [[ -n "$CHROME" ]]; then
+  printf '<!DOCTYPE html><html><body><h1>Dev</h1><p>Nível de inglês [INFERIDO]</p></body></html>\n' > "$TMP/inferido-pdf.html"
+  set +e
+  bash "$PDF_SH" "$TMP/inferido-pdf.html" "$TMP/inferido-pdf.pdf" chrome >/dev/null 2>&1
+  rc_make_pdf=$?
+  set -e
+  if [[ "$rc_make_pdf" -eq 0 && -s "$TMP/inferido-pdf.pdf" ]]; then
+    set +e
+    bash "$CHECK_INFERIDO" "$TMP/inferido-pdf.pdf" >/dev/null 2>&1
+    rc_gate_pdf_block=$?
+    set -e
+    assert_eq "1" "$rc_gate_pdf_block" "gate blocks a PDF whose text contains [INFERIDO]"
+  else
+    echo "skip - could not render [INFERIDO] PDF fixture; blocking-PDF path not exercised"
+  fi
+fi
+
+# --- cv-tailor / cv-optimizer contract (issue #62) ---
+TAILOR_SKILL="$SCRIPT_DIR/../../skills/career/cv-tailor/SKILL.md"
+if [[ -f "$TAILOR_SKILL" ]]; then
+  # skill cv-tailor must NOT instruct marking [INFERIDO] in the HTML/PDF final
+  assert_not_contains "$TAILOR_SKILL" "marcado \`[INFERIDO]\` no HTML/PDF" \
+    "cv-tailor skill no longer instructs marking [INFERIDO] in the HTML/PDF"
+  assert_not_contains "$TAILOR_SKILL" "marcar \`[INFERIDO]\`" \
+    "cv-tailor skill has no 'mark [INFERIDO]' instruction"
+  # it MUST document the mandatory gate before the PDF
+  assert_contains "$TAILOR_SKILL" "check-inferido.sh" \
+    "cv-tailor skill mandates the check-inferido.sh gate"
+  # and the human-decision flow via inferencias.md
+  assert_contains "$TAILOR_SKILL" "inferencias.md" \
+    "cv-tailor skill documents the inferencias.md human-decision flow"
+else
+  t_fail "cv-tailor skill missing at $TAILOR_SKILL"
+fi
+
+TAILOR_AGENT="$SCRIPT_DIR/../../agents/career/cv-tailor.md"
+if [[ -f "$TAILOR_AGENT" ]]; then
+  assert_not_contains "$TAILOR_AGENT" "marcado \`[INFERIDO]\` no HTML/PDF" \
+    "cv-tailor agent no longer instructs marking [INFERIDO] in the HTML/PDF"
+  assert_contains "$TAILOR_AGENT" "check-inferido.sh" \
+    "cv-tailor agent invokes the check-inferido.sh gate"
+  assert_contains "$TAILOR_AGENT" "inferencias.md" \
+    "cv-tailor agent documents the inferencias.md human-decision flow"
+else
+  t_fail "cv-tailor agent missing at $TAILOR_AGENT"
+fi
+
+# cv-hub / cv-optimizer KEEP [INFERIDO] in internal artifacts (regression zero)
+OPT_SKILL="$SCRIPT_DIR/../../skills/career/cv-optimizer/SKILL.md"
+if [[ -f "$OPT_SKILL" ]]; then
+  assert_contains "$OPT_SKILL" "[INFERIDO]" \
+    "cv-optimizer skill keeps [INFERIDO] markers in internal artifacts (regression)"
+fi
+
 # --- cv-optimizer contract ---
 # The skill/agent must not modify hub.json. Verify the skill file references
 # validate.py and mandates [INFERIDO] + never-modify-hub rules.
-OPT_SKILL="$SCRIPT_DIR/../../skills/career/cv-optimizer/SKILL.md"
 if [[ -f "$OPT_SKILL" ]]; then
   assert_contains "$OPT_SKILL" "[INFERIDO]" "cv-optimizer skill mandates [INFERIDO] markers"
   assert_contains "$OPT_SKILL" "NUNCA modificar \`hub.json\`" "cv-optimizer skill forbids hub.json edits"

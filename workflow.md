@@ -210,7 +210,9 @@ resume-optimization flow (issue #60):
 - `/ocf:cv-tailor <candidate-dir> <job>` — analyze a job (multi-portal), gap
   analysis vs `hub.json`, and generate a job-tailored resume PDF (HTML → PDF,
   Chrome headless, fallback LibreOffice) in the job's language. Never
-  fabricates content; inferences are marked `[INFERIDO]`.
+  fabricates content; inferences are resolved with the candidate
+  (`inferencias.md`) and never appear as `[INFERIDO]` in the final HTML/PDF
+  (gate: `scripts/cv/check-inferido.sh`).
 
 Backed by `agents/career/*`, `skills/career/*`, and `scripts/cv/*`.
 
