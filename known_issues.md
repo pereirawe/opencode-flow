@@ -416,7 +416,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 2 (security, runtime)
 - Remote: #67
-- PR: -
+- PR: #68
 - Location: agents/development/security-owasp.md (novo), agents/development/senior-reviewers/security.md, agents/development/committer.md, skills/development/security/*/SKILL.md (6 novos), opencode.json, agents/development/README.md, workflow.md
 - Description: Criar agente `development/security-owasp` (setor development) que consolida o perfil de segurança do pipeline: consultor de políticas e arquitetura, revisor de código em MRs (senior reviewer perfil `security`), executor de auditorias on-demand e gate de bloqueio para vulnerabilidades critical/high. Entregue como agente + skills OWASP dedicadas (`owasp-top10`, `owasp-asvs`, `owasp-wstg`, `owasp-samm`, `threat-modeling`, `secure-code-review`), dominando Top 10 + ASVS + WSTG + SAMM. Segue o locale do projeto via locale-loader.
 - Impact: Habilita consultoria, revisão e políticas de segurança em qualquer momento do ciclo — o agente atua como senior reviewer de segurança em MRs, é convocável on-demand para auditorias/tarefas específicas, e impede que vulnerabilidades critical/high atinjam o merge. Substitui o revisor de segurança genérico atual por um especialista OWASP completo, sem duplicação (security.md delega ao novo agente).
