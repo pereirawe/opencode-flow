@@ -12,13 +12,13 @@ LibreOffice) no idioma da vaga.
 
 ### Pré-requisito
 
-O candidato precisa de um hub válido em `~/carreira/<nome-candidato>/hub.json`.
+O candidato precisa de um hub válido em `~/career/<nome-candidato>/hub.json`.
 Se não existir, rode `/ocf:cv-hub` primeiro.
 
 ### Uso
 
 ```
-/ocf:cv-tailor ~/carreira/maria-silva "URL ou texto da vaga"
+/ocf:cv-tailor ~/career/maria-silva "URL ou texto da vaga"
 ```
 
 A vaga pode ser fornecida como:
@@ -64,7 +64,7 @@ A vaga pode ser fornecida como:
 
 ### Reporte ao usuário
 
-- Caminho do PDF gerado (`~/carreira/<nome>/curriculos/<slug>/curriculo.pdf`).
+- Caminho do PDF gerado (`~/career/<nome>/curriculos/<slug>/curriculo.pdf`).
 - Resumo do gap analysis (requisitos atendidos/parciais/não-atendidos).
 - Lista de inferências resolvidas (reformuladas/omitidas/promovidas) que o
   candidato aprovou — nenhuma marcação `[INFERIDO]` no artefacto partilhável.

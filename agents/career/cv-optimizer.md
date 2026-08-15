@@ -5,8 +5,8 @@ temperature: 0.2
 permission:
   edit:
     "*": deny
-    "~/carreira/**": allow
-    "~/carreira/**/hub.json": deny
+    "~/career/**": allow
+    "~/career/**/hub.json": deny
   bash:
     "*": deny
     "python3 *": allow
@@ -20,7 +20,7 @@ permission:
 ---
 
 Agente de otimização do perfil do candidato. Recebe o diretório do candidato
-(`~/carreira/<nome-candidato>/` com `hub.json` válido), analisa as qualificações,
+(`~/career/<nome-candidato>/` com `hub.json` válido), analisa as qualificações,
 calcula score do perfil, sugere vagas-alvo, avalia mercado salarial CLT vs PJ e
 gera um plano de ações priorizado em `analise-perfil.md`.
 
@@ -36,7 +36,7 @@ gera um plano de ações priorizado em `analise-perfil.md`.
 6. Avaliar pretensão salarial de mercado CLT vs PJ (faixas `[INFERIDO]`).
 7. Detectar lacunas de contexto no hub.
 8. Gerar plano de ações priorizado (impacto × esforço).
-9. Escrever `analise-perfil.md` em `~/carreira/<candidato>/`.
+9. Escrever `analise-perfil.md` em `~/career/<candidato>/`.
 10. Gerar também `analise-perfil.pdf` (via `bash $SCRIPTS_DIR/cv/pdf.sh` sobre o
     HTML renderizado) para facilitar leitura/análise.
 

@@ -12,17 +12,17 @@ currículos direcionados (`cv-tailor`).
 
 ## Pré-requisito
 
-`~/carreira/<nome-candidato>/hub.json` válido (validado por
+`~/career/<nome-candidato>/hub.json` válido (validado por
 `python3 $SCRIPTS_DIR/cv/validate.py`). Se não existir, o fluxo `ocf:cv-hub`
 deve ser executado primeiro (o comando `ocf:cv-optimize` já trata isso).
 
 ## Saída
 
 ```
-~/carreira/<nome-candidato>/analise-perfil.md    # relatório (markdown)
-~/carreira/<nome-candidato>/analise-perfil.html  # relatório renderizado (para PDF)
-~/carreira/<nome-candidato>/analise-perfil.pdf   # relatório PDF (A4)
-~/carreira/<nome-candidato>/tasks.json           # opcional — tarefas estruturadas
+~/career/<nome-candidato>/analise-perfil.md    # relatório (markdown)
+~/career/<nome-candidato>/analise-perfil.html  # relatório renderizado (para PDF)
+~/career/<nome-candidato>/analise-perfil.pdf   # relatório PDF (A4)
+~/career/<nome-candidato>/tasks.json           # opcional — tarefas estruturadas
 ```
 
 O relatório NÃO modifica `hub.json` — apenas reporta.

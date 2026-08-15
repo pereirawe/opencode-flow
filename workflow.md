@@ -240,7 +240,7 @@ resume-optimization flow (issue #60):
 - `/ocf:cv-hub <candidate-dir>` — build the candidate hub (`hub.json` +
   `README.md`) from a CV PDF (required), official LinkedIn export (Download My
   Data — never scraping), and optional extras. Output lives in
-  `~/carreira/<nome-candidato>/`.
+  `~/career/<nome-candidato>/`.
 - `/ocf:cv-optimize <candidate-dir>` — analyze the candidate profile
   (post-hub): profile score, target job profiles, CLT/PJ salary ranges
   (`[INFERIDO]`), context gaps, and a prioritized improvement plan in
