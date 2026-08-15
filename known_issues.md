@@ -372,14 +372,17 @@ See `standards/issues.md` for the full contract.
  - Suggested fix (alternativo): Se o spike do modo headless falhar, avaliar self-hosted GitHub runner na mesma VM do opencode web, com `--attach http://127.0.0.1:4096` — mantém paralelismo sem exigir suporte headless do opencode. SPIKE PASSED — alternativa NÃO necessária.
 
 ### 64. Standardize career sector language — English prompts, English hub.json schema, user-locale analysis outputs
-- Status: backlog
+- Status: in-publish
+- Opened: 2026-08-15
+- Ready: 2026-08-15
+- Started: 2026-08-15
 - Type: feat
 - Severity: critical
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 2 (runtime, docs)
-- Remote: -
-- PR: -
+- Remote: #71
+- PR: #72
 - Location: agents/career/cv-extractor.md, agents/career/cv-optimizer.md, agents/career/cv-tailor.md, skills/career/cv-hub/SKILL.md, skills/career/cv-optimizer/SKILL.md, skills/career/cv-tailor/SKILL.md, skills/career/cv-pdf/SKILL.md, commands/ocf:cv-hub.md, commands/ocf:cv-optimize.md, commands/ocf:cv-tailor.md, scripts/cv/schema.json, scripts/cv/validate.py, scripts/tests/test_cv.sh, opencode.json:118-127
 - Description: Rewrite ALL career sector prompts (agents, skills, commands, schema descriptions, validator messages) in English. Migrate hub.json keys and ENUM values from Portuguese to English. Add locale rule: analysis files generated in the user's communication language; tailored resumes in the job offer's language.
 - Impact: Aligns the career sector with the rest of the config (English prompts), makes hub.json portable and tool-readable across locales, and ensures outputs meet the user in their language. English is the operational language of the pipeline; mixing Portuguese in agents/skills/schema keys creates friction in non-PT contexts and makes the hub harder to consume programmatically.
@@ -413,6 +416,7 @@ See `standards/issues.md` for the full contract.
   12. [INFERIDO] rules from #62 are preserved (internal files keep it, final PDFs never).
   13. `make test-scripts` passes with updated test fixtures.
 - Suggested fix: Rewrite all career prompts in English; migrate schema.json keys/enums to English and update validate.py accordingly; update test_cv.sh fixtures; provide a migration helper (scripts/cv/migrate-schema.py or documented manual steps); verify opencode.json consistency. Coordinate merge order: #62 → #64 → #63. Origem: Proposal 2026-08-14-3 em prioritization.md.
+- Tests: incomplete-spec (discovery gap flagged by QA post-review 2026-08-15) — no Tests: field captured pre-development; severity critical requires >=3 scenario → outcome lines. Implementation covered by test_cv.sh (74 assertions: migration pt→en keys/enums, validate.py rejection of PT hub, idempotency, English fixtures) + make test-scripts (10 suites). Transcribe during next discovery refinement.
 
 ### 65. Standard structure for career sector analysis reports — standards/cv-analysis.md + report templates
 - Status: backlog
@@ -833,4 +837,3 @@ See `standards/issues.md` for the full contract.
   17. (spike gate — manual/PM) Spike doc .opencode/spikes/containerized-delivery.md exists with N=3 pass criteria met, both isolation candidates evaluated, API-concurrency cap measured → verified before production implementation is promoted.
   18. (manual QA/integration) Real N=3 parallel run on host: zero file/git conflicts, no duplicate MRs, wall-clock materially < 3× serial, resource peaks within limits → recorded in spike doc.
 - Suggested fix: (1) run the spike first: validate the four preconditions (Docker daemon, image obtainment via GHCR or #40-branch build, model-API egress, API-level parallelism measurement), evaluate both isolation candidates (host-side git worktree vs full volume-copy clone with isolated .git) including git-metadata race analysis, document pass/fail in .opencode/spikes/containerized-delivery.md; (2) on pass: implement the orchestrator script scripts/run-parallel-delivery.sh (per-issue host-side flock under state/parallel-delivery/ with TOCTOU re-check, AIBOT_MAX_PARALLEL runtime cap, snapshot spawn with cache seeding, CPU/mem/time limits, cleanup + orphan reap, session result contract, working-tree-only sync-back as uncommitted diff with tracker flock); (3) verify/extend scripts/telegram-notify.sh env-only credentials (likely verification + tests only — support already exists); (4) add scripts/tests/test_parallel_delivery.sh covering locking, idempotency, result contract, sync-back, and deny-rule/allowlist gating; (5) document in workflow.md + scripts/README.md. Effort ~28–36h, spike-gated. BLOCKED ON #40 landing on main + GHCR image publish (semver) — do not promote to in-progress until that lands. Origem: Proposal 2026-08-14-13 em prioritization.md.
-

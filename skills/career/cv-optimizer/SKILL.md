@@ -1,192 +1,203 @@
 ---
 name: cv-optimizer
-description: Análise e otimização do perfil de um candidato a partir do hub.json — qualificações gerais, score do perfil (0-100 por seção + global), perfis de vagas-alvo, pretensão salarial de mercado CLT vs PJ (faixas [INFERIDO]), lacunas de contexto e plano de ações priorizado. Use quando precisar analisar e melhorar o perfil de um candidato (comando ocf:cv-optimize). Setor career.
+description: Analyze and optimize a candidate's profile from hub.json — general qualifications, profile score (0-100 per section + global), target job profiles, CLT vs PJ market salary ranges ([INFERIDO] bands), context gaps, and a prioritized action plan. Use when you need to analyze and improve a candidate's profile (command ocf:cv-optimize). Career sector.
 ---
 
-# CV Optimizer — análise e plano de melhorias do perfil
+# CV Optimizer — profile analysis and improvement plan
 
-Analisa o `hub.json` do candidato (construído pelo `cv-hub`) e produz um
-relatório acionável com score do perfil, vagas-alvo, mercado salarial e plano
-de ações priorizado. O objetivo é **aprimorar muito o perfil** antes de gerar
-currículos direcionados (`cv-tailor`).
+Analyzes the candidate's `hub.json` (built by `cv-hub`) and produces an
+actionable report with profile score, target job profiles, market salary
+ranges and a prioritized action plan. The goal is to **improve the profile
+substantially** before generating tailored resumes (`cv-tailor`).
 
-## Pré-requisito
+## Prerequisite
 
-`~/career/<nome-candidato>/hub.json` válido (validado por
-`python3 $SCRIPTS_DIR/cv/validate.py`). Se não existir, o fluxo `ocf:cv-hub`
-deve ser executado primeiro (o comando `ocf:cv-optimize` já trata isso).
+A valid `~/career/<candidate-name>/hub.json` (validated by
+`python3 $SCRIPTS_DIR/cv/validate.py`). If it does not exist, the `ocf:cv-hub`
+flow must run first (the `ocf:cv-optimize` command already handles this).
 
-## Saída
+## Output
 
 ```
-~/career/<nome-candidato>/analise-perfil.md    # relatório (markdown)
-~/career/<nome-candidato>/analise-perfil.html  # relatório renderizado (para PDF)
-~/career/<nome-candidato>/analise-perfil.pdf   # relatório PDF (A4)
-~/career/<nome-candidato>/tasks.json           # opcional — tarefas estruturadas
+~/career/<candidate-name>/analise-perfil.md    # report (markdown)
+~/career/<candidate-name>/analise-perfil.html  # rendered report (for PDF)
+~/career/<candidate-name>/analise-perfil.pdf   # report PDF (A4)
+~/career/<candidate-name>/tasks.json           # optional — structured tasks
 ```
 
-O relatório NÃO modifica `hub.json` — apenas reporta.
+The report does NOT modify `hub.json` — it only reports.
 
-## Formato do relatório
+## Report language
 
-O relatório **não deve conter cabeçalho de metadados** (sem linhas como
-"Gerado em:", "Fonte:", "Ferramenta:", "Nota:"). Comece diretamente pelo
-conteúdo:
+The report MUST be written in the language the user communicates in (detected
+from the session locale — `.opencode/locale` project → global → English — or
+an explicit user instruction). This applies to `analise-perfil.md`,
+`gap-analysis.md` and `inferencias.md` (career analysis outputs). Technical
+terms, command names and the `[INFERIDO]` label remain unchanged.
 
-1. **Score do perfil** (global + por seção)
-2. **Qualificações gerais**
-3. **Perfis de vagas-alvo**
-4. **Mercado salarial (CLT vs PJ)**
-5. **Lacunas de contexto**
-6. **Plano de ações priorizado**
+## Report format
 
-As marcações `[INFERIDO]` ficam inline junto a cada estimativa — não como
-aviso no topo do documento.
+The report **must not contain a metadata header** (no lines like
+"Generated on:", "Source:", "Tool:", "Note:"). Start directly with the
+content:
 
-## Geração do PDF
+1. **Profile score** (global + per section)
+2. **General qualifications**
+3. **Target job profiles**
+4. **Market salary (CLT vs PJ)**
+5. **Context gaps**
+6. **Prioritized action plan**
 
-Após escrever o `analise-perfil.md`, gere também o PDF para facilitar leitura:
+The `[INFERIDO]` markers go inline next to each estimate — not as a warning
+at the top of the document.
 
-1. Renderize o conteúdo em `analise-perfil.html` (A4 via `@page { size: A4;
-   margin: 16mm }`, tipografia limpa, headings semânticos — mesmo padrão do
+## PDF generation
+
+After writing `analise-perfil.md`, also generate the PDF for easier reading:
+
+1. Render the content into `analise-perfil.html` (A4 via `@page { size: A4;
+   margin: 16mm }`, clean typography, semantic headings — same standard as
    cv-pdf).
-2. Rode `bash $SCRIPTS_DIR/cv/pdf.sh analise-perfil.html analise-perfil.pdf`.
-3. Se o engine falhar, reporte o erro — nunca entregue um PDF vazio.
+2. Run `bash $SCRIPTS_DIR/cv/pdf.sh analise-perfil.html analise-perfil.pdf`.
+3. If the engine fails, report the error — never deliver an empty PDF.
 
-## Protocolo de análise
+## Analysis protocol
 
-### 1. Validar e carregar o hub
+### 1. Validate and load the hub
 
-1. Rode `python3 $SCRIPTS_DIR/cv/validate.py hub.json`. Exit 0 → continuar.
-2. Hub ausente/inválido → informar que o `ocf:cv-hub` deve rodar primeiro e
-   interromper (não corrigir dados manualmente).
-3. Carregue o JSON e extraia: dados pessoais, resumo, experiência, educação,
-   skills (com níveis), certificações, projetos, idiomas, links.
+1. Run `python3 $SCRIPTS_DIR/cv/validate.py hub.json`. Exit 0 → continue.
+2. Missing/invalid hub → tell the user that `ocf:cv-hub` must run first and
+   stop (do not fix data manually).
+3. Load the JSON and extract: personal info, summary, experience, education,
+   skills (with levels), certifications, projects, languages, links.
 
-### 2. Analisar qualificações gerais
+### 2. Analyze general qualifications
 
-- **Senioridade inferida** — pela soma de anos de experiência, cargos mais
-  recentes e profundidade das skills (júnior/pleno/sênior/especialista/lead).
-  Sempre `[INFERIDO]`.
-- **Principais skills** — top skills por `nivel` e `importancia`. Para cada
-  skill, registre **`desde` (ano de início)** e calcule os anos de experiência
-  **dinamicamente até o ano atual** (`ano_atual - desde`). Nunca use um
-  `anos_experiencia` fixo do hub como fato — ele fica desatualizado com o
-  tempo; se o hub tiver `desde`, recompute; se só tiver `anos_experiencia`,
-  use-o como referência mas marque a estimativa `[INFERIDO]`.
-- **Pontos fortes** — seções fortes (skills densas, conquistas com métrica,
-  certificações, projetos com link).
-- **Pontos fracos** — seções vazias/rasas, datas ausentes, gaps de experiência,
-  skills sem nível.
+- **Inferred seniority** — from the total years of experience, most recent
+  titles and skill depth (junior/mid/senior/expert/lead). Always `[INFERIDO]`.
+- **Top skills** — top skills by `level` and `importance`. For each skill,
+  record **`since` (start year)** and compute the years of experience
+  **dynamically up to the current year** (`current_year - since`). Never use
+  a fixed `years_of_experience` from the hub as fact — it becomes stale over
+  time; if the hub has `since`, recompute; if it only has
+  `years_of_experience`, use it as a reference but mark the estimate
+  `[INFERIDO]`.
+- **Strengths** — strong sections (dense skills, achievements with metrics,
+  certifications, projects with links).
+- **Weaknesses** — empty/shallow sections, missing dates, experience gaps,
+  skills without level.
 
-### 3. Score do perfil (0-100)
+### 3. Profile score (0-100)
 
-Pontue cada seção com base em **completude e força**:
+Score each section based on **completeness and strength**:
 
-| Seção | Critérios de pontuação |
-|-------|------------------------|
-| dados_pessoais | nome + contato + localização + links profissionais presentes |
-| resumo | resumo presente, claro, com diferencial; idealmente bilingue (resumo_i18n) |
-| experiencia | cargos com datas, resumo, conquistas (métrica = bonus) |
-| educacao | instituições/cursos completos, status definido |
-| skills | quantidade, nível explícito, categorias, `desde`/anos de experiência (bonus: `desde` presente — permite calcular anos dinamicamente) |
-| certificacoes | presentes, com emissor e ano |
-| projetos | presentes, com descrição e link (link = bonus) |
-| idiomas | presentes, com nível formal (nota_escala = bonus) |
-| links | ao menos LinkedIn + GitHub/site |
+| Section | Scoring criteria |
+|---------|------------------|
+| personal_info | name + contact + location + professional links present |
+| summary | summary present, clear, with differentiators; ideally bilingual (summary_i18n) |
+| experience | titles with dates, summary, achievements (metrics = bonus) |
+| education | complete institutions/courses, defined status |
+| skills | quantity, explicit level, categories, `since`/years of experience (bonus: `since` present — allows computing years dynamically) |
+| certifications | present, with issuer and year |
+| projects | present, with description and link (link = bonus) |
+| languages | present, with formal level (scale_note = bonus) |
+| links | at least LinkedIn + GitHub/site |
 
-Regras:
-- Cada seção vazia = 0. Cada seção com dados mínimos = 40-60. Seções
-  completas = 70-90. Com diferenciais (métricas, links, notas formais) = 90-100.
-- Score global = média ponderada (experiencia e skills pesam mais: 1.5x).
-- **Justificativa textual obrigatória** para cada nota.
-- Scores são estimativas — sem `[INFERIDO]` no score em si (é calculado), mas
-  qualquer inferência usada na justificativa deve ser marcada.
+Rules:
+- Each empty section = 0. Each section with minimal data = 40-60. Complete
+  sections = 70-90. With differentiators (metrics, links, formal notes) = 90-100.
+- Global score = weighted average (experience and skills weigh more: 1.5x).
+- **Textual justification required** for every score.
+- Scores are estimates — no `[INFERIDO]` on the score itself (it is
+  computed), but any inference used in the justification must be marked.
 
-### 4. Perfis de vagas-alvo (offline)
+### 4. Target job profiles (offline)
 
-Sugira **perfis de vagas** (não vagas reais) que o perfil encaixa bem, com base
-na análise do hub:
+Suggest **job profiles** (not real jobs) that fit the profile well, based on
+the hub analysis:
 
-- Cargos prováveis (ex.: Senior Data Engineer, Data Platform Engineer)
-- Segmentos/indústrias onde as skills têm demanda (ex.: fintech, e-commerce)
-- Stacks que combinam com as skills do hub
-- Senioridade das vagas-alvo
+- Likely titles (e.g. Senior Data Engineer, Data Platform Engineer)
+- Segments/industries where the skills are in demand (e.g. fintech, e-commerce)
+- Stacks that match the hub skills
+- Seniority of the target jobs
 
-**Proibido**: listar vagas concretas, empresas específicas ou URLs — tudo é
-perfil genérico derivado da análise offline. Cada perfil marcado `[INFERIDO]`.
+**Forbidden**: listing concrete jobs, specific companies or URLs — everything
+is a generic profile derived from the offline analysis. Each profile marked
+`[INFERIDO]`.
 
-### 5. Pretensão salarial de mercado (CLT vs PJ)
+### 5. Market salary range (CLT vs PJ)
 
-Entregue faixas de referência por **senioridade/stack/região** para CLT (mensal)
-e PJ (mensal), com base em conhecimento geral de mercado. **TODAS** as faixas
-DEVEM ser marcadas `[INFERIDO]` — o candidato revisa e ajusta antes de usar.
-Nunca invente fontes específicas.
+Deliver reference ranges by **seniority/stack/region** for CLT (monthly) and
+PJ (monthly), based on general market knowledge. **ALL** ranges MUST be
+marked `[INFERIDO]` — the candidate reviews and adjusts before using. Never
+invent specific sources.
 
-Formato:
+Format:
 ```
 - Senior Data Engineer | São Paulo (SP)
   - CLT: R$ 14.000 – 20.000 [INFERIDO]
   - PJ: R$ 22.000 – 30.000 [INFERIDO]
 ```
-Inclua: faixa sugerida, faixa alvo de negociação, e a pretensão declarada do
-candidato (se presente em dados_pessoais.pretensao_salarial) com avaliação de
-aderência à faixa.
+Include: suggested range, negotiation target range, and the candidate's
+declared expectation (if present in `personal_info.salary_expectation`) with
+an adherence assessment.
 
-### 6. Lacunas de contexto no hub
+### 6. Context gaps in the hub
 
-Liste informações **ausentes** que, se preenchidas, aumentariam o contexto e o
-impacto do perfil:
+List **missing** information that, if filled, would increase the context and
+impact of the profile:
 
-- Conquistas sem métrica/número (sugira formato "Reduziu X em Y%")
-- Projetos sem link/descrição
-- Certificações sem ano/emissor/validade
-- Idiomas sem nível formal (nota_escala: B2/C1, IELTS...)
-- Experiência com datas ausentes ou gaps não explicados
-- Skills sem nível OU sem `desde`/anos de experiência (a skill existe, mas não
-  é possível dimensionar senioridade — recomende registrar o ano de início)
-- Resumo sem diferencial/posicionamento
-- Seções totalmente ausentes (projetos, certificações, idiomas)
+- Achievements without metrics/numbers (suggest the format "Reduced X by Y%")
+- Projects without link/description
+- Certifications without year/issuer/expiry
+- Languages without a formal level (scale_note: B2/C1, IELTS...)
+- Experience with missing dates or unexplained gaps
+- Skills without level OR without `since`/years of experience (the skill
+  exists, but seniority cannot be sized — recommend recording the start year)
+- Summary without differentiators/positioning
+- Entirely missing sections (projects, certifications, languages)
 
-### 7. Plano de ações priorizado
+### 7. Prioritized action plan
 
-Cada ação com:
-- **Ação** — o que fazer (ex.: "Adicionar métricas a 3 conquistas da Acme")
-- **Impacto estimado** — alto/médio/baixo no fortalecimento do perfil
-- **Esforço** — baixo/médio/alto
-- **Prioridade** — P1 (impacto alto + esforço baixo) até P3
-- **Vaga-alvo relacionada** — qual perfil de vaga a ação atende
+Each action with:
+- **Action** — what to do (e.g. "Add metrics to 3 Acme achievements")
+- **Estimated impact** — high/medium/low on strengthening the profile
+- **Effort** — low/medium/high
+- **Priority** — P1 (high impact + low effort) up to P3
+- **Related target job** — which job profile the action serves
 
-Agrupe por categoria: preencher lacunas do hub, fortalecer seções fracas,
-fechar gaps das vagas-alvo (cursos/certificações/idiomas), posicionamento.
+Group by category: fill hub gaps, strengthen weak sections, close target-job
+gaps (courses/certifications/languages), positioning.
 
-## Regras rígidas
+## Hard rules
 
-1. NENHUM dado inventado: toda estimativa/inferência marcada `[INFERIDO]`.
-2. NUNCA modificar `hub.json` — apenas analisar e reportar.
-3. Sem busca web: análise 100% offline sobre o hub.
-4. Nenhum dado sensível (CPF, endereço completo, banco) no relatório.
-5. Nada de vagas concretas/empresas/URLs — apenas perfis genéricos.
-6. Dados sensíveis já excluídos pelo cv-hub permanecem excluídos.
-7. NENHUM cabeçalho de metadados no relatório (sem "Gerado em:", "Fonte:",
-   "Ferramenta:", "Nota:" no topo) — comece direto pelo conteúdo. As
-   marcações `[INFERIDO]` são inline, não um aviso global.
-8. Anos de experiência de skills DEVEM ser calculados dinamicamente
-   (ano atual − `desde`) sempre que `desde` estiver presente no hub — nunca
-   exibir um `anos_experiencia` fixo como fato atual.
+1. NO invented data: every estimate/inference marked `[INFERIDO]`.
+2. NEVER modify `hub.json` — only analyze and report.
+3. No web search: 100% offline analysis over the hub.
+4. No sensitive data (CPF, full address, bank) in the report.
+5. No concrete jobs/companies/URLs — only generic profiles.
+6. Sensitive data already excluded by cv-hub stays excluded.
+7. NO metadata header in the report (no "Generated on:", "Source:", "Tool:",
+   "Note:" at the top) — start directly with the content. The `[INFERIDO]`
+   markers are inline, not a global warning.
+8. Skill years of experience MUST be computed dynamically
+   (current year − `since`) whenever `since` is present in the hub — never
+   display a fixed `years_of_experience` as current fact.
+9. Report language = the user's communication language (session locale or
+   explicit user instruction); English is the fallback.
 
-## tasks.json (opcional)
+## tasks.json (optional)
 
-Estrutura estruturada para futura rastreabilidade:
+Structured output for future traceability:
 
 ```json
 {
-  "gerado_em": "2026-08-13",
-  "score": { "global": 72, "secoes": { "experiencia": 85, ... } },
-  "tarefas": [
-    { "id": 1, "acao": "Adicionar métricas às conquistas da Acme",
-      "impacto": "alto", "esforco": "baixo", "prioridade": "P1",
-      "categoria": "lacunas", "vaga_alvo": "Senior Data Engineer" }
+  "generated_at": "2026-08-13",
+  "score": { "global": 72, "sections": { "experience": 85, ... } },
+  "tasks": [
+    { "id": 1, "action": "Add metrics to Acme achievements",
+      "impact": "high", "effort": "low", "priority": "P1",
+      "category": "gaps", "target_role": "Senior Data Engineer" }
   ]
 }
 ```

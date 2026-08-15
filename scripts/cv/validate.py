@@ -26,22 +26,22 @@ def validate_hub(hub):
         return ["hub.json root must be an object"]
 
     required_sections = [
-        "dados_pessoais", "resumo", "experiencia", "educacao",
-        "skills", "certificacoes", "projetos", "idiomas", "links",
+        "personal_info", "summary", "experience", "education",
+        "skills", "certifications", "projects", "languages", "links",
     ]
     for section in required_sections:
         check(section in hub, f"missing required section: '{section}'", errors)
 
-    dados = hub.get("dados_pessoais", {})
-    if isinstance(dados, dict):
-        check("nome" in dados and dados.get("nome"), "dados_pessoais.nome is required", errors)
+    personal = hub.get("personal_info", {})
+    if isinstance(personal, dict):
+        check("name" in personal and personal.get("name"), "personal_info.name is required", errors)
     else:
-        check(False, "dados_pessoais must be an object", errors)
+        check(False, "personal_info must be an object", errors)
 
-    resumo = hub.get("resumo", "")
-    check(isinstance(resumo, str), "resumo must be a string", errors)
+    summary = hub.get("summary", "")
+    check(isinstance(summary, str), "summary must be a string", errors)
 
-    for array_field in ["experiencia", "educacao", "skills", "certificacoes", "projetos", "idiomas", "links"]:
+    for array_field in ["experience", "education", "skills", "certifications", "projects", "languages", "links"]:
         val = hub.get(array_field, [])
         check(isinstance(val, list), f"'{array_field}' must be an array", errors)
         if isinstance(val, list):
@@ -49,48 +49,48 @@ def validate_hub(hub):
                 if not isinstance(item, dict):
                     errors.append(f"{array_field}[{i}] must be an object")
 
-    for i, item in enumerate(hub.get("experiencia", [])):
+    for i, item in enumerate(hub.get("experience", [])):
         if isinstance(item, dict):
-            check(item.get("empresa"), f"experiencia[{i}].empresa is required", errors)
-            check(item.get("cargo"), f"experiencia[{i}].cargo is required", errors)
+            check(item.get("company"), f"experience[{i}].company is required", errors)
+            check(item.get("title"), f"experience[{i}].title is required", errors)
 
-    for i, item in enumerate(hub.get("educacao", [])):
+    for i, item in enumerate(hub.get("education", [])):
         if isinstance(item, dict):
-            check(item.get("instituicao"), f"educacao[{i}].instituicao is required", errors)
-            check(item.get("curso"), f"educacao[{i}].curso is required", errors)
+            check(item.get("institution"), f"education[{i}].institution is required", errors)
+            check(item.get("course"), f"education[{i}].course is required", errors)
 
     for i, item in enumerate(hub.get("skills", [])):
         if isinstance(item, dict):
-            check(item.get("nome"), f"skills[{i}].nome is required", errors)
-            desde = item.get("desde")
-            if desde is not None:
+            check(item.get("name"), f"skills[{i}].name is required", errors)
+            since = item.get("since")
+            if since is not None:
                 check(
-                    isinstance(desde, str) and len(desde) == 4 and desde.isdigit() and 1900 <= int(desde) <= 2099,
-                    f"skills[{i}].desde must be a year string (YYYY, 1900-2099), got {desde!r}",
+                    isinstance(since, str) and len(since) == 4 and since.isdigit() and 1900 <= int(since) <= 2099,
+                    f"skills[{i}].since must be a year string (YYYY, 1900-2099), got {since!r}",
                     errors,
                 )
-                if isinstance(desde, str) and desde.isdigit():
+                if isinstance(since, str) and since.isdigit():
                     check(
-                        int(desde) <= int(time.strftime("%Y")),
-                        f"skills[{i}].desde cannot be in the future ({desde})",
+                        int(since) <= int(time.strftime("%Y")),
+                        f"skills[{i}].since cannot be in the future ({since})",
                         errors,
                     )
 
-    for i, item in enumerate(hub.get("certificacoes", [])):
+    for i, item in enumerate(hub.get("certifications", [])):
         if isinstance(item, dict):
-            check(item.get("nome"), f"certificacoes[{i}].nome is required", errors)
+            check(item.get("name"), f"certifications[{i}].name is required", errors)
 
-    for i, item in enumerate(hub.get("projetos", [])):
+    for i, item in enumerate(hub.get("projects", [])):
         if isinstance(item, dict):
-            check(item.get("nome"), f"projetos[{i}].nome is required", errors)
+            check(item.get("name"), f"projects[{i}].name is required", errors)
 
-    for i, item in enumerate(hub.get("idiomas", [])):
+    for i, item in enumerate(hub.get("languages", [])):
         if isinstance(item, dict):
-            check(item.get("idioma"), f"idiomas[{i}].idioma is required", errors)
+            check(item.get("language"), f"languages[{i}].language is required", errors)
 
     for i, item in enumerate(hub.get("links", [])):
         if isinstance(item, dict):
-            check(item.get("nome"), f"links[{i}].nome is required", errors)
+            check(item.get("name"), f"links[{i}].name is required", errors)
             check(item.get("url"), f"links[{i}].url is required", errors)
 
     return errors

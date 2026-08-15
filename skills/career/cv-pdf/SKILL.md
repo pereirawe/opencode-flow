@@ -1,60 +1,58 @@
 ---
 name: cv-pdf
-description: Geração de currículo em PDF a partir de HTML — Chrome headless (--print-to-pdf, A4) com fallback LibreOffice. Use quando precisar converter o HTML do currículo direcionado em PDF, ou qualquer HTML em PDF A4. Setor career.
+description: Generate a resume PDF from HTML — Chrome headless (--print-to-pdf, A4) with LibreOffice fallback. Use when you need to convert a tailored resume's HTML into a PDF, or any HTML into an A4 PDF. Career sector.
 ---
 
 # CV PDF — HTML → PDF
 
-Converte um arquivo HTML de currículo em PDF A4, pronto para ATS e envio.
+Converts a resume HTML file into an A4 PDF, ready for ATS and submission.
 
-## Comando
+## Command
 
 ```bash
 bash $SCRIPTS_DIR/cv/pdf.sh <input.html> <output.pdf> [chrome|libreoffice]
 ```
 
-- `<input.html>` — arquivo HTML do currículo (deve conter `@page` CSS para A4).
-- `<output.pdf>` — caminho do PDF de destino.
-- Engine opcional: `chrome` (padrão) ou `libreoffice` (força fallback).
+- `<input.html>` — the resume's HTML file (must contain `@page` CSS for A4).
+- `<output.pdf>` — destination PDF path.
+- Optional engine: `chrome` (default) or `libreoffice` (forces the fallback).
 
-Sem o terceiro argumento, tenta Chrome primeiro e cai para LibreOffice se o
-Chrome não estiver disponível ou falhar.
+Without the third argument, it tries Chrome first and falls back to
+LibreOffice if Chrome is unavailable or fails.
 
-## Padrão de design obrigatório
+## Mandatory design standard
 
-Todo HTML de currículo DEVE seguir o padrão `standards/cv-design.md`
-(ATS-friendly, impressão A4/P&B, estilo sóbrio, regra de páginas por
-senioridade). Use o template de referência
-`skills/career/cv-pdf/templates/resume.html` como ponto de partida — adapte o
-conteúdo, NUNCA reescreva o CSS do zero.
+Every resume HTML MUST follow the `standards/cv-design.md` standard
+(ATS-friendly, A4 print/B&W, sober style, page-count rule by seniority). Use
+the reference template `skills/career/cv-pdf/templates/resume.html` as the
+starting point — adapt the content, NEVER rewrite the CSS from scratch.
 
-## Regras de qualidade
+## Quality rules
 
-1. **A4 obrigatório** — o HTML DEVE declarar `@page { size: A4; margin:
-   12mm 15mm; }` (margens entre 12mm e 15mm). Sem isso o Chrome usa o tamanho
-   de página do browser e o PDF pode ficar com layout errado.
-2. **Tipografia limpa** — system fonts (`Helvetica`, `Arial`, `sans-serif`)
-   para máxima compatibilidade. Sem Google Fonts online (podem não renderizar
-   no headless sem rede e quebram o parse de alguns ATS).
-3. **ATS-friendly** — headings semânticos (`h1`/`h2`), texto selecionável
-   (nunca transforme em imagem), coluna única (sem multicol), sem tabelas
-   complexas, sem ícones/emoji decorativos, datas em texto.
-4. **Imprimível** — legível em preto-e-branco (nada de informação dependente
-   de cor); sem fundos/imagens em print; `@media print` limpo.
-5. **Tamanho razoável** — Júnior/Pleno: 1 página; Sênior/Especialista/Lead:
-   até 2 páginas; nunca 3+. Densidade máx. ~600–700 palavras/página. Se o PDF
-   estourar o limite, sugira condensar o conteúdo (revisar seções menos
-   relevantes).
+1. **A4 required** — the HTML MUST declare `@page { size: A4; margin:
+   12mm 15mm; }` (margins between 12mm and 15mm). Without it Chrome uses the
+   browser's page size and the PDF may end up with a wrong layout.
+2. **Clean typography** — system fonts (`Helvetica`, `Arial`, `sans-serif`)
+   for maximum compatibility. No Google Fonts online (they may not render
+   headless without network and break some ATS parsers).
+3. **ATS-friendly** — semantic headings (`h1`/`h2`), selectable text (never
+   turned into an image), single column (no multicol), no complex tables, no
+   decorative icons/emoji, dates as text.
+4. **Printable** — legible in black-and-white (no information dependent on
+   color); no backgrounds/images in print; clean `@media print`.
+5. **Reasonable size** — Junior/Mid: 1 page; Senior/Expert/Lead: up to 2
+   pages; never 3+. Max density ~600–700 words/page. If the PDF exceeds the
+   limit, suggest condensing the content (review the least relevant sections).
 
-## Verificação
+## Verification
 
-Após gerar, confirme que o PDF:
-- não está vazio (`ls -la` → > 0 bytes; usar `file` para confirmar "PDF document"),
-- tem 1–2 páginas para um currículo padrão,
-- abre sem erro de estrutura.
+After generating, confirm the PDF:
+- is not empty (`ls -la` → > 0 bytes; use `file` to confirm "PDF document"),
+- has 1–2 pages for a standard resume,
+- opens without structural errors.
 
 ## Fallback
 
-Se o Chrome falhar (ex.: sandbox/container), rode
-`bash $SCRIPTS_DIR/cv/pdf.sh <input.html> <output.pdf> libreoffice`. O LibreOffice
-converte o HTML com fidelidade menor de CSS, então revise o PDF resultante.
+If Chrome fails (e.g. sandbox/container), run
+`bash $SCRIPTS_DIR/cv/pdf.sh <input.html> <output.pdf> libreoffice`. LibreOffice
+converts the HTML with lower CSS fidelity, so review the resulting PDF.

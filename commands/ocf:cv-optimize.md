@@ -1,50 +1,53 @@
-## /ocf:cv-optimize <diretório-do-candidato>
+## /ocf:cv-optimize <candidate-directory>
 
 ---
 description: Analyze the candidate profile and generate an improvement plan — profile score, target job profiles, CLT vs PJ salary ranges, context gaps, and a prioritized action plan (analise-perfil.md + PDF)
 ---
 
-Analisa o perfil de um candidato a partir do hub (construído com
-`/ocf:cv-hub`) e gera um relatório de otimização: score do perfil por seção,
-qualificações gerais, perfis de vagas-alvo, pretensão salarial de mercado
-CLT vs PJ (faixas `[INFERIDO]`), lacunas de contexto e plano de ações
-priorizado. O objetivo é aprimorar muito o perfil antes de gerar currículos
-direcionados com `/ocf:cv-tailor`.
+Analyzes a candidate's profile from the hub (built with `/ocf:cv-hub`) and
+generates an optimization report: per-section profile score, general
+qualifications, target job profiles, CLT vs PJ market salary ranges
+(`[INFERIDO]` bands), context gaps and a prioritized action plan. The goal is
+to improve the profile substantially before generating tailored resumes with
+`/ocf:cv-tailor`.
 
-### Uso
+### Usage
 
 ```
 /ocf:cv-optimize ~/career/maria-silva
 ```
 
-### Fluxo
+### Flow
 
-1. **Verificar o hub** — se `~/career/<candidato>/hub.json` não existir ou
-   for inválido, invoca o fluxo do `/ocf:cv-hub` primeiro (perguntando os
-   caminhos das fontes) e então continua.
-2. **Validar** — `python3 $SCRIPTS_DIR/cv/validate.py hub.json`.
-3. **Invocar o agente** `career/cv-optimizer` via `task:` com o diretório do
-   candidato.
-4. **Analisar** — o agente produz `analise-perfil.md` com:
-   - Score do perfil (0-100 por seção + global, com justificativa)
-   - Qualificações gerais (senioridade, skills, pontos fortes/fraques)
-   - Perfis de vagas-alvo (offline — nunca vagas concretas)
-   - Faixas salariais CLT vs PJ (todas `[INFERIDO]` para revisão humana)
-   - Lacunas de contexto no hub
-   - Plano de ações priorizado (impacto × esforço)
-5. **Gerar PDF** — o agente renderiza `analise-perfil.html` e roda
-   `bash $SCRIPTS_DIR/cv/pdf.sh` para produzir `analise-perfil.pdf` (A4),
-   facilitando leitura/análise.
-6. **Reportar** — caminho do relatório (.md e .pdf), score global, top ações
-   e itens `[INFERIDO]` que o candidato deve revisar.
+1. **Check the hub** — if `~/career/<candidate>/hub.json` does not exist or
+   is invalid, invoke the `/ocf:cv-hub` flow first (asking for the source
+   paths) and then continue.
+2. **Validate** — `python3 $SCRIPTS_DIR/cv/validate.py hub.json`.
+3. **Invoke the agent** `career/cv-optimizer` via `task:` with the candidate
+   directory.
+4. **Analyze** — the agent produces `analise-perfil.md` with:
+   - Profile score (0-100 per section + global, with justification)
+   - General qualifications (seniority, skills, strengths/weaknesses)
+   - Target job profiles (offline — never concrete jobs)
+   - CLT vs PJ salary ranges (all `[INFERIDO]` for human review)
+   - Context gaps in the hub
+   - Prioritized action plan (impact × effort)
+5. **Generate the PDF** — the agent renders `analise-perfil.html` and runs
+   `bash $SCRIPTS_DIR/cv/pdf.sh` to produce `analise-perfil.pdf` (A4), making
+   reading/analysis easier.
+6. **Report** — report paths (.md and .pdf), global score, top actions and
+   the `[INFERIDO]` items the candidate should review.
 
-### Regras
+### Rules
 
-- NENHUM dado inventado — toda inferência marcada `[INFERIDO]`.
-- O agente NÃO modifica `hub.json` — apenas reporta.
-- Sem busca web — vagas-alvo são perfis genéricos derivados da análise offline.
-- Nenhum dado sensível aparece no relatório.
-- NENHUM cabeçalho de metadados no relatório ("Gerado em:", "Fonte:",
-  "Ferramenta:", "Nota:") — comece direto pelo conteúdo; `[INFERIDO]` inline.
-- Anos de experiência de skills calculados dinamicamente (ano atual − `desde`)
-  sempre que `desde` existir no hub.
+- NO invented data — every inference marked `[INFERIDO]`.
+- The agent does NOT modify `hub.json` — it only reports.
+- No web search — target job profiles are generic profiles derived from the
+  offline analysis.
+- No sensitive data appears in the report.
+- NO metadata header in the report ("Generated on:", "Source:", "Tool:",
+  "Note:") — start directly with the content; `[INFERIDO]` inline.
+- Skill years of experience computed dynamically (current year − `since`)
+  whenever `since` exists in the hub.
+- Report language = the language the user communicates in (session locale or
+  explicit user instruction; English as the fallback).

@@ -2,157 +2,157 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://opencode.ai/schema/cv-hub.json",
   "title": "Curriculum Hub",
-  "description": "Schema canônico do hub de currículo de um candidato. Fonte de verdade estruturada para análise de IA e geração de currículos direcionados.",
+  "description": "Canonical schema of a candidate's resume hub. Structured source of truth for AI analysis and tailored resume generation. All keys and enum values are English (snake_case); the schema is the canonical structure for every locale.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["dados_pessoais", "resumo", "experiencia", "educacao", "skills", "certificacoes", "projetos", "idiomas", "links"],
+  "required": ["personal_info", "summary", "experience", "education", "skills", "certifications", "projects", "languages", "links"],
   "properties": {
-    "dados_pessoais": {
+    "personal_info": {
       "type": "object",
-      "description": "Dados pessoais do candidato. Obrigatório informar ao menos o nome.",
+      "description": "Candidate's personal data. At least the name is required.",
       "additionalProperties": false,
-      "required": ["nome"],
+      "required": ["name"],
       "properties": {
-        "nome": { "type": "string", "minLength": 1 },
-        "apelido": { "type": "string" },
-        "titulo_profissional": { "type": "string" },
+        "name": { "type": "string", "minLength": 1 },
+        "nickname": { "type": "string" },
+        "professional_title": { "type": "string" },
         "email": { "type": "string", "format": "email" },
-        "telefone": { "type": "string" },
-        "cidade": { "type": "string" },
-        "estado": { "type": "string" },
-        "pais": { "type": "string" },
-        "data_nascimento": { "type": "string" },
+        "phone": { "type": "string" },
+        "city": { "type": "string" },
+        "state": { "type": "string" },
+        "country": { "type": "string" },
+        "date_of_birth": { "type": "string" },
         "site": { "type": "string", "format": "uri" },
         "github": { "type": "string", "format": "uri" },
         "linkedin": { "type": "string", "format": "uri" },
-        "disponibilidade": { "type": "string" },
-        "pretensao_salarial": { "type": "string" },
-        "visto_trabalho": { "type": "string" }
+        "availability": { "type": "string" },
+        "salary_expectation": { "type": "string" },
+        "work_visa": { "type": "string" }
       }
     },
-    "resumo": {
+    "summary": {
       "type": "string",
-      "description": "Resumo executivo do candidato no idioma padrão (sempre string). Para resumos por locale, use resumo_i18n."
+      "description": "Executive summary of the candidate in the default language (always a string). For per-locale summaries use summary_i18n."
     },
-    "resumo_i18n": {
+    "summary_i18n": {
       "type": "object",
       "additionalProperties": {
         "type": "string"
       },
-      "description": "Resumo por locale: { pt: '...', en: '...', es: '...' }"
+      "description": "Summary per locale: { pt: '...', en: '...', es: '...' }"
     },
-    "experiencia": {
+    "experience": {
       "type": "array",
-      "description": "Histórico profissional em ordem cronológica reversa (mais recente primeiro).",
+      "description": "Professional history in reverse chronological order (most recent first).",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["empresa", "cargo"],
+        "required": ["company", "title"],
         "properties": {
-          "empresa": { "type": "string" },
-          "cargo": { "type": "string" },
-          "inicio": { "type": "string", "description": "YYYY-MM ou YYYY" },
-          "fim": { "type": "string", "description": "YYYY-MM, YYYY ou 'atual'/'present'" },
-          "atual": { "type": "boolean" },
-          "local": { "type": "string" },
-          "tipo": { "type": "string", "enum": ["CLT", "PJ", "Freelance", "Estágio", "Trainee", "Tempo integral", "Meio período", "Remoto", "Presencial", "Híbrido", ""] },
-          "resumo": { "type": "string" },
-          "conquistas": {
+          "company": { "type": "string" },
+          "title": { "type": "string" },
+          "start_date": { "type": "string", "description": "YYYY-MM or YYYY" },
+          "end_date": { "type": "string", "description": "YYYY-MM, YYYY or 'atual'/'present'" },
+          "current": { "type": "boolean" },
+          "location": { "type": "string" },
+          "type": { "type": "string", "enum": ["CLT", "PJ", "Freelance", "Internship", "Trainee", "Full-time", "Part-time", "Remote", "On-site", "Hybrid", ""] },
+          "summary": { "type": "string" },
+          "achievements": {
             "type": "array",
-            "description": "Realizações mensuráveis com impacto (ex.: métricas, % de melhoria).",
+            "description": "Measurable achievements with impact (e.g. metrics, % of improvement).",
             "items": { "type": "string" }
           },
-          "responsabilidades": {
-            "type": "array",
-            "items": { "type": "string" }
-          },
-          "tecnologias": {
+          "responsibilities": {
             "type": "array",
             "items": { "type": "string" }
           },
-          "linguagem": { "type": "string", "description": "Idioma original do registro (pt/en/es)." }
+          "technologies": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "language": { "type": "string", "description": "Original language of the entry (pt/en/es)." }
         }
       }
     },
-    "educacao": {
+    "education": {
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["instituicao", "curso"],
+        "required": ["institution", "course"],
         "properties": {
-          "instituicao": { "type": "string" },
-          "curso": { "type": "string" },
-          "tipo": { "type": "string", "enum": ["Graduação", "Pós-graduação", "Mestrado", "Doutorado", "MBA", "Técnico", "Curso livre", "Bootcamp", "Ensino médio", ""] },
-          "inicio": { "type": "string" },
-          "fim": { "type": "string" },
-          "status": { "type": "string", "enum": ["Concluído", "Em andamento", "Trancado", "Interrompido", ""] },
-          "descricao": { "type": "string" }
+          "institution": { "type": "string" },
+          "course": { "type": "string" },
+          "type": { "type": "string", "enum": ["Bachelor's degree", "Postgraduate", "Master's degree", "Doctorate", "MBA", "Technical", "Short course", "Bootcamp", "High school", ""] },
+          "start_date": { "type": "string" },
+          "end_date": { "type": "string" },
+          "status": { "type": "string", "enum": ["completed", "in_progress", "suspended", "interrupted", ""] },
+          "description": { "type": "string" }
         }
       }
     },
     "skills": {
       "type": "array",
-      "description": "Habilidades com nível de proficiência. Nível default 'usar'. Prefira registrar 'desde' (ano de início) e calcular anos de experiência dinamicamente até hoje — um valor fixo de anos_experiencia fica desatualizado com o tempo.",
+      "description": "Skills with proficiency level. Default level 'intermediate'. Prefer recording 'since' (year of first use) and computing years of experience dynamically up to today — a fixed years_of_experience value becomes stale over time.",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["nome"],
+        "required": ["name"],
         "properties": {
-          "nome": { "type": "string" },
-          "categoria": { "type": "string", "enum": ["linguagem", "framework", "ferramenta", "nuvem", "dado", "devops", "soft-skill", "metodologia", "outro", ""] },
-          "nivel": { "type": "string", "enum": ["iniciante", "usar", "avancado", "especialista", ""] },
-          "desde": { "type": "string", "pattern": "^(19|20)[0-9]{2}$", "description": "Ano de início do uso da habilidade (ex.: 2018). Preferível a anos_experiencia fixo." },
-          "anos_experiencia": { "type": "number", "minimum": 0, "description": "Opcional quando 'desde' presente — recomenda-se calcular dinamicamente (ano atual - desde)." },
-          "importancia": { "type": "string", "enum": ["principal", "secundaria", ""] }
+          "name": { "type": "string" },
+          "category": { "type": "string", "enum": ["language", "framework", "tool", "cloud", "data", "devops", "soft_skill", "methodology", "other", ""] },
+          "level": { "type": "string", "enum": ["beginner", "intermediate", "advanced", "expert", ""] },
+          "since": { "type": "string", "pattern": "^(19|20)[0-9]{2}$", "description": "Year of first use of the skill (e.g. 2018). Preferred over a fixed years_of_experience." },
+          "years_of_experience": { "type": "number", "minimum": 0, "description": "Optional when 'since' is present — it is recommended to compute it dynamically (current year - since)." },
+          "importance": { "type": "string", "enum": ["primary", "secondary", ""] }
         }
       }
     },
-    "certificacoes": {
+    "certifications": {
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["nome"],
+        "required": ["name"],
         "properties": {
-          "nome": { "type": "string" },
-          "emissor": { "type": "string" },
-          "ano": { "type": "string" },
+          "name": { "type": "string" },
+          "issuer": { "type": "string" },
+          "year": { "type": "string" },
           "url": { "type": "string", "format": "uri" },
-          "validade": { "type": "string" }
+          "expiry_date": { "type": "string" }
         }
       }
     },
-    "projetos": {
+    "projects": {
       "type": "array",
-      "description": "Projetos pessoais, open-source, portfólio ou trabalhos relevantes.",
+      "description": "Personal, open-source, portfolio or relevant work projects.",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["nome"],
+        "required": ["name"],
         "properties": {
-          "nome": { "type": "string" },
-          "descricao": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
           "link": { "type": "string", "format": "uri" },
-          "tecnologias": {
+          "technologies": {
             "type": "array",
             "items": { "type": "string" }
           },
-          "impacto": { "type": "string" },
-          "relevancia": { "type": "string", "enum": ["alta", "media", "baixa", ""] }
+          "impact": { "type": "string" },
+          "relevance": { "type": "string", "enum": ["high", "medium", "low", ""] }
         }
       }
     },
-    "idiomas": {
+    "languages": {
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["idioma"],
+        "required": ["language"],
         "properties": {
-          "idioma": { "type": "string" },
-          "nivel": { "type": "string", "enum": ["básico", "intermediário", "avançado", "fluente", "nativo", "leitura", "conversação", ""] },
-          "nota_escala": { "type": "string", "description": "Ex.: B2, C1, IELTS 7.0" }
+          "language": { "type": "string" },
+          "level": { "type": "string", "enum": ["basic", "intermediate", "advanced", "fluent", "native", "reading", "conversational", ""] },
+          "scale_note": { "type": "string", "description": "e.g. B2, C1, IELTS 7.0" }
         }
       }
     },
@@ -161,26 +161,26 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["nome", "url"],
+        "required": ["name", "url"],
         "properties": {
-          "nome": { "type": "string" },
+          "name": { "type": "string" },
           "url": { "type": "string", "format": "uri" }
         }
       }
     },
-    "fontes": {
+    "sources": {
       "type": "array",
-      "description": "Lista de arquivos-fonte usados para construir o hub.",
+      "description": "List of source files used to build the hub.",
       "items": { "type": "string" }
     },
-    "data_geracao": {
+    "generated_date": {
       "type": "string",
-      "description": "Data de geração do hub em ISO 8601."
+      "description": "Hub generation date in ISO 8601."
     },
     "version": {
       "type": "integer",
-      "default": 1,
-      "description": "Versão do schema."
+      "default": 2,
+      "description": "Schema version."
     }
   }
 }
