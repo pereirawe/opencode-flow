@@ -9,6 +9,7 @@
   Ajustes obrigatórios ao adaptar:
     - lang: pt | en | es conforme o idioma da vaga (use resumo_i18n no hub).
     - Traduza os títulos das seções para o idioma da vaga.
+    - Traduza também o <title> e o conteúdo do <header> (nome, cargo, contato).
     - Omita seções vazias (ex.: sem certificações → remova a <section>).
     - NUNCA inclua [INFERIDO] neste arquivo (gate: scripts/cv/check-inferido.sh).
 
@@ -61,7 +62,7 @@
   .header .contact span + span::before { content: " · "; }
 
   /* ===== Seções ===== */
-  section { margin-bottom: 5mm; }
+  section { margin-bottom: 6mm; }
   section h2 {
     font-size: 10.5pt;
     font-weight: 700;
@@ -75,7 +76,7 @@
 
   .entry { margin-bottom: 3mm; }
   .entry:last-child { margin-bottom: 0; }
-  .entry h3 { font-size: 10.5pt; font-weight: 700; }
+  .entry h3 { font-size: 10pt; font-weight: 700; }
   .entry .meta {
     font-size: 9.5pt;
     color: #3a3a3a;
@@ -93,8 +94,10 @@
   /* ===== Impressão limpa ===== */
   @media print {
     body { background: none; }
+    .entry { break-inside: avoid; }
     section { break-inside: avoid; }
     .header { break-after: avoid; }
+    h2 { break-after: avoid; }
   }
 </style>
 </head>

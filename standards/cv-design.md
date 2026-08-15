@@ -14,9 +14,9 @@ values), not opinions.
 1. Semantic headings MUST be used: exactly one `h1` for the candidate name,
    `h2` for standard section titles, and `h3` for sub-entries (job title,
    institution, project name).
-2. Section titles MUST follow the standard set — Experience, Education,
-   Skills, Certifications, Projects, Languages — localized to the job
-   language. Empty sections MUST be omitted.
+2. Section titles MUST follow the standard set — Summary, Experience,
+   Education, Skills, Certifications, Projects, Languages — localized to the
+   job language. Empty sections MUST be omitted.
 3. All text MUST be real, selectable text — NEVER text rendered as an image.
 4. The layout MUST be single-column. CSS `columns`/multicol and two-column
    flex/grid layouts are FORBIDDEN (they break ATS parsing order).
@@ -26,6 +26,8 @@ values), not opinions.
    Web fonts (Google Fonts or any remote font) are FORBIDDEN — they may not
    render headless and some ATS cannot parse them.
 7. Emoji and decorative characters are FORBIDDEN in content and markup.
+   Standard typographic punctuation (`·` middle dot, `—` em dash, bullets
+   from plain `ul` lists) is ALLOWED — it parses as regular text.
 8. Dates MUST be plain text (e.g. `Jan 2020 — Dec 2023`), never icons or
    calendar images.
 9. Text contrast MUST be >= 4.5:1 (WCAG AA) for body text against the
@@ -43,8 +45,9 @@ values), not opinions.
 3. Backgrounds and images MUST be absent in print. A clean `@media print`
    block MUST exist in the generated HTML that removes any background/image
    and keeps the layout intact.
-4. `break-inside: avoid` MUST be applied to entries so sections/entries do not
-   split awkwardly across pages.
+4. `break-inside: avoid` MUST be applied to sections and entries so they do
+   not split awkwardly across pages; `break-after: avoid` MUST be applied to
+   `h2` so a section title is never orphaned at the bottom of a page.
 
 ## 3. Sober professional style
 
