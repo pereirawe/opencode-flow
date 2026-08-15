@@ -372,14 +372,17 @@ See `standards/issues.md` for the full contract.
  - Suggested fix (alternativo): Se o spike do modo headless falhar, avaliar self-hosted GitHub runner na mesma VM do opencode web, com `--attach http://127.0.0.1:4096` — mantém paralelismo sem exigir suporte headless do opencode. SPIKE PASSED — alternativa NÃO necessária.
 
 ### 67. LinkedIn profile optimization suggestions — ocf:cv-linkedin
-- Status: backlog
+- Status: in-publish
+- Opened: 2026-08-15
+- Ready: 2026-08-15
+- Started: 2026-08-15
 - Type: feat
 - Severity: high
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 1 (docs)
-- Remote: -
-- PR: -
+- Remote: #79
+- PR: #80
 - Location: agents/career/cv-linkedin.md (NEW), skills/career/cv-linkedin/SKILL.md (NEW), commands/ocf:cv-linkedin.md (NEW), opencode.json
 - Description: Create command `ocf:cv-linkedin <candidate-dir> [<job>]`, agent `career/cv-linkedin`, and skill `cv-linkedin`. Given the candidate hub and optionally a target job, generate LinkedIn profile optimization suggestions: optimized headline (≤220 chars), about section (≤2600 chars), skills section (top 50 ranked by relevance to target role), and featured section recommendations. Output as a markdown report (`linkedin-optimization.md`) in the user's communication language. NEVER involves scraping or modifying LinkedIn directly — the user copies/pastes suggestions manually.
 - Impact: Completes the LinkedIn workflow — today the sector only extracts FROM LinkedIn. The reverse operation (optimizing the LinkedIn profile TO match a target role) is high commercial value for recruiter discoverability.
@@ -409,6 +412,11 @@ See `standards/issues.md` for the full contract.
   10. Report follows standards/cv-analysis.md structure.
   11. Agent permissions restrict edit to `~/carreira/**`.
   12. `make test-scripts` passes with new test cases.
+- Tests:
+  1. Skill/agent/command files exist with valid frontmatter and are registered in opencode.json → `make test-scripts` passes (test_cv.sh cv-linkedin block, 110 passed / 0 failed).
+  2. No `curl`/URL-fetching instructions or permissions in skill/agent/command → grep for `curl` finds only the prohibition text; agent bash is deny-first (`"*": deny`) with scoped allows (validate.py, python3, ls, realpath); edit restricted to `~/career/**`.
+  3. Skill mandates headline ≤220, about ≤2600, top-50 skills, output `linkedin-optimization.md`, no `[INFERIDO]` in output, references `standards/cv-analysis.md` → assert_contains on the skill passes for each contract token.
+  4. `opencode.json` registers `command.ocf:cv-linkedin` and `permission.skill.cv-linkedin == "allow"` → JSON parse assertion in test_cv.sh passes.
 - Suggested fix: Create agent, skill, command; register in opencode.json. Execute after #64 and #65. Origem: Proposal 2026-08-14-6 em prioritization.md.
 
 ### 68. Interview preparation kit — ocf:cv-interview-prep
@@ -715,3 +723,53 @@ See `standards/issues.md` for the full contract.
   17. (spike gate — manual/PM) Spike doc .opencode/spikes/containerized-delivery.md exists with N=3 pass criteria met, both isolation candidates evaluated, API-concurrency cap measured → verified before production implementation is promoted.
   18. (manual QA/integration) Real N=3 parallel run on host: zero file/git conflicts, no duplicate MRs, wall-clock materially < 3× serial, resource peaks within limits → recorded in spike doc.
 - Suggested fix: (1) run the spike first: validate the four preconditions (Docker daemon, image obtainment via GHCR or #40-branch build, model-API egress, API-level parallelism measurement), evaluate both isolation candidates (host-side git worktree vs full volume-copy clone with isolated .git) including git-metadata race analysis, document pass/fail in .opencode/spikes/containerized-delivery.md; (2) on pass: implement the orchestrator script scripts/run-parallel-delivery.sh (per-issue host-side flock under state/parallel-delivery/ with TOCTOU re-check, AIBOT_MAX_PARALLEL runtime cap, snapshot spawn with cache seeding, CPU/mem/time limits, cleanup + orphan reap, session result contract, working-tree-only sync-back as uncommitted diff with tracker flock); (3) verify/extend scripts/telegram-notify.sh env-only credentials (likely verification + tests only — support already exists); (4) add scripts/tests/test_parallel_delivery.sh covering locking, idempotency, result contract, sync-back, and deny-rule/allowlist gating; (5) document in workflow.md + scripts/README.md. Effort ~28–36h, spike-gated. BLOCKED ON #40 landing on main + GHCR image publish (semver) — do not promote to in-progress until that lands. Origem: Proposal 2026-08-14-13 em prioritization.md.
+
+### 75. standards/cv-analysis.md lacks a report-type section for linkedin-optimization.md
+- Status: backlog
+- Type: doc
+- Severity: low
+- Report: opencode
+- Base branch: main
+- Reviewers: 1 (docs)
+- Remote: -
+- PR: -
+- Location: standards/cv-analysis.md (section 3), skills/career/cv-linkedin/SKILL.md
+- Description: Issue #67 (ocf:cv-linkedin) introduced a new career-sector report type, `linkedin-optimization.md`, and the skill/agent/command correctly reference `standards/cv-analysis.md` for its structure. However, `standards/cv-analysis.md` §3 ("Report-type structures") only documents `analise-perfil.md` (§3.1), `gap-analysis.md` (§3.2) and `inferencias.md` (§3.3) — there is no §3.x entry defining the canonical structure of `linkedin-optimization.md` (H2 section order: Target role → Headline → About → Skills ranking → Featured). The implementation follows the standard's general rules (§1 language, §2 structure, §5 INFERIDO) and defines the section order inline in the skill, so the delivered contract is met; the standard itself is incomplete for future consistency.
+- Impact: The report type's canonical structure lives in the skill instead of the shared standard; future report types (e.g. #68 interview prep, #69 ATS score) will not have a single canonical reference. Low severity — no functional impact on #67.
+- Business rules:
+  1. `standards/cv-analysis.md` DEVE document the `linkedin-optimization.md` report type structure in §3 (as §3.4 or a generic §3.x), matching the section order implemented in the cv-linkedin skill: Target role, Headline suggestions, About section draft, Skills ranking, Featured section.
+  2. A DEVE explicitar que o relatório segue as regras gerais de §2 (H1 único, sem metadata header, conteúdo direto) e a convenção [INFERIDO] de §5.
+  3. NÃO DEVE alterar o comportamento da skill cv-linkedin — documento de referência, não implementação.
+- Acceptance criteria:
+  1. `standards/cv-analysis.md` tem entrada §3.x documentando `linkedin-optimization.md` com a ordem de seções H2 da skill.
+  2. A entrada referencia §2 (regras gerais) e §5 ([INFERIDO]).
+  3. Nenhuma mudança funcional na skill/agente/comando cv-linkedin.
+- Tests: -
+- Suggested fix: Add a §3.4 entry to `standards/cv-analysis.md` documenting the `linkedin-optimization.md` report structure (H2 section order per the cv-linkedin skill), referencing §2 general rules and §5 [INFERIDO] convention. Can be done as part of the #65 standard maintenance or a standalone docs commit.
+
+### 76. Mandatory `Tests:` field missing across career-bundle issues (#66-#72) — incomplete-spec discovery gap
+- Status: backlog
+- Opened: 2026-08-15
+- Ready: -
+- Started: -
+- Type: chore
+- Severity: medium
+- Report: opencode
+- Base branch: main
+- Reviewers: 1 (qa)
+- Remote: -
+- PR: -
+- Location: known_issues.md (issues #66, #67, #68, #69, #70, #71, #72), standards/issues.md, workflow.md
+- Description: The `Tests:` field is MANDATORY for every new issue, captured during discovery as `scenario → outcome` lines (feat/high → ≥3 lines; feat/bug → never `-`). All career-bundle issues were created WITHOUT the field: #66 (closed 2026-08-15), #67 (in-review), and #68-#72 (backlog). The QA pre-development Phase 5 check was skipped for this bundle and the senior reviewers did not flag it. This is an incomplete-spec discovery gap, NOT a bug — no code was written against undocumented scenarios (developers wrote tests from the sector standards), but the issue entries fail the mandatory field contract.
+- Impact: Issue entries do not comply with the mandatory `Tests:` standard; the enforcement chain (QA Phase 5 → senior review → post-review QA) did not catch the systematic gap. Without capture, the committer cannot verify the test floor, and future discovery cycles lack the per-issue scenario contract. #67 itself is otherwise fully verified (all 12 BRs/ACs, tests passing) — only the entry field is missing.
+- Business rules:
+  1. `Tests:` MUST be captured in issue #67 with ≥3 `scenario → outcome` lines (feat/high floor) before the committer gate finalizes `in-publish`.
+  2. `Tests:` MUST be captured in issues #68-#72 before each is promoted to `in-progress` (feat/high → ≥3; feat/medium → ≥2), per their severities.
+  3. Issue #66 is already archived — the gap is documented here for traceability, no retroactive rewrite.
+  4. QA Phase 5 (pre-development) MUST re-verify the `Tests:` field on every future issue before `ready`.
+- Acceptance criteria:
+  1. Issue #67 entry has `- Tests:` with ≥3 `scenario → outcome` lines.
+  2. Each of #68-#72 has `- Tests:` meeting its severity floor before promotion.
+  3. QA pre-development re-checks `Tests:` on all new issues (no recurrence).
+- Tests: -
+- Suggested fix: Discovery refinement: capture the `Tests:` field for #67 (proposed lines in the QA post-review report of 2026-08-15) and for #68-#72 in their respective discovery cycles; enforce the field in QA Phase 5 going forward. Optionally add a mechanical lint gate in promote.sh (follow-up noted in standards/issues.md).

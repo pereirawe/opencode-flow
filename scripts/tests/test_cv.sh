@@ -489,6 +489,76 @@ else
   t_fail "opencode.json missing at $OP_CONFIG"
 fi
 
+# --- cv-linkedin contract (issue #67) ---
+LI_SKILL="$SCRIPT_DIR/../../skills/career/cv-linkedin/SKILL.md"
+if [[ -f "$LI_SKILL" ]]; then
+  # English schema keys (issue #64) — no legacy Portuguese keys
+  assert_not_contains "$LI_SKILL" "resumo_i18n" \
+    "cv-linkedin skill has no legacy resumo_i18n key"
+  assert_contains "$LI_SKILL" "summary_i18n" \
+    "cv-linkedin skill references the English summary_i18n key"
+  # analysis standard + LinkedIn character limits (BR 9 / AC 9)
+  assert_contains "$LI_SKILL" "standards/cv-analysis.md" \
+    "cv-linkedin skill references standards/cv-analysis.md (BR 12)"
+  assert_contains "$LI_SKILL" "220" \
+    "cv-linkedin skill mandates the 220-char headline limit"
+  assert_contains "$LI_SKILL" "2600" \
+    "cv-linkedin skill mandates the 2600-char about limit"
+  assert_contains "$LI_SKILL" "top 50" \
+    "cv-linkedin skill caps the skills ranking at top 50"
+  # output file (BR 5) + fabrication rule (BR 6)
+  assert_contains "$LI_SKILL" "linkedin-optimization.md" \
+    "cv-linkedin skill defines the linkedin-optimization.md output (BR 5)"
+  assert_contains "$LI_SKILL" "NEVER invent" \
+    "cv-linkedin skill forbids fabrication (BR 6)"
+  # no [INFERIDO]-in-output instruction + no LinkedIn scraping (BR 4/BR 7)
+  assert_contains "$LI_SKILL" "NO \`[INFERIDO]\`" \
+    "cv-linkedin skill forbids [INFERIDO] in the output file (BR 7)"
+  assert_not_contains "$LI_SKILL" "curl" \
+    "cv-linkedin skill has no curl/URL-fetching instructions (BR 4)"
+  assert_contains "$LI_SKILL" "never scraped" \
+    "cv-linkedin skill explicitly forbids scraping (BR 4)"
+else
+  t_fail "cv-linkedin skill missing at $LI_SKILL"
+fi
+
+LI_AGENT="$SCRIPT_DIR/../../agents/career/cv-linkedin.md"
+if [[ -f "$LI_AGENT" ]]; then
+  assert_contains "$LI_AGENT" "~/career/**" \
+    "cv-linkedin agent restricts edits to ~/career/** (BR 10 / AC 11)"
+  assert_contains "$LI_AGENT" "validate.py" \
+    "cv-linkedin agent validates the hub (BR 8)"
+  assert_contains "$LI_AGENT" "linkedin-optimization.md" \
+    "cv-linkedin agent produces linkedin-optimization.md (BR 5)"
+  assert_not_contains "$LI_AGENT" '"curl -L*": allow' \
+    "cv-linkedin agent grants no curl -L permission (BR 4)"
+else
+  t_fail "cv-linkedin agent missing at $LI_AGENT"
+fi
+
+LI_CMD="$SCRIPT_DIR/../../commands/ocf:cv-linkedin.md"
+if [[ -f "$LI_CMD" ]]; then
+  assert_contains "$LI_CMD" "linkedin-optimization.md" \
+    "ocf:cv-linkedin command documents the linkedin-optimization.md output"
+  assert_contains "$LI_CMD" "standards/cv-analysis.md" \
+    "ocf:cv-linkedin command references standards/cv-analysis.md (BR 12)"
+else
+  t_fail "ocf:cv-linkedin command missing at $LI_CMD"
+fi
+
+# opencode.json registers the command and the skill allow (BR 11 / AC 4)
+if [[ -f "$OP_CONFIG" ]]; then
+  python3 - "$OP_CONFIG" <<'PYEOF' || t_fail "opencode.json cv-linkedin registration invalid"
+import json, sys
+cfg = json.load(open(sys.argv[1]))
+assert "ocf:cv-linkedin" in cfg.get("command", {}), "command ocf:cv-linkedin not registered"
+assert cfg["permission"]["skill"].get("cv-linkedin") == "allow", "skill cv-linkedin not allow"
+PYEOF
+  t_ok "opencode.json registers ocf:cv-linkedin command + skill allow"
+else
+  t_fail "opencode.json missing at $OP_CONFIG"
+fi
+
 # validate.py must accept a valid 'since' year and reject malformed ones
 TMP_ENV="$TMP" python3 - <<'EOF' > "$TMP/hub-since-valid.json"
 import json, os
