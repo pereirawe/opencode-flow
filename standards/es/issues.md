@@ -9,6 +9,9 @@ Seguimiento en dos niveles:
 ```markdown
 ### <id>. <título>
 - Status: backlog | ready | open | in-progress | in-review | in-qa | in-publish | resolved
+- Opened: <YYYY-MM-DD> | -
+- Ready: <YYYY-MM-DD> | -
+- Started: <YYYY-MM-DD> | -
 - Type: bug | feat | doc | chore
 - Severity: critical | high | medium | low
 - Report: <nombre-usuario> | <nombre-modelo>
@@ -24,6 +27,37 @@ Seguimiento en dos niveles:
 - Tests: <escenario → resultado, definidos durante el discovery>
 - Suggested fix: <enfoque o siguiente paso>
 ```
+
+### Timestamps (Opened / Ready / Started / Resolved + Durations)
+
+Los timestamps de ciclo de vida por issue se almacenan como campos de la
+entrada en `known_issues.md` (`- Opened:`, `- Ready:`, `- Started:`, en ese
+orden después de `- Status:`) y se calculan/almacenan en el archivo de
+resueltas al cierre (`- Resolved:` y `- Durations:`). Los escriben
+directamente los scripts del pipeline — nunca mediante parsing de trailers de
+commit (issue #24).
+
+| Campo | Escrito por | Cuándo |
+|-------|-------------|--------|
+| `- Opened:` | `scripts/create_issue.sh` | al crear la issue remota con éxito (set-if-absent). `scripts/promote.sh` hace backfill set-if-absent en el modo 2 (ready → in-progress) con la fecha actual — aproximación documentada cuando la issue remota se creó antes de la función de timestamps (BR 3). |
+| `- Ready:` | `scripts/promote.sh` | al transicionar backlog → ready (set-if-absent) |
+| `- Started:` | `scripts/promote.sh` | al transicionar ready → in-progress (set-if-absent) |
+| `- Resolved:` | `scripts/close_issue.sh` | al cierre (= fecha de cierre / hoy) |
+| `- Durations:` | `scripts/close_issue.sh` | al cierre, en la entrada del archivo de resueltas — diferencia en días entre los timestamps, con parse anclado en UTC (`TZ=UTC date -d "$d" +%s`, robusto a DST) |
+
+Componentes de `Durations`: `backlog` (Opened→Ready), `waiting`
+(Ready→Started), `dev` (Started→Resolved), `total` (Opened→Resolved, relativo
+a la fecha de cierre). Guards: un componente renderiza `-` cuando una fecha
+está ausente o start > end (guardado ANTES de la división); `0d` cuando la
+diferencia es cero; los valores están limitados a 0 (no negativos); cuando
+TODAS las fechas están ausentes, el campo entero renderiza el literal
+`- Durations: -`.
+
+La escritura es idempotente (set-if-absent): re-ejecutar un script nunca
+duplica ni sobrescribe timestamps existentes, y `close_issue.sh` nunca añade
+una entrada duplicada en el archivo de resueltas. Los timestamps se aplican
+solo a issues nuevas — las entradas existentes nunca se reescriben
+retroactivamente.
 
 ### `Tests:` — estándar obligatorio de pruebas
 

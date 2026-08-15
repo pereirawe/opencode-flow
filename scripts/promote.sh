@@ -41,19 +41,70 @@ TITLE=$(printf '%s\n' "$SECTION" | sed -n '1s/^### [0-9]*\. //p')
 REMOTE=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Remote:/ {print $2; exit}')
 BASE_BRANCH=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Base branch:/ {print $2; exit}')
 
+# rewrite_entry — rewrite the issue entry in the tracker file:
+#   - replace the Status line (when new_status is non-empty)
+#   - replace the Remote line (when remote is non-empty)
+#   - rebuild the canonical timestamp block (Opened, Ready, Started) right after
+#     the Status line, preserving field order Status < Opened < Ready < Started
+#   - set-if-absent: existing timestamp values are never overwritten and never
+#     duplicated (idempotent — re-running a script cannot corrupt fields)
+# Issue #57: timestamp stamping is done here (pipeline scripts), NOT via
+# pre_commit.sh trailer parsing (issue #24).
+rewrite_entry() { # <file> <id> <new_status|''> <opened|''> <ready|''> <started|''> <remote|''>
+  local file="$1" id="$2" ns="$3" opened="$4" ready="$5" started="$6" remote="$7"
+  awk -v id="$id" -v ns="$ns" -v opened="$opened" -v ready="$ready" \
+      -v started="$started" -v remote="$remote" '
+  BEGIN { collecting = 0; n = 0 }
+  /^### [0-9]+\./ {
+    if (collecting) { flush_section(); collecting = 0; n = 0 }
+    if ($0 ~ "^### " id "\\.") collecting = 1
+  }
+  {
+    if (collecting) buf[n++] = $0; else print
+  }
+  END { if (collecting) flush_section() }
+  function val(line,    p) {
+    p = index(line, ":")
+    if (p == 0) return ""
+    return substr(line, p + 2)
+  }
+  function present(v) { return (v != "" && v != "-") }
+  function flush_section(   i, status_idx, opened_v, ready_v, started_v) {
+    status_idx = -1
+    opened_v = ""; ready_v = ""; started_v = ""
+    for (i = 0; i < n; i++) {
+      if (buf[i] ~ /^- Status:/ && status_idx < 0) status_idx = i
+      if (buf[i] ~ /^- Opened:/)  opened_v  = val(buf[i])
+      if (buf[i] ~ /^- Ready:/)   ready_v   = val(buf[i])
+      if (buf[i] ~ /^- Started:/) started_v = val(buf[i])
+    }
+    if (status_idx < 0) status_idx = 0
+    # set-if-absent: existing values win; stamp only missing fields
+    if (opened  != "" && !present(opened_v))  opened_v  = opened
+    if (ready   != "" && !present(ready_v))   ready_v   = ready
+    if (started != "" && !present(started_v)) started_v = started
+    for (i = 0; i < n; i++) {
+      if (buf[i] ~ /^- (Opened|Ready|Started):/) continue
+      if (i == status_idx) {
+        if (ns != "") print "- Status: " ns; else print buf[i]
+        if (present(opened_v))  print "- Opened: "  opened_v
+        if (present(ready_v))   print "- Ready: "   ready_v
+        if (present(started_v)) print "- Started: " started_v
+      } else if (remote != "" && buf[i] ~ /^- Remote:/) {
+        print "- Remote: " remote
+      } else {
+        print buf[i]
+      }
+    }
+  }
+  ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+}
+
 # --- Mode 1: backlog → ready ---
 if [[ "$STATUS" == "backlog" ]]; then
-  awk -v id="$ID" '
-    BEGIN{found=0}
-    /^### [0-9]+\./ {
-      if (found == 1 && $0 !~ "^### " id "\\.") { found=0 }
-    }
-    $0 ~ "^### " id "\\." {found=1}
-    {
-      if (found == 1 && $0 ~ /^- Status:/) { print "- Status: ready"; next }
-      print
-    }
-  ' "$ISS_FILE" > "$ISS_FILE.tmp" && mv "$ISS_FILE.tmp" "$ISS_FILE"
+  TODAY=$(date +%Y-%m-%d)
+  # Stamp `- Ready:` (today, set-if-absent) alongside the status change (BR 2)
+  rewrite_entry "$ISS_FILE" "$ID" "ready" "" "$TODAY" "" ""
 
   echo "[promote] Issue $ID promoted from backlog to ready"
   echo "[promote] Remote issue will be created during promotion (PM step) or by the next promoter."
@@ -117,18 +168,11 @@ if [[ "$STATUS" == "ready" ]]; then
     echo "[promote] Base branch: $BASE_BRANCH (from issue field)"
   fi
 
-  # Update status to in-progress (do NOT reset Remote)
-  awk -v id="$ID" '
-    BEGIN{found=0}
-    /^### [0-9]+\./ {
-      if (found == 1 && $0 !~ "^### " id "\\.") { found=0 }
-    }
-    $0 ~ "^### " id "\\." {found=1}
-    {
-      if (found == 1 && $0 ~ /^- Status:/) { print "- Status: in-progress"; next }
-      print
-    }
-  ' "$ISS_FILE" > "$ISS_FILE.tmp" && mv "$ISS_FILE.tmp" "$ISS_FILE"
+  # Update status to in-progress (do NOT reset Remote); stamp Started and
+  # backfill Opened set-if-absent (BR 2/BR 3 — documented approximation when
+  # the remote was auto-created during promotion and has no Opened stamp yet)
+  TODAY=$(date +%Y-%m-%d)
+  rewrite_entry "$ISS_FILE" "$ID" "in-progress" "$TODAY" "" "$TODAY" ""
 
   echo "[promote] Issue $ID promoted from ready to in-progress"
   echo "[promote] Title: $TITLE"

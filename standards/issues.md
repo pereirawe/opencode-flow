@@ -9,6 +9,9 @@ Two-tier issue tracking:
 ```markdown
 ### <id>. <title>
 - Status: backlog | ready | open | in-progress | in-review | in-qa | in-publish | resolved
+- Opened: <YYYY-MM-DD> | -
+- Ready: <YYYY-MM-DD> | -
+- Started: <YYYY-MM-DD> | -
 - Type: bug | feat | doc | chore
 - Severity: critical | high | medium | low
 - Report: <user-name> | <model-name>
@@ -31,6 +34,34 @@ business logic, domain constraints, and rules that must be implemented.
 `Reviewers:` is set during discovery (Tech Lead defines profiles) and consumed
 during senior review and MR creation.
 `Acceptance criteria:` is recommended for all types.
+
+### Timestamps (Opened / Ready / Started / Resolved + Durations)
+
+Per-issue lifecycle timestamps are stored as entry fields in `known_issues.md`
+(`- Opened:`, `- Ready:`, `- Started:`, in that order after `- Status:`) and
+computed/stored in the resolved archive at close time (`- Resolved:` and
+`- Durations:`). They are stamped directly by the pipeline scripts — never via
+commit-trailer parsing (issue #24).
+
+| Field | Stamped by | When |
+|-------|-----------|------|
+| `- Opened:` | `scripts/create_issue.sh` | on remote issue creation success (set-if-absent). `scripts/promote.sh` backfills it set-if-absent during mode 2 (ready → in-progress) with the current date — a documented approximation when the remote was created before timestamping (BR 3). |
+| `- Ready:` | `scripts/promote.sh` | on backlog → ready (set-if-absent) |
+| `- Started:` | `scripts/promote.sh` | on ready → in-progress (set-if-absent) |
+| `- Resolved:` | `scripts/close_issue.sh` | at close time (= close date / today) |
+| `- Durations:` | `scripts/close_issue.sh` | at close time, in the archive entry — day differences between the timestamps, UTC-anchored parse (`TZ=UTC date -d "$d" +%s`, DST-robust) |
+
+`Durations` components: `backlog` (Opened→Ready), `waiting` (Ready→Started),
+`dev` (Started→Resolved), `total` (Opened→Resolved, relative to the close
+date). Guards: a component renders `-` when a date is missing or start > end
+(guarded BEFORE division); `0d` when the difference is zero; values are floored
+at 0 (non-negative); when ALL dates are missing the whole field renders the
+literal `- Durations: -`.
+
+Stamping is idempotent (set-if-absent): re-running a script never duplicates
+or overwrites existing timestamps, and `close_issue.sh` never appends a
+duplicate archive entry. Timestamps apply to new issues only — existing
+entries are never retroactively rewritten.
 
 ### `Tests:` — mandatory test standards
 
