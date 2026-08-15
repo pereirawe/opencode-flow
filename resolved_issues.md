@@ -2,6 +2,15 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 42. Agente designer + skills de design-taste para UI de frontend
+- Resolved: 2026-08-14
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #33
+- Severity: medium
+- Summary: Criar o agente `designer` (frontend product agent) que transforma descrições em UI funcional seguindo brief → explore → plan → build → review, e instalar as skills de design do repo `Leonxlnx/taste-skill` (design-taste-frontend default; redesign-existing-projects, minimalist-ui). O skill v2 obriga o agente a ler o brief, inferir a direção de design e só então gerar código. — (1) rodar `npx skills add https://github.com/Leonxlnx/taste-skill --skill design-taste-frontend` na raiz, (2) repetir para redesign-existing-projects e minimalist-ui, (3) criar `agents/designer.md` com o conteúdo fornecido, (4) registrar skills.paths se instalado fora do padrão, (5) documentar mapeamento de casos de uso.
+
 ### 61. Agente de otimização do perfil — análise, plano de ações, mercado salarial e vagas-alvo (ocf:cv-optimize)
 - Resolved: 2026-08-13
 - Type: feat
