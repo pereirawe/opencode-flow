@@ -19,10 +19,20 @@ Single source of truth for tracked work in this project.
 - Impact: <what or who is affected>
 - Business rules: <specific business logic, constraints, and domain rules>
 - Acceptance criteria: <what must be true for the issue to be complete>
+- Tests: <scenario → outcome lines, defined during discovery>
 - Suggested fix: <approach or next step>
 ```
 
 `Business rules:` is required for `feat` type issues.
+`Tests:` is MANDATORY for every new issue, captured during discovery as
+`scenario → outcome` lines. For `doc`/`chore` types the literal `- Tests: -`
+is permitted (no test surface). For `feat`/`bug` types at least one
+`scenario → outcome` line is REQUIRED and the value may NEVER be `-`. Severity
+floor: `critical`/`high` → ≥3 lines, `medium` → ≥2, `low` → ≥1; if `Severity`
+is missing, the medium floor (≥2) applies. Enforcement is verified by QA
+pre-development review (Phase 5) and senior reviewers — NOT enforced by
+scripts. Missing or insufficient `Tests:` = `incomplete-spec` (discovery gap),
+not a bug.
 `Base branch:` is set during discovery (usually `main`/`master`).
 `Reviewers:` stores count and profiles (set during discovery, e.g. `1 (backend)`).
 `Remote:` is populated at the end of discovery (PM asks user, creates if confirmed).
@@ -428,13 +438,13 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Suggested fix: (1) criar `agents/development/security-owasp.md` com frontmatter (subagent, temperature 0.1, permission: edit allow apenas `.opencode/reviews/**`, bash allow) e prompt com os 3 modos + regra de bloqueio + locale-loader; (2) criar `skills/development/security/` com os 6 SKILL.md (top10 com tabela CWE, asvs com níveis L1/L2/L3, wstg com casos de teste, samm com maturity model, threat-modeling com STRIDE, secure-code-review com checklist de revisão); (3) evoluir `agents/development/senior-reviewers/security.md` para delegar ao security-owasp; (4) adicionar gate de verificação de segurança ao `agents/development/committer.md`; (5) registrar as 6 skills em `permission.skill` no `opencode.json`; (6) atualizar `agents/development/README.md` e `workflow.md`. Origem: Proposal 2026-08-06-2 em `prioritization.md`.
 
 ### 56. Mandatory `Tests:` field captured during discovery (test standards pre-development)
-- Status: ready
+- Status: in-progress
 - Type: feat
 - Severity: medium
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 2 (qa, docs)
-- Remote: -
+- Remote: #63
 - PR: -
 - Location: standards/issues.md (en+pt+es), workflow.md, agents/development/product-owner.md, agents/development/quality-analyst.md, agents/development/discovery.md, known_issues.md (header Format block)
 - Description: Make the `Tests:` field a mandatory part of every new issue entry, captured during discovery (QA pre-development, Phase 5), so developers write tests against documented `scenario → outcome` definitions instead of inventing them ad-hoc during development.

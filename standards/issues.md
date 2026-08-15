@@ -21,6 +21,7 @@ Two-tier issue tracking:
 - Impact: <what or who is affected>
 - Business rules: <specific business logic, constraints, and domain rules>
 - Acceptance criteria: <what must be true for the issue to be complete>
+- Tests: <scenario → outcome lines, defined during discovery>
 - Suggested fix: <approach or next step>
 ```
 
@@ -29,8 +30,32 @@ Two-tier issue tracking:
 business logic, domain constraints, and rules that must be implemented.
 `Reviewers:` is set during discovery (Tech Lead defines profiles) and consumed
 during senior review and MR creation.
-`Acceptance criteria:` is recommended for all types. `Tests:` can be added
-as an additional field when specific test scenarios need documentation.
+`Acceptance criteria:` is recommended for all types.
+
+### `Tests:` — mandatory test standards
+
+`Tests:` is MANDATORY for every new issue, captured during discovery (QA
+pre-development, Phase 5) as `scenario → outcome` lines — never added ad-hoc
+during development. Developers write tests against these documented scenarios
+instead of inventing them on the fly.
+
+- For `doc`/`chore` types, the literal `- Tests: -` is permitted (no test
+  surface).
+- For `feat`/`bug` types, at least one `scenario → outcome` line is REQUIRED
+  and the value may NEVER be `-`.
+- Scenario depth is a FLOOR with no upper bound, by severity: `critical`/`high`
+  → ≥3 `scenario → outcome` lines; `medium` → ≥2; `low` → ≥1. If `- Severity:`
+  is missing at QA validation time, the medium floor (≥2) applies.
+- Enforcement is **verified by QA pre-development review (Phase 5) and senior
+  reviewers** — NOT enforced by scripts.
+- Missing or insufficient `Tests:` found during senior review or post-review
+  QA = `incomplete-spec` (discovery gap), NOT a bug — the issue returns to
+  discovery refinement to capture the missing scenarios.
+- Applies to ALL new issues going forward; existing in-flight issues are not
+  retroactively rewritten.
+
+> Follow-up (not part of any gate): an optional `promote.sh`/lint gate could
+> enforce `Tests:` mechanically in the future.
 
 ## Type Classification
 
