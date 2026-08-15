@@ -845,7 +845,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 1 (runtime)
 - Remote: #73
-- PR: -
+- PR: #74
 - Location: agents/career/cv-extractor.md, agents/career/cv-optimizer.md, agents/career/cv-tailor.md, skills/career/cv-hub/SKILL.md, skills/career/cv-optimizer/SKILL.md, skills/career/cv-tailor/SKILL.md, commands/ocf:cv-hub.md, commands/ocf:cv-optimize.md, commands/ocf:cv-tailor.md, opencode.json, workflow.md, known_issues.md, scripts/tests/test_cv.sh
 - Description: Issue #64 standardized the career sector prompts/schema to English but the candidate directory root is still referenced as `~/carreira/<candidate-name>/` (Portuguese). Rename the directory root to `~/career/<candidate-name>/` across all career agents, skills, commands, opencode.json templates and permission rules, workflow.md, and test_cv.sh.
 - Impact: Consistency with the English standardization (issue #64); keeps the sector fully English (prompts, schema, output paths). No existing `~/carreira/` data on this host (verified), so no data migration is needed.
