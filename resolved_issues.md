@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 75. Rename candidate directory root `~/carreira/` → `~/career/` (English standardization follow-up)
+- Resolved: 2026-08-15
+- Durations: backlog=0d waiting=0d dev=0d total=0d
+- Severity: medium
+- Type: chore
+- Report: william_pereira
+- Reviewers: 1
+- Remote: #73
+- Summary: Issue #64 standardized the career sector prompts/schema to English but the candidate directory root is still referenced as `~/carreira/<candidate-name>/` (Portuguese). Rename the directory root to `~/career/<candidate-name>/` across all career agents, skills, commands, opencode.json templates and permission rules, workflow.md, and test_cv.sh. — sed/string-replace `~/carreira/` → `~/career/` across the listed in-scope files; update opencode.json permission rules; update test_cv.sh fixture path; verify with grep + make test-scripts. Note
+
 ### 48. Sincronização bidirecional de issues com Jira Cloud (cards, status e comentários)
 - Resolved: 2026-08-15
 - Durations: backlog=- waiting=- dev=0d total=0d
