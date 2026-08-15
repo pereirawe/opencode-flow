@@ -1,53 +1,53 @@
-## /ocf:cv-hub <diretório-do-candidato>
+## /ocf:cv-hub <candidate-directory>
 
 ---
 description: Build the candidate's resume hub — extract CV PDF + official LinkedIn export + extras into hub.json (AI canonical schema) + README.md
 ---
 
-Constrói o hub de dados de um candidato a partir do currículo em PDF
-(obrigatório), do export oficial do LinkedIn (opcional) e de arquivos
-complementares (opcionais). O hub (`hub.json` + `README.md`) é a fonte de
-verdade para gerar currículos direcionados via `/ocf:cv-tailor`.
+Builds a candidate's data hub from the CV in PDF (required), the official
+LinkedIn export (optional) and complementary files (optional). The hub
+(`hub.json` + `README.md`) is the source of truth for generating tailored
+resumes via `/ocf:cv-tailor`.
 
-### Fluxo oficial do LinkedIn (única forma aceita)
+### Official LinkedIn flow (only accepted way)
 
-1. O usuário acessa: <https://www.linkedin.com/mypreferences/d/download-my-data>
-2. Escolhe a opção **"Baixe um arquivo de dados maior..."** (o LinkedIn envia
-   um link por e-mail quando o arquivo estiver pronto — leva alguns dias).
-3. Descompacta o `.zip` e informa o diretório ao comando.
+1. The user visits: <https://www.linkedin.com/mypreferences/d/download-my-data>
+2. Chooses the option **"Baixe um arquivo de dados maior..."** (LinkedIn sends
+   a link by email when the file is ready — takes a few days).
+3. Unzips the `.zip` and tells the command the directory.
 
-**NUNCA** se faz scraping de linkedin.com (anônimo ou logado) — o LinkedIn
-bloqueia e isso viola os termos. Apenas o export oficial é aceito.
+**NEVER** scrape linkedin.com (anonymous or logged in) — LinkedIn blocks it
+and it violates the terms. Only the official export is accepted.
 
-### Uso
+### Usage
 
 ```
 /ocf:cv-hub ~/carreira/maria-silva
 ```
 
-- Se o diretório não existir, cria-se a estrutura:
+- If the directory does not exist, create the structure:
   `hub.json`, `README.md`, `entradas/` (curriculo.pdf, linkedin/, extras/),
   `curriculos/`.
-- O comando pergunta ao usuário onde estão: o PDF do currículo, o diretório
-  do export do LinkedIn (se houver) e os complementos (se houver).
+- Ask the user where the following are: the CV PDF, the LinkedIn export
+  directory (if any) and the extras (if any).
 
-### Fluxo
+### Flow
 
-1. **Coletar fontes** — usuário informa os caminhos dos arquivos; copiar para
+1. **Collect sources** — the user provides the file paths; copy them into
    `entradas/`.
-2. **Invocar o agente** `career/cv-extractor` via `task:` com o diretório do
-   candidato e o caminho das fontes.
-3. **Extrair e consolidar** — o agente roda `pdftotext -layout` no PDF,
-   estrutura o export do LinkedIn, consolida em `hub.json` (schema canônico)
-   e gera `README.md`.
-4. **Validar** — `python3 $SCRIPTS_DIR/cv/validate.py hub.json`; corrigir até exit 0.
-5. **Reportar** — caminho do `hub.json`, se a validação passou, e resumo das
-   seções populadas. Informar que o próximo passo é `/ocf:cv-tailor`.
+2. **Invoke the agent** `career/cv-extractor` via `task:` with the candidate
+   directory and the source paths.
+3. **Extract and consolidate** — the agent runs `pdftotext -layout` on the
+   PDF, structures the LinkedIn export, consolidates everything into
+   `hub.json` (canonical schema) and generates `README.md`.
+4. **Validate** — `python3 $SCRIPTS_DIR/cv/validate.py hub.json`; fix until exit 0.
+5. **Report** — `hub.json` path, whether validation passed, and a summary of
+   the populated sections. Tell the user the next step is `/ocf:cv-tailor`.
 
-### Regras
+### Rules
 
-- Entrada mínima: currículo em PDF. LinkedIn e extras são opcionais.
-- Nada é inventado — dados ausentes ficam ausentes; inferências são marcadas
+- Minimum input: CV in PDF. LinkedIn and extras are optional.
+- Nothing is invented — missing data stays missing; inferences are marked
   `[INFERIDO]`.
-- Dados sensíveis (CPF, documento, endereço completo) não entram no hub.
-- O fluxo roda 100% local, sem rede.
+- Sensitive data (CPF, document, full address) does not enter the hub.
+- The flow runs 100% locally, without network.

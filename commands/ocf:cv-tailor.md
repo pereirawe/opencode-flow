@@ -1,70 +1,72 @@
-## /ocf:cv-tailor <diretório-do-candidato> <vaga>
+## /ocf:cv-tailor <candidate-directory> <job>
 
 ---
 description: Generate a job-tailored resume PDF from the candidate hub — analyze the job, gap analysis vs hub.json, adapt content (never fabricate), HTML -> PDF in the job's language
 ---
 
-Gera uma versão do currículo do candidato otimizada para uma vaga específica,
-a partir do `hub.json` do candidato (construído com `/ocf:cv-hub`). Analisa a
-vaga, faz gap analysis vs hub, adapta o conteúdo **sem fabricar nada** e
-produz o currículo em PDF (HTML → PDF via Chrome headless, fallback
-LibreOffice) no idioma da vaga.
+Generates a version of the candidate's resume optimized for a specific job,
+from the candidate's `hub.json` (built with `/ocf:cv-hub`). It analyzes the
+job, performs the gap analysis vs the hub, adapts the content **without
+fabricating anything** and produces the resume in PDF (HTML → PDF via Chrome
+headless, LibreOffice fallback) in the job's language.
 
-### Pré-requisito
+### Prerequisite
 
-O candidato precisa de um hub válido em `~/carreira/<nome-candidato>/hub.json`.
-Se não existir, rode `/ocf:cv-hub` primeiro.
+The candidate needs a valid hub at `~/carreira/<candidate-name>/hub.json`.
+If it does not exist, run `/ocf:cv-hub` first.
 
-### Uso
+### Usage
 
 ```
-/ocf:cv-tailor ~/carreira/maria-silva "URL ou texto da vaga"
+/ocf:cv-tailor ~/carreira/maria-silva "job URL or text"
 ```
 
-A vaga pode ser fornecida como:
-- **Texto colado** da descrição (recomendado — mais confiável);
-- **Arquivo local** (txt/html/pdf) com a descrição;
-- **Export oficial LinkedIn** (arquivos locais do Download My Data);
-- **URL** — tenta `curl -L` respeitando robots; LinkedIn bloqueia sempre, então
-  nesse caso pede o texto colado. Nunca contorna anti-bot.
+The job can be provided as:
+- **Pasted text** of the description (recommended — most reliable);
+- **Local file** (txt/html/pdf) with the description;
+- **Official LinkedIn export** (local Download My Data files);
+- **URL** — try `curl -L` respecting robots; LinkedIn always blocks, so in
+  that case ask for pasted text. Never bypass anti-bot.
 
-### Fluxo
+### Flow
 
-1. **Validar hub** — `python3 $SCRIPTS_DIR/cv/validate.py hub.json`.
-2. **Invocar o agente** `career/cv-tailor` via `task:` com o diretório do
-   candidato e a vaga.
-3. **Analisar vaga** — requisitos obrigatórios/desejáveis, keywords, senioridade,
-   idiomas.
-4. **Gap analysis** — tabela requisito → atendido/parcial/não-atendido,
-   salva em `curriculos/<slug-da-vaga>/gap-analysis.md`.
-5. **Decisão humana sobre inferências** — listar todas em
-   `curriculos/<slug-da-vaga>/inferencias.md` e pedir a decisão do candidato
-   (reformular/omitir/promover com dado real) antes do output final.
-6. **Adaptar conteúdo** — a partir do template de referência
-   `skills/career/cv-pdf/templates/resume.html`, seguindo o padrão
-   `standards/cv-design.md`; reordenar/destacar/condensar apenas o que existe
-   no hub; NUNCA `[INFERIDO]` no HTML/PDF final; idioma = idioma da vaga.
-7. **Verificar conformidade** com o padrão (checklist ATS/print/páginas do
-   `standards/cv-design.md`) antes do PDF.
-8. **Gate obrigatório** — `bash $SCRIPTS_DIR/cv/check-inferido.sh index.html`
-   DEVE passar (exit 0) antes do PDF.
-9. **Gerar PDF** — `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
+1. **Validate hub** — `python3 $SCRIPTS_DIR/cv/validate.py hub.json`.
+2. **Invoke the agent** `career/cv-tailor` via `task:` with the candidate
+   directory and the job.
+3. **Analyze the job** — required/desirable requirements, keywords, seniority,
+   languages.
+4. **Gap analysis** — requirements → met/partial/not_met table, saved in
+   `curriculos/<job-slug>/gap-analysis.md` (written in the user's
+   communication language).
+5. **Human decision on inferences** — list all of them in
+   `curriculos/<job-slug>/inferencias.md` and ask the candidate to decide on
+   each (rephrase/omit/promote with real data) before the final output.
+6. **Adapt content** — starting from the reference template
+   `skills/career/cv-pdf/templates/resume.html`, following the
+   `standards/cv-design.md` standard; reorder/highlight/condense only what
+   exists in the hub; NEVER `[INFERIDO]` in the final HTML/PDF; language =
+   job language.
+7. **Verify conformity** with the standard (the ATS/print/pages checklist of
+   `standards/cv-design.md`) before the PDF.
+8. **Mandatory gate** — `bash $SCRIPTS_DIR/cv/check-inferido.sh index.html`
+   MUST pass (exit 0) before the PDF.
+9. **Generate the PDF** — `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
 
-### Regras
+### Rules
 
-- NUNCA inventar experiência, skills, projetos, certificações ou contato.
-- Layout conforme `standards/cv-design.md` (ATS/print/páginas), partindo do
-  template `skills/career/cv-pdf/templates/resume.html` — nunca CSS do zero;
-  verificar conformidade antes do PDF.
-- `[INFERIDO]` é permitido APENAS em artefactos internos (hub.json,
-  gap-analysis.md, inferencias.md). No HTML/PDF final NENHUM `[INFERIDO]` pode
-  aparecer — o gate `check-inferido.sh` bloqueia a geração.
-- Contato apenas se presente no hub; dados sensíveis nunca.
-- PDF A4 pronto para ATS, tipografia limpa, headings semânticos.
+- NEVER invent experience, skills, projects, certifications or contact.
+- Layout per `standards/cv-design.md` (ATS/print/pages), starting from the
+  template `skills/career/cv-pdf/templates/resume.html` — never CSS from
+  scratch; verify conformity before the PDF.
+- `[INFERIDO]` is allowed ONLY in internal artifacts (hub.json,
+  gap-analysis.md, inferencias.md). In the final HTML/PDF NO `[INFERIDO]` may
+  appear — the `check-inferido.sh` gate blocks generation.
+- Contact only if present in the hub; sensitive data never.
+- A4 PDF ready for ATS, clean typography, semantic headings.
 
-### Reporte ao usuário
+### Report to the user
 
-- Caminho do PDF gerado (`~/carreira/<nome>/curriculos/<slug>/curriculo.pdf`).
-- Resumo do gap analysis (requisitos atendidos/parciais/não-atendidos).
-- Lista de inferências resolvidas (reformuladas/omitidas/promovidas) que o
-  candidato aprovou — nenhuma marcação `[INFERIDO]` no artefacto partilhável.
+- Generated PDF path (`~/carreira/<name>/curriculos/<slug>/curriculo.pdf`).
+- Gap analysis summary (met/partial/not_met requirements).
+- Resolved inferences list (rephrased/omitted/promoted) the candidate
+  approved — no `[INFERIDO]` marker in the shareable artifact.

@@ -1,124 +1,136 @@
 ---
 name: cv-hub
-description: Construção do hub de currículo de um candidato — extração de dados a partir de currículo PDF (pdftotext), export oficial do LinkedIn (Download My Data), e arquivos complementares, consolidação em hub.json (schema canônico para IA) + README.md humano. Use quando precisar criar ou atualizar o hub de dados de um candidato (comando ocf:cv-hub). Setor career.
+description: Build a candidate's resume hub — extract data from the CV PDF (pdftotext), official LinkedIn export (Download My Data), and complementary files, consolidating everything into hub.json (canonical AI schema) + a human-readable README.md. Use when you need to create or update a candidate's data hub (command ocf:cv-hub). Career sector.
 ---
 
-# CV Hub — construção do hub do candidato
+# CV Hub — building the candidate hub
 
-Consolida todas as fontes do candidato em um único hub estruturado
-(`hub.json` — fonte de verdade para IA) + `README.md` (resumo executivo
-humano). O hub é a base da geração de currículos direcionados (`cv-tailor`).
+Consolidates all candidate sources into a single structured hub
+(`hub.json` — source of truth for AI) + `README.md` (human executive
+summary). The hub is the foundation for tailored resume generation
+(`cv-tailor`).
 
-## Estrutura do diretório do candidato
+## Candidate directory structure
 
 ```
-~/carreira/<nome-candidato>/
-├── hub.json          # schema canônico (fonte de verdade para IA)
-├── README.md         # resumo executivo humano, gerado a partir do hub.json
-├── entradas/         # arquivos-fonte originais
-│   ├── curriculo.pdf # (obrigatório)
-│   ├── linkedin/     # export oficial LinkedIn (opcional)
-│   └── extras/       # certificados, portfólio, projetos (opcional)
-└── curriculos/       # currículos gerados (HTML + PDF)
+~/carreira/<candidate-name>/
+├── hub.json          # canonical schema (source of truth for AI)
+├── README.md         # human executive summary, generated from hub.json
+├── entradas/         # original source files
+│   ├── curriculo.pdf # (required)
+│   ├── linkedin/     # official LinkedIn export (optional)
+│   └── extras/       # certificates, portfolio, projects (optional)
+└── curriculos/       # generated resumes (HTML + PDF)
 ```
 
-## Entradas
+## Inputs
 
-| Entrada | Obrigatório | Como obter |
-|---------|-------------|------------|
-| Currículo em PDF | **Sim** | Fornecido pelo usuário |
-| Export oficial LinkedIn | Não | `https://www.linkedin.com/mypreferences/d/download-my-data` → opção **"Baixe um arquivo de dados maior..."** (email o link quando pronto; inclui `Profile/`, `Work/`, `Education/`). Nunca scrape linkedin.com |
-| Complementos | Não | Certificados, portfólio, projetos, premiações |
+| Input | Required | How to obtain |
+|-------|----------|---------------|
+| CV in PDF | **Yes** | Provided by the user |
+| Official LinkedIn export | No | `https://www.linkedin.com/mypreferences/d/download-my-data` → option **"Baixe um arquivo de dados maior..."** (LinkedIn emails the link when ready; includes `Profile/`, `Work/`, `Education/`). Never scrape linkedin.com |
+| Extras | No | Certificates, portfolio, projects, awards |
 
-## Processo de extração
+## Extraction process
 
-1. **Receber as fontes** — confirme o diretório do candidato e copie os
-   arquivos para `entradas/` (`curriculo.pdf`, `linkedin/`, `extras/`).
-2. **Extrair o PDF** — rode `pdftotext -layout curriculo.pdf -` (ou use
-   `pdftotext curriculo.pdf out.txt`). Se `pdftotext` não estiver disponível,
-   use Python: `python3 -c` com `pypdf`/`PyPDF2` se instalado; senão peça ao
-   usuário para fornecer o texto. Nunca tente OCR se a ferramenta não existir.
-3. **Estruturar o export do LinkedIn** — no export oficial, leia os arquivos
-   sob `Profile/` (positions, education, skills, languages, certifications,
-   projects, publications, recommendations), `Work/`, `Education/` e
-   `Certifications/`. Extraia para a estrutura do hub.
-4. **Consolidar no hub.json** — use o schema canônico (definição abaixo).
-   Prefira os dados mais recentes; registre cada item em **uma** das fontes.
-5. **Validar** — rode `python3 $SCRIPTS_DIR/cv/validate.py hub.json`. Corrija até
+1. **Receive the sources** — confirm the candidate directory and copy the
+   files into `entradas/` (`curriculo.pdf`, `linkedin/`, `extras/`).
+2. **Extract the PDF** — run `pdftotext -layout curriculo.pdf -` (or use
+   `pdftotext curriculo.pdf out.txt`). If `pdftotext` is not available, use
+   Python: `python3 -c` with `pypdf`/`PyPDF2` if installed; otherwise ask the
+   user to provide the text. Never attempt OCR if the tool does not exist.
+3. **Structure the LinkedIn export** — in the official export, read the files
+   under `Profile/` (positions, education, skills, languages, certifications,
+   projects, publications, recommendations), `Work/`, `Education/` and
+   `Certifications/`. Extract them into the hub structure.
+4. **Consolidate into hub.json** — use the canonical schema (definition
+   below). Prefer the most recent data; record each item in **one** of the
+   sources.
+5. **Validate** — run `python3 $SCRIPTS_DIR/cv/validate.py hub.json`. Fix until
    exit 0.
-6. **Gerar README.md** — derive do hub.json: nome, título, resumo, contato
-   (somente se presente no hub), experiência, educação, skills principais,
-   certificações, projetos, idiomas. O README é um **espelho** — nunca edite
-   manualmente em divergência com o JSON.
+6. **Generate README.md** — derive it from hub.json: name, title, summary,
+   contact (only if present in the hub), experience, education, top skills,
+   certifications, projects, languages. The README is a **mirror** — never
+   edit it manually in divergence with the JSON.
+   - **Language**: the README MUST be written in the hub's primary language —
+     the language of the `summary` field / the language the candidate uses
+     (as reflected in `summary_i18n`). English is the default when the hub
+     has no clear primary language.
 
-## Schema canônico do hub.json
+## Canonical hub.json schema
 
 ```json
 {
-  "dados_pessoais": {
-    "nome": "Nome Completo",
-    "titulo_profissional": "Engenheiro de Dados",
+  "personal_info": {
+    "name": "Full Name",
+    "professional_title": "Data Engineer",
     "email": "cand@email.com",
-    "telefone": "+55 11 99999-9999",
-    "cidade": "São Paulo", "estado": "SP", "pais": "BR",
+    "phone": "+55 11 99999-9999",
+    "city": "São Paulo", "state": "SP", "country": "BR",
     "linkedin": "https://linkedin.com/in/...",
     "github": "https://github.com/...",
     "site": "https://...",
-    "disponibilidade": "Imediata"
+    "availability": "Immediate"
   },
-  "resumo": "resumo executivo",
-  "resumo_i18n": { "pt": "...", "en": "...", "es": "..." },
-  "experiencia": [
+  "summary": "executive summary",
+  "summary_i18n": { "pt": "...", "en": "...", "es": "..." },
+  "experience": [
     {
-      "empresa": "Acme", "cargo": "Engenheiro de Dados",
-      "inicio": "2021-03", "fim": "atual", "atual": true,
-      "resumo": "...",
-      "conquistas": ["Reduziu custo de infra em 30%"],
-      "responsabilidades": ["...", "..."],
-      "tecnologias": ["Python", "Airflow", "dbt"]
+      "company": "Acme", "title": "Data Engineer",
+      "start_date": "2021-03", "end_date": "present", "current": true,
+      "summary": "...",
+      "achievements": ["Reduced infrastructure cost by 30%"],
+      "responsibilities": ["...", "..."],
+      "technologies": ["Python", "Airflow", "dbt"]
     }
   ],
-  "educacao": [
-    { "instituicao": "USP", "curso": "Ciência da Computação",
-      "tipo": "Graduação", "status": "Concluído" }
+  "education": [
+    { "institution": "USP", "course": "Computer Science",
+      "type": "Bachelor's degree", "status": "completed" }
   ],
   "skills": [
-    { "nome": "Python", "categoria": "linguagem", "nivel": "avancado",
-      "desde": "2018", "anos_experiencia": 6, "importancia": "principal" }
+    { "name": "Python", "category": "language", "level": "advanced",
+      "since": "2018", "years_of_experience": 6, "importance": "primary" }
   ],
-  "certificacoes": [
-    { "nome": "AWS Solutions Architect", "emissor": "AWS", "ano": "2023" }
+  "certifications": [
+    { "name": "AWS Solutions Architect", "issuer": "AWS", "year": "2023" }
   ],
-  "projetos": [
-    { "nome": "open-source x", "descricao": "...", "tecnologias": ["Go"] }
+  "projects": [
+    { "name": "open-source x", "description": "...", "technologies": ["Go"] }
   ],
-  "idiomas": [ { "idioma": "Inglês", "nivel": "fluente", "nota_escala": "C1" } ],
-  "links": [ { "nome": "GitHub", "url": "https://github.com/x" } ]
+  "languages": [ { "language": "English", "level": "fluent", "scale_note": "C1" } ],
+  "links": [ { "name": "GitHub", "url": "https://github.com/x" } ]
 }
 ```
 
-### Regras de consolidação
+All keys and enum values are English (snake_case). The schema is the
+canonical structure for every locale. When migrating an existing hub built
+with the legacy Portuguese keys, run
+`python3 $SCRIPTS_DIR/cv/migrate-schema.py hub.json` to convert it.
 
-- **Deduplicar**: se a mesma experiência aparece no currículo e no LinkedIn,
-  priorize o LinkedIn (mais granular) e mescle conquistas do currículo.
-- **Bilíngue**: quando o candidato fornecer resumos em mais de um idioma,
-  use `resumo_i18n`. O `resumo` default é o do idioma do candidato.
-- **Skills**: sempre que possível, registre `desde` (ano de início do uso da
-  habilidade, ex.: 2018) em vez de (ou junto de) `anos_experiencia` fixo —
-  anos fixos ficam desatualizados com o tempo. Se a fonte só permite inferir
-  um ano de início (ex.: primeiro projeto/uso), registre `desde` e marque a
-  inferência `[INFERIDO]` na descrição.
-- **Nada inventado**: qualquer dado não presente nas fontes fica **ausente**
-  do hub — nunca preencha com suposições. Dados inferidos de contexto devem
-  ser marcados `[INFERIDO]` na descrição.
-- **Sensíveis**: endereço completo, CPF, documento, dados bancários NÃO são
-  copiados para o hub (apenas cidade/estado/pais se disponíveis).
-- **Ordem cronológica reversa** em `experiencia`, `educacao`, `projetos`.
+### Consolidation rules
 
-## Ferramentas e limites
+- **Deduplicate**: if the same experience appears in the CV and on LinkedIn,
+  prioritize LinkedIn (more granular) and merge achievements from the CV.
+- **Bilingual**: when the candidate provides summaries in more than one
+  language, use `summary_i18n`. The default `summary` is the one in the
+  candidate's language.
+- **Skills**: whenever possible, record `since` (year of first use of the
+  skill, e.g. 2018) instead of (or alongside) a fixed `years_of_experience` —
+  fixed years become stale over time. If the source only allows inferring a
+  start year (e.g. first project/use), record `since` and mark the inference
+  `[INFERIDO]` in the description.
+- **Nothing invented**: any data not present in the sources stays **absent**
+  from the hub — never fill with guesses. Data inferred from context must be
+  marked `[INFERIDO]` in the description.
+- **Sensitive**: full address, CPF, document, bank details are NOT copied to
+  the hub (only city/state/country when available).
+- **Reverse chronological order** in `experience`, `education`, `projects`.
 
-- Extração de PDF: `pdftotext -layout` (preferido) → fallback Python
-  (`pypdf`/`PyPDF2`) → senão peça o texto ao usuário. Sem OCR automático.
-- Sem rede: o hub é construído 100% a partir de arquivos locais.
-- O `README.md` e o `hub.json` devem ser commitáveis pelo usuário se ele
-  versionar a carreira; não commite nada sem autorização.
+## Tools and limits
+
+- PDF extraction: `pdftotext -layout` (preferred) → Python fallback
+  (`pypdf`/`PyPDF2`) → otherwise ask the user for the text. No automatic OCR.
+- No network: the hub is built 100% from local files.
+- The `README.md` and `hub.json` may be committed by the user if they version
+  their career; never commit anything without authorization.

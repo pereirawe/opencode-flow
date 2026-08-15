@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Tests for the career CV scripts: scripts/cv/validate.py, scripts/cv/pdf.sh,
-# and the scripts/cv/check-inferido.sh gate.
+# the scripts/cv/check-inferido.sh gate, and scripts/cv/migrate-schema.py.
 # Self-contained: generates its own fixtures under a temp dir, no network, no TTY.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
@@ -12,6 +12,7 @@ CV_DIR="$SCRIPT_DIR/../cv"
 VALIDATOR="$CV_DIR/validate.py"
 PDF_SH="$CV_DIR/pdf.sh"
 CHECK_INFERIDO="$CV_DIR/check-inferido.sh"
+MIGRATE="$CV_DIR/migrate-schema.py"
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -21,15 +22,15 @@ TMP_ENV="$TMP" python3 - <<'EOF' > "$TMP/hub-valid.json"
 import json, os
 tmp = os.environ["TMP_ENV"]
 hub = {
-  "dados_pessoais": {"nome": "Teste"},
-  "resumo": "resumo",
-  "experiencia": [{"empresa": "Acme", "cargo": "Dev"}],
-  "educacao": [{"instituicao": "USP", "curso": "CC"}],
-  "skills": [{"nome": "Python"}],
-  "certificacoes": [{"nome": "AWS"}],
-  "projetos": [{"nome": "proj"}],
-  "idiomas": [{"idioma": "Inglês"}],
-  "links": [{"nome": "GH", "url": "https://github.com/x"}]
+  "personal_info": {"name": "Test"},
+  "summary": "summary",
+  "experience": [{"company": "Acme", "title": "Dev"}],
+  "education": [{"institution": "USP", "course": "CS"}],
+  "skills": [{"name": "Python"}],
+  "certifications": [{"name": "AWS"}],
+  "projects": [{"name": "proj"}],
+  "languages": [{"language": "English"}],
+  "links": [{"name": "GH", "url": "https://github.com/x"}]
 }
 json.dump(hub, open(os.path.join(tmp, "hub-valid.json"), "w"))
 EOF
@@ -38,14 +39,14 @@ TMP_ENV="$TMP" python3 - <<'EOF' > "$TMP/hub-invalid.json"
 import json, os
 tmp = os.environ["TMP_ENV"]
 hub = {
-  "dados_pessoais": {"nome": "Teste"},
-  "resumo": "resumo",
-  "experiencia": [{"empresa": "Acme"}],  # missing cargo
-  "educacao": [],
+  "personal_info": {"name": "Test"},
+  "summary": "summary",
+  "experience": [{"company": "Acme"}],  # missing title
+  "education": [],
   "skills": [],
-  "certificacoes": [],
-  "projetos": [],
-  "idiomas": [],
+  "certifications": [],
+  "projects": [],
+  "languages": [],
   "links": []
 }
 json.dump(hub, open(os.path.join(tmp, "hub-invalid.json"), "w"))
@@ -59,9 +60,9 @@ rc_invalid=$?
 set -e
 
 assert_eq "0" "$rc_valid" "validate.py accepts a valid hub.json"
-assert_eq "1" "$rc_invalid" "validate.py rejects a hub.json with missing required field"
+assert_eq "1" "$rc_invalid" "validate.py rejects a hub.json with a missing required field"
 assert_eq "2" "$(python3 "$VALIDATOR" 2>/dev/null; echo $?)" "validate.py returns 2 without arguments"
-assert_eq "2" "$(python3 "$VALIDATOR" "$TMP/nope.json" 2>/dev/null; echo $?)" "validate.py returns 2 for missing file"
+assert_eq "2" "$(python3 "$VALIDATOR" "$TMP/nope.json" 2>/dev/null; echo $?)" "validate.py returns 2 for a missing file"
 
 # --- pdf.sh ---
 cat > "$TMP/resume.html" <<'HTMLEOF'
@@ -114,7 +115,7 @@ else
   echo "skip - chrome not installed; pdf.sh chrome path not exercised"
 fi
 
-# pdf.sh should fail cleanly (exit 2) when input file is missing
+# pdf.sh should fail cleanly (exit 2) when the input file is missing
 set +e
 bash "$PDF_SH" "$TMP/missing.html" "$TMP/out.pdf" >/dev/null 2>&1
 rc_missing=$?
@@ -129,15 +130,15 @@ set -e
 assert_eq "0" "$rc_deep" "pdf.sh creates a missing output directory"
 assert_eq "1" "$(test -s "$TMP/deep/nested/out.pdf" && echo 1 || echo 0)" "PDF written into created output dir"
 
-# validate.py must reject non-object dados_pessoais and non-string resumo
+# validate.py must reject non-object personal_info and non-string summary
 TMP_ENV="$TMP" python3 - <<'EOF' > "$TMP/hub-badtypes.json"
 import json, os
 tmp = os.environ["TMP_ENV"]
 hub = {
-  "dados_pessoais": "not-an-object",
-  "resumo": 123,
-  "experiencia": [], "educacao": [], "skills": [], "certificacoes": [],
-  "projetos": [], "idiomas": [], "links": []
+  "personal_info": "not-an-object",
+  "summary": 123,
+  "experience": [], "education": [], "skills": [], "certifications": [],
+  "projects": [], "languages": [], "links": []
 }
 json.dump(hub, open(os.path.join(tmp, "hub-badtypes.json"), "w"))
 EOF
@@ -146,14 +147,14 @@ set +e
 python3 "$VALIDATOR" "$TMP/hub-badtypes.json" >/dev/null 2>&1
 rc_badtypes=$?
 set -e
-assert_eq "1" "$rc_badtypes" "validate.py rejects non-object dados_pessoais and non-string resumo"
+assert_eq "1" "$rc_badtypes" "validate.py rejects non-object personal_info and non-string summary"
 
 # validate.py must handle a directory argument cleanly (exit 2, no traceback)
 set +e
 python3 "$VALIDATOR" "$TMP" >/dev/null 2>&1
 rc_dir=$?
 set -e
-assert_eq "2" "$rc_dir" "validate.py exits 2 (not traceback) for a directory argument"
+assert_eq "2" "$rc_dir" "validate.py exits 2 (not a traceback) for a directory argument"
 
 # --- LibreOffice fallback (mocked) ---
 # Mock libreoffice in PATH: it writes <outdir>/<stem>.pdf from the HTML copy in
@@ -206,7 +207,7 @@ assert_eq "1" "$(test -s "$TMP/samedir/curriculo.pdf" && echo 1 || echo 0)" "sam
 
 # 1. HTML with uppercase [INFERIDO] -> exit 1, occurrence listed
 cat > "$TMP/inferido-upper.html" <<'HTMLEOF'
-<!DOCTYPE html><html><body><h1>Dev</h1><p>Nível de inglês [INFERIDO]</p></body></html>
+<!DOCTYPE html><html><body><h1>Dev</h1><p>English level [INFERIDO]</p></body></html>
 HTMLEOF
 set +e
 CHECK_OUT="$(bash "$CHECK_INFERIDO" "$TMP/inferido-upper.html" 2>&1)"
@@ -221,7 +222,7 @@ fi
 
 # 2. HTML with lowercase [inferido] -> exit 1
 cat > "$TMP/inferido-lower.html" <<'HTMLEOF'
-<!DOCTYPE html><html><body><h1>Dev</h1><p>Curso [inferido]</p></body></html>
+<!DOCTYPE html><html><body><h1>Dev</h1><p>Course [inferido]</p></body></html>
 HTMLEOF
 set +e
 bash "$CHECK_INFERIDO" "$TMP/inferido-lower.html" >/dev/null 2>&1
@@ -231,7 +232,7 @@ assert_eq "1" "$rc_gate_lower" "gate exits 1 for lowercase [inferido]"
 
 # 3. HTML without markers -> exit 0 (PDF generation may proceed)
 cat > "$TMP/inferido-clean.html" <<'HTMLEOF'
-<!DOCTYPE html><html><body><h1>Dev</h1><p>Curso de inglês — nível avançado.</p></body></html>
+<!DOCTYPE html><html><body><h1>Dev</h1><p>English course — advanced level.</p></body></html>
 HTMLEOF
 set +e
 bash "$CHECK_INFERIDO" "$TMP/inferido-clean.html" >/dev/null 2>&1
@@ -266,7 +267,7 @@ fi
 
 # 7. PDF containing [INFERIDO] text must be BLOCKED via pdftotext (BR 10)
 if command -v pdftotext >/dev/null 2>&1 && [[ -n "$CHROME" ]]; then
-  printf '<!DOCTYPE html><html><body><h1>Dev</h1><p>Nível de inglês [INFERIDO]</p></body></html>\n' > "$TMP/inferido-pdf.html"
+  printf '<!DOCTYPE html><html><body><h1>Dev</h1><p>English level [INFERIDO]</p></body></html>\n' > "$TMP/inferido-pdf.html"
   set +e
   bash "$PDF_SH" "$TMP/inferido-pdf.html" "$TMP/inferido-pdf.pdf" chrome >/dev/null 2>&1
   rc_make_pdf=$?
@@ -280,6 +281,83 @@ if command -v pdftotext >/dev/null 2>&1 && [[ -n "$CHROME" ]]; then
   else
     echo "skip - could not render [INFERIDO] PDF fixture; blocking-PDF path not exercised"
   fi
+fi
+
+# --- migrate-schema.py (issue #64: pt -> en hub.json migration) ---
+MIGRATE_SCRIPT="$CV_DIR/migrate-schema.py"
+if [[ -f "$MIGRATE_SCRIPT" ]]; then
+  # 1. A legacy Portuguese-keyed hub is rejected by validate.py (English schema)
+  cat > "$TMP/hub-pt.json" <<'EOF'
+{
+  "dados_pessoais": {"nome": "Maria Silva", "titulo_profissional": "Data Engineer", "cidade": "São Paulo", "pretensao_salarial": "R$ 15k"},
+  "resumo": "executive summary",
+  "resumo_i18n": {"pt": "...", "en": "..."},
+  "experiencia": [{"empresa": "Acme", "cargo": "Dev", "inicio": "2021-03", "fim": "atual", "atual": true, "tipo": "CLT", "resumo": "r", "conquistas": ["x"], "tecnologias": ["Python"]}],
+  "educacao": [{"instituicao": "USP", "curso": "CS", "tipo": "Graduação", "status": "Concluído"}],
+  "skills": [{"nome": "Python", "categoria": "linguagem", "nivel": "avancado", "desde": "2018", "anos_experiencia": 6, "importancia": "principal"}],
+  "certificacoes": [{"nome": "AWS", "emissor": "AWS", "ano": "2023"}],
+  "projetos": [{"nome": "p", "descricao": "d", "relevancia": "alta"}],
+  "idiomas": [{"idioma": "English", "nivel": "fluente", "nota_escala": "C1"}],
+  "links": [{"nome": "GH", "url": "https://github.com/x"}],
+  "fontes": ["curriculo.pdf"],
+  "data_geracao": "2026-08-15"
+}
+EOF
+  set +e
+  python3 "$VALIDATOR" "$TMP/hub-pt.json" >/dev/null 2>&1
+  rc_pt_unmigrated=$?
+  set -e
+  assert_eq "1" "$rc_pt_unmigrated" "validate.py rejects a legacy Portuguese-keyed hub"
+
+  # 2. Migration produces an English hub that passes validation
+  set +e
+  python3 "$MIGRATE_SCRIPT" "$TMP/hub-pt.json" --output "$TMP/hub-migrated.json" --validate "$VALIDATOR" >/dev/null 2>&1
+  rc_migrate=$?
+  set -e
+  assert_eq "0" "$rc_migrate" "migrate-schema.py converts a Portuguese hub successfully"
+  assert_eq "1" "$(test -s "$TMP/hub-migrated.json" && echo 1 || echo 0)" "migrated hub file written"
+  python3 "$VALIDATOR" "$TMP/hub-migrated.json" >/dev/null 2>&1 || {
+    t_fail "migrated hub is not valid against the English schema"
+  }
+  python3 - <<EOF
+import json
+hub = json.load(open("$TMP/hub-migrated.json"))
+assert "personal_info" in hub and hub["personal_info"]["name"] == "Maria Silva"
+assert hub["summary"] == "executive summary"
+assert hub["experience"][0]["company"] == "Acme" and hub["experience"][0]["title"] == "Dev"
+assert hub["experience"][0]["end_date"] == "present" and hub["experience"][0]["current"] is True
+assert hub["experience"][0]["type"] == "CLT"
+assert hub["education"][0]["status"] == "completed"
+assert hub["education"][0]["type"] == "Bachelor's degree"
+assert hub["skills"][0]["since"] == "2018" and hub["skills"][0]["level"] == "advanced"
+assert hub["skills"][0]["importance"] == "primary" and hub["skills"][0]["category"] == "language"
+assert hub["languages"][0]["language"] == "English" and hub["languages"][0]["level"] == "fluent"
+assert hub["languages"][0]["scale_note"] == "C1"
+assert hub["certifications"][0]["issuer"] == "AWS"
+assert hub["sources"] == ["curriculo.pdf"] and hub["version"] == 2
+EOF
+  t_ok "migrated hub has English keys, translated enums, and schema version 2"
+
+  # 3. Idempotency: re-running on an already-English hub is a no-op
+  set +e
+  python3 "$MIGRATE_SCRIPT" "$TMP/hub-migrated.json" --output "$TMP/hub-migrated2.json" >/dev/null 2>&1
+  rc_migrate_idem=$?
+  set -e
+  assert_eq "0" "$rc_migrate_idem" "migrate-schema.py is idempotent on an English hub"
+  if diff -q "$TMP/hub-migrated.json" "$TMP/hub-migrated2.json" >/dev/null 2>&1; then
+    t_ok "idempotent migration produces identical output"
+  else
+    t_fail "idempotent migration changed the already-English hub"
+  fi
+
+  # 4. Missing file -> exit 1, clear error
+  set +e
+  python3 "$MIGRATE_SCRIPT" "$TMP/nope-hub.json" >/dev/null 2>&1
+  rc_migrate_missing=$?
+  set -e
+  assert_eq "1" "$rc_migrate_missing" "migrate-schema.py exits 1 for a missing file"
+else
+  t_fail "migrate-schema.py missing at $MIGRATE_SCRIPT"
 fi
 
 # --- cv-tailor / cv-optimizer contract (issue #62) ---
@@ -296,6 +374,11 @@ if [[ -f "$TAILOR_SKILL" ]]; then
   # and the human-decision flow via inferencias.md
   assert_contains "$TAILOR_SKILL" "inferencias.md" \
     "cv-tailor skill documents the inferencias.md human-decision flow"
+  # issue #64: the skill MUST use the English schema keys
+  assert_contains "$TAILOR_SKILL" "summary_i18n" \
+    "cv-tailor skill references the English summary_i18n key"
+  assert_not_contains "$TAILOR_SKILL" "resumo_i18n" \
+    "cv-tailor skill has no legacy resumo_i18n key"
 else
   t_fail "cv-tailor skill missing at $TAILOR_SKILL"
 fi
@@ -321,68 +404,69 @@ fi
 
 # --- cv-optimizer contract ---
 # The skill/agent must not modify hub.json. Verify the skill file references
-# validate.py and mandates [INFERIDO] + never-modify-hub rules.
+# validate.py and mandates [INFERIDO] + never-modify-hub rules (English).
 if [[ -f "$OPT_SKILL" ]]; then
   assert_contains "$OPT_SKILL" "[INFERIDO]" "cv-optimizer skill mandates [INFERIDO] markers"
-  assert_contains "$OPT_SKILL" "NUNCA modificar \`hub.json\`" "cv-optimizer skill forbids hub.json edits"
+  assert_contains "$OPT_SKILL" "NEVER modify \`hub.json\`" "cv-optimizer skill forbids hub.json edits"
   assert_contains "$OPT_SKILL" "validate.py" "cv-optimizer skill references hub validation"
   assert_contains "$OPT_SKILL" "analise-perfil.md" "cv-optimizer skill defines report output"
   assert_contains "$OPT_SKILL" "analise-perfil.pdf" "cv-optimizer skill defines PDF output"
-  assert_contains "$OPT_SKILL" "NENHUM cabeçalho de metadados" "cv-optimizer skill forbids metadata header"
-  assert_contains "$OPT_SKILL" "desde" "cv-optimizer skill uses skill desde field"
-  assert_contains "$OPT_SKILL" "ano atual − \`desde\`" "cv-optimizer skill computes skill years dynamically"
+  assert_contains "$OPT_SKILL" "NO metadata header" "cv-optimizer skill forbids metadata header"
+  assert_contains "$OPT_SKILL" "since" "cv-optimizer skill uses the English since field"
+  assert_contains "$OPT_SKILL" "current year − \`since\`" "cv-optimizer skill computes skill years dynamically"
+  assert_not_contains "$OPT_SKILL" "\`desde\`" "cv-optimizer skill has no legacy desde field"
 else
   t_fail "cv-optimizer skill missing at $OPT_SKILL"
 fi
 
-# validate.py must accept a valid 'desde' year and reject malformed ones
-TMP_ENV="$TMP" python3 - <<'EOF' > "$TMP/hub-desde-valid.json"
+# validate.py must accept a valid 'since' year and reject malformed ones
+TMP_ENV="$TMP" python3 - <<'EOF' > "$TMP/hub-since-valid.json"
 import json, os
 tmp = os.environ["TMP_ENV"]
 hub = {
-  "dados_pessoais": {"nome": "T"}, "resumo": "r",
-  "experiencia": [], "educacao": [], "certificacoes": [], "projetos": [],
-  "idiomas": [], "links": [],
-  "skills": [{"nome": "Python", "desde": "2018"}]
+  "personal_info": {"name": "T"}, "summary": "r",
+  "experience": [], "education": [], "certifications": [], "projects": [],
+  "languages": [], "links": [],
+  "skills": [{"name": "Python", "since": "2018"}]
 }
-json.dump(hub, open(os.path.join(tmp, "hub-desde-valid.json"), "w"))
+json.dump(hub, open(os.path.join(tmp, "hub-since-valid.json"), "w"))
 EOF
 
-TMP_ENV="$TMP" python3 - <<'EOF' > "$TMP/hub-desde-invalid.json"
+TMP_ENV="$TMP" python3 - <<'EOF' > "$TMP/hub-since-invalid.json"
 import json, os
 tmp = os.environ["TMP_ENV"]
 hub = {
-  "dados_pessoais": {"nome": "T"}, "resumo": "r",
-  "experiencia": [], "educacao": [], "certificacoes": [], "projetos": [],
-  "idiomas": [], "links": [],
-  "skills": [{"nome": "Python", "desde": "20a8"}]
+  "personal_info": {"name": "T"}, "summary": "r",
+  "experience": [], "education": [], "certifications": [], "projects": [],
+  "languages": [], "links": [],
+  "skills": [{"name": "Python", "since": "20a8"}]
 }
-json.dump(hub, open(os.path.join(tmp, "hub-desde-invalid.json"), "w"))
+json.dump(hub, open(os.path.join(tmp, "hub-since-invalid.json"), "w"))
 EOF
 
-TMP_ENV="$TMP" python3 - <<'EOF' > "$TMP/hub-desde-future.json"
+TMP_ENV="$TMP" python3 - <<'EOF' > "$TMP/hub-since-future.json"
 import json, os, time
 tmp = os.environ["TMP_ENV"]
 hub = {
-  "dados_pessoais": {"nome": "T"}, "resumo": "r",
-  "experiencia": [], "educacao": [], "certificacoes": [], "projetos": [],
-  "idiomas": [], "links": [],
-  "skills": [{"nome": "Python", "desde": str(int(time.strftime("%Y")) + 5)}]
+  "personal_info": {"name": "T"}, "summary": "r",
+  "experience": [], "education": [], "certifications": [], "projects": [],
+  "languages": [], "links": [],
+  "skills": [{"name": "Python", "since": str(int(time.strftime("%Y")) + 5)}]
 }
-json.dump(hub, open(os.path.join(tmp, "hub-desde-future.json"), "w"))
+json.dump(hub, open(os.path.join(tmp, "hub-since-future.json"), "w"))
 EOF
 
 set +e
-python3 "$VALIDATOR" "$TMP/hub-desde-valid.json" >/dev/null 2>&1
-rc_desde_ok=$?
-python3 "$VALIDATOR" "$TMP/hub-desde-invalid.json" >/dev/null 2>&1
-rc_desde_bad=$?
-python3 "$VALIDATOR" "$TMP/hub-desde-future.json" >/dev/null 2>&1
-rc_desde_future=$?
+python3 "$VALIDATOR" "$TMP/hub-since-valid.json" >/dev/null 2>&1
+rc_since_ok=$?
+python3 "$VALIDATOR" "$TMP/hub-since-invalid.json" >/dev/null 2>&1
+rc_since_bad=$?
+python3 "$VALIDATOR" "$TMP/hub-since-future.json" >/dev/null 2>&1
+rc_since_future=$?
 set -e
-assert_eq "0" "$rc_desde_ok" "validate.py accepts a skill with valid desde (YYYY)"
-assert_eq "1" "$rc_desde_bad" "validate.py rejects a skill with malformed desde"
-assert_eq "1" "$rc_desde_future" "validate.py rejects a skill with future desde"
+assert_eq "0" "$rc_since_ok" "validate.py accepts a skill with valid since (YYYY)"
+assert_eq "1" "$rc_since_bad" "validate.py rejects a skill with malformed since"
+assert_eq "1" "$rc_since_future" "validate.py rejects a skill with future since"
 
 # --- cv-design standard + reference template (issue #63) ---
 CV_DESIGN="$SCRIPT_DIR/../../standards/cv-design.md"

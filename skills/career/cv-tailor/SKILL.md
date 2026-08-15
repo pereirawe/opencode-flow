@@ -1,140 +1,145 @@
 ---
 name: cv-tailor
-description: Geração de currículo direcionado a uma vaga específica a partir do hub.json do candidato. Analisa a vaga (multi-portal, incluindo LinkedIn, Indeed, Gupy, site da empresa — texto colado ou arquivos do export oficial), extrai requisitos/keywords, faz gap analysis vs hub, adapta conteúdo (sem fabricar nada) e gera currículo HTML + PDF no idioma da vaga. Use quando precisar criar um currículo sob medida para uma candidatura (comando ocf:cv-tailor). Setor career.
+description: Generate a resume tailored to a specific job from the candidate's hub.json. Analyzes the job (multi-portal, including LinkedIn, Indeed, Gupy, company sites — pasted text or official export files), extracts requirements/keywords, performs gap analysis vs the hub, adapts content (never fabricating) and generates the resume HTML + PDF in the job's language. Use when you need to create a custom resume for an application (command ocf:cv-tailor). Career sector.
 ---
 
-# CV Tailor — currículo direcionado a vaga
+# CV Tailor — job-tailored resume
 
-Gera uma versão do currículo do candidato otimizada para uma vaga
-específica, maximizando match com ATS/keywords, usando apenas dados que já
-existem no `hub.json`. Nada é fabricado.
+Generates a version of the candidate's resume optimized for a specific job,
+maximizing ATS/keyword match, using only data that already exists in
+`hub.json`. Nothing is fabricated.
 
-## Pré-requisito
+## Prerequisite
 
-O candidato deve ter um hub construído (`ocf:cv-hub` / skill `cv-hub`):
-`~/carreira/<nome-candidato>/hub.json` válido.
+The candidate must have a built hub (`ocf:cv-hub` / `cv-hub` skill):
+a valid `~/carreira/<candidate-name>/hub.json`.
 
-## Entrada da vaga
+## Job input
 
-O usuário fornece a vaga por um destes meios:
-- **Texto colado** — descrição da vaga copiada de qualquer portal (recomendado
-  e mais confiável).
-- **Arquivo local** — arquivo com a descrição da vaga (txt, html, pdf).
-- **Export oficial LinkedIn** — vagas salvas/visualizadas podem aparecer em
-  arquivos do Download My Data.
-- **URL** — se o usuário colar apenas uma URL, tente baixar o conteúdo com
-  `curl -L` respeitando robots. Se o portal bloquear (LinkedIn bloqueia
-  sempre), peça o texto colado. NUNCA tente contornar bloqueio/anti-bot.
+The user provides the job through one of these means:
+- **Pasted text** — job description copied from any portal (recommended and
+  most reliable).
+- **Local file** — a file with the job description (txt, html, pdf).
+- **Official LinkedIn export** — saved/viewed jobs may appear in Download My
+  Data files.
+- **URL** — if the user pastes only a URL, try to download the content with
+  `curl -L` respecting robots. If the portal blocks (LinkedIn always blocks),
+  ask for pasted text. NEVER try to bypass blocking/anti-bot.
 
-## Análise da vaga
+## Job analysis
 
-Extraia da vaga:
+Extract from the job:
 
-1. **Requisitos obrigatórios** — habilidades, ferramentas, certificações,
-   idiomas, senioridade, anos de experiência explicitamente exigidos.
-2. **Requisitos desejáveis** — o que a vaga "deseja" (nice to have).
-3. **Keywords/tecnologias** — termos técnicos, produtos, stacks citados.
-4. **Senioridade** — júnior/pleno/sênior/especialista/lead (ou inferida).
-5. **Idioma da vaga** — pt/en/es → define o idioma do currículo gerado.
-6. **Perfil da empresa** — setor, tamanho, cultura (se disponível).
+1. **Required requirements** — skills, tools, certifications, languages,
+   seniority, years of experience explicitly demanded.
+2. **Desirable requirements** — what the job "wishes for" (nice to have).
+3. **Keywords/technologies** — technical terms, products, stacks mentioned.
+4. **Seniority** — junior/mid/senior/expert/lead (or inferred).
+5. **Job language** — pt/en/es → defines the language of the generated resume.
+6. **Company profile** — sector, size, culture (if available).
 
 ## Gap analysis vs hub
 
-Para cada requisito, classifique o match:
+For each requirement, classify the match:
 
-| Classificação | Critério |
-|---------------|----------|
-| `atendido` | Habilidade/requisito presente no hub (skills, experiência, certificação) |
-| `parcial` | Presente de forma aproximada (ex.: vaga pede Kubernetes, hub tem Docker + AWS ECS) |
-| `nao-atendido` | Requisito não existe no hub |
+| Classification | Criterion |
+|----------------|-----------|
+| `met` | Skill/requirement present in the hub (skills, experience, certification) |
+| `partial` | Present approximately (e.g. the job asks for Kubernetes, the hub has Docker + AWS ECS) |
+| `not_met` | Requirement does not exist in the hub |
 
-Registre o resultado em `curriculos/<slug-vaga>/gap-analysis.md` com a
-tabela de requisitos → classificação → evidência no hub.
+Record the result in `curriculos/<job-slug>/gap-analysis.md` with the
+requirements → classification → hub evidence table.
 
-## Fluxo de validação humana das inferências
+**Gap analysis language**: `gap-analysis.md` and `inferencias.md` are
+analysis artifacts — they MUST be written in the language the user
+communicates in (session locale or explicit user instruction; English as the
+fallback), like the other career analysis outputs. The resume itself follows
+the job's language.
 
-Antes de gerar o HTML/PDF final, liste TODAS as inferências e placeholders em
-`curriculos/<slug-vaga>/inferencias.md` (uma por linha, com contexto) e peça a
-decisão do candidato sobre cada uma:
+## Human validation flow for inferences
 
-| Decisão | Ação |
-|---------|------|
-| `reformular` | Reescreva o conteúdo sem a marca `[INFERIDO]` (reformulação do que existe no hub) |
-| `omitir` | Remova o conteúdo do currículo |
-| `promover` | Use como facto apenas se o candidato confirmar dado real (sem marca no output) |
+Before generating the final HTML/PDF, list ALL inferences and placeholders in
+`curriculos/<job-slug>/inferencias.md` (one per line, with context) and ask
+the candidate to decide on each one:
 
-Após a decisão humana, gere o HTML SEM nenhuma marcação `[INFERIDO]`. A lista
-resolvida fica registrada em `inferencias.md` para rastreabilidade.
+| Decision | Action |
+|----------|--------|
+| `rephrase` | Rewrite the content without the `[INFERIDO]` marker (rephrasing what exists in the hub) |
+| `omit` | Remove the content from the resume |
+| `promote` | Use as fact only if the candidate confirms real data (no marker in the output) |
 
-## Adaptação do conteúdo (sem fabricar)
+After the human decision, generate the HTML with NO `[INFERIDO]` marker. The
+resolved list stays recorded in `inferencias.md` for traceability.
 
-Reordene, destaque e reformule **apenas o que já existe no hub**:
+## Content adaptation (without fabricating)
 
-- **Summary**: reescreva o `resumo`/`resumo_i18n` para destacar as
-  competências mais relevantes à vaga (no idioma da vaga).
-- **Skills**: reordene priorizando as keywords da vaga. Skills com
-  `importancia: principal` e match com a vaga vão primeiro.
-- **Experiência**: reordene conquistas dentro de cada cargo — as que têm
-  mais aderência à vaga primeiro. Não remova cargos; pode condensar os menos
-  relevantes.
-- **Projetos**: destaque os projetos com tecnologias da vaga; marque
-  `relevancia: alta`.
-- **Certificações**: ordene as mais relevantes à vaga primeiro.
-- **Seções**: omita seções vazias (ex.: sem certificações → omitir seção).
+Reorder, highlight and rephrase **only what already exists in the hub**:
 
-### Regras rígidas
+- **Summary**: rewrite `summary`/`summary_i18n` to highlight the skills most
+  relevant to the job (in the job's language).
+- **Skills**: reorder prioritizing the job keywords. Skills with
+  `importance: primary` and a job match come first.
+- **Experience**: reorder achievements within each role — the ones with the
+  most job relevance first. Do not remove roles; you may condense the least
+  relevant ones.
+- **Projects**: highlight projects using the job's technologies; mark
+  `relevance: high`.
+- **Certifications**: order the most relevant to the job first.
+- **Sections**: omit empty sections (e.g. no certifications → omit the section).
 
-1. **NUNCA inventar** — experiência, skills, projetos, certificações, dados
-   de contato que não estão no hub NÃO entram no currículo. Apenas reordenar,
-   destacar, reformular e condensar o que existe.
-2. **Inferências NUNCA no output final** — `[INFERIDO]` é permitido APENAS em
-   artefactos internos de revisão humana (hub.json, gap-analysis.md, lista de
-   inferências). No HTML/PDF final (`index.html`/`curriculo.pdf`) NENHUM
-   `[INFERIDO]` pode aparecer — nem variações case-insensitive (`[inferido]`,
-   `[Inferido]`, a palavra "inferido"). Conteúdo inferido (ex.: nível de
-   idioma não informado, projeto relevante por analogia) é omitido,
-   reformulado ou aprovado pelo candidato ANTES da geração. Nunca silencioso,
-   nunca no artefacto partilhável.
-3. **Idioma da vaga** — todo o conteúdo do currículo gerado segue o idioma
-   da vaga. Use `resumo_i18n` quando disponível; senão traduza o resumo a
-   partir do hub (tradução de conteúdo existente é permitida — não é
-   fabricação).
-4. **Contato** — inclua telefone/e-mail/endereço somente se existirem no hub.
-   Dados sensíveis (CPF, documento, banco) nunca.
-5. **Padrão de design obrigatório** — todo currículo DEVE seguir
-   `standards/cv-design.md` (ATS, impressão A4/P&B, estilo sóbrio, páginas por
-   senioridade), partindo do template de referência
-   `skills/career/cv-pdf/templates/resume.html` — adapte o conteúdo, NUNCA
-   escreva CSS do zero. Antes do PDF, verifique a conformidade (checklist do
-   padrão: headings semânticos, coluna única, sem emoji/Google Fonts, margens
-   12–15mm, 1–2 páginas).
+### Hard rules
 
-## Estrutura de saída
+1. **NEVER invent** — experience, skills, projects, certifications, contact
+   data that are not in the hub do NOT enter the resume. Only reorder,
+   highlight, rephrase and condense what exists.
+2. **Inferences NEVER in the final output** — `[INFERIDO]` is allowed ONLY in
+   internal human-review artifacts (hub.json, gap-analysis.md, inferences
+   list). In the final HTML/PDF (`index.html`/`curriculo.pdf`) NO `[INFERIDO]`
+   may appear — nor case-insensitive variants (`[inferido]`, `[Inferido]`, the
+   word "inferido"). Inferred content (e.g. an unstated language level, a
+   relevant project by analogy) is omitted, rephrased or approved by the
+   candidate BEFORE generation. Never silently, never in the shareable artifact.
+3. **Job language** — all content of the generated resume follows the job's
+   language. Use `summary_i18n` when available; otherwise translate the
+   summary from the hub (translating existing content is allowed — it is not
+   fabrication).
+4. **Contact** — include phone/email/address only if they exist in the hub.
+   Sensitive data (CPF, document, bank) never.
+5. **Mandatory design standard** — every resume MUST follow
+   `standards/cv-design.md` (ATS, A4 print/B&W, sober style, page count by
+   seniority), starting from the reference template
+   `skills/career/cv-pdf/templates/resume.html` — adapt the content, NEVER
+   write CSS from scratch. Before the PDF, verify conformity (standard
+   checklist: semantic headings, single column, no emoji/Google Fonts,
+   12–15mm margins, 1–2 pages).
+
+## Output structure
 
 ```
-~/carreira/<nome-candidato>/curriculos/<slug-da-vaga>/
-├── index.html            # currículo HTML (idioma da vaga)
-├── curriculo.pdf         # PDF A4 gerado
-├── gap-analysis.md       # análise de requisitos vs hub
-└── inferencias.md        # lista de inferências resolvidas (revisão humana)
+~/carreira/<candidate-name>/curriculos/<job-slug>/
+├── index.html            # resume HTML (job language)
+├── curriculo.pdf         # generated A4 PDF
+├── gap-analysis.md       # requirements vs hub analysis
+└── inferencias.md        # resolved inferences list (human review)
 ```
 
-`<slug-da-vaga>` = empresa + cargo normalizados (ex. `acme-senior-data-engineer`).
+`<job-slug>` = normalized company + title (e.g. `acme-senior-data-engineer`).
 
-## Geração do PDF
+## PDF generation
 
-1. Copie o template de referência `skills/career/cv-pdf/templates/resume.html`
-   para `curriculos/<slug-da-vaga>/index.html` e adapte o CONTEÚDO (nunca o
-   CSS) conforme o padrão `standards/cv-design.md`: ajuste `lang` para o
-   idioma da vaga, traduza os títulos das seções, preencha os dados do hub e
-   omita seções vazias.
-2. **Verifique a conformidade com o padrão** (checklist ATS/print/páginas do
-   `standards/cv-design.md`) ANTES de gerar o PDF: headings semânticos, coluna
-   única, sem imagens/tabelas complexas, sem emoji/Google Fonts, `@page {
-   size: A4; margin: 12mm 15mm; }`, `@media print` limpo, 1–2 páginas.
-3. **Rode o gate de inferências ANTES do PDF**:
-   `bash $SCRIPTS_DIR/cv/check-inferido.sh index.html` — o gate DEVE passar
-   (exit 0) antes de continuar. Se falhar, remova/reformule as marcações e
-   rode novamente. Este gate é obrigatório e não pode ser pulado.
-4. Rode `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
-5. Se o script falhar, reporte o erro do engine — nunca entregue um PDF vazio.
+1. Copy the reference template `skills/career/cv-pdf/templates/resume.html`
+   to `curriculos/<job-slug>/index.html` and adapt the CONTENT (never the
+   CSS) per the `standards/cv-design.md` standard: set `lang` to the job's
+   language, translate the section titles, fill in the hub data and omit
+   empty sections.
+2. **Verify conformity with the standard** (the ATS/print/pages checklist of
+   `standards/cv-design.md`) BEFORE generating the PDF: semantic headings,
+   single column, no images/complex tables, no emoji/Google Fonts, `@page {
+   size: A4; margin: 12mm 15mm; }`, clean `@media print`, 1–2 pages.
+3. **Run the inference gate BEFORE the PDF**:
+   `bash $SCRIPTS_DIR/cv/check-inferido.sh index.html` — the gate MUST pass
+   (exit 0) before continuing. If it fails, remove/rephrase the markers and
+   run again. This gate is mandatory and cannot be skipped.
+4. Run `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
+5. If the script fails, report the engine error — never deliver an empty PDF.

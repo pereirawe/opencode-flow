@@ -372,13 +372,16 @@ See `standards/issues.md` for the full contract.
  - Suggested fix (alternativo): Se o spike do modo headless falhar, avaliar self-hosted GitHub runner na mesma VM do opencode web, com `--attach http://127.0.0.1:4096` — mantém paralelismo sem exigir suporte headless do opencode. SPIKE PASSED — alternativa NÃO necessária.
 
 ### 64. Standardize career sector language — English prompts, English hub.json schema, user-locale analysis outputs
-- Status: backlog
+- Status: in-publish
+- Opened: 2026-08-15
+- Ready: 2026-08-15
+- Started: 2026-08-15
 - Type: feat
 - Severity: critical
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 2 (runtime, docs)
-- Remote: -
+- Remote: #71
 - PR: -
 - Location: agents/career/cv-extractor.md, agents/career/cv-optimizer.md, agents/career/cv-tailor.md, skills/career/cv-hub/SKILL.md, skills/career/cv-optimizer/SKILL.md, skills/career/cv-tailor/SKILL.md, skills/career/cv-pdf/SKILL.md, commands/ocf:cv-hub.md, commands/ocf:cv-optimize.md, commands/ocf:cv-tailor.md, scripts/cv/schema.json, scripts/cv/validate.py, scripts/tests/test_cv.sh, opencode.json:118-127
 - Description: Rewrite ALL career sector prompts (agents, skills, commands, schema descriptions, validator messages) in English. Migrate hub.json keys and ENUM values from Portuguese to English. Add locale rule: analysis files generated in the user's communication language; tailored resumes in the job offer's language.
@@ -413,6 +416,7 @@ See `standards/issues.md` for the full contract.
   12. [INFERIDO] rules from #62 are preserved (internal files keep it, final PDFs never).
   13. `make test-scripts` passes with updated test fixtures.
 - Suggested fix: Rewrite all career prompts in English; migrate schema.json keys/enums to English and update validate.py accordingly; update test_cv.sh fixtures; provide a migration helper (scripts/cv/migrate-schema.py or documented manual steps); verify opencode.json consistency. Coordinate merge order: #62 → #64 → #63. Origem: Proposal 2026-08-14-3 em prioritization.md.
+- Tests: incomplete-spec (discovery gap flagged by QA post-review 2026-08-15) — no Tests: field captured pre-development; severity critical requires >=3 scenario → outcome lines. Implementation covered by test_cv.sh (74 assertions: migration pt→en keys/enums, validate.py rejection of PT hub, idempotency, English fixtures) + make test-scripts (10 suites). Transcribe during next discovery refinement.
 
 ### 65. Standard structure for career sector analysis reports — standards/cv-analysis.md + report templates
 - Status: backlog
