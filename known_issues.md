@@ -372,13 +372,16 @@ See `standards/issues.md` for the full contract.
  - Suggested fix (alternativo): Se o spike do modo headless falhar, avaliar self-hosted GitHub runner na mesma VM do opencode web, com `--attach http://127.0.0.1:4096` — mantém paralelismo sem exigir suporte headless do opencode. SPIKE PASSED — alternativa NÃO necessária.
 
 ### 71. Keyword density and match percentage in gap analysis
-- Status: backlog
+- Status: in-review
+- Opened: 2026-08-15
+- Ready: 2026-08-15
+- Started: 2026-08-15
 - Type: feat
 - Severity: medium
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 1 (qa)
-- Remote: -
+- Remote: #87
 - PR: -
 - Location: skills/career/cv-tailor/SKILL.md, agents/career/cv-tailor.md, commands/ocf:cv-tailor.md, standards/cv-analysis.md
 - Description: Enhance the cv-tailor gap analysis to include: (1) match percentage (requirements met / total requirements × 100), (2) keyword density map showing each job keyword and its count in the resume, (3) a coverage summary by section showing which resume sections contain the most job keywords. These metrics complement the ATS score (#69) and give the candidate actionable insight at the gap analysis stage.
@@ -400,6 +403,10 @@ See `standards/issues.md` for the full contract.
   5. Gap analysis report follows standards/cv-analysis.md table format.
   6. No new agent or command created.
   7. `make test-scripts` passes with new test cases.
+- Tests:
+  1. Job with 4 mandatory + 2 desirable requirements, 3 mandatory + 1 desirable met → match percentage = (3×2 + 1×1) / (4×2 + 2×1) × 100 = 70 → gap-analysis.md shows 70%.
+  2. Job keyword "Kubernetes" appears 3× in the generated index.html text → keyword density map shows `Kubernetes → 3`.
+  3. Job keywords found mostly in the Skills and Experience sections → coverage summary lists Skills and Experience at the top.
 - Suggested fix: Enhance cv-tailor skill/agent with keyword density and match percentage logic; update gap-analysis.md format in standards/cv-analysis.md. Execute after #64 and #65. Origem: Proposal 2026-08-14-10 em prioritization.md.
 
 ### 72. Technical corrections — validate.py, schema.json, agents/README, templates, curl security
