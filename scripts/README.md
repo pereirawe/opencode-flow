@@ -56,7 +56,13 @@ run. Local `Status:` is the source of truth — Jira is a mirror.
 
 Config: `.opencode/jira.json` (or env vars) + `JIRA_API_TOKEN` env. Without a
 valid config the sync is disabled and the pipeline behaves exactly as before
-(zero Jira calls). All operations are non-blocking and idempotent.
+(zero Jira calls). All operations are non-blocking and idempotent. `baseUrl`
+should be `https://` (Basic auth over `http://` would leak email+token in
+cleartext) — treat `jira.json` as an operator-owned, trusted file. Network
+calls are bounded by `JIRA_CURL_TIMEOUT` (default 5s connect) and
+`JIRA_CURL_MAXTIME` (default 30s total) so a hung host can never freeze the
+pipeline. `JIRA_CONFIG_FILE` overrides the config path (default
+`.opencode/jira.json`).
 
 ```bash
 scripts/sync-jira.sh config                 # resolved config (no secrets)

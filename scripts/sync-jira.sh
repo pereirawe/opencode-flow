@@ -26,6 +26,11 @@
 set -euo pipefail
 source "$(dirname "$0")/config.sh"
 
+# Single temp dir for the whole run; cleaned on exit so SIGINT/SIGTERM never
+# leak mktemp files (reviewer nit).
+JIRA_TMPDIR="$(mktemp -d)"
+trap 'rm -rf "$JIRA_TMPDIR"' EXIT
+
 # --- auth ---------------------------------------------------------------------
 
 auth_header() {
@@ -41,19 +46,25 @@ auth_header() {
 # jira_http <method> <path> [json-data] — curl wrapper.
 # Prints the response body on success; logs a warning and returns 1 otherwise.
 # Never prints the token: auth goes in the Authorization header only (AC 9).
+# Hard network timeouts enforce the BR 8 non-blocking guarantee even for
+# black-holed/DNS-stalled hosts (reviewer HIGH finding): a hung curl would
+# otherwise freeze the pipeline hooks that call this synchronously.
 jira_http() {
   local method="$1" path="$2" data="${3:-}"
   local url="${JIRA_BASE_URL%/}$path"
   local hdr
   hdr="$(auth_header)"
   local tmp_body tmp_code tmp_err
-  tmp_body="$(mktemp)"; tmp_code="$(mktemp)"; tmp_err="$(mktemp)"
+  tmp_body="$JIRA_TMPDIR/body.$$"; tmp_code="$JIRA_TMPDIR/code.$$"; tmp_err="$JIRA_TMPDIR/err.$$"
   local rc=0
+  local ctimeout="${JIRA_CURL_TIMEOUT:-5}" mtimeout="${JIRA_CURL_MAXTIME:-30}"
   if [[ -n "$data" ]]; then
-    curl -sS -X "$method" -H "$hdr" -H "Content-Type: application/json" \
+    curl -sS --connect-timeout "$ctimeout" --max-time "$mtimeout" \
+      -X "$method" -H "$hdr" -H "Content-Type: application/json" \
       -o "$tmp_body" -w '%{http_code}' -d "$data" "$url" >"$tmp_code" 2>"$tmp_err" || rc=$?
   else
-    curl -sS -X "$method" -H "$hdr" -H "Content-Type: application/json" \
+    curl -sS --connect-timeout "$ctimeout" --max-time "$mtimeout" \
+      -X "$method" -H "$hdr" -H "Content-Type: application/json" \
       -o "$tmp_body" -w '%{http_code}' "$url" >"$tmp_code" 2>"$tmp_err" || rc=$?
   fi
   local code body err
@@ -65,6 +76,10 @@ jira_http() {
     echo "[jira] WARNING: curl failed (rc=$rc) for $method $path — sync skipped (non-blocking): $err" >&2
     return 1
   fi
+  # sanitize before arithmetic: a non-numeric code would be evaluated as an
+  # arithmetic expression under set -u (reviewer finding) — pin to digits
+  code="${code//[^0-9]/}"
+  [[ -z "$code" ]] && code="000"
   if [[ "$code" -ge 400 ]]; then
     echo "[jira] WARNING: Jira API HTTP $code for $method $path — $(printf '%s' "$body" | head -c 300) (non-blocking)" >&2
     return 1
@@ -239,8 +254,10 @@ sys.exit(1)' 2>/dev/null || true)"
 
 cmd_config() {
   if jira_config_load; then
-    printf 'enabled=yes\nbase_url=%s\nproject_key=%s\nemail=%s\nauth_mode=%s\n' \
-      "$JIRA_BASE_URL" "$JIRA_PROJECT_KEY" "$JIRA_EMAIL" "$JIRA_AUTH_MODE"
+    # email is redacted (AC 9 / BR 12): the value is the Jira account login,
+    # not needed for debugging; never echo it to logs/console
+    printf 'enabled=yes\nbase_url=%s\nproject_key=%s\nemail=<set>\nauth_mode=%s\n' \
+      "$JIRA_BASE_URL" "$JIRA_PROJECT_KEY" "$JIRA_AUTH_MODE"
     return 0
   fi
   echo "enabled=no"
@@ -268,6 +285,13 @@ cmd_ensure_card() { # <file> <id> — create the card when Jira: - (BR 4/BR 5)
     /^- (Status|Opened|Ready|Started|Remote|PR|Jira):/ { next }
     { print }
   ')"
+  if ! command -v python3 >/dev/null 2>&1; then
+    # No python3 → the JSON build cannot be done safely (the grep fallback
+    # produced invalid JSON / raw newlines — reviewer finding). Fail loudly
+    # and non-blocking instead of sending a malformed create to Jira.
+    echo "[jira] WARNING: python3 is required to create the card for issue $id — skipped (non-blocking)" >&2
+    return 1
+  fi
   payload="$(build_json doc "$body")"
   payload="$(JIRA_TITLE="$title" JIRA_PROJ="$JIRA_PROJECT_KEY" JIRA_BODY="$payload" python3 -c '
 import json, os
@@ -279,11 +303,8 @@ p = {"fields": {
 }}
 print(json.dumps(p))' 2>/dev/null || true)"
   if [[ -z "$payload" ]]; then
-    # fallback (no python3): minimal inline JSON
-    local e_title
-    e_title="$(printf '%s' "$title" | sed 's/\\/\\\\/g; s/"/\\"/g')"
-    payload="$(printf '{"fields":{"project":{"key":"%s"},"summary":"%s","issuetype":{"name":"Task"},"description":%s}}' \
-      "$JIRA_PROJECT_KEY" "$e_title" "$body")"
+    echo "[jira] WARNING: could not build the card payload for issue $id — skipped (non-blocking)" >&2
+    return 1
   fi
   resp="$(jira_http POST /rest/api/3/issue "$payload")" || return 1
   key="$(json_get "$resp" key)"
@@ -295,8 +316,11 @@ print(json.dumps(p))' 2>/dev/null || true)"
   echo "[jira] card created: $key for issue $id"
 }
 
-cmd_transition() { # <file> <id> — move the card to the mapped status (BR 6)
-  local file="$1" id="$2"
+cmd_transition() { # <file> <id> [--terminal] — move the card to the mapped status (BR 6)
+  local file="$1" id="$2" terminal=0
+  if [[ "${3:-}" == "--terminal" ]]; then
+    terminal=1
+  fi
   local sec
   sec="$(issue_section "$file" "$id")"
   if [[ -z "$sec" ]]; then
@@ -309,7 +333,17 @@ cmd_transition() { # <file> <id> — move the card to the mapped status (BR 6)
     echo "[jira] no card for issue $id (Jira: ${key:-none}) — transition skipped"
     return 0
   fi
+  if ! [[ "$key" =~ ^[A-Z][A-Z0-9]*-[0-9]+$ ]]; then
+    echo "[jira] WARNING: malformed Jira key '$key' for issue $id — skipped (non-blocking)" >&2
+    return 1
+  fi
+  # --terminal forces the resolved/terminal mapping (close path): the entry is
+  # archived right after, so the card must reach Done regardless of whether the
+  # local status was in-publish or resolved (reviewer finding).
   status="$(field_value "$sec" Status)"
+  if [[ "$terminal" == "1" ]]; then
+    status="resolved"
+  fi
   target="$(map_status "$status")"
   if [[ -z "$target" ]]; then
     echo "[jira] no mapped Jira status for local status '$status' — skipped"
@@ -321,6 +355,10 @@ cmd_transition() { # <file> <id> — move the card to the mapped status (BR 6)
     return 0
   fi
   tid="$(find_transition_id "$key" "$target")" || return 0
+  if ! [[ "$tid" =~ ^[0-9]+$ ]]; then
+    echo "[jira] WARNING: non-numeric transition id for $key — skipped (non-blocking)" >&2
+    return 1
+  fi
   resp="$(jira_http POST "/rest/api/3/issue/$key/transitions" \
     "{\"transition\":{\"id\":\"$tid\"}}")" || return 1
   echo "[jira] card $key transitioned to '$target' (id $tid)"
@@ -339,6 +377,10 @@ cmd_add_comment() { # <file> <id> [text] — text from argv or stdin (BR 10)
     echo "[jira] no card for issue $id (Jira: ${key:-none}) — comment skipped"
     return 0
   fi
+  if ! [[ "$key" =~ ^[A-Z][A-Z0-9]*-[0-9]+$ ]]; then
+    echo "[jira] WARNING: malformed Jira key '$key' for issue $id — skipped (non-blocking)" >&2
+    return 1
+  fi
   local doc
   doc="$(build_json doc "$text")"
   payload="$(printf '{"body":%s}' "$doc")"
@@ -352,7 +394,7 @@ cmd_sync() { # [file] — reconcile every issue that has a card (AC 5)
     echo "[jira] tracker not found: $file" >&2
     return 1
   fi
-  local ids id sec key
+  local ids id sec key out
   ids="$(awk '/^### [0-9]+\./ { gsub(/\.$/,"",$2); print $2 }' "$file")"
   local synced=0 skipped=0 failed=0
   for id in $ids; do
@@ -362,14 +404,18 @@ cmd_sync() { # [file] — reconcile every issue that has a card (AC 5)
       skipped=$((skipped + 1))
       continue
     fi
-    if cmd_transition "$file" "$id" >/dev/null 2>&1; then
+    out="$(cmd_transition "$file" "$id" 2>&1)" && {
       synced=$((synced + 1))
-    else
+      echo "[jira] $out"
+    } || {
       failed=$((failed + 1))
-      echo "[jira] WARNING: sync failed for issue $id — continuing (non-blocking)"
-    fi
+      echo "[jira] WARNING: sync failed for issue $id — continuing (non-blocking): $out"
+    }
   done
   echo "[jira] sync done: $synced synced, $skipped without card, $failed failed"
+  # a reconcile where every transition failed must not report success (BR 8 /
+  # CI observability — reviewer finding)
+  [[ "$failed" -eq 0 ]]
 }
 
 # --- main ------------------------------------------------------------------------
@@ -386,6 +432,13 @@ case "$CMD" in
       echo "[jira] sync disabled — no valid Jira config (jira.json or env + JIRA_API_TOKEN)" >&2
       exit 1
     fi
+    if ! command -v python3 >/dev/null 2>&1; then
+      # JSON building/parsing requires python3; the sed/grep fallbacks produced
+      # invalid JSON / wrong nested lookups (reviewer finding). Fail loudly,
+      # non-blocking — the pipeline hooks tolerate the exit code.
+      echo "[jira] WARNING: python3 is required for Jira sync — skipped (non-blocking)" >&2
+      exit 1
+    fi
     case "$CMD" in
       ensure-card) cmd_ensure_card "$@" ;;
       transition)  cmd_transition "$@" ;;
@@ -394,7 +447,7 @@ case "$CMD" in
     esac
     ;;
   *)
-    echo "Usage: sync-jira.sh {config|ensure-card <file> <id>|transition <file> <id>|add-comment <file> <id> [text]|sync [file]}" >&2
+    echo "Usage: sync-jira.sh {config|ensure-card <file> <id>|transition <file> <id> [--terminal]|add-comment <file> <id> [text]|sync [file]}" >&2
     exit 2
     ;;
 esac

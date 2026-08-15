@@ -50,26 +50,28 @@ exec "$REAL" "$@"
 EOF
 chmod +x "$MOCK_DATE/date"
 
-# mock curl: logs method/url/data ONLY (never headers — AC 9). Response
-# selected by URL; env-tunable.
+# mock curl: logs method/url/data ONLY (never headers — AC 9) plus any
+# --connect-timeout/--max-time flags (so the BR 8 timeout guard is testable).
+# Response selected by URL; env-tunable.
 MOCK_NET="$TMP/mock-net"; mkdir -p "$MOCK_NET"
 cat > "$MOCK_NET/curl" <<'EOF'
 #!/usr/bin/env bash
-# echo "curl $*"  # NEVER log headers — they carry the token (AC 9)
 M="GET"; URL=""; DATA=""; OUT=""
+LOGARGS=()
 a=("$@"); i=0
 while [ $i -lt ${#a[@]} ]; do
   case "${a[$i]}" in
-    -X) M="${a[$((i+1))]}"; i=$((i+1));;
-    -H) i=$((i+1));;
-    -d|--data) DATA="${a[$((i+1))]}"; i=$((i+1));;
+    -X) M="${a[$((i+1))]}"; LOGARGS+=("-X" "${a[$((i+1))]}"); i=$((i+1));;
+    -H) i=$((i+1));;  # skip header + value — never logged (AC 9)
+    -d|--data) DATA="${a[$((i+1))]}"; LOGARGS+=("-d" "${a[$((i+1))]}"); i=$((i+1));;
     -o) OUT="${a[$((i+1))]}"; i=$((i+1));;
     -w) :;;
+    --connect-timeout|--max-time) LOGARGS+=("${a[$i]}" "${a[$((i+1))]}"); i=$((i+1));;
     *) case "${a[$i]}" in http*) URL="${a[$i]}";; esac;;
   esac
   i=$((i+1))
 done
-printf 'curl %s %s%s\n' "$M" "$URL" "${DATA:+ -d $DATA}" >> "${CURL_LOG:-/dev/null}"
+printf 'curl %s %s %s\n' "$M" "$URL" "${LOGARGS[*]}" >> "${CURL_LOG:-/dev/null}"
 
 if [[ "${JIRA_NET_FAIL:-0}" == "1" ]]; then
   echo "mock: connection failed" >&2
@@ -416,5 +418,78 @@ fix="$TMP/t18"; make_fixture "$fix" ready "#42" "DEV-123"
 envs="$(jira_env) CURL_LOG=$TMP/t18.log"; export CURL_LOG="$TMP/t18.log"; : > "$CURL_LOG"
 run "$fix" "$SYNC" "$envs" config >/dev/null
 assert_not_contains "$RUN_OUT" "$JIRA_TOKEN" "t18: config output has no token"
+assert_not_contains "$RUN_OUT" "dev@acme.com" "t18: config output redacts the email (AC 9)"
+
+# ===========================================================================
+# t19 — curl timeouts present (BR 8 non-blocking on hung hosts)
+# ===========================================================================
+fix="$TMP/t19"; make_fixture "$fix" ready "#42" "DEV-123"
+envs="$(jira_env) CURL_LOG=$TMP/t19.log JIRA_CARD_STATUS=To%20Do"; export CURL_LOG="$TMP/t19.log"; : > "$CURL_LOG"
+run "$fix" "$PROMOTE" "$envs" 1 >/dev/null
+assert_contains "$CURL_LOG" "--connect-timeout" "t19: connect-timeout passed to curl"
+assert_contains "$CURL_LOG" "--max-time" "t19: max-time passed to curl"
+
+# ===========================================================================
+# t20 — add-comment posts the comment to the card (BR 10)
+# ===========================================================================
+fix="$TMP/t20"; make_fixture "$fix" in-progress "#42" "DEV-123"
+envs="$(jira_env) CURL_LOG=$TMP/t20.log"; export CURL_LOG="$TMP/t20.log"; : > "$CURL_LOG"
+rc=$(run "$fix" "$SYNC" "$envs" add-comment "$fix/.opencode/known_issues.md" 1 "reviewed and approved")
+assert_eq "0" "$rc" "t20: add-comment exit 0"
+assert_contains "$CURL_LOG" "POST https://acme.atlassian.net/rest/api/3/issue/DEV-123/comment" "t20: comment POST issued"
+assert_contains "$RUN_OUT" "comment added to card DEV-123" "t20: comment result logged"
+
+# ===========================================================================
+# t21 — add-comment without a card skips gracefully
+# ===========================================================================
+fix="$TMP/t21"; make_fixture "$fix" in-progress "#42" "-"
+envs="$(jira_env) CURL_LOG=$TMP/t21.log"; export CURL_LOG="$TMP/t21.log"; : > "$CURL_LOG"
+rc=$(run "$fix" "$SYNC" "$envs" add-comment "$fix/.opencode/known_issues.md" 1 "hello")
+assert_eq "0" "$rc" "t21: add-comment without card exit 0"
+assert_contains "$RUN_OUT" "no card" "t21: skip message"
+assert_eq "0" "$(jira_calls "$CURL_LOG")" "t21: zero Jira API calls"
+
+# ===========================================================================
+# t22 — add-comment on HTTP error is non-blocking
+# ===========================================================================
+fix="$TMP/t22"; make_fixture "$fix" in-progress "#42" "DEV-123"
+envs="$(jira_env) CURL_LOG=$TMP/t22.log JIRA_HTTP_CODE=404"; export CURL_LOG="$TMP/t22.log"; : > "$CURL_LOG"
+rc=$(run "$fix" "$SYNC" "$envs" add-comment "$fix/.opencode/known_issues.md" 1 "hello")
+assert_eq "1" "$rc" "t22: add-comment fails on HTTP error (caller decides non-blocking)"
+assert_contains "$RUN_OUT" "HTTP 404" "t22: HTTP error warning logged"
+
+# ===========================================================================
+# t23 — Jira HTTP 4xx on transition: promote still advances locally (BR 8)
+# ===========================================================================
+fix="$TMP/t23"; make_fixture "$fix" ready "#42" "DEV-123"
+envs="$(jira_env) CURL_LOG=$TMP/t23.log JIRA_HTTP_CODE=404"; export CURL_LOG="$TMP/t23.log"; : > "$CURL_LOG"
+rc=$(run "$fix" "$PROMOTE" "$envs" 1)
+assert_eq "0" "$rc" "t23: promote exit 0 despite Jira HTTP 404"
+assert_eq "in-progress" "$(field "$fix/.opencode/known_issues.md" Status)" "t23: local status advanced"
+assert_contains "$RUN_OUT" "Warning: status sync failed" "t23: warning logged"
+
+# ===========================================================================
+# t24 — close from in-publish: card moved to Done (terminal) — reviewer finding
+# ===========================================================================
+fix="$TMP/t24"; make_fixture "$fix" in-publish "#42" "DEV-123" "#9"
+envs="$(jira_env) CURL_LOG=$TMP/t24.log"; export CURL_LOG="$TMP/t24.log"; : > "$CURL_LOG"
+rc=$(run "$fix" "$CLOSE" "$envs" 1)
+assert_eq "0" "$rc" "t24: close in-publish exit 0"
+assert_contains "$CURL_LOG" '-d {"transition":{"id":"21"}}' "t24: in-publish close → card to Done (id 21)"
+assert_contains "$fix/.opencode/resolved_issues.md" "- Resolved:" "t24: local archive written"
+
+# ===========================================================================
+# t25 — sync with a failing transition exits non-zero (CI observability)
+# ===========================================================================
+fix="$TMP/t25"; mkdir -p "$fix/.opencode"
+git -C "$fix" init -q -b main 2>/dev/null || { git -C "$fix" init -q; git -C "$fix" checkout -q -b main; }
+{
+  printf '### 1. Only\n- Status: ready\n- Type: feat\n- Severity: high\n- Report: t\n- Base branch: main\n- Reviewers: 1 (runtime)\n- Remote: #11\n- Jira: DEV-101\n- PR: -\n- Description: a\n'
+} > "$fix/.opencode/known_issues.md"
+envs="$(jira_env) CURL_LOG=$TMP/t25.log JIRA_HTTP_CODE=500"; export CURL_LOG="$TMP/t25.log"; : > "$CURL_LOG"
+rc=$(run "$fix" "$SYNC" "$envs" sync "$fix/.opencode/known_issues.md")
+assert_eq "1" "$rc" "t25: sync exits non-zero when every transition fails"
+assert_contains "$RUN_OUT" "0 synced, 0 without card, 1 failed" "t25: failure counted"
+assert_contains "$RUN_OUT" "WARNING: sync failed for issue 1" "t25: per-issue failure surfaced"
 
 t_finish

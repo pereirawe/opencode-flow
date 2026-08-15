@@ -120,6 +120,11 @@ Configuration: `.opencode/jira.json` (`baseUrl`, `email`, `projectKey`,
 optional `statusMap`/`authMode`) or env vars `JIRA_BASE_URL`,
 `JIRA_PROJECT_KEY`, `JIRA_EMAIL`; the API token comes **exclusively** from the
 `JIRA_API_TOKEN` environment variable — never committed, never logged.
+`baseUrl` should use `https://` (Basic auth would otherwise transmit the
+email+token in cleartext over `http://`). `jira.json` is an operator-owned,
+trusted file — it controls which host the sync talks to and must never come
+from untrusted input. `JIRA_CONFIG_FILE` overrides the config file path
+(default `.opencode/jira.json`).
 
 ```json
 {
