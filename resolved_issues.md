@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 48. Sincronização bidirecional de issues com Jira Cloud (cards, status e comentários)
+- Resolved: 2026-08-15
+- Durations: backlog=- waiting=- dev=0d total=0d
+- Severity: high
+- Type: feat
+- Report: PO
+- Reviewers: 2
+- Remote: #69
+- Summary: Integrar o pipeline com Jira Cloud (REST v3) — (1) criar `scripts/sync-jira.sh` (core REST v3
+
 ### 49. Agente de setor OWASP e Cybersecurity (consultor + revisor + gate)
 - Resolved: 2026-08-15
 - Durations: backlog=- waiting=- dev=0d total=0d
