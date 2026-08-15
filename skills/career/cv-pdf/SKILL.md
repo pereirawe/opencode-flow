@@ -20,19 +20,31 @@ bash $SCRIPTS_DIR/cv/pdf.sh <input.html> <output.pdf> [chrome|libreoffice]
 Sem o terceiro argumento, tenta Chrome primeiro e cai para LibreOffice se o
 Chrome não estiver disponível ou falhar.
 
+## Padrão de design obrigatório
+
+Todo HTML de currículo DEVE seguir o padrão `standards/cv-design.md`
+(ATS-friendly, impressão A4/P&B, estilo sóbrio, regra de páginas por
+senioridade). Use o template de referência
+`skills/career/cv-pdf/templates/resume.html` como ponto de partida — adapte o
+conteúdo, NUNCA reescreva o CSS do zero.
+
 ## Regras de qualidade
 
 1. **A4 obrigatório** — o HTML DEVE declarar `@page { size: A4; margin:
-   16mm-18mm }`. Sem isso o Chrome usa o tamanho de página do browser e o PDF
-   pode ficar com layout errado.
+   12mm 15mm; }` (margens entre 12mm e 15mm). Sem isso o Chrome usa o tamanho
+   de página do browser e o PDF pode ficar com layout errado.
 2. **Tipografia limpa** — system fonts (`Helvetica`, `Arial`, `sans-serif`)
    para máxima compatibilidade. Sem Google Fonts online (podem não renderizar
-   no headless sem rede).
+   no headless sem rede e quebram o parse de alguns ATS).
 3. **ATS-friendly** — headings semânticos (`h1`/`h2`), texto selecionável
-   (nunca transforme em imagem), sem tabelas complexas, sem ícones
-   decorativos.
-4. **Tamanho razoável** — se o PDF ficar com muitas páginas (> 2–3 para um
-   currículo), sugira condensar o conteúdo (revisar seções menos relevantes).
+   (nunca transforme em imagem), coluna única (sem multicol), sem tabelas
+   complexas, sem ícones/emoji decorativos, datas em texto.
+4. **Imprimível** — legível em preto-e-branco (nada de informação dependente
+   de cor); sem fundos/imagens em print; `@media print` limpo.
+5. **Tamanho razoável** — Júnior/Pleno: 1 página; Sênior/Especialista/Lead:
+   até 2 páginas; nunca 3+. Densidade máx. ~600–700 palavras/página. Se o PDF
+   estourar o limite, sugira condensar o conteúdo (revisar seções menos
+   relevantes).
 
 ## Verificação
 

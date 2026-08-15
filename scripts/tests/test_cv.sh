@@ -384,4 +384,68 @@ assert_eq "0" "$rc_desde_ok" "validate.py accepts a skill with valid desde (YYYY
 assert_eq "1" "$rc_desde_bad" "validate.py rejects a skill with malformed desde"
 assert_eq "1" "$rc_desde_future" "validate.py rejects a skill with future desde"
 
+# --- cv-design standard + reference template (issue #63) ---
+CV_DESIGN="$SCRIPT_DIR/../../standards/cv-design.md"
+CV_TEMPLATE="$SCRIPT_DIR/../../skills/career/cv-pdf/templates/resume.html"
+PDF_SKILL="$SCRIPT_DIR/../../skills/career/cv-pdf/SKILL.md"
+TAILOR_CMD="$SCRIPT_DIR/../../commands/ocf:cv-tailor.md"
+
+# 1. Reference template exists and declares @page A4 with 12-15mm margins
+if [[ -f "$CV_TEMPLATE" ]]; then
+  assert_contains "$CV_TEMPLATE" "@page" "cv-pdf template declares @page"
+  assert_contains "$CV_TEMPLATE" "A4" "cv-pdf template uses A4 page size"
+  assert_contains "$CV_TEMPLATE" "12mm" "cv-pdf template uses 12-15mm margins (12mm present)"
+  # 5. No Google Fonts / emoji in the template (ATS + sober style)
+  assert_not_contains "$CV_TEMPLATE" "fonts.googleapis.com" "cv-pdf template has no Google Fonts links"
+  assert_not_contains "$CV_TEMPLATE" "fonts.gstatic.com" "cv-pdf template has no Google Fonts CDN"
+  if LC_ALL=C grep -q $'\xF0\x9F' "$CV_TEMPLATE" 2>/dev/null; then
+    t_fail "cv-pdf template contains emoji (4-byte UTF-8 sequence)"
+  else
+    t_ok "cv-pdf template contains no emoji"
+  fi
+else
+  t_fail "cv-pdf template missing at $CV_TEMPLATE"
+fi
+
+# 2. cv-pdf skill mandates standards/cv-design.md and the reference template
+if [[ -f "$PDF_SKILL" ]]; then
+  assert_contains "$PDF_SKILL" "standards/cv-design.md" "cv-pdf skill mandates standards/cv-design.md"
+  assert_contains "$PDF_SKILL" "templates/resume.html" "cv-pdf skill references the reference template"
+  assert_contains "$PDF_SKILL" "12mm" "cv-pdf skill documents 12-15mm margins"
+else
+  t_fail "cv-pdf skill missing at $PDF_SKILL"
+fi
+
+# 3. cv-tailor skill references the reference template and the standard
+if [[ -f "$TAILOR_SKILL" ]]; then
+  assert_contains "$TAILOR_SKILL" "templates/resume.html" "cv-tailor skill references the reference template"
+  assert_contains "$TAILOR_SKILL" "standards/cv-design.md" "cv-tailor skill mandates standards/cv-design.md"
+else
+  t_fail "cv-tailor skill missing at $TAILOR_SKILL"
+fi
+
+# 4. cv-tailor agent and command instruct template usage + conformity check (AC 4)
+if [[ -f "$TAILOR_AGENT" ]]; then
+  assert_contains "$TAILOR_AGENT" "templates/resume.html" "cv-tailor agent references the reference template"
+  assert_contains "$TAILOR_AGENT" "standards/cv-design.md" "cv-tailor agent mandates standards/cv-design.md"
+else
+  t_fail "cv-tailor agent missing at $TAILOR_AGENT"
+fi
+
+if [[ -f "$TAILOR_CMD" ]]; then
+  assert_contains "$TAILOR_CMD" "templates/resume.html" "ocf:cv-tailor command references the reference template"
+  assert_contains "$TAILOR_CMD" "standards/cv-design.md" "ocf:cv-tailor command mandates standards/cv-design.md"
+else
+  t_fail "ocf:cv-tailor command missing at $TAILOR_CMD"
+fi
+
+# 5. Design standard exists with testable ATS/print/page rules (AC 1)
+if [[ -f "$CV_DESIGN" ]]; then
+  assert_contains "$CV_DESIGN" "WCAG AA" "cv-design standard documents the 4.5:1 contrast rule"
+  assert_contains "$CV_DESIGN" "A4" "cv-design standard mandates A4"
+  assert_contains "$CV_DESIGN" "12mm" "cv-design standard documents 12-15mm margins"
+else
+  t_fail "cv-design standard missing at $CV_DESIGN"
+fi
+
 t_finish

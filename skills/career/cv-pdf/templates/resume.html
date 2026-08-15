@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<!--
+  TEMPLATE DE REFERÊNCIA — currículo ATS-friendly (padrão standards/cv-design.md)
+
+  BASE OBRIGATÓRIA para o cv-tailor: copie este arquivo para
+  curriculos/<slug-da-vaga>/index.html e adapte SOMENTE o conteúdo —
+  NUNCA reescreva o CSS do zero.
+
+  Ajustes obrigatórios ao adaptar:
+    - lang: pt | en | es conforme o idioma da vaga (use resumo_i18n no hub).
+    - Traduza os títulos das seções para o idioma da vaga.
+    - Traduza também o <title> e o conteúdo do <header> (nome, cargo, contato).
+    - Omita seções vazias (ex.: sem certificações → remova a <section>).
+    - NUNCA inclua [INFERIDO] neste arquivo (gate: scripts/cv/check-inferido.sh).
+
+  Regras que este template já cumpre: A4 12-15mm, fontes de sistema, headings
+  semânticos, coluna única, sem imagens/tabelas complexas, sem emoji, sem
+  Google Fonts, contraste >= 4.5:1, @media print limpo.
+-->
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Currículo — Nome do Candidato</title>
+<style>
+  :root {
+    /* Única cor de acento opcional — por padrão grayscale-safe (mesma do texto).
+       Se alterar, mantenha contraste >= 4.5:1 e legibilidade em preto-e-branco. */
+    --accent: #1a1a1a;
+  }
+
+  @page { size: A4; margin: 12mm 15mm; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 10pt;
+    line-height: 1.45;
+    color: #1a1a1a;            /* near-black — nunca #000 puro */
+    background: #ffffff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ===== Cabeçalho ===== */
+  .header { margin-bottom: 6mm; }
+  .header h1 {
+    font-size: 17pt;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--accent);
+    margin-bottom: 1mm;
+  }
+  .header .role {
+    font-size: 11pt;
+    font-weight: 600;
+    margin-bottom: 1.5mm;
+  }
+  .header .contact { font-size: 9.5pt; color: #3a3a3a; }
+  .header .contact span { white-space: nowrap; }
+  .header .contact span + span::before { content: " · "; }
+
+  /* ===== Seções ===== */
+  section { margin-bottom: 6mm; }
+  section h2 {
+    font-size: 10.5pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    border-bottom: 0.4pt solid #d9d9d9;   /* hairline estrutural */
+    padding-bottom: 1mm;
+    margin-bottom: 2.5mm;
+  }
+
+  .entry { margin-bottom: 3mm; }
+  .entry:last-child { margin-bottom: 0; }
+  .entry h3 { font-size: 10pt; font-weight: 700; }
+  .entry .meta {
+    font-size: 9.5pt;
+    color: #3a3a3a;
+    margin-bottom: 0.8mm;
+  }
+  .entry p, .entry ul { font-size: 9.5pt; }
+  .entry ul { padding-left: 4mm; }
+  .entry li { margin-bottom: 0.6mm; }
+
+  /* ===== Skills/Idiomas: lista em linha, sem tabelas ===== */
+  .inline-list { list-style: none; padding-left: 0; }
+  .inline-list li { display: inline; }
+  .inline-list li + li::before { content: " · "; }
+
+  /* ===== Impressão limpa ===== */
+  @media print {
+    body { background: none; }
+    .entry { break-inside: avoid; }
+    section { break-inside: avoid; }
+    .header { break-after: avoid; }
+    h2 { break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+
+  <header class="header">
+    <h1>Nome do Candidato</h1>
+    <p class="role">Cargo pretendido / Título profissional</p>
+    <p class="contact">
+      <span>Cidade — Estado — País</span>
+      <span>email@exemplo.com</span>
+      <span>+55 (11) 99999-9999</span>
+      <span>linkedin.com/in/candidato</span>
+    </p>
+  </header>
+
+  <!-- Seções padrão (traduza o título para o idioma da vaga). Omita seções sem conteúdo. -->
+  <section>
+    <h2>Resumo</h2>
+    <p>Resumo profissional direcionado à vaga, destacando as competências mais relevantes. Use summary_i18n quando disponível.</p>
+  </section>
+
+  <section>
+    <h2>Experiência</h2>
+    <div class="entry">
+      <h3>Cargo — Empresa</h3>
+      <p class="meta">Jan 2020 — Dez 2023 · Localidade</p>
+      <ul>
+        <li>Conquista mensurável e aderente à vaga.</li>
+        <li>Segunda conquista, reformulada para destacar o impacto.</li>
+      </ul>
+    </div>
+    <div class="entry">
+      <h3>Cargo anterior — Empresa anterior</h3>
+      <p class="meta">Jun 2016 — Dez 2019 · Localidade</p>
+      <ul>
+        <li>Conquista mensurável.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Educação</h2>
+    <div class="entry">
+      <h3>Curso — Instituição</h3>
+      <p class="meta">Concluído em 2015 · Localidade</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Skills</h2>
+    <ul class="inline-list">
+      <li>Skill 1</li>
+      <li>Skill 2</li>
+      <li>Skill 3</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Certificações</h2>
+    <div class="entry">
+      <h3>Certificação — Emissor</h3>
+      <p class="meta">Ano</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Projetos</h2>
+    <div class="entry">
+      <h3>Nome do projeto</h3>
+      <p>Tecnologias e resultado relevante à vaga.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Idiomas</h2>
+    <ul class="inline-list">
+      <li>Português — nativo</li>
+      <li>Inglês — avançado</li>
+    </ul>
+  </section>
+
+</body>
+</html>
