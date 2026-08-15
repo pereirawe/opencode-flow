@@ -40,28 +40,54 @@ Extract from the job:
 
 ## Gap analysis vs hub
 
-For each requirement, classify the match:
+For each requirement, classify the match using the canonical match values of
+`standards/cv-analysis.md` §4.1:
 
-| Classification | Criterion |
-|----------------|-----------|
-| `met` | Skill/requirement present in the hub (skills, experience, certification) |
-| `partial` | Present approximately (e.g. the job asks for Kubernetes, the hub has Docker + AWS ECS) |
+| Match (protocol token) | Criterion |
+|------------------------|-----------|
+| `atendido` | Requirement present in the hub (skill, experience, certification) |
+| `parcial` | Present approximately (e.g. the job asks for Kubernetes, the hub has Docker + AWS ECS) |
 | `not_met` | Requirement does not exist in the hub |
 
-Record the result in `curriculos/<job-slug>/gap-analysis.md` with the
-requirements → classification → hub evidence table.
+Record the result in `curriculos/<job-slug>/gap-analysis.md` following the
+canonical structure of `standards/cv-analysis.md` §3.2, with the uniform gap
+analysis table:
+
+```
+| Requirement | Match | Evidence in hub |
+```
+
+- `Requirement` — the requirement extracted from the job.
+- `Match` — `atendido` | `parcial` | `not_met` (protocol tokens — never
+  translated, never localized).
+- `Evidence in hub` — citation of the hub entry supporting the match
+  (e.g. `skills: Kubernetes (level: advanced)`) or a reason for the gap.
 
 **Gap analysis language**: `gap-analysis.md` and `inferencias.md` are
 analysis artifacts — they MUST be written in the language the user
 communicates in (session locale or explicit user instruction; English as the
-fallback), like the other career analysis outputs. The resume itself follows
-the job's language.
+fallback), like the other career analysis outputs (resolution order in
+`standards/cv-analysis.md` §1). The resume itself follows the job's language.
 
 ## Human validation flow for inferences
 
 Before generating the final HTML/PDF, list ALL inferences and placeholders in
-`curriculos/<job-slug>/inferencias.md` (one per line, with context) and ask
-the candidate to decide on each one:
+`curriculos/<job-slug>/inferencias.md` following the canonical structure of
+`standards/cv-analysis.md` §3.3 — the canonical inferences table:
+
+```
+| Inference | Context | Decision | Status |
+```
+
+- `Inference` — the inferred/placeholder content (with `[INFERIDO]` inline
+  where the marker applies).
+- `Context` — where the inference would be used (e.g. "summary — language
+  level").
+- `Decision` — `rephrase` | `omit` | `promote` (filled after the candidate
+  decides; `-` while pending).
+- `Status` — `pending` (awaiting decision) | `resolved` (candidate decided).
+
+Ask the candidate to decide on each one:
 
 | Decision | Action |
 |----------|--------|
@@ -95,8 +121,9 @@ Reorder, highlight and rephrase **only what already exists in the hub**:
    highlight, rephrase and condense what exists.
 2. **Inferences NEVER in the final output** — `[INFERIDO]` is allowed ONLY in
    internal human-review artifacts (hub.json, gap-analysis.md, inferences
-   list). In the final HTML/PDF (`index.html`/`curriculo.pdf`) NO `[INFERIDO]`
-   may appear — nor case-insensitive variants (`[inferido]`, `[Inferido]`, the
+   list), per the `[INFERIDO]` convention of `standards/cv-analysis.md` §5. In
+   the final HTML/PDF (`index.html`/`curriculo.pdf`) NO `[INFERIDO]` may appear
+   — nor case-insensitive variants (`[inferido]`, `[Inferido]`, the
    word "inferido"). Inferred content (e.g. an unstated language level, a
    relevant project by analogy) is omitted, rephrased or approved by the
    candidate BEFORE generation. Never silently, never in the shareable artifact.

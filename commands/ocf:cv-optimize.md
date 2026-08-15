@@ -25,16 +25,19 @@ to improve the profile substantially before generating tailored resumes with
 2. **Validate** — `python3 $SCRIPTS_DIR/cv/validate.py hub.json`.
 3. **Invoke the agent** `career/cv-optimizer` via `task:` with the candidate
    directory.
-4. **Analyze** — the agent produces `analise-perfil.md` with:
+4. **Analyze** — the agent produces `analise-perfil.md` following the
+   canonical structure of `standards/cv-analysis.md` (§3.1, tables §4.2/§4.3):
    - Profile score (0-100 per section + global, with justification)
    - General qualifications (seniority, skills, strengths/weaknesses)
    - Target job profiles (offline — never concrete jobs)
    - CLT vs PJ salary ranges (all `[INFERIDO]` for human review)
    - Context gaps in the hub
    - Prioritized action plan (impact × effort)
-5. **Generate the PDF** — the agent renders `analise-perfil.html` and runs
-   `bash $SCRIPTS_DIR/cv/pdf.sh` to produce `analise-perfil.pdf` (A4), making
-   reading/analysis easier.
+5. **Generate the PDF** — the agent renders `analise-perfil.html` from the
+   reference template
+   `skills/career/cv-optimizer/templates/analise-perfil.html` (adapt content,
+   never the CSS) and runs `bash $SCRIPTS_DIR/cv/pdf.sh` to produce
+   `analise-perfil.pdf` (A4), making reading/analysis easier.
 6. **Report** — report paths (.md and .pdf), global score, top actions and
    the `[INFERIDO]` items the candidate should review.
 
@@ -45,9 +48,11 @@ to improve the profile substantially before generating tailored resumes with
 - No web search — target job profiles are generic profiles derived from the
   offline analysis.
 - No sensitive data appears in the report.
-- NO metadata header in the report ("Generated on:", "Source:", "Tool:",
-  "Note:") — start directly with the content; `[INFERIDO]` inline.
+- Report structure per `standards/cv-analysis.md`: NO metadata header in the
+  report ("Generated on:", "Source:", "Tool:", "Note:") — start directly with
+  the content; canonical tables (score, action plan); `[INFERIDO]` inline.
 - Skill years of experience computed dynamically (current year − `since`)
   whenever `since` exists in the hub.
 - Report language = the language the user communicates in (session locale or
-  explicit user instruction; English as the fallback).
+  explicit user instruction; English as the fallback) — per
+  `standards/cv-analysis.md` §1.

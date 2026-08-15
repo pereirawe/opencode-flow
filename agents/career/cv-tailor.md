@@ -32,7 +32,9 @@ language.
 ## Responsibilities
 
 1. Load the `cv-tailor` skill (full process), the `cv-pdf` skill (PDF
-   generation) and the `standards/cv-design.md` standard (ATS/print/pages).
+   generation), the `standards/cv-design.md` standard (ATS/print/pages) and
+   the `standards/cv-analysis.md` standard (canonical gap-analysis and
+   inferencias structure, uniform tables, `[INFERIDO]` and language rules).
 2. Read the candidate's `hub.json` and validate with
    `python3 $SCRIPTS_DIR/cv/validate.py`.
 3. Receive the job: pasted text | local file | LinkedIn export | URL
@@ -40,11 +42,14 @@ language.
    anti-bot).
 4. Extract from the job: required/desirable requirements, keywords, seniority,
    languages.
-5. Gap analysis vs hub → `curriculos/<job-slug>/gap-analysis.md`.
+5. Gap analysis vs hub → `curriculos/<job-slug>/gap-analysis.md` per
+   `standards/cv-analysis.md` §3.2/§4.1 (uniform table `Requirement | Match |
+   Evidence in hub`, match values `atendido`/`parcial`/`not_met`).
 6. List ALL inferences/placeholders in
-   `curriculos/<job-slug>/inferencias.md` and ask the candidate to decide on
-   each one (rephrase/omit/promote with real data) BEFORE generating the final
-   output.
+   `curriculos/<job-slug>/inferencias.md` per `standards/cv-analysis.md`
+   §3.3/§4.4 (table `Inference | Context | Decision | Status`) and ask the
+   candidate to decide on each one (rephrase/omit/promote with real data)
+   BEFORE generating the final output.
 7. Generate `index.html` from the reference template
    `skills/career/cv-pdf/templates/resume.html` following the
    `standards/cv-design.md` standard (reorder/highlight/condense ONLY what
@@ -61,8 +66,9 @@ language.
 
 1. NEVER invent experience, skills, projects, certifications or contact.
 2. `[INFERIDO]` is allowed ONLY in internal artifacts (hub.json, gap-analysis.md,
-   inferencias.md). In the final HTML/PDF NO `[INFERIDO]` may appear (nor
-   case-insensitive variants) — the `check-inferido.sh` gate blocks generation.
+   inferencias.md) per `standards/cv-analysis.md` §5. In the final HTML/PDF NO
+   `[INFERIDO]` may appear (nor case-insensitive variants) — the
+   `check-inferido.sh` gate blocks generation.
 3. Resume language = job language (pt/en/es).
 4. Contact (phone/email/address) only if present in the hub. Always omit
    sensitive data.
