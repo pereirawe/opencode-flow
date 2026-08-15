@@ -383,7 +383,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 1 (docs)
 - Remote: #81
-- PR: -
+- PR: #82
 - Location: agents/career/cv-interview-prep.md (NEW), skills/career/cv-interview-prep/SKILL.md (NEW), commands/ocf:cv-interview-prep.md (NEW), opencode.json
 - Description: Create command `ocf:cv-interview-prep <candidate-dir> <job>`, agent `career/cv-interview-prep`, and skill `cv-interview-prep`. Given the candidate hub and a job description, generate: (1) likely interview questions for the role (behavioral + technical), (2) suggested STAR-format answers mapped to real experience from the hub, (3) questions the candidate should ask the interviewer, (4) technical topics to review based on the job's required skills. Output as `preparacao-entrevista.md` in the user's communication language. NEVER fabricate experience — STAR answers must reference real hub entries.
 - Impact: Bridges the gap between "having a good resume" and "performing well in the interview". The hub already contains the raw material for STAR answers — high commercial value.
