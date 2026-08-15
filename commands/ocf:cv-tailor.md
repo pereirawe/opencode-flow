@@ -37,14 +37,21 @@ A vaga pode ser fornecida como:
    idiomas.
 4. **Gap analysis** — tabela requisito → atendido/parcial/não-atendido,
    salva em `curriculos/<slug-da-vaga>/gap-analysis.md`.
-5. **Adaptar conteúdo** — reordenar/destacar/condensar apenas o que existe no
-   hub; inferências marcadas `[INFERIDO]`; idioma = idioma da vaga.
-6. **Gerar PDF** — `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
+5. **Decisão humana sobre inferências** — listar todas em
+   `curriculos/<slug-da-vaga>/inferencias.md` e pedir a decisão do candidato
+   (reformular/omitir/promover com dado real) antes do output final.
+6. **Adaptar conteúdo** — reordenar/destacar/condensar apenas o que existe no
+   hub; NUNCA `[INFERIDO]` no HTML/PDF final; idioma = idioma da vaga.
+7. **Gate obrigatório** — `bash $SCRIPTS_DIR/cv/check-inferido.sh index.html`
+   DEVE passar (exit 0) antes do PDF.
+8. **Gerar PDF** — `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
 
 ### Regras
 
 - NUNCA inventar experiência, skills, projetos, certificações ou contato.
-- Toda inferência/placeholder é marcada `[INFERIDO]` para revisão humana.
+- `[INFERIDO]` é permitido APENAS em artefactos internos (hub.json,
+  gap-analysis.md, inferencias.md). No HTML/PDF final NENHUM `[INFERIDO]` pode
+  aparecer — o gate `check-inferido.sh` bloqueia a geração.
 - Contato apenas se presente no hub; dados sensíveis nunca.
 - PDF A4 pronto para ATS, tipografia limpa, headings semânticos.
 
@@ -52,4 +59,5 @@ A vaga pode ser fornecida como:
 
 - Caminho do PDF gerado (`~/carreira/<nome>/curriculos/<slug>/curriculo.pdf`).
 - Resumo do gap analysis (requisitos atendidos/parciais/não-atendidos).
-- Lista de itens `[INFERIDO]` que o candidato deve revisar antes de enviar.
+- Lista de inferências resolvidas (reformuladas/omitidas/promovidas) que o
+  candidato aprovou — nenhuma marcação `[INFERIDO]` no artefacto partilhável.

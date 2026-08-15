@@ -10,6 +10,7 @@ permission:
     "*": deny
     "*SCRIPTS_DIR/cv/pdf.sh*": allow
     "*SCRIPTS_DIR/cv/validate.py*": allow
+    "*SCRIPTS_DIR/cv/check-inferido.sh*": allow
     "python3 *": allow
     "ls *": allow
     "mkdir -p *": allow
@@ -35,19 +36,27 @@ currículo HTML + PDF no idioma da vaga.
    possível; LinkedIn bloqueia — peça texto colado, nunca contorne anti-bot).
 4. Extrair da vaga: requisitos obrigatórios/desejáveis, keywords, senioridade, idiomas.
 5. Gap analysis vs hub → `curriculos/<slug-da-vaga>/gap-analysis.md`.
-6. Gerar `index.html` adaptado (reordenar/destacar/condensar apenas o que existe no
-   hub; NUNCA fabricar; `[INFERIDO]` para inferências) no idioma da vaga.
-7. Gerar PDF: `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
+6. Listar TODAS as inferências/placeholders em `curriculos/<slug-da-vaga>/inferencias.md`
+   e pedir a decisão do candidato sobre cada uma (reformular/omitir/promover com dado
+   real) ANTES de gerar o output final.
+7. Gerar `index.html` adaptado (reordenar/destacar/condensar apenas o que existe no
+   hub; NUNCA fabricar; NUNCA `[INFERIDO]` no HTML/PDF final) no idioma da vaga.
+8. **Rodar o gate obrigatório**: `bash $SCRIPTS_DIR/cv/check-inferido.sh index.html`
+   — o gate DEVE passar (exit 0) antes do PDF.
+9. Gerar PDF: `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
 
 ## Regras
 
 1. NUNCA inventar experiência, skills, projetos, certificações ou contato.
-2. Toda inferência/placeholder → marcado `[INFERIDO]` no HTML/PDF (revisão humana).
+2. `[INFERIDO]` é permitido APENAS em artefactos internos (hub.json, gap-analysis.md,
+   inferencias.md). NO HTML/PDF final NENHUM `[INFERIDO]` pode aparecer (nem
+   variações case-insensitive) — o gate `check-inferido.sh` bloqueia a geração.
 3. Idioma do currículo = idioma da vaga (pt/en/es).
 4. Contato (tel/e-mail/endereço) apenas se presente no hub. Sempre omitir dados
    sensíveis.
 5. PDF A4 via Chrome headless (`$SCRIPTS_DIR/cv/pdf.sh`), fallback LibreOffice.
 6. Se o engine falhar, reporte o erro — nunca entregue PDF vazio.
 
-Reporte ao final: caminho do PDF, resumo do gap analysis e quaisquer
-`[INFERIDO]` que o usuário deve revisar.
+Reporte ao final: caminho do PDF, resumo do gap analysis e a lista de
+inferências resolvidas (reformuladas/omitidas/promovidas) que o candidato
+aprovou — nenhuma marcação `[INFERIDO]` deve aparecer no artefacto partilhável.

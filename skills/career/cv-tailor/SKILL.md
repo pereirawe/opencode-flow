@@ -51,6 +51,21 @@ Para cada requisito, classifique o match:
 Registre o resultado em `curriculos/<slug-vaga>/gap-analysis.md` com a
 tabela de requisitos → classificação → evidência no hub.
 
+## Fluxo de validação humana das inferências
+
+Antes de gerar o HTML/PDF final, liste TODAS as inferências e placeholders em
+`curriculos/<slug-vaga>/inferencias.md` (uma por linha, com contexto) e peça a
+decisão do candidato sobre cada uma:
+
+| Decisão | Ação |
+|---------|------|
+| `reformular` | Reescreva o conteúdo sem a marca `[INFERIDO]` (reformulação do que existe no hub) |
+| `omitir` | Remova o conteúdo do currículo |
+| `promover` | Use como facto apenas se o candidato confirmar dado real (sem marca no output) |
+
+Após a decisão humana, gere o HTML SEM nenhuma marcação `[INFERIDO]`. A lista
+resolvida fica registrada em `inferencias.md` para rastreabilidade.
+
 ## Adaptação do conteúdo (sem fabricar)
 
 Reordene, destaque e reformule **apenas o que já existe no hub**:
@@ -72,10 +87,14 @@ Reordene, destaque e reformule **apenas o que já existe no hub**:
 1. **NUNCA inventar** — experiência, skills, projetos, certificações, dados
    de contato que não estão no hub NÃO entram no currículo. Apenas reordenar,
    destacar, reformular e condensar o que existe.
-2. **`[INFERIDO]`** — qualquer inferência ou placeholder gerado (ex.: nível
-   de idioma não informado mas inferido da vaga, projeto que parece relevante
-   por analogia) DEVE ser marcado `[INFERIDO]` no HTML/PDF para revisão
-   humana. Nunca silencioso.
+2. **Inferências NUNCA no output final** — `[INFERIDO]` é permitido APENAS em
+   artefactos internos de revisão humana (hub.json, gap-analysis.md, lista de
+   inferências). No HTML/PDF final (`index.html`/`curriculo.pdf`) NENHUM
+   `[INFERIDO]` pode aparecer — nem variações case-insensitive (`[inferido]`,
+   `[Inferido]`, a palavra "inferido"). Conteúdo inferido (ex.: nível de
+   idioma não informado, projeto relevante por analogia) é omitido,
+   reformulado ou aprovado pelo candidato ANTES da geração. Nunca silencioso,
+   nunca no artefacto partilhável.
 3. **Idioma da vaga** — todo o conteúdo do currículo gerado segue o idioma
    da vaga. Use `resumo_i18n` quando disponível; senão traduza o resumo a
    partir do hub (tradução de conteúdo existente é permitida — não é
@@ -91,7 +110,8 @@ Reordene, destaque e reformule **apenas o que já existe no hub**:
 ~/carreira/<nome-candidato>/curriculos/<slug-da-vaga>/
 ├── index.html            # currículo HTML (idioma da vaga)
 ├── curriculo.pdf         # PDF A4 gerado
-└── gap-analysis.md       # análise de requisitos vs hub
+├── gap-analysis.md       # análise de requisitos vs hub
+└── inferencias.md        # lista de inferências resolvidas (revisão humana)
 ```
 
 `<slug-da-vaga>` = empresa + cargo normalizados (ex. `acme-senior-data-engineer`).
@@ -101,5 +121,9 @@ Reordene, destaque e reformule **apenas o que já existe no hub**:
 1. Escreva `index.html` com CSS inline/embutido: `@page { size: A4; margin:
    16-18mm }`, tipografia limpa (system fonts: `Helvetica, Arial,
    sans-serif`), seções claras.
-2. Rode `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
-3. Se o script falhar, reporte o erro do engine — nunca entregue um PDF vazio.
+2. **Rode o gate de inferências ANTES do PDF**:
+   `bash $SCRIPTS_DIR/cv/check-inferido.sh index.html` — o gate DEVE passar
+   (exit 0) antes de continuar. Se falhar, remova/reformule as marcações e
+   rode novamente. Este gate é obrigatório e não pode ser pulado.
+3. Rode `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
+4. Se o script falhar, reporte o erro do engine — nunca entregue um PDF vazio.
