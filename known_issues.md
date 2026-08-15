@@ -7,6 +7,9 @@ Single source of truth for tracked work in this project.
 ```markdown
 ### <id>. <title>
 - Status: backlog | ready | open | in-progress | in-review | in-qa | in-publish | resolved
+- Opened: <YYYY-MM-DD> | -
+- Ready: <YYYY-MM-DD> | -
+- Started: <YYYY-MM-DD> | -
 - Type: bug | feat | doc | chore
 - Severity: critical | high | medium | low
 - Report: <user-name> | <model-name>
@@ -37,6 +40,11 @@ not a bug.
 `Reviewers:` stores count and profiles (set during discovery, e.g. `1 (backend)`).
 `Remote:` is populated at the end of discovery (PM asks user, creates if confirmed).
 Auto-created by `ocf:promote` or `ocf:develop` if still missing.
+`Opened:`/`Ready:`/`Started:` lifecycle timestamps are stamped by the pipeline
+scripts (create_issue.sh on remote creation success; promote.sh on backlog→ready
+and ready→in-progress; close_issue.sh stamps `Resolved:` and computes
+`Durations:` into the archive). Set-if-absent, idempotent, new issues only.
+See `standards/issues.md` for the full contract.
 
 ### 20. Agente Anderson — feedback de usuário leigo nas MRs
 - Status: resolved
@@ -438,14 +446,14 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Suggested fix: (1) criar `agents/development/security-owasp.md` com frontmatter (subagent, temperature 0.1, permission: edit allow apenas `.opencode/reviews/**`, bash allow) e prompt com os 3 modos + regra de bloqueio + locale-loader; (2) criar `skills/development/security/` com os 6 SKILL.md (top10 com tabela CWE, asvs com níveis L1/L2/L3, wstg com casos de teste, samm com maturity model, threat-modeling com STRIDE, secure-code-review com checklist de revisão); (3) evoluir `agents/development/senior-reviewers/security.md` para delegar ao security-owasp; (4) adicionar gate de verificação de segurança ao `agents/development/committer.md`; (5) registrar as 6 skills em `permission.skill` no `opencode.json`; (6) atualizar `agents/development/README.md` e `workflow.md`. Origem: Proposal 2026-08-06-2 em `prioritization.md`.
 
 ### 57. Time-tracking fields in issue lifecycle (Opened/Ready/Started/Resolved + Durations)
-- Status: ready
+- Status: in-publish
 - Type: feat
 - Severity: medium
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 2 (runtime, devops)
-- Remote: -
-- PR: -
+- Remote: #65
+- PR: #66
 - Location: scripts/promote.sh, scripts/create_issue.sh, scripts/close_issue.sh, standards/issues.md (en+pt+es), standards/resolved-issue.md (en), workflow.md, scripts/tests/test_timestamps.sh (NEW)
 - Description: Add timestamp fields (Opened, Ready, Started) to the known_issues.md entry format, stamp them on script status transitions (promote.sh, create_issue.sh), stamp Resolved at close time, and compute stage durations (Durations) into the resolved archive so per-stage cycle time can be measured.
 - Impact: Enables measuring per-stage cycle time (time in backlog, time to ready, dev time, total time to resolution) driving process improvement with real data. Touches the core lifecycle scripts — regression risk mitigated by the new plain-bash test suite. New-issues-only; no retroactive rewriting.

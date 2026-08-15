@@ -105,6 +105,65 @@ else
   echo "[issue] Local-only issue (no remote)"
 fi
 
+# rewrite_entry — rewrite the issue entry in the tracker file:
+#   - replace the Status line (when new_status is non-empty)
+#   - replace the Remote line (when remote is non-empty)
+#   - rebuild the canonical timestamp block (Opened, Ready, Started) right after
+#     the Status line, preserving field order Status < Opened < Ready < Started
+#   - set-if-absent: existing timestamp values are never overwritten and never
+#     duplicated (idempotent — re-running a script cannot corrupt fields)
+# Issue #57: timestamp stamping is done here (pipeline scripts), NOT via
+# pre_commit.sh trailer parsing (issue #24).
+rewrite_entry() { # <file> <id> <new_status|''> <opened|''> <ready|''> <started|''> <remote|''>
+  local file="$1" id="$2" ns="$3" opened="$4" ready="$5" started="$6" remote="$7"
+  awk -v id="$id" -v ns="$ns" -v opened="$opened" -v ready="$ready" \
+      -v started="$started" -v remote="$remote" '
+  BEGIN { collecting = 0; n = 0 }
+  /^### [0-9]+\./ {
+    if (collecting) { flush_section(); collecting = 0; n = 0 }
+    if ($0 ~ "^### " id "\\.") collecting = 1
+  }
+  {
+    if (collecting) buf[n++] = $0; else print
+  }
+  END { if (collecting) flush_section() }
+  function val(line,    p) {
+    p = index(line, ":")
+    if (p == 0) return ""
+    return substr(line, p + 2)
+  }
+  function present(v) { return (v != "" && v != "-") }
+  function flush_section(   i, status_idx, opened_v, ready_v, started_v) {
+    status_idx = -1
+    opened_v = ""; ready_v = ""; started_v = ""
+    for (i = 0; i < n; i++) {
+      if (buf[i] ~ /^- Status:/ && status_idx < 0) status_idx = i
+      if (buf[i] ~ /^- Opened:/)  opened_v  = val(buf[i])
+      if (buf[i] ~ /^- Ready:/)   ready_v   = val(buf[i])
+      if (buf[i] ~ /^- Started:/) started_v = val(buf[i])
+    }
+    if (status_idx < 0) status_idx = 0
+    # set-if-absent: existing values win; stamp only missing fields
+    if (opened  != "" && !present(opened_v))  opened_v  = opened
+    if (ready   != "" && !present(ready_v))   ready_v   = ready
+    if (started != "" && !present(started_v)) started_v = started
+    for (i = 0; i < n; i++) {
+      if (buf[i] ~ /^- (Opened|Ready|Started):/) continue
+      if (i == status_idx) {
+        if (ns != "") print "- Status: " ns; else print buf[i]
+        if (present(opened_v))  print "- Opened: "  opened_v
+        if (present(ready_v))   print "- Ready: "   ready_v
+        if (present(started_v)) print "- Started: " started_v
+      } else if (remote != "" && buf[i] ~ /^- Remote:/) {
+        print "- Remote: " remote
+      } else {
+        print buf[i]
+      }
+    }
+  }
+  ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+}
+
 # Update known_issues with Remote ID and status
 FILE="$PROJECT_ISSUES_FILE"
 if [[ -f "$FILE" && "$INPUT" =~ ^[0-9]+$ ]]; then
@@ -119,17 +178,12 @@ if [[ -f "$FILE" && "$INPUT" =~ ^[0-9]+$ ]]; then
   else
     REMOTE_VAL="-"
   fi
-  awk -v id="$INPUT" -v rid="$REMOTE_VAL" -v ns="$NEW_STATUS" '
-  BEGIN{found=0}
-  /^### [0-9]+\./{
-    if(found==1 && $0 !~ "^### "id"\\."){found=0}
-  }
-  $0 ~ "^### "id"\."{found=1}
-  {
-    if(found==1 && $0 ~ /^- Status:/){print "- Status: "ns; next}
-    if(found==1 && $0 ~ /^- Remote:/){print "- Remote: "rid; next}
-    print
-  }' "$FILE" > "$FILE.tmp" && mv "$FILE.tmp" "$FILE"
+  # Stamp `- Opened:` ONLY on remote creation success (BR 3/BR 8), set-if-absent
+  OPENED_DATE=""
+  if [[ -n "$ISSUE_ID" ]]; then
+    OPENED_DATE=$(date +%Y-%m-%d)
+  fi
+  rewrite_entry "$FILE" "$INPUT" "$NEW_STATUS" "$OPENED_DATE" "" "" "$REMOTE_VAL"
 fi
 
 # Create branch (only for legacy open status, ready uses promote.sh)
