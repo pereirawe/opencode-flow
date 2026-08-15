@@ -1,6 +1,6 @@
 ---
 name: cv-hub
-description: Build a candidate's resume hub — extract data from the CV PDF (pdftotext), official LinkedIn export (Download My Data), and complementary files, consolidating everything into hub.json (canonical AI schema) + a human-readable README.md. Use when you need to create or update a candidate's data hub (command ocf:cv-hub). Career sector.
+description: Build a candidate's resume hub — extract data from the CV PDF (pdftotext), official LinkedIn export (Download My Data), and complementary files, consolidating everything into hub.json (canonical AI schema) + a human-readable README.md. Update mode (command ocf:cv-hub-update) merges new information into an existing hub.json incrementally — ADD/UPDATE only, duplicates merged, [INFERIDO] preserved. Use when you need to create or update a candidate's data hub (commands ocf:cv-hub, ocf:cv-hub-update). Career sector.
 ---
 
 # CV Hub — building the candidate hub
@@ -134,3 +134,74 @@ with the legacy Portuguese keys, run
 - No network: the hub is built 100% from local files.
 - The `README.md` and `hub.json` may be committed by the user if they version
   their career; never commit anything without authorization.
+
+## Update mode (`ocf:cv-hub-update`)
+
+The update mode extends the build flow above for **incremental edits** to an
+existing hub. It NEVER recreates `hub.json` from scratch — the existing file
+is the base for the update.
+
+### When to use update mode
+
+- The user wants to add **new entries** to an existing hub: a new
+  experience, skill, certification, project, language, or link.
+- The user provides **new information** in any of these forms:
+  1. **Pasted text** — a new job, certification, project description, etc.
+  2. **New PDF** — extract with `pdftotext -layout` (same flow as the build
+     mode).
+  3. **New file** — a text/JSON/export file (e.g. a new certificate, a
+     portfolio file).
+  4. **Manual key-value edits** — the user edited `hub.json` by hand; the
+     command validates the edited hub, regenerates `README.md`, and reports
+     the changes.
+
+### Update-mode process
+
+1. **Verify the hub exists** — `hub.json` must exist in the candidate
+   directory. If it does not, tell the user to run `ocf:cv-hub` first and
+   stop. Update mode never builds a hub.
+2. **Collect the new information** — pasted text, new PDF (pdftotext), new
+   file, or the user's manual edits.
+3. **Snapshot for the diff** — record the current state of `hub.json`
+   (or a per-section summary) BEFORE any change, so the final diff/summary
+   is precise.
+4. **Merge into the existing hub** — follow the build-mode extraction and
+   consolidation rules (schema above, consolidation rules below), but apply
+   them to the EXISTING entries:
+   - **ADD** new entries into their section (`experience`, `education`,
+     `skills`, `certifications`, `projects`, `languages`, `links`, ...),
+     keeping reverse chronological order where applicable.
+   - **UPDATE** existing entries with corrected/more recent data when the
+     new information supersedes them.
+5. **Validate** — `python3 $SCRIPTS_DIR/cv/validate.py hub.json`; fix until
+   exit 0.
+6. **Regenerate `README.md`** — derive it from the UPDATED `hub.json` (same
+   rules as the build mode: mirror, never edited manually).
+7. **Report the diff/summary** — entries added, updated, merged as
+   duplicates, and preserved (BR 10 of the hub-update issue).
+
+### Update-mode rules
+
+- **ADD or UPDATE only — NEVER delete** an existing entry without the user's
+  explicit confirmation. If a deletion seems needed (e.g. duplicated entry,
+  outdated role), PROPOSE it and wait for explicit approval — never apply
+  silently.
+- **Duplicates are detected and merged, not duplicated**:
+  - `experience`: same `company` + `title` + `start_date` → merge into one
+    entry (union of achievements/responsibilities/technologies, prefer the
+    most complete version).
+  - `skills`, `certifications`, `projects`: same `name` → merge into one
+    entry (union of fields, prefer the most complete version).
+  - `education`: same `institution` + `course` → merge.
+  - `languages`: same `language` → merge.
+  - `links`: same `name` (or same `url`) → merge.
+- **Preserve existing `[INFERIDO]` markers** — an entry that already carries
+  the marker KEEPS it after an update; only the candidate can remove it by
+  confirming real data. New inferences introduced by the update are marked
+  `[INFERIDO]` inline per the build-mode conventions.
+- Nothing is invented — data not present in the new information or the
+  existing hub stays absent.
+- Sensitive data (CPF, document, full address, bank details) does not enter
+  the hub — including in updates.
+- The update never touches other candidate artifacts (curriculos/, cartas/,
+  reports) — it only updates `hub.json` and regenerates `README.md`.

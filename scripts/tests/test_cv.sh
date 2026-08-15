@@ -912,4 +912,123 @@ else
   t_fail "cv-design standard missing at $CV_DESIGN"
 fi
 
+# --- cv-hub-update contract (issue #70) ---
+HUB_UPDATE_CMD="$SCRIPT_DIR/../../commands/ocf:cv-hub-update.md"
+HUB_SKILL="$SCRIPT_DIR/../../skills/career/cv-hub/SKILL.md"
+EXTRACTOR_AGENT="$SCRIPT_DIR/../../agents/career/cv-extractor.md"
+
+# 1. Command exists with the <candidate-directory> signature (BR 1 / AC 1)
+if [[ -f "$HUB_UPDATE_CMD" ]]; then
+  # command docs use the "## /ocf:... " title + --- description frontmatter --- pattern
+  grep -q '^## /ocf:cv-hub-update <candidate-directory>$' "$HUB_UPDATE_CMD" \
+    && t_ok "ocf:cv-hub-update command title carries the <candidate-directory> signature (BR 1)" \
+    || t_fail "ocf:cv-hub-update command title missing the <candidate-directory> signature (BR 1)"
+  grep -q '^description: ' "$HUB_UPDATE_CMD" \
+    && t_ok "ocf:cv-hub-update command has a description frontmatter field" \
+    || t_fail "ocf:cv-hub-update command missing the description frontmatter field"
+  # never recreates the hub (BR 1) and never builds when hub.json is missing (BR 5 / AC 7)
+  assert_contains "$HUB_UPDATE_CMD" "NEVER recreates" \
+    "ocf:cv-hub-update command forbids recreating hub.json from scratch (BR 1)"
+  assert_contains "$HUB_UPDATE_CMD" "run \`/ocf:cv-hub\` first" \
+    "ocf:cv-hub-update command tells the user to run ocf:cv-hub first when hub.json is missing (BR 5 / AC 7)"
+  # accepted input forms (BR 2 / AC 2)
+  assert_contains "$HUB_UPDATE_CMD" "Pasted text" \
+    "ocf:cv-hub-update command accepts pasted text (BR 2)"
+  assert_contains "$HUB_UPDATE_CMD" "New PDF" \
+    "ocf:cv-hub-update command accepts a new PDF (BR 2)"
+  assert_contains "$HUB_UPDATE_CMD" "New file" \
+    "ocf:cv-hub-update command accepts a new file (BR 2)"
+  assert_contains "$HUB_UPDATE_CMD" "Manual key-value edits" \
+    "ocf:cv-hub-update command accepts manual key-value edits (BR 2)"
+  # validate + README regeneration (BR 4 / AC 6) and diff/summary (BR 10 / AC 8)
+  assert_contains "$HUB_UPDATE_CMD" "validate.py" \
+    "ocf:cv-hub-update command re-validates with validate.py (BR 4 / AC 6)"
+  assert_contains "$HUB_UPDATE_CMD" "Regenerate \`README.md\`" \
+    "ocf:cv-hub-update command regenerates README.md (BR 4 / AC 6)"
+  assert_contains "$HUB_UPDATE_CMD" "diff/summary" \
+    "ocf:cv-hub-update command reports a diff/summary of changes (BR 10 / AC 8)"
+  # agent invocation + update mode (BR 8 / AC 9)
+  assert_contains "$HUB_UPDATE_CMD" "career/cv-extractor" \
+    "ocf:cv-hub-update command invokes the career/cv-extractor subagent (BR 8)"
+  assert_contains "$HUB_UPDATE_CMD" "update-mode" \
+    "ocf:cv-hub-update command passes the update-mode instruction to the agent"
+else
+  t_fail "ocf:cv-hub-update command missing at $HUB_UPDATE_CMD"
+fi
+
+# 2. The cv-hub skill EXTENDS (not replaces) the build flow with update mode (BR 9)
+if [[ -f "$HUB_SKILL" ]]; then
+  # build-mode instructions preserved (extend, not replace)
+  assert_contains "$HUB_SKILL" "## Extraction process" \
+    "cv-hub skill keeps the build-mode extraction process (BR 9 — extend, not replace)"
+  assert_contains "$HUB_SKILL" "## Update mode" \
+    "cv-hub skill has an update-mode section (BR 9)"
+  # duplicate detection + merge keys (BR 6 / AC 4)
+  assert_contains "$HUB_SKILL" "same \`company\` + \`title\` + \`start_date\`" \
+    "cv-hub skill defines the experience duplicate key (BR 6 / AC 4)"
+  assert_contains "$HUB_SKILL" "same \`name\`" \
+    "cv-hub skill defines the name duplicate key for skills/certifications/projects (BR 6 / AC 4)"
+  # never-delete rule (BR 3 / AC 3)
+  assert_contains "$HUB_SKILL" "NEVER delete" \
+    "cv-hub skill forbids deleting entries without explicit confirmation (BR 3 / AC 3)"
+  # [INFERIDO] preservation (BR 7 / AC 5)
+  assert_contains "$HUB_SKILL" "Preserve existing \`[INFERIDO]\` markers" \
+    "cv-hub skill mandates preserving existing [INFERIDO] markers (BR 7 / AC 5)"
+  # update mode validates + regenerates README (BR 4 / AC 6)
+  assert_contains "$HUB_SKILL" "validate.py" \
+    "cv-hub skill update mode re-validates with validate.py (BR 4 / AC 6)"
+  assert_contains "$HUB_SKILL" "Regenerate \`README.md\`" \
+    "cv-hub skill update mode regenerates README.md (BR 4 / AC 6)"
+  # update mode reports the diff/summary (BR 10 / AC 8)
+  assert_contains "$HUB_SKILL" "Report the diff/summary" \
+    "cv-hub skill update mode reports a diff/summary (BR 10 / AC 8)"
+else
+  t_fail "cv-hub skill missing at $HUB_SKILL"
+fi
+
+# 3. The cv-extractor agent has update-mode responsibilities + hub.json edit allow
+#    (BR 8 / AC 9 — unlike cv-optimizer which denies hub.json edits)
+if [[ -f "$EXTRACTOR_AGENT" ]]; then
+  assert_contains "$EXTRACTOR_AGENT" "Update mode" \
+    "cv-extractor agent has an update-mode section"
+  assert_contains "$EXTRACTOR_AGENT" '"~/career/**/hub.json": allow' \
+    "cv-extractor agent explicitly allows hub.json edits (BR 8 / AC 9)"
+  assert_contains "$EXTRACTOR_AGENT" "NEVER delete" \
+    "cv-extractor agent forbids deleting existing entries without confirmation (BR 3)"
+  assert_contains "$EXTRACTOR_AGENT" "[INFERIDO]" \
+    "cv-extractor agent preserves [INFERIDO] markers (BR 7)"
+  assert_contains "$EXTRACTOR_AGENT" "validate.py" \
+    "cv-extractor agent re-validates with validate.py (BR 4)"
+else
+  t_fail "cv-extractor agent missing at $EXTRACTOR_AGENT"
+fi
+
+# cv-optimizer STILL denies hub.json edits (regression — AC 9 contrast)
+OPT_AGENT="$SCRIPT_DIR/../../agents/career/cv-optimizer.md"
+if [[ -f "$OPT_AGENT" ]]; then
+  assert_contains "$OPT_AGENT" '"~/career/**/hub.json": deny' \
+    "cv-optimizer agent still denies hub.json edits (regression, AC 9 contrast)"
+else
+  t_fail "cv-optimizer agent missing at $OPT_AGENT"
+fi
+
+# 4. opencode.json registers the command (BR 8 / AC 9) and the skill stays allowed
+if [[ -f "$OP_CONFIG" ]]; then
+  python3 - "$OP_CONFIG" <<'PYEOF' || t_fail "opencode.json cv-hub-update registration invalid"
+import json, sys
+cfg = json.load(open(sys.argv[1]))
+assert "ocf:cv-hub-update" in cfg.get("command", {}), "command ocf:cv-hub-update not registered"
+assert cfg["permission"]["skill"].get("cv-hub") == "allow", "skill cv-hub not allow"
+assert "career/cv-extractor" in cfg["command"]["ocf:cv-hub-update"]["template"], \
+    "cv-hub-update template does not invoke the cv-extractor agent"
+assert "validate.py" in cfg["command"]["ocf:cv-hub-update"]["template"], \
+    "cv-hub-update template does not mandate validate.py"
+assert "update-mode" in cfg["command"]["ocf:cv-hub-update"]["template"], \
+    "cv-hub-update template does not pass the update-mode instruction"
+PYEOF
+  t_ok "opencode.json registers ocf:cv-hub-update command + cv-hub skill allow"
+else
+  t_fail "opencode.json missing at $OP_CONFIG"
+fi
+
 t_finish
