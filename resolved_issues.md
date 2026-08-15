@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 65. Standard structure for career sector analysis reports — standards/cv-analysis.md + report templates
+- Resolved: 2026-08-15
+- Durations: backlog=0d waiting=0d dev=0d total=0d
+- Severity: high
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #75
+- Summary: Create `standards/cv-analysis.md` defining the canonical structure for ALL career sector report files — Create `standards/cv-analysis.md`; update cv-optimizer and cv-tailor skills/agents/commands to reference it; create HTML template for analise-perfil.html. Execute after #64. Origem
+
 ### 64. Standardize career sector language — English prompts, English hub.json schema, user-locale analysis outputs
 - Resolved: 2026-08-15
 - Durations: backlog=0d waiting=0d dev=0d total=0d
