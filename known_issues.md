@@ -382,7 +382,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 2 (docs, qa)
 - Remote: #75
-- PR: -
+- PR: #76
 - Location: standards/cv-analysis.md (NEW), skills/career/cv-optimizer/SKILL.md, skills/career/cv-tailor/SKILL.md, agents/career/cv-optimizer.md, agents/career/cv-tailor.md, commands/ocf:cv-optimize.md, commands/ocf:cv-tailor.md
 - Description: Create `standards/cv-analysis.md` defining the canonical structure for ALL career sector report files: standard heading hierarchy, section order, table formats (gap analysis, score, actions), [INFERIDO] inline rules (internal files only — from #62), locale rules (output language = user communication language — from #64), and report-specific templates. Create HTML templates for analise-perfil.html (A4, same design language as cv-pdf). Apply the standard across cv-optimizer and cv-tailor skills/agents.
 - Impact: Ensures all analysis outputs share a consistent structure, making them predictable for the candidate and comparable across runs. Today each skill defines its own format ad-hoc.
