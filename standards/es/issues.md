@@ -21,8 +21,36 @@ Seguimiento en dos niveles:
 - Impact: <qué o quién es afectado>
 - Business rules: <reglas de negocio específicas, restricciones y reglas de dominio>
 - Acceptance criteria: <qué debe ser verdadero para que la issue se considere completa>
+- Tests: <escenario → resultado, definidos durante el discovery>
 - Suggested fix: <enfoque o siguiente paso>
 ```
+
+### `Tests:` — estándar obligatorio de pruebas
+
+`Tests:` es OBLIGATORIO en cada issue nueva, capturado durante el discovery
+(QA pre-desarrollo, Fase 5) como líneas `escenario → resultado` — nunca
+añadido ad-hoc durante el desarrollo. Los desarrolladores escriben pruebas
+contra estos escenarios documentados en lugar de inventarlos sobre la marcha.
+
+- Para tipos `doc`/`chore`, el literal `- Tests: -` está permitido (sin
+  superficie de prueba).
+- Para tipos `feat`/`bug`, al menos una línea `escenario → resultado` es
+  OBLIGATORIA y el valor NUNCA puede ser `-`.
+- La profundidad de escenarios es un PISO sin límite superior, por severidad:
+  `critical`/`high` → ≥3 líneas `escenario → resultado`; `medium` → ≥2; `low`
+  → ≥1. Si `- Severity:` está ausente en el momento de la validación del QA,
+  se aplica el piso medio (≥2).
+- La aplicación es **verificada por la revisión pre-desarrollo del QA
+  (Fase 5) y por los senior reviewers** — NO aplicada por scripts.
+- `Tests:` ausente o insuficiente encontrado durante senior review o QA
+  post-revisión = `incomplete-spec` (brecha de discovery), NO un bug — la
+  issue vuelve al refinamiento del discovery para capturar los escenarios
+  ausentes.
+- Se aplica a TODAS las issues nuevas; las issues existentes en curso no se
+  reescriben retroactivamente.
+
+> Follow-up (no forma parte de ningún gate): un gate opcional de
+> `promote.sh`/lint podría aplicar `Tests:` mecánicamente en el futuro.
 
 ## Ciclo de Vida
 

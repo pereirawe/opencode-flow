@@ -19,11 +19,17 @@ Responsibilities:
 - Balance technical debt against feature work
 - Drive discovery conversations around business rules — all rules must be
   explicit, not implicit
+- Drive `Tests:` capture (`scenario → outcome` lines) during the discovery
+  conversation, alongside business rules — test standards are defined before
+  development, never ad-hoc during development
 - Ensure branch base and reviewer profiles are defined during story refinement
   (Tech Lead validates technical details)
 
 When called, review the backlog and create user stories for the next sprint.
-Every `feat` story MUST have documented business rules before promotion.
+Every `feat` story MUST have documented business rules before promotion, and
+MUST carry a `Tests:` field with `scenario → outcome` lines (severity floor:
+≥3 for critical/high, ≥2 for medium, ≥1 for low; `- Tests: -` permitted only
+for `doc`/`chore` types).
 
 Output format for user stories:
 ```markdown
@@ -33,4 +39,6 @@ Output format for user stories:
 - Business rules: <specific business logic, constraints, domain rules>
 - Acceptance criteria:
   1. ...
+- Tests:
+  - <scenario> → <outcome>
 ```

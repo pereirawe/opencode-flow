@@ -8,9 +8,34 @@ context-based questions to progressively refine the proposal.
 
 **Every new feature (`feat` type) MUST go through the full discovery pipeline
 before development starts.** Issues promoted without documented business rules
-will be blocked by the Committer. Missing business rules discovered during
-review are not bugs — they are incomplete specs and must be refined back
-through discovery.
+or test standards (`Tests:`) will be blocked by the Committer. Missing business
+rules or test scenarios discovered during review are not bugs — they are
+incomplete specs and must be refined back through discovery.
+
+### `Tests:` — mandatory test standards (captured during discovery)
+
+`Tests:` is MANDATORY in every new issue entry and MUST be captured during the
+discovery phase — never added ad-hoc during development. The value is a list of
+`scenario → outcome` lines that define the expected test behavior before any
+code is written.
+
+- For `doc`/`chore` types, the literal `- Tests: -` is permitted (no test
+  surface).
+- For `feat`/`bug` types, at least one `scenario → outcome` line is REQUIRED
+  and the value may NEVER be `-`.
+- Scenario depth is a FLOOR with no upper bound, by severity: `critical`/`high`
+  → ≥3 `scenario → outcome` lines; `medium` → ≥2; `low` → ≥1. If `- Severity:`
+  is missing at QA validation time, the medium floor (≥2) applies.
+- Enforcement is **verified by QA pre-development review (Phase 5) and senior
+  reviewers** — NOT enforced by scripts.
+- Missing or insufficient `Tests:` found during senior review or post-review
+  QA = `incomplete-spec` (discovery gap), NOT a bug — the issue returns to
+  discovery refinement to capture the missing scenarios.
+- Applies to ALL new issues going forward; existing in-flight issues are not
+  retroactively rewritten.
+
+> Follow-up (not part of any gate): an optional `promote.sh`/lint gate could
+> enforce `Tests:` mechanically in the future.
 
 ### Discovery Pipeline
 
@@ -28,10 +53,14 @@ through discovery.
    business rules against the technical model. Defines the **base branch**
    and **senior reviewer profiles**.
 4. **PO** creates user story with acceptance criteria and documented business
-   rules — every business rule must be explicit, not implicit. Records
+   rules — every business rule must be explicit, not implicit. Drives `Tests:`
+   capture (`scenario → outcome` lines) alongside business rules. Records
    `- Base branch:` and `- Reviewers:` in the issue entry.
 5. **QA** reviews story for testability, edge cases, and quality criteria —
-   verifies that business rules are testable. Validates that reviewer profiles
+   verifies that business rules are testable. Validates the `Tests:` field:
+   applies the severity floor (≥3 critical/high, ≥2 medium, ≥1 low; medium
+   floor when `- Severity:` is missing) and tags `incomplete-spec` when
+   `Tests:` is missing or insufficient. Validates that reviewer profiles
    cover all affected domains.
 6. **PM** validates dependencies, assigns to sprint, asks the user if they want
    to create the remote issue now (`scripts/create_issue.sh <id>` if confirmed),
@@ -55,7 +84,8 @@ drive the conversation around **business rules** specifically.
   base? Quais perfis de revisores?**
 - **QA**: Quais cenários de teste são necessários? Quais edge cases existem?
   Como validamos os critérios de aceite? **Como testamos cada regra de
-  negócio isoladamente? Os perfis de revisores cobrem todos os domínios?**
+  negócio isoladamente? Os perfis de revisores cobrem todos os domínios? Os
+  cenários definidos em `Tests:` são testáveis e atingem o piso de severidade?**
 
 ## Development Workflow
 

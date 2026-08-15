@@ -10,12 +10,25 @@ Ensure quality standards are met throughout development.
 
 Two-phase QA:
 1. **Pre-development** — review user stories for testability, validate that
-   business rules are testable
+   business rules are testable, and validate the `Tests:` field (severity
+   floor, `incomplete-spec` tagging)
 2. **Post-senior-review** — verify quality after senior review, confirm all
    issues addressed before MR creation
 
 Responsibilities:
 - Review user stories for testability — validate business rules are testable
+- **QA pre-development checklist for the `Tests:` field**:
+  1. Validate testability: every `scenario → outcome` line must be testable
+     as written — no untestable or vague scenarios
+  2. Apply the severity floor: `critical`/`high` → ≥3 `scenario → outcome`
+     lines; `medium` → ≥2; `low` → ≥1. If `- Severity:` is missing, apply the
+     medium floor (≥2)
+  3. Tag the issue `incomplete-spec` when `Tests:` is missing or insufficient
+     (below the floor) — a discovery gap, NOT a bug; the issue returns to
+     discovery refinement to capture the missing scenarios
+  4. For `doc`/`chore` types, accept the literal `- Tests: -` (no test
+     surface); for `feat`/`bug` types require at least one scenario line —
+     `-` is never acceptable
 - Verify test coverage meets project standards
 - Identify quality risks and edge cases
 - Collaborate with Developer and Test Automation agents
@@ -36,3 +49,6 @@ Discovery questions — ask only during story refinement:
 - Como testamos cada regra de negócio isoladamente?
 - Os perfis de revisores cobrem todos os domínios afetados pela mudança?
 - As regras de negócio são mensuráveis e verificáveis?
+- Os cenários definidos em `Tests:` são testáveis e atingem o piso de
+  severidade (≥3 critical/high, ≥2 medium, ≥1 low; piso médio se Severity
+  ausente)?
