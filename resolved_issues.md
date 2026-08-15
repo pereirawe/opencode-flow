@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 66. Cover letter generation — ocf:cv-cover-letter
+- Resolved: 2026-08-15
+- Durations: backlog=0d waiting=0d dev=0d total=0d
+- Severity: high
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #77
+- Summary: Create command `ocf:cv-cover-letter <candidate-dir> <job>`, agent `career/cv-cover-letter`, and skill `cv-cover-letter`. Given the candidate hub and a job description (same input as cv-tailor — pasted text, file, URL), generate a tailored cover letter in PDF (HTML→PDF via cv-pdf) in the job's language. Reuse the gap analysis from cv-tailor if available, or generate inline. Never fabricate content — only rephrase and highlight what exists in the hub. The cover letter follows the same design standard (standards/cv-design.md from #63) and analysis standard (standards/cv-analysis.md from #65). — Create agent, skill, command; register in opencode.json; reuse cv-pdf for PDF generation; follow cv-design.md and cv-analysis.md standards. Execute after #64 and #65. Origem
+
 ### 65. Standard structure for career sector analysis reports — standards/cv-analysis.md + report templates
 - Resolved: 2026-08-15
 - Durations: backlog=0d waiting=0d dev=0d total=0d
