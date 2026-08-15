@@ -372,7 +372,7 @@ See `standards/issues.md` for the full contract.
  - Suggested fix (alternativo): Se o spike do modo headless falhar, avaliar self-hosted GitHub runner na mesma VM do opencode web, com `--attach http://127.0.0.1:4096` — mantém paralelismo sem exigir suporte headless do opencode. SPIKE PASSED — alternativa NÃO necessária.
 
 ### 71. Keyword density and match percentage in gap analysis
-- Status: in-review
+- Status: in-publish
 - Opened: 2026-08-15
 - Ready: 2026-08-15
 - Started: 2026-08-15
@@ -395,6 +395,7 @@ See `standards/issues.md` for the full contract.
   6. The gap analysis report MUST follow standards/cv-analysis.md (#65) table format.
   7. The metrics MUST be computed in the cv-tailor skill/agent, not as a separate command (enhance existing, not new agent).
   8. No new agent or command — this is an enhancement to cv-tailor.
+  9. In the match percentage computation, `parcial` matches count as half (0.5) toward the met total; `not_met` counts zero.
 - Acceptance criteria:
   1. Gap analysis includes match percentage (weighted: mandatory 2x, desirable 1x).
   2. Gap analysis includes keyword density map (keyword → count in resume).
@@ -407,6 +408,7 @@ See `standards/issues.md` for the full contract.
   1. Job with 4 mandatory + 2 desirable requirements, 3 mandatory + 1 desirable met → match percentage = (3×2 + 1×1) / (4×2 + 2×1) × 100 = 70 → gap-analysis.md shows 70%.
   2. Job keyword "Kubernetes" appears 3× in the generated index.html text → keyword density map shows `Kubernetes → 3`.
   3. Job keywords found mostly in the Skills and Experience sections → coverage summary lists Skills and Experience at the top.
+  4. Job with 1 mandatory requirement classified `parcial` → match percentage counts it as 0.5 met → weighted total reflects 0.5 (Met 0.5, Weighted 1/2, Match: 50%).
 - Suggested fix: Enhance cv-tailor skill/agent with keyword density and match percentage logic; update gap-analysis.md format in standards/cv-analysis.md. Execute after #64 and #65. Origem: Proposal 2026-08-14-10 em prioritization.md.
 
 ### 72. Technical corrections — validate.py, schema.json, agents/README, templates, curl security
