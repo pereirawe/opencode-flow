@@ -2,6 +2,15 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 56. Mandatory `Tests:` field captured during discovery (test standards pre-development)
+- Resolved: 2026-08-14
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #63
+- Severity: medium
+- Summary: Make the `Tests:` field a mandatory part of every new issue entry, captured during discovery (QA pre-development, Phase 5), so developers write tests against documented `scenario → outcome` definitions instead of inventing them ad-hoc during development. — Update the known_issues.md header Format block and standards/issues.md (en+pt+es) with the `- Tests:` field, severity floors, and enforcement wording; document the incomplete-spec classification in workflow.md; write the QA pre-dev checklist into quality-analyst.md; add the `Tests:` capture step to product-owner.md and the Phase 5 validation step to discovery.md. No script changes. Follow-up (NOT in this issue)
+
 ### 63. Padrão de design de currículo ATS-friendly — standards/cv-design.md + template HTML/CSS de referência
 - Resolved: 2026-08-14
 - Type: feat
