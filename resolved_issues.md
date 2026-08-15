@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 67. LinkedIn profile optimization suggestions — ocf:cv-linkedin
+- Resolved: 2026-08-15
+- Durations: backlog=0d waiting=0d dev=0d total=0d
+- Severity: high
+- Type: feat
+- Report: william_pereira
+- Reviewers: 1
+- Remote: #79
+- Summary: Create command `ocf:cv-linkedin <candidate-dir> [<job>]`, agent `career/cv-linkedin`, and skill `cv-linkedin`. Given the candidate hub and optionally a target job, generate LinkedIn profile optimization suggestions — Create agent, skill, command; register in opencode.json. Execute after #64 and #65. Origem
+
 ### 66. Cover letter generation — ocf:cv-cover-letter
 - Resolved: 2026-08-15
 - Durations: backlog=0d waiting=0d dev=0d total=0d
