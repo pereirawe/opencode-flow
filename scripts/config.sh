@@ -31,3 +31,89 @@ fi
 # Reviewer count for branch/PR reviews (default: 1)
 # Projects can override by setting REVIEWER_COUNT in their own config
 REVIEWER_COUNT="${REVIEWER_COUNT:-1}"
+
+# --- Jira Cloud sync (issue #48) -------------------------------------------
+#
+# Jira sync is ENABLED only when a valid configuration exists: base URL,
+# project key, email, and API token are all present. The token is read
+# EXCLUSIVELY from the environment (JIRA_API_TOKEN) — never from jira.json,
+# never committed, never logged. Without valid config the sync is disabled and
+# pipeline scripts behave exactly as before (zero Jira API calls).
+#
+# Config sources (per-field, env wins over file):
+#   - `.opencode/jira.json` (project) — {baseUrl, email, projectKey,
+#     statusMap?, authMode?}
+#   - env vars: JIRA_BASE_URL, JIRA_PROJECT_KEY, JIRA_EMAIL, JIRA_AUTH_MODE,
+#     JIRA_STATUS_MAP (JSON), JIRA_API_TOKEN (required, env only)
+#
+# Default status map (statusMap in jira.json overrides, else these):
+#   backlog/ready → "To Do", in-progress → "In Progress", in-review →
+#   "In Review", in-qa → "QA/Testing", in-publish → "Ready for Release",
+#   resolved → "Done"
+#
+# Usage: jira_config_load && echo "enabled"; or check `sync-jira.sh config`.
+
+# jira_config_load — resolve Jira config into globals
+#   JIRA_BASE_URL, JIRA_PROJECT_KEY, JIRA_EMAIL, JIRA_AUTH_MODE, JIRA_STATUS_MAP
+# Returns 0 when fully configured (token included), 1 otherwise.
+jira_config_load() {
+  # Capture env first — the function must NOT clobber caller-provided env vars
+  local env_base="${JIRA_BASE_URL:-}" env_key="${JIRA_PROJECT_KEY:-}"
+  local env_email="${JIRA_EMAIL:-}" env_auth="${JIRA_AUTH_MODE:-}" env_map="${JIRA_STATUS_MAP:-}"
+  JIRA_BASE_URL=""
+  JIRA_PROJECT_KEY=""
+  JIRA_EMAIL=""
+  JIRA_AUTH_MODE=""
+  JIRA_STATUS_MAP=""
+  local file_base="" file_key="" file_email="" file_auth="" file_status_map=""
+  local file_base_b64="" file_key_b64="" file_email_b64="" file_auth_b64="" file_status_map_b64=""
+  local cfg="${JIRA_CONFIG_FILE:-}"
+  if [[ -z "$cfg" ]]; then
+    for c in .opencode/jira.json "$CONFIG_DIR/.opencode/jira.json"; do
+      if [[ -f "$c" ]]; then cfg="$c"; break; fi
+    done
+  fi
+  if [[ -n "$cfg" && -f "$cfg" ]]; then
+    if command -v python3 >/dev/null 2>&1; then
+      # Values are base64-encoded so the eval-d `name=value` lines are always
+      # single-word, quote-safe bash assignments (JSON strings with quotes,
+      # spaces, or special chars survive verbatim).
+      eval "$(JIRA_CFG="$cfg" python3 -c '
+import json, os, sys, base64
+try:
+    d = json.load(open(os.environ["JIRA_CFG"]))
+except Exception:
+    sys.exit(0)
+def b64(s):
+    return base64.b64encode(s.encode("utf-8")).decode("ascii")
+out = []
+for k, envk in (("baseUrl", "file_base"), ("email", "file_email"),
+                ("projectKey", "file_key"), ("authMode", "file_auth")):
+    v = d.get(k, "")
+    if isinstance(v, str) and v:
+        out.append("%s_b64=%s" % (envk, b64(v)))
+m = d.get("statusMap")
+if isinstance(m, dict) and m:
+    out.append("file_status_map_b64=%s" % b64(json.dumps(m)))
+print("; ".join(out))')" 2>/dev/null || true
+      file_base="$([[ -n "$file_base_b64" ]] && printf '%s' "$file_base_b64" | base64 -d 2>/dev/null || true)"
+      file_email="$([[ -n "$file_email_b64" ]] && printf '%s' "$file_email_b64" | base64 -d 2>/dev/null || true)"
+      file_key="$([[ -n "$file_key_b64" ]] && printf '%s' "$file_key_b64" | base64 -d 2>/dev/null || true)"
+      file_auth="$([[ -n "$file_auth_b64" ]] && printf '%s' "$file_auth_b64" | base64 -d 2>/dev/null || true)"
+      file_status_map="$([[ -n "$file_status_map_b64" ]] && printf '%s' "$file_status_map_b64" | base64 -d 2>/dev/null || true)"
+    else
+      # No python3: flat scalar fallback (statusMap not loaded — defaults apply)
+      file_base="$(sed -n 's/.*"baseUrl"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$cfg" | head -1)"
+      file_email="$(sed -n 's/.*"email"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$cfg" | head -1)"
+      file_key="$(sed -n 's/.*"projectKey"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$cfg" | head -1)"
+    fi
+  fi
+  # env wins over file (per-field); token is env-only (BR 1)
+  JIRA_BASE_URL="${env_base:-$file_base}"
+  JIRA_PROJECT_KEY="${env_key:-$file_key}"
+  JIRA_EMAIL="${env_email:-$file_email}"
+  JIRA_AUTH_MODE="${env_auth:-$file_auth}"
+  JIRA_AUTH_MODE="${JIRA_AUTH_MODE:-basic}"
+  JIRA_STATUS_MAP="${env_map:-$file_status_map}"
+  [[ -n "$JIRA_BASE_URL" && -n "$JIRA_PROJECT_KEY" && -n "$JIRA_EMAIL" && -n "${JIRA_API_TOKEN:-}" ]]
+}

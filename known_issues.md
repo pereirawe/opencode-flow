@@ -16,6 +16,7 @@ Single source of truth for tracked work in this project.
 - Base branch: <default-branch> | <branch-name>
 - Reviewers: <number> (<profile1>, <profile2>)
 - Remote: - | #<remote-id>
+- Jira: - | <KEY-N>
 - PR: - | #<pr-number>
 - Location: <file-path>:<line-numbers>
 - Description: <brief>
@@ -40,6 +41,11 @@ not a bug.
 `Reviewers:` stores count and profiles (set during discovery, e.g. `1 (backend)`).
 `Remote:` is populated at the end of discovery (PM asks user, creates if confirmed).
 Auto-created by `ocf:promote` or `ocf:develop` if still missing.
+`Jira:` is optional (default `-`) — the Jira Cloud card key (e.g. `DEV-123`)
+mirrored from this issue when the Jira sync is enabled (issue #48), separate
+from `Remote:`. Populated by `scripts/sync-jira.sh` (hooks in
+create_issue.sh/promote.sh/close_issue.sh or the `ocf:sync-jira` command);
+non-blocking, local `Status:` always wins.
 `Opened:`/`Ready:`/`Started:` lifecycle timestamps are stamped by the pipeline
 scripts (create_issue.sh on remote creation success; promote.sh on backlog→ready
 and ready→in-progress; close_issue.sh stamps `Resolved:` and computes

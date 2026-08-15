@@ -88,6 +88,14 @@ if [[ -n "$REMOTE_ID" && "$REMOTE_ID" != "-" ]]; then
   fi
 fi
 
+# Jira Cloud sync (issue #48): resolved → Done/Closed on the card when Jira is
+# configured and a card exists. Runs before archiving (entry still present).
+# Non-blocking (BR 8): failures warn but never fail the close/archive.
+if [[ "$STATUS" == "resolved" ]] && "$SCRIPTS_DIR/sync-jira.sh" config >/dev/null 2>&1; then
+  "$SCRIPTS_DIR/sync-jira.sh" transition "$FILE" "$ID" \
+    || echo "[jira] Warning: Jira transition failed for issue $ID (non-blocking)"
+fi
+
 # Extract fields for archive
 TITLE=$(printf '%s\n' "$SECTION" | sed -n '1s/^### [0-9]*\. //p')
 TYPE=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Type:/ {print $2; exit}')

@@ -186,6 +186,14 @@ if [[ -f "$FILE" && "$INPUT" =~ ^[0-9]+$ ]]; then
   rewrite_entry "$FILE" "$INPUT" "$NEW_STATUS" "$OPENED_DATE" "" "" "$REMOTE_VAL"
 fi
 
+# Jira Cloud sync (issue #48): create the card when Jira is configured and the
+# issue has no card yet (BR 4). Idempotent (BR 5): `Jira:` populated → no-op.
+# Non-blocking (BR 8): failures warn but never fail the script.
+if [[ "$INPUT" =~ ^[0-9]+$ ]] && "$SCRIPTS_DIR/sync-jira.sh" config >/dev/null 2>&1; then
+  "$SCRIPTS_DIR/sync-jira.sh" ensure-card "$FILE" "$INPUT" \
+    || echo "[jira] Warning: card creation failed for issue $INPUT (non-blocking)"
+fi
+
 # Create branch (only for legacy open status, ready uses promote.sh)
 if [[ "$STATUS" == "open" ]]; then
   SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9 ' | tr ' ' '-')

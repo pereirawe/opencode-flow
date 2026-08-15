@@ -106,4 +106,55 @@ MCP servers are configured in `opencode.json` under the `mcpServers` key. Exampl
 }
 ```
 
+## Jira Cloud sync (issue #48)
+
+The pipeline mirrors `known_issues.md` into Jira Cloud (cards, status
+transitions, one-way repo→Jira comments) via `scripts/sync-jira.sh` — a
+deterministic, headless, CI-testable REST v3 client. It is **the** sync
+path for the pipeline: hooks in `create_issue.sh` (card creation),
+`promote.sh` (status transitions) and `close_issue.sh` (resolved→Done), plus
+the `ocf:sync-jira` command for full reconciliation. Sync is non-blocking and
+the local `Status:` always wins.
+
+Configuration: `.opencode/jira.json` (`baseUrl`, `email`, `projectKey`,
+optional `statusMap`/`authMode`) or env vars `JIRA_BASE_URL`,
+`JIRA_PROJECT_KEY`, `JIRA_EMAIL`; the API token comes **exclusively** from the
+`JIRA_API_TOKEN` environment variable — never committed, never logged.
+
+```json
+{
+  "baseUrl": "https://your-domain.atlassian.net",
+  "email": "you@example.com",
+  "projectKey": "DEV",
+  "statusMap": {
+    "backlog": "To Do",
+    "ready": "To Do",
+    "in-progress": "In Progress",
+    "in-review": "In Review",
+    "in-qa": "QA/Testing",
+    "in-publish": "Ready for Release",
+    "resolved": "Done"
+  }
+}
+```
+
+An optional Jira **MCP server** can be registered per-project for agent-side
+backlog queries (agent reads; the pipeline sync always lives in the script):
+
+```json
+{
+  "mcpServers": {
+    "jira": {
+      "command": "npx",
+      "args": ["-y", "@atlassian/mcp-atlassian"],
+      "env": {
+        "JIRA_BASE_URL": "${JIRA_BASE_URL}",
+        "JIRA_EMAIL": "${JIRA_EMAIL}",
+        "JIRA_API_TOKEN": "${JIRA_API_TOKEN}"
+      }
+    }
+  }
+}
+```
+
 Store tokens in environment variables. Never commit secrets to the repository.

@@ -47,6 +47,10 @@
             "template": "Scan known_issues.md entries with Remote: references, fetch remote issue state via gh/glab, sync status (close remote if local resolved, reopen if mismatch), create remote issues for open entries without remote, and report sync results.",
             "description": "Sync known_issues with remote issue tracker"
         },
+        "ocf:sync-jira": {
+            "template": "Run the Jira Cloud reconciliation: `scripts/sync-jira.sh sync` — iterate known_issues.md and, for every issue with a `- Jira:` field, transition its card to the status mapped from the local `- Status:` (statusMap in `.opencode/jira.json`, defaults: backlog/ready→To Do, in-progress→In Progress, in-review→In Review, in-qa→QA/Testing, in-publish→Ready for Release, resolved→Done). Configuration comes from `.opencode/jira.json` (baseUrl, email, projectKey, optional statusMap/authMode) or env vars JIRA_BASE_URL/JIRA_PROJECT_KEY/JIRA_EMAIL, plus JIRA_API_TOKEN (env only — never committed, never logged). Without valid config the sync reports it is disabled and exits cleanly. Sync is non-blocking: network/API/auth failures log a warning and continue; transitions not allowed by the Jira workflow are no-ops with a warning. Report per-issue results and the list of issues without a card.",
+            "description": "Reconcile known_issues status with Jira Cloud cards"
+        },
         "ocf:archive-issue": {
             "template": "Move a resolved issue from known_issues.md to resolved_issues.md in compact format. The issue must be Status: resolved. Use close_issue.sh which handles both closing and archiving in one step.",
             "description": "Archive resolved issue to compact format"

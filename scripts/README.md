@@ -22,6 +22,7 @@ Shell helpers for issue lifecycle management.
 | `skill-vendor.sh` | Manage external skills as git clones in `~/.config/opencode/vendor/` (add/update/list/remove) — loaded via `skills.paths`, never copied |
 | `import_claude_skill.sh` | Deprecated shim — delegates to `skill-vendor.sh add` |
 | `config.sh` | Shared configuration sourced by other scripts |
+| `sync-jira.sh` | Jira Cloud sync (REST v3): create-card, transition, add-comment, full reconcile — hooks in create/promote/close_issue, non-blocking |
 | `setup-web.sh` | Install/update opencode web systemd service for headless operation |
 | `setup-nginx.sh` | Install nginx reverse proxy with mkcert HTTPS for opencode web |
 | `nginx-opencode.conf` | Nginx config template — HTTP→HTTPS redirect + reverse proxy to :4096 |
@@ -44,6 +45,30 @@ Repos with multiple skills use sparse checkout so only the desired skills load
 (e.g. `taste-skill --sparse skills/taste-skill skills/redesign-skill
 skills/minimalist-skill`). `vendor/` is gitignored. See
 `skills/shared/skill-importer/SKILL.md` for the agent-facing workflow.
+
+## Jira Cloud sync (issue #48)
+
+`sync-jira.sh` mirrors `known_issues.md` into Jira Cloud via the REST v3 API.
+The pipeline hooks call it automatically: `create_issue.sh` creates the card,
+`promote.sh` and `close_issue.sh` transition its status, and `ocf:sync-jira`
+(`sync-jira.sh sync`) reconciles every issue that has a `- Jira:` field in one
+run. Local `Status:` is the source of truth — Jira is a mirror.
+
+Config: `.opencode/jira.json` (or env vars) + `JIRA_API_TOKEN` env. Without a
+valid config the sync is disabled and the pipeline behaves exactly as before
+(zero Jira calls). All operations are non-blocking and idempotent.
+
+```bash
+scripts/sync-jira.sh config                 # resolved config (no secrets)
+scripts/sync-jira.sh ensure-card <file> <id>  # create card if Jira: -
+scripts/sync-jira.sh transition <file> <id>   # move card to mapped status
+scripts/sync-jira.sh add-comment <file> <id>  # one-way repo → Jira comment
+scripts/sync-jira.sh sync [file]              # reconcile all cards
+```
+
+See `standards/mcp-registry.md` (Jira Cloud sync) for the full config schema
+and the optional per-project Jira MCP server (agent-side backlog reads only —
+the pipeline sync always lives in this script).
 
 ## Web Service
 

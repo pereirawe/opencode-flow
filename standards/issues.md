@@ -18,6 +18,7 @@ Two-tier issue tracking:
 - Base branch: <default-branch> | <branch-name>
 - Reviewers: <number> (<profile1>, <profile2>)
 - Remote: - | #<remote-id>
+- Jira: - | <KEY-N>
 - PR: - | #<pr-number>
 - Location: <file-path>:<line-numbers>
 - Description: <brief description>
@@ -29,6 +30,12 @@ Two-tier issue tracking:
 ```
 
 `Remote:` is required. Use `-` when no remote issue exists yet.
+`Jira:` is optional (default `-`) — the Jira Cloud issue key (e.g. `DEV-123`)
+for the card mirrored from this issue when the Jira sync is enabled (issue #48).
+It is separate from `Remote:` (which stays exclusive to the git provider
+GitHub/GitLab). Populated by `scripts/sync-jira.sh` (via hooks in
+`create_issue.sh`/`promote.sh`/`close_issue.sh` or the `ocf:sync-jira` command);
+the sync is non-blocking and the local `Status:` always wins over Jira.
 `Business rules:` is required for `feat` type issues — document the specific
 business logic, domain constraints, and rules that must be implemented.
 `Reviewers:` is set during discovery (Tech Lead defines profiles) and consumed

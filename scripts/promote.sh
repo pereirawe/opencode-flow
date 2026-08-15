@@ -108,6 +108,13 @@ if [[ "$STATUS" == "backlog" ]]; then
 
   echo "[promote] Issue $ID promoted from backlog to ready"
   echo "[promote] Remote issue will be created during promotion (PM step) or by the next promoter."
+
+  # Jira Cloud sync (issue #48): reflect backlog→ready on the card when Jira is
+  # configured and a card exists. Non-blocking (BR 8): failures never fail.
+  if "$SCRIPTS_DIR/sync-jira.sh" config >/dev/null 2>&1; then
+    "$SCRIPTS_DIR/sync-jira.sh" transition "$ISS_FILE" "$ID" \
+      || echo "[jira] Warning: status sync failed for issue $ID (non-blocking)"
+  fi
   exit 0
 fi
 
@@ -173,6 +180,13 @@ if [[ "$STATUS" == "ready" ]]; then
   # the remote was auto-created during promotion and has no Opened stamp yet)
   TODAY=$(date +%Y-%m-%d)
   rewrite_entry "$ISS_FILE" "$ID" "in-progress" "$TODAY" "" "$TODAY" ""
+
+  # Jira Cloud sync (issue #48): reflect ready→in-progress on the card when
+  # Jira is configured and a card exists. Non-blocking (BR 8).
+  if "$SCRIPTS_DIR/sync-jira.sh" config >/dev/null 2>&1; then
+    "$SCRIPTS_DIR/sync-jira.sh" transition "$ISS_FILE" "$ID" \
+      || echo "[jira] Warning: status sync failed for issue $ID (non-blocking)"
+  fi
 
   echo "[promote] Issue $ID promoted from ready to in-progress"
   echo "[promote] Title: $TITLE"
