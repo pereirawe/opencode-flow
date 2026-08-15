@@ -512,7 +512,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Base branch: main
 - Reviewers: 2 (frontend, ux-ui)
 - Remote: #61
-- PR: -
+- PR: #62
 - Location: standards/cv-design.md (NEW), skills/career/cv-pdf/templates/resume.html (NEW), skills/career/cv-pdf/SKILL.md, skills/career/cv-tailor/SKILL.md, agents/career/cv-tailor.md, commands/ocf:cv-tailor.md, opencode.json, workflow.md, scripts/tests/test_cv.sh
 - Description: Hoje o design do currículo é ad-hoc: regras mínimas no cv-pdf (A4, system fonts, headings semânticos) e uma linha ATS no cv-tailor; cada agente escreve CSS inline do zero. Não existe padrão documentado nem template. Entregar um padrão de design do setor career: documento `standards/cv-design.md` com regras concretas e testáveis (ATS, impressão A4/P&B, estilo sóbrio, regra de páginas por senioridade) + template HTML/CSS de referência (`skills/career/cv-pdf/templates/resume.html`) usado como base obrigatória pelo cv-tailor + atualização dos prompts dos agentes/skills para mandatar o padrão.
 - Impact: Alto — padroniza todos os currículos gerados, maximiza compatibilidade com ATS/recrutamento automatizado, garante impressão P&B legível e estética executiva sóbria; elimina variação de CSS ad-hoc entre gerações.
