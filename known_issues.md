@@ -372,13 +372,16 @@ See `standards/issues.md` for the full contract.
  - Suggested fix (alternativo): Se o spike do modo headless falhar, avaliar self-hosted GitHub runner na mesma VM do opencode web, com `--attach http://127.0.0.1:4096` — mantém paralelismo sem exigir suporte headless do opencode. SPIKE PASSED — alternativa NÃO necessária.
 
 ### 67. LinkedIn profile optimization suggestions — ocf:cv-linkedin
-- Status: backlog
+- Status: in-progress
+- Opened: 2026-08-15
+- Ready: 2026-08-15
+- Started: 2026-08-15
 - Type: feat
 - Severity: high
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 1 (docs)
-- Remote: -
+- Remote: #79
 - PR: -
 - Location: agents/career/cv-linkedin.md (NEW), skills/career/cv-linkedin/SKILL.md (NEW), commands/ocf:cv-linkedin.md (NEW), opencode.json
 - Description: Create command `ocf:cv-linkedin <candidate-dir> [<job>]`, agent `career/cv-linkedin`, and skill `cv-linkedin`. Given the candidate hub and optionally a target job, generate LinkedIn profile optimization suggestions: optimized headline (≤220 chars), about section (≤2600 chars), skills section (top 50 ranked by relevance to target role), and featured section recommendations. Output as a markdown report (`linkedin-optimization.md`) in the user's communication language. NEVER involves scraping or modifying LinkedIn directly — the user copies/pastes suggestions manually.
