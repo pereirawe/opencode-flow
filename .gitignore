@@ -7,3 +7,4 @@ state/
 vendor/
 __pycache__/
 *.pyc
+docs/delivery-prompts/
