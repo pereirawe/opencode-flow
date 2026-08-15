@@ -14,12 +14,12 @@ to improve the profile substantially before generating tailored resumes with
 ### Usage
 
 ```
-/ocf:cv-optimize ~/carreira/maria-silva
+/ocf:cv-optimize ~/career/maria-silva
 ```
 
 ### Flow
 
-1. **Check the hub** — if `~/carreira/<candidate>/hub.json` does not exist or
+1. **Check the hub** — if `~/career/<candidate>/hub.json` does not exist or
    is invalid, invoke the `/ocf:cv-hub` flow first (asking for the source
    paths) and then continue.
 2. **Validate** — `python3 $SCRIPTS_DIR/cv/validate.py hub.json`.

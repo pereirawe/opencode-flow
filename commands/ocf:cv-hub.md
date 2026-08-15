@@ -22,7 +22,7 @@ and it violates the terms. Only the official export is accepted.
 ### Usage
 
 ```
-/ocf:cv-hub ~/carreira/maria-silva
+/ocf:cv-hub ~/career/maria-silva
 ```
 
 - If the directory does not exist, create the structure:

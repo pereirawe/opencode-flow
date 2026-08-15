@@ -12,13 +12,13 @@ headless, LibreOffice fallback) in the job's language.
 
 ### Prerequisite
 
-The candidate needs a valid hub at `~/carreira/<candidate-name>/hub.json`.
+The candidate needs a valid hub at `~/career/<candidate-name>/hub.json`.
 If it does not exist, run `/ocf:cv-hub` first.
 
 ### Usage
 
 ```
-/ocf:cv-tailor ~/carreira/maria-silva "job URL or text"
+/ocf:cv-tailor ~/career/maria-silva "job URL or text"
 ```
 
 The job can be provided as:
@@ -66,7 +66,7 @@ The job can be provided as:
 
 ### Report to the user
 
-- Generated PDF path (`~/carreira/<name>/curriculos/<slug>/curriculo.pdf`).
+- Generated PDF path (`~/career/<name>/curriculos/<slug>/curriculo.pdf`).
 - Gap analysis summary (met/partial/not_met requirements).
 - Resolved inferences list (rephrased/omitted/promoted) the candidate
   approved — no `[INFERIDO]` marker in the shareable artifact.

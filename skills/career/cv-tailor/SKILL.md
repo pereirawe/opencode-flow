@@ -12,7 +12,7 @@ maximizing ATS/keyword match, using only data that already exists in
 ## Prerequisite
 
 The candidate must have a built hub (`ocf:cv-hub` / `cv-hub` skill):
-a valid `~/carreira/<candidate-name>/hub.json`.
+a valid `~/career/<candidate-name>/hub.json`.
 
 ## Job input
 
@@ -117,7 +117,7 @@ Reorder, highlight and rephrase **only what already exists in the hub**:
 ## Output structure
 
 ```
-~/carreira/<candidate-name>/curriculos/<job-slug>/
+~/career/<candidate-name>/curriculos/<job-slug>/
 ├── index.html            # resume HTML (job language)
 ├── curriculo.pdf         # generated A4 PDF
 ├── gap-analysis.md       # requirements vs hub analysis

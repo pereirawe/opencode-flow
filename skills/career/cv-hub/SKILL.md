@@ -13,7 +13,7 @@ summary). The hub is the foundation for tailored resume generation
 ## Candidate directory structure
 
 ```
-~/carreira/<candidate-name>/
+~/career/<candidate-name>/
 ├── hub.json          # canonical schema (source of truth for AI)
 ├── README.md         # human executive summary, generated from hub.json
 ├── entradas/         # original source files

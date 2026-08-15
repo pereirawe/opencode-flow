@@ -12,17 +12,17 @@ substantially** before generating tailored resumes (`cv-tailor`).
 
 ## Prerequisite
 
-A valid `~/carreira/<candidate-name>/hub.json` (validated by
+A valid `~/career/<candidate-name>/hub.json` (validated by
 `python3 $SCRIPTS_DIR/cv/validate.py`). If it does not exist, the `ocf:cv-hub`
 flow must run first (the `ocf:cv-optimize` command already handles this).
 
 ## Output
 
 ```
-~/carreira/<candidate-name>/analise-perfil.md    # report (markdown)
-~/carreira/<candidate-name>/analise-perfil.html  # rendered report (for PDF)
-~/carreira/<candidate-name>/analise-perfil.pdf   # report PDF (A4)
-~/carreira/<candidate-name>/tasks.json           # optional — structured tasks
+~/career/<candidate-name>/analise-perfil.md    # report (markdown)
+~/career/<candidate-name>/analise-perfil.html  # rendered report (for PDF)
+~/career/<candidate-name>/analise-perfil.pdf   # report PDF (A4)
+~/career/<candidate-name>/tasks.json           # optional — structured tasks
 ```
 
 The report does NOT modify `hub.json` — it only reports.

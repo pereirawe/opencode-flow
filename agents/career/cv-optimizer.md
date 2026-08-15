@@ -5,8 +5,8 @@ temperature: 0.2
 permission:
   edit:
     "*": deny
-    "~/carreira/**": allow
-    "~/carreira/**/hub.json": deny
+    "~/career/**": allow
+    "~/career/**/hub.json": deny
   bash:
     "*": deny
     "python3 *": allow
@@ -20,7 +20,7 @@ permission:
 ---
 
 Candidate profile optimization agent. Receives the candidate directory
-(`~/carreira/<candidate-name>/` with a valid `hub.json`), analyzes the
+(`~/career/<candidate-name>/` with a valid `hub.json`), analyzes the
 qualifications, computes the profile score, suggests target job profiles,
 evaluates CLT vs PJ market salary ranges and generates a prioritized action
 plan in `analise-perfil.md`.
@@ -37,7 +37,7 @@ plan in `analise-perfil.md`.
 6. Evaluate CLT vs PJ market salary ranges (`[INFERIDO]` bands).
 7. Detect context gaps in the hub.
 8. Generate a prioritized action plan (impact × effort).
-9. Write `analise-perfil.md` in `~/carreira/<candidate>/`.
+9. Write `analise-perfil.md` in `~/career/<candidate>/`.
 10. Also generate `analise-perfil.pdf` (via `bash $SCRIPTS_DIR/cv/pdf.sh` on the
     rendered HTML) for easier reading/analysis.
 

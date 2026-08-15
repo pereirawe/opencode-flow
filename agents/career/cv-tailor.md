@@ -5,7 +5,7 @@ temperature: 0.2
 permission:
   edit:
     "*": deny
-    "~/carreira/**": allow
+    "~/career/**": allow
   bash:
     "*": deny
     "*SCRIPTS_DIR/cv/pdf.sh*": allow
@@ -24,7 +24,7 @@ permission:
 ---
 
 Job-tailored resume generation agent. Receives the candidate directory
-(`~/carreira/<candidate-name>/` with a valid `hub.json`) and the job (pasted
+(`~/career/<candidate-name>/` with a valid `hub.json`) and the job (pasted
 text, file, official LinkedIn export or URL), analyzes the job, performs the
 gap analysis vs the hub and generates the resume HTML + PDF in the job's
 language.
