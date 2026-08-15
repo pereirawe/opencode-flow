@@ -47,16 +47,23 @@ Execute these phases **in sequence**, invoking each agent and passing context fo
 - Invoke `development/product-owner` subagent via task tool
 - Create user story with acceptance criteria and documented business rules
 - Every business rule must be explicit, not implicit
+- Drive `Tests:` capture (`scenario → outcome` lines) alongside business rules
 - Format: "As a <role>, I want <goal> so that <benefit>"
 - Record `- Base branch:` and `- Reviewers:` in the issue entry
-- Output: user story with acceptance criteria and business rules
+- Output: user story with acceptance criteria, business rules, and `Tests:` field
 
 ### Phase 5: QA Pre-Development Review
 - Invoke `development/quality-analyst` subagent via task tool
 - Review story for testability and edge cases
 - Validate that **business rules are testable**
+- Validate the **`Tests:` field** (mandatory, captured during discovery):
+  - Every `scenario → outcome` line must be testable as written
+  - Apply the severity floor: `critical`/`high` → ≥3 lines; `medium` → ≥2;
+    `low` → ≥1; if `- Severity:` is missing, the medium floor (≥2) applies
+  - Tag `incomplete-spec` (discovery gap, NOT a bug) when `Tests:` is missing
+    or insufficient — the issue returns to discovery refinement before promotion
 - Verify reviewer profiles cover all affected domains
-- Output: testability assessment and quality criteria
+- Output: testability assessment, `Tests:` validation result, and quality criteria
 
 ### Phase 6: Project Manager (PM)
 - Invoke `development/project-manager` subagent via task tool
@@ -72,11 +79,12 @@ Execute these phases **in sequence**, invoking each agent and passing context fo
 2. **Context passing**: Pass all accumulated context (business rules, technical constraints, testability criteria) to the next phase
 3. **No skipping**: All 6 phases must complete before the issue is tracked
 4. **Business rules are mandatory**: For `feat` types, all business rules must be documented before promotion — missing rules = incomplete spec
-5. **User interaction points**:
+5. **`Tests:` is mandatory**: Every new issue must carry the `Tests:` field with `scenario → outcome` lines (severity floor by severity, medium floor when `- Severity:` is missing), validated by QA in Phase 5 before PM promotion — missing or insufficient `Tests:` = `incomplete-spec` (discovery gap), NOT a bug
+6. **User interaction points**:
    - Phase 1 (PO): Clarify business value and rules with user
    - Phase 6 (PM): Ask about remote issue creation
-6. **Discovery questions**: Each sub-agent has defined discovery questions (see `workflow.md` § Agent Discovery Questions). The orchestrator must ensure each phase's agent asks its context-based questions before proceeding to the next phase.
-7. **Output**: After Phase 6, the issue is in `known_issues.md` with status `ready` (or `backlog` if not fully refined) and ready for delivery
+7. **Discovery questions**: Each sub-agent has defined discovery questions (see `workflow.md` § Agent Discovery Questions). The orchestrator must ensure each phase's agent asks its context-based questions before proceeding to the next phase.
+8. **Output**: After Phase 6, the issue is in `known_issues.md` with status `ready` (or `backlog` if not fully refined) and ready for delivery
 
 ## When to Use
 
@@ -92,5 +100,6 @@ After discovery completes, the issue is in `known_issues.md` with:
 - Reviewers: defined with profiles
 - Remote: populated (if user confirmed)
 - Business rules: documented (for `feat` types)
+- Tests: documented (`scenario → outcome` lines, validated by QA in Phase 5)
 
 The **Delivery** agent takes over from here.
