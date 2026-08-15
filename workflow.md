@@ -185,7 +185,11 @@ exclusive to `ocf:check-pr` and the Close Requester (step 12).
 7. **Senior Reviewers** — review code using the count stored in `- Reviewers:`
     in the issue entry (set during discovery), verify acceptance criteria,
    confirm tests were written and pass (via `test-runner --check` — fresh cache
-   suffices; only re-run when stale or for a domain-specific test), identify issues
+   suffices; only re-run when stale or for a domain-specific test), identify issues.
+   The `security` reviewer profile is delegated to the OWASP specialist agent
+   (`development/security-owasp`), which refuses approval when critical/high
+   vulnerabilities are found (evidence + remediation in
+   `.opencode/reviews/security-<target>-<timestamp>.md`).
 8. **Quality Analyst (post-review)** — verify quality after senior review,
    check that all identified issues were addressed and quality standards are met
    (confirm tests via `test-runner --check`; do not re-run an unchanged suite)
@@ -195,7 +199,11 @@ exclusive to `ocf:check-pr` and the Close Requester (step 12).
 10. **Committer** — verify pipeline gates: senior review completed, QA passed,
     business rules documented (for `feat` types), tests passing (satisfied by a
     fresh `test-runner --check` cache or a recent successful run — never re-run
-    an unchanged suite). Sets status to `in-publish` on approval. Reports
+    an unchanged suite). For issues with the `security` reviewer profile, the
+    security gate applies: security review approved with no unresolved
+    critical/high vulnerabilities — otherwise `in-publish` is NOT set and the
+    issue routes back through the review loop (refusal → QA → developer fixes →
+    re-review). Sets status to `in-publish` on approval. Reports
     findings without blocking — if a gate fails, document what failed and let
     the pipeline continue to the next cycle.
 11. **Publish Requester** — create merge/pull request after Committer gate passes.
