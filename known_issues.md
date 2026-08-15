@@ -382,7 +382,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 2 (runtime, qa)
 - Remote: #85
-- PR: -
+- PR: #86
 - Location: commands/ocf:cv-hub-update.md (NEW) OR commands/ocf:cv-hub.md (--update flag), agents/career/cv-extractor.md, skills/career/cv-hub/SKILL.md, opencode.json
 - Description: Create command `ocf:cv-hub-update <candidate-dir>`, enhancing the existing cv-hub flow to support incremental edits. The user provides new information (pasted text, new PDF, new file) and the agent updates the existing hub.json with the new entries (new experience, skill, certification, project) without recreating the entire hub. Alternatively, accept manual edits to hub.json and validate + regenerate README.md. Command can also be `ocf:cv-hub <dir> --update`.
 - Impact: Today the only way to update the hub is to recreate it from scratch. Candidates frequently need to add a new experience, certification, or skill. An incremental update flow avoids re-processing the entire PDF/LinkedIn export.
