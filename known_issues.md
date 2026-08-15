@@ -380,7 +380,7 @@ See `standards/issues.md` for the full contract.
 - Severity: high
 - Report: william_pereira
 - Base branch: main
-- Reviewers: 2 (runtime, docs)
+- Reviewers: 2 (runtime, qa)
 - Remote: #85
 - PR: -
 - Location: commands/ocf:cv-hub-update.md (NEW) OR commands/ocf:cv-hub.md (--update flag), agents/career/cv-extractor.md, skills/career/cv-hub/SKILL.md, opencode.json
