@@ -652,6 +652,152 @@ else
   t_fail "opencode.json missing at $OP_CONFIG"
 fi
 
+# --- cv-ats-score contract (issue #69) ---
+ATS_SKILL="$SCRIPT_DIR/../../skills/career/cv-ats-score/SKILL.md"
+if [[ -f "$ATS_SKILL" ]]; then
+  frontmatter_ok "$ATS_SKILL" \
+    && t_ok "cv-ats-score skill has valid YAML frontmatter" \
+    || t_fail "cv-ats-score skill frontmatter invalid (expected '---' delimiters)"
+  # English schema keys (issue #64) — no legacy Portuguese keys
+  assert_not_contains "$ATS_SKILL" "resumo_i18n" \
+    "cv-ats-score skill has no legacy resumo_i18n key"
+  # analysis standard + user's communication language (BR 10 / AC 8)
+  assert_contains "$ATS_SKILL" "standards/cv-analysis.md" \
+    "cv-ats-score skill references standards/cv-analysis.md (BR 10)"
+  assert_contains "$ATS_SKILL" "communication language" \
+    "cv-ats-score skill mandates the user's communication language (AC 8)"
+  # output file (BR 5) + score breakdown weights (BR 4 / AC 5)
+  assert_contains "$ATS_SKILL" "ats-score.md" \
+    "cv-ats-score skill defines the ats-score.md output (BR 5)"
+  assert_contains "$ATS_SKILL" "40%" \
+    "cv-ats-score skill defines the keyword_match weight (40%, BR 4)"
+  assert_contains "$ATS_SKILL" "30%" \
+    "cv-ats-score skill defines the section/format weights (30%, BR 4)"
+  assert_contains "$ATS_SKILL" "0-100" \
+    "cv-ats-score skill defines the 0-100 score range (AC 5)"
+  # coverage (BR 3 / AC 6): keyword density + red flags + section detection
+  assert_contains "$ATS_SKILL" "keyword density" \
+    "cv-ats-score skill covers keyword density (BR 3)"
+  assert_contains "$ATS_SKILL" "multi-column" \
+    "cv-ats-score skill detects multi-column layouts (BR 3)"
+  assert_contains "$ATS_SKILL" "images as text" \
+    "cv-ats-score skill detects images as text (BR 3)"
+  assert_contains "$ATS_SKILL" "missing standard sections" \
+    "cv-ats-score skill detects missing standard sections (BR 3)"
+  assert_contains "$ATS_SKILL" "section_completeness" \
+    "cv-ats-score skill covers section detection (BR 3)"
+  # pdftotext best-effort (BR 2) + no URL fetching
+  assert_contains "$ATS_SKILL" "pdftotext" \
+    "cv-ats-score skill extracts text via pdftotext (BR 2)"
+  assert_contains "$ATS_SKILL" "cannot-analyze" \
+    "cv-ats-score skill handles the no-text-source case honestly"
+  assert_not_contains "$ATS_SKILL" "curl" \
+    "cv-ats-score skill has no curl/URL-fetching instructions"
+  # report structure rules (AC 9): one H1, no metadata header, canonical table
+  assert_contains "$ATS_SKILL" "exactly one H1" \
+    "cv-ats-score skill mandates exactly one H1 (AC 9)"
+  assert_contains "$ATS_SKILL" "NO metadata header" \
+    "cv-ats-score skill forbids metadata header (AC 9)"
+  # [INFERIDO] allowed inline in the internal report (std §5), never in resume
+  assert_contains "$ATS_SKILL" "[INFERIDO]" \
+    "cv-ats-score skill keeps [INFERIDO] inline in the internal report (std §5)"
+  assert_contains "$ATS_SKILL" "NEVER fabricate" \
+    "cv-ats-score skill forbids fabrication of counts/scores"
+else
+  t_fail "cv-ats-score skill missing at $ATS_SKILL"
+fi
+
+ATS_AGENT="$SCRIPT_DIR/../../agents/career/cv-ats-score.md"
+if [[ -f "$ATS_AGENT" ]]; then
+  frontmatter_ok "$ATS_AGENT" \
+    && t_ok "cv-ats-score agent has valid YAML frontmatter" \
+    || t_fail "cv-ats-score agent frontmatter invalid (expected '---' delimiters)"
+  assert_contains "$ATS_AGENT" "~/career/**" \
+    "cv-ats-score agent restricts edits to ~/career/** (BR 8 / AC 10)"
+  assert_contains "$ATS_AGENT" "temperature: 0.2" \
+    "cv-ats-score agent runs at temperature 0.2"
+  assert_contains "$ATS_AGENT" '"pdftotext *": allow' \
+    "cv-ats-score agent grants the pdftotext bash permission (BR 6)"
+  assert_contains "$ATS_AGENT" "ats-score.md" \
+    "cv-ats-score agent produces ats-score.md (BR 5)"
+  assert_contains "$ATS_AGENT" "read-only" \
+    "cv-ats-score agent is read-only besides the report (BR 8 / AC 10)"
+  assert_not_contains "$ATS_AGENT" '"curl -L*": allow' \
+    "cv-ats-score agent grants no curl -L permission"
+else
+  t_fail "cv-ats-score agent missing at $ATS_AGENT"
+fi
+
+ATS_CMD="$SCRIPT_DIR/../../commands/ocf:cv-ats-score.md"
+if [[ -f "$ATS_CMD" ]]; then
+  assert_contains "$ATS_CMD" "ats-score.md" \
+    "ocf:cv-ats-score command documents the ats-score.md output"
+  assert_contains "$ATS_CMD" "standards/cv-analysis.md" \
+    "ocf:cv-ats-score command references standards/cv-analysis.md (BR 10)"
+  assert_contains "$ATS_CMD" "<candidate-directory> <job-slug>" \
+    "ocf:cv-ats-score command documents the <candidate-directory> <job-slug> signature (BR 1)"
+  assert_contains "$ATS_CMD" "40%" \
+    "ocf:cv-ats-score command documents the 40/30/30 breakdown (BR 4)"
+else
+  t_fail "ocf:cv-ats-score command missing at $ATS_CMD"
+fi
+
+# opencode.json registers the command and the skill allow (BR 6/7 / AC 4)
+if [[ -f "$OP_CONFIG" ]]; then
+  python3 - "$OP_CONFIG" <<'PYEOF' || t_fail "opencode.json cv-ats-score registration invalid"
+import json, sys
+cfg = json.load(open(sys.argv[1]))
+assert "ocf:cv-ats-score" in cfg.get("command", {}), "command ocf:cv-ats-score not registered"
+assert cfg["permission"]["skill"].get("cv-ats-score") == "allow", "skill cv-ats-score not allow"
+PYEOF
+  t_ok "opencode.json registers ocf:cv-ats-score command + skill allow"
+else
+  t_fail "opencode.json missing at $OP_CONFIG"
+fi
+
+# ats-score.md structure rules (AC 9): exactly one H1, NO metadata header —
+# the fixture mirrors the mandated report shape (H1 title first, then H2s).
+cat > "$TMP/ats-score-fixture.md" <<'MDEOF'
+# ATS Score — backend-engineer-remote
+
+## Job context
+
+Backend Engineer — Acme, senior, English.
+
+## ATS score
+
+| Section | Score (0-100) | Justification |
+| --- | --- | --- |
+| keyword_match | 80 | 8 of 10 job keywords found |
+| section_completeness | 100 | all standard sections detected |
+| format_compliance | 75 | single-column, one red flag |
+| Global | 85 | weighted total |
+
+## Keyword density
+
+- Kubernetes — 2x in the job, 0x in the resume
+
+## ATS red flags
+
+- None detected
+
+## Recommendations
+
+- Add "Kubernetes" to the skills section — it appears 2x in the job but 0x in your resume.
+MDEOF
+if [[ "$(head -n1 "$TMP/ats-score-fixture.md")" == "# ATS Score"* ]]; then
+  t_ok "ats-score.md starts directly with the H1 title (no metadata header)"
+else
+  t_fail "ats-score.md does not start with the H1 title (metadata header present)"
+fi
+H1_COUNT="$(grep -c '^# ' "$TMP/ats-score-fixture.md" || true)"
+assert_eq "1" "$H1_COUNT" "ats-score.md fixture has exactly one H1 title"
+if grep -qE '^(Generated on:|Source:|Tool:|Note:)' "$TMP/ats-score-fixture.md" 2>/dev/null; then
+  t_fail "ats-score.md fixture contains a metadata header line"
+else
+  t_ok "ats-score.md fixture has no metadata header lines"
+fi
+
 
 # validate.py must accept a valid 'since' year and reject malformed ones
 TMP_ENV="$TMP" python3 - <<'EOF' > "$TMP/hub-since-valid.json"

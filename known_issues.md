@@ -372,13 +372,16 @@ See `standards/issues.md` for the full contract.
  - Suggested fix (alternativo): Se o spike do modo headless falhar, avaliar self-hosted GitHub runner na mesma VM do opencode web, com `--attach http://127.0.0.1:4096` — mantém paralelismo sem exigir suporte headless do opencode. SPIKE PASSED — alternativa NÃO necessária.
 
 ### 69. ATS compatibility scoring of generated resume — ocf:cv-ats-score
-- Status: backlog
+- Status: in-progress
+- Opened: 2026-08-15
+- Ready: 2026-08-15
+- Started: 2026-08-15
 - Type: feat
 - Severity: medium
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 1 (qa)
-- Remote: -
+- Remote: #83
 - PR: -
 - Location: agents/career/cv-ats-score.md (NEW), skills/career/cv-ats-score/SKILL.md (NEW), commands/ocf:cv-ats-score.md (NEW), opencode.json
 - Description: Create command `ocf:cv-ats-score <candidate-dir> <job-slug>`, agent `career/cv-ats-score`, skill `cv-ats-score`. Given a generated resume PDF (from cv-tailor) and the original job description, extract text from the PDF (pdftotext), analyze keyword density vs the job's requirements, detect ATS red flags (tables, images, multi-column, missing standard sections), and produce a score (0-100) + actionable recommendations. Output as `ats-score.md` in the job's slug directory.
@@ -406,6 +409,10 @@ See `standards/issues.md` for the full contract.
   9. Report follows standards/cv-analysis.md structure.
   10. Agent is read-only (no file modification besides the report).
   11. `make test-scripts` passes with new test cases.
+- Tests:
+  1. pdftotext unavailable on the system → the report is still produced best-effort, documents the pdftotext limitation, and falls back to the index.html resume text for the analysis.
+  2. Resume with a table/multi-column layout → the ATS red flag is detected, format_compliance is reduced by the corresponding deduction, and a single-column recommendation is emitted.
+  3. Resume missing the skills section → section_completeness is reduced, the missing-section red flag is reported, and an actionable recommendation names the missing section.
 - Suggested fix: Create agent, skill, command; register in opencode.json; use pdftotext for text extraction; compute score and recommendations. Execute after #64, #62, and #65. Origem: Proposal 2026-08-14-8 em prioritization.md.
 
 ### 70. Hub update flow — incremental edits to existing hub.json
