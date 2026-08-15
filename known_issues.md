@@ -124,7 +124,7 @@ See `standards/issues.md` for the full contract.
 - Suggested fix: Alterar `"/temp/*"` para `"/tmp/*"`.
 
 ### 28. `close_issue.sh` fecha issue remota sem verificar merge do PR para status não-`in-publish`
-- Status: in-review
+- Status: in-progress
 - Type: bug
 - Severity: medium
 - Report: opencode
@@ -372,7 +372,7 @@ See `standards/issues.md` for the full contract.
  - Suggested fix (alternativo): Se o spike do modo headless falhar, avaliar self-hosted GitHub runner na mesma VM do opencode web, com `--attach http://127.0.0.1:4096` — mantém paralelismo sem exigir suporte headless do opencode. SPIKE PASSED — alternativa NÃO necessária.
 
 ### 48. Sincronização bidirecional de issues com Jira Cloud (cards, status e comentários)
-- Status: in-progress
+- Status: in-review
 - Opened: 2026-08-15
 - Started: 2026-08-15
 - Type: feat
