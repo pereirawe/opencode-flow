@@ -382,7 +382,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 2 (runtime, docs)
 - Remote: #71
-- PR: -
+- PR: #72
 - Location: agents/career/cv-extractor.md, agents/career/cv-optimizer.md, agents/career/cv-tailor.md, skills/career/cv-hub/SKILL.md, skills/career/cv-optimizer/SKILL.md, skills/career/cv-tailor/SKILL.md, skills/career/cv-pdf/SKILL.md, commands/ocf:cv-hub.md, commands/ocf:cv-optimize.md, commands/ocf:cv-tailor.md, scripts/cv/schema.json, scripts/cv/validate.py, scripts/tests/test_cv.sh, opencode.json:118-127
 - Description: Rewrite ALL career sector prompts (agents, skills, commands, schema descriptions, validator messages) in English. Migrate hub.json keys and ENUM values from Portuguese to English. Add locale rule: analysis files generated in the user's communication language; tailored resumes in the job offer's language.
 - Impact: Aligns the career sector with the rest of the config (English prompts), makes hub.json portable and tool-readable across locales, and ensures outputs meet the user in their language. English is the operational language of the pipeline; mixing Portuguese in agents/skills/schema keys creates friction in non-PT contexts and makes the hub harder to consume programmatically.
