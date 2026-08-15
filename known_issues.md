@@ -505,13 +505,13 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Suggested fix: Add `Opened`/`Ready`/`Started` to the known_issues.md entry format and stamping logic in promote.sh (Ready on backlog→ready, Started on ready→in-progress, backfill `Opened` set-if-absent) and create_issue.sh (`Opened` on remote success); extend close_issue.sh to stamp `Resolved` and compute `Durations` using `TZ=UTC date -d "$d" +%s` with per-component guards/floors and the dup guard preserved; update standards/issues.md (en+pt+es) and standards/resolved-issue.md (en); add scripts/tests/test_timestamps.sh (t01–t25). Rebase onto #56 after it lands (shared standards/issues.md + workflow.md).
 
 ### 62. `[INFERIDO]` vaza para o HTML/PDF final do currículo gerado pelo cv-tailor (gate + fluxo de decisão humana)
-- Status: backlog
+- Status: in-progress
 - Type: bug
 - Severity: critical
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 2 (docs, runtime)
-- Remote: -
+- Remote: #59
 - PR: -
 - Location: skills/career/cv-tailor/SKILL.md:75-78, agents/career/cv-tailor.md:45, commands/ocf:cv-tailor.md:41,47, opencode.json:123, workflow.md:210-213, scripts/cv/check-inferido.sh (NEW), scripts/cv/pdf.sh, scripts/tests/test_cv.sh
 - Description: O fluxo cv-tailor instrui os agentes a marcar `[INFERIDO]` no HTML/PDF final (skill cv-tailor regra rígida 2, agente career/cv-tailor regra 2, comando ocf:cv-tailor, template do comando em opencode.json, workflow.md secção career). A etiqueta vaza para o artefacto partilhável: o recrutador vê "inferido"/"inventado" no PDF, o candidato não consegue partilhar o arquivo, e a qualidade percebida é quebrada. Correção: `[INFERIDO]` passa a ser permitido APENAS em artefactos internos de revisão humana; gate de verificação bloqueia qualquer ocorrência no HTML/PDF final; fluxo de validação humana com lista de inferências antes da geração.
