@@ -559,6 +559,100 @@ else
   t_fail "opencode.json missing at $OP_CONFIG"
 fi
 
+# --- cv-interview-prep contract (issue #68) ---
+# frontmatter helper: file starts with '---' and has a closing '---' line
+frontmatter_ok() {
+  local f="$1"
+  [[ -f "$f" ]] || return 1
+  head -n1 "$f" | grep -q '^---$' || return 1
+  awk 'NR>1 && /^---$/ { found=1; exit } END { exit !found }' "$f"
+}
+
+IP_SKILL="$SCRIPT_DIR/../../skills/career/cv-interview-prep/SKILL.md"
+if [[ -f "$IP_SKILL" ]]; then
+  frontmatter_ok "$IP_SKILL" \
+    && t_ok "cv-interview-prep skill has valid YAML frontmatter" \
+    || t_fail "cv-interview-prep skill frontmatter invalid (expected '---' delimiters)"
+  # English schema keys (issue #64) — no legacy Portuguese keys
+  assert_not_contains "$IP_SKILL" "resumo_i18n" \
+    "cv-interview-prep skill has no legacy resumo_i18n key"
+  assert_contains "$IP_SKILL" "summary_i18n" \
+    "cv-interview-prep skill references the English summary_i18n key"
+  # analysis standard + user's communication language (BR 11 / AC 8)
+  assert_contains "$IP_SKILL" "standards/cv-analysis.md" \
+    "cv-interview-prep skill references standards/cv-analysis.md (BR 11)"
+  assert_contains "$IP_SKILL" "communication language" \
+    "cv-interview-prep skill mandates the user's communication language (AC 8)"
+  # output file (BR 5) + kit components (BR 2)
+  assert_contains "$IP_SKILL" "preparacao-entrevista.md" \
+    "cv-interview-prep skill defines the preparacao-entrevista.md output (BR 5)"
+  assert_contains "$IP_SKILL" "Likely interview questions" \
+    "cv-interview-prep skill covers likely interview questions (BR 2)"
+  assert_contains "$IP_SKILL" "Suggested STAR answers" \
+    "cv-interview-prep skill covers STAR answers (BR 2)"
+  assert_contains "$IP_SKILL" "Questions to ask the interviewer" \
+    "cv-interview-prep skill covers questions to ask (BR 2)"
+  assert_contains "$IP_SKILL" "Technical topics to review" \
+    "cv-interview-prep skill covers technical topics (BR 2)"
+  # STAR answers map to real hub entries (BR 3) + gaps flagged (BR 8)
+  assert_contains "$IP_SKILL" "NEVER invent" \
+    "cv-interview-prep skill forbids fabrication (BR 3)"
+  assert_contains "$IP_SKILL" "preparation gap" \
+    "cv-interview-prep skill flags preparation gaps (BR 8)"
+  # no [INFERIDO]-in-output instruction + no URL fetching (BR 6)
+  assert_contains "$IP_SKILL" "NO \`[INFERIDO]\`" \
+    "cv-interview-prep skill forbids [INFERIDO] in the output file (BR 6)"
+  assert_not_contains "$IP_SKILL" "curl" \
+    "cv-interview-prep skill has no curl/URL-fetching instructions"
+else
+  t_fail "cv-interview-prep skill missing at $IP_SKILL"
+fi
+
+IP_AGENT="$SCRIPT_DIR/../../agents/career/cv-interview-prep.md"
+if [[ -f "$IP_AGENT" ]]; then
+  frontmatter_ok "$IP_AGENT" \
+    && t_ok "cv-interview-prep agent has valid YAML frontmatter" \
+    || t_fail "cv-interview-prep agent frontmatter invalid (expected '---' delimiters)"
+  assert_contains "$IP_AGENT" "~/career/**" \
+    "cv-interview-prep agent restricts edits to ~/career/** (BR 9 / AC 11)"
+  assert_contains "$IP_AGENT" "temperature: 0.2" \
+    "cv-interview-prep agent runs at temperature 0.2 (BR 9)"
+  assert_contains "$IP_AGENT" "validate.py" \
+    "cv-interview-prep agent validates the hub (BR 7)"
+  assert_contains "$IP_AGENT" "preparacao-entrevista.md" \
+    "cv-interview-prep agent produces preparacao-entrevista.md (BR 5)"
+  assert_not_contains "$IP_AGENT" '"curl -L*": allow' \
+    "cv-interview-prep agent grants no curl -L permission"
+else
+  t_fail "cv-interview-prep agent missing at $IP_AGENT"
+fi
+
+IP_CMD="$SCRIPT_DIR/../../commands/ocf:cv-interview-prep.md"
+if [[ -f "$IP_CMD" ]]; then
+  assert_contains "$IP_CMD" "preparacao-entrevista.md" \
+    "ocf:cv-interview-prep command documents the preparacao-entrevista.md output"
+  assert_contains "$IP_CMD" "standards/cv-analysis.md" \
+    "ocf:cv-interview-prep command references standards/cv-analysis.md (BR 11)"
+  assert_contains "$IP_CMD" "<candidate-directory> <job>" \
+    "ocf:cv-interview-prep command documents the <candidate-directory> <job> signature (BR 1)"
+else
+  t_fail "ocf:cv-interview-prep command missing at $IP_CMD"
+fi
+
+# opencode.json registers the command and the skill allow (BR 10 / AC 4)
+if [[ -f "$OP_CONFIG" ]]; then
+  python3 - "$OP_CONFIG" <<'PYEOF' || t_fail "opencode.json cv-interview-prep registration invalid"
+import json, sys
+cfg = json.load(open(sys.argv[1]))
+assert "ocf:cv-interview-prep" in cfg.get("command", {}), "command ocf:cv-interview-prep not registered"
+assert cfg["permission"]["skill"].get("cv-interview-prep") == "allow", "skill cv-interview-prep not allow"
+PYEOF
+  t_ok "opencode.json registers ocf:cv-interview-prep command + skill allow"
+else
+  t_fail "opencode.json missing at $OP_CONFIG"
+fi
+
+
 # validate.py must accept a valid 'since' year and reject malformed ones
 TMP_ENV="$TMP" python3 - <<'EOF' > "$TMP/hub-since-valid.json"
 import json, os

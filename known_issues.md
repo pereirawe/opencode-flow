@@ -372,13 +372,16 @@ See `standards/issues.md` for the full contract.
  - Suggested fix (alternativo): Se o spike do modo headless falhar, avaliar self-hosted GitHub runner na mesma VM do opencode web, com `--attach http://127.0.0.1:4096` — mantém paralelismo sem exigir suporte headless do opencode. SPIKE PASSED — alternativa NÃO necessária.
 
 ### 68. Interview preparation kit — ocf:cv-interview-prep
-- Status: backlog
+- Status: in-progress
+- Opened: 2026-08-15
+- Ready: 2026-08-15
+- Started: 2026-08-15
 - Type: feat
 - Severity: high
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 1 (docs)
-- Remote: -
+- Remote: #81
 - PR: -
 - Location: agents/career/cv-interview-prep.md (NEW), skills/career/cv-interview-prep/SKILL.md (NEW), commands/ocf:cv-interview-prep.md (NEW), opencode.json
 - Description: Create command `ocf:cv-interview-prep <candidate-dir> <job>`, agent `career/cv-interview-prep`, and skill `cv-interview-prep`. Given the candidate hub and a job description, generate: (1) likely interview questions for the role (behavioral + technical), (2) suggested STAR-format answers mapped to real experience from the hub, (3) questions the candidate should ask the interviewer, (4) technical topics to review based on the job's required skills. Output as `preparacao-entrevista.md` in the user's communication language. NEVER fabricate experience — STAR answers must reference real hub entries.
