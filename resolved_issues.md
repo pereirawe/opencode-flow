@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 68. Interview preparation kit — ocf:cv-interview-prep
+- Resolved: 2026-08-15
+- Durations: backlog=0d waiting=0d dev=0d total=0d
+- Severity: high
+- Type: feat
+- Report: william_pereira
+- Reviewers: 1
+- Remote: #81
+- Summary: Create command `ocf:cv-interview-prep <candidate-dir> <job>`, agent `career/cv-interview-prep`, and skill `cv-interview-prep`. Given the candidate hub and a job description, generate — Create agent, skill, command; register in opencode.json. Execute after #64 and #65. Origem
+
 ### 67. LinkedIn profile optimization suggestions — ocf:cv-linkedin
 - Resolved: 2026-08-15
 - Durations: backlog=0d waiting=0d dev=0d total=0d
