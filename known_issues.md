@@ -372,14 +372,18 @@ See `standards/issues.md` for the full contract.
  - Suggested fix (alternativo): Se o spike do modo headless falhar, avaliar self-hosted GitHub runner na mesma VM do opencode web, com `--attach http://127.0.0.1:4096` — mantém paralelismo sem exigir suporte headless do opencode. SPIKE PASSED — alternativa NÃO necessária.
 
 ### 68. Interview preparation kit — ocf:cv-interview-prep
-- Status: backlog
+- Status: in-publish
+- QA verdict (2026-08-15): APPROVED — post-review QA verified all 12 ACs on disk, senior review 0 blocking, tests green (make test-scripts 10/0; test_cv.sh 134/0 incl. 28 new cv-interview-prep assertions). Low finding disposition: standards/cv-analysis.md §3 missing preparacao-entrevista.md report-type entry (incomplete-spec, standards-maintenance, non-blocking) — fold into #75 scope. Tests: field captured per #76 BR 2 (6 scenario → outcome lines). Proceed to Committer.
+- Opened: 2026-08-15
+- Ready: 2026-08-15
+- Started: 2026-08-15
 - Type: feat
 - Severity: high
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 1 (docs)
-- Remote: -
-- PR: -
+- Remote: #81
+- PR: #82
 - Location: agents/career/cv-interview-prep.md (NEW), skills/career/cv-interview-prep/SKILL.md (NEW), commands/ocf:cv-interview-prep.md (NEW), opencode.json
 - Description: Create command `ocf:cv-interview-prep <candidate-dir> <job>`, agent `career/cv-interview-prep`, and skill `cv-interview-prep`. Given the candidate hub and a job description, generate: (1) likely interview questions for the role (behavioral + technical), (2) suggested STAR-format answers mapped to real experience from the hub, (3) questions the candidate should ask the interviewer, (4) technical topics to review based on the job's required skills. Output as `preparacao-entrevista.md` in the user's communication language. NEVER fabricate experience — STAR answers must reference real hub entries.
 - Impact: Bridges the gap between "having a good resume" and "performing well in the interview". The hub already contains the raw material for STAR answers — high commercial value.
@@ -408,6 +412,13 @@ See `standards/issues.md` for the full contract.
   10. Report follows standards/cv-analysis.md structure.
   11. Agent permissions restrict edit to `~/carreira/**`.
   12. `make test-scripts` passes with new test cases.
+- Tests:
+  1. Hub missing or invalid (validate.py fails) → agent tells the user to run ocf:cv-hub first; no kit generated.
+  2. Job provided as pasted text → kit generated with all components: likely behavioral + technical questions, STAR answers citing their hub entries, questions to ask the interviewer, technical topics to review (have from hub vs gap topics), and a preparation gaps section.
+  3. A question cannot be answered from hub data → no fabricated answer is drafted; the question is recorded in the preparation gaps section flagged for human review.
+  4. Output `~/career/<candidate>/preparacao-entrevista.md` → written in the user's communication language, exactly one H1 title, no metadata header, following standards/cv-analysis.md §2/§3 structure.
+  5. Output content scan → no `[INFERIDO]` (nor case-insensitive variants, nor the word "inferido") appears in the file.
+  6. User pastes a URL as the job → agent refuses and asks for pasted job text (no URL fetch; no curl surface in agent permissions).
 - Suggested fix: Create agent, skill, command; register in opencode.json. Execute after #64 and #65. Origem: Proposal 2026-08-14-7 em prioritization.md.
 
 ### 69. ATS compatibility scoring of generated resume — ocf:cv-ats-score
