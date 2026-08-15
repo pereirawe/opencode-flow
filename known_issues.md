@@ -505,7 +505,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Suggested fix: Add `Opened`/`Ready`/`Started` to the known_issues.md entry format and stamping logic in promote.sh (Ready on backlog→ready, Started on ready→in-progress, backfill `Opened` set-if-absent) and create_issue.sh (`Opened` on remote success); extend close_issue.sh to stamp `Resolved` and compute `Durations` using `TZ=UTC date -d "$d" +%s` with per-component guards/floors and the dup guard preserved; update standards/issues.md (en+pt+es) and standards/resolved-issue.md (en); add scripts/tests/test_timestamps.sh (t01–t25). Rebase onto #56 after it lands (shared standards/issues.md + workflow.md).
 
 ### 63. Padrão de design de currículo ATS-friendly — standards/cv-design.md + template HTML/CSS de referência
-- Status: in-review
+- Status: in-publish
 - Type: feat
 - Severity: high
 - Report: william_pereira
