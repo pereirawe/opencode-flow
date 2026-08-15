@@ -372,7 +372,7 @@ See `standards/issues.md` for the full contract.
  - Suggested fix (alternativo): Se o spike do modo headless falhar, avaliar self-hosted GitHub runner na mesma VM do opencode web, com `--attach http://127.0.0.1:4096` — mantém paralelismo sem exigir suporte headless do opencode. SPIKE PASSED — alternativa NÃO necessária.
 
 ### 48. Sincronização bidirecional de issues com Jira Cloud (cards, status e comentários)
-- Status: in-qa
+- Status: in-publish
 - Opened: 2026-08-15
 - Started: 2026-08-15
 - Type: feat
