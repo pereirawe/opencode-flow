@@ -366,13 +366,15 @@ See `standards/issues.md` for the full contract.
  - Suggested fix (alternativo): Se o spike do modo headless falhar, avaliar self-hosted GitHub runner na mesma VM do opencode web, com `--attach http://127.0.0.1:4096` — mantém paralelismo sem exigir suporte headless do opencode. SPIKE PASSED — alternativa NÃO necessária.
 
 ### 48. Sincronização bidirecional de issues com Jira Cloud (cards, status e comentários)
-- Status: ready
+- Status: in-progress
+- Opened: 2026-08-15
+- Started: 2026-08-15
 - Type: feat
 - Severity: high
 - Report: PO
 - Base branch: main
 - Reviewers: 2 (devops, security)
-- Remote: -
+- Remote: #69
 - PR: -
 - Location: scripts/sync-jira.sh (novo), scripts/config.sh, scripts/create_issue.sh, scripts/promote.sh, scripts/close_issue.sh, opencode.json, standards/issues.md, standards/pt/issues.md, standards/es/issues.md, standards/mcp-registry.md, scripts/README.md, scripts/tests/
 - Description: Integrar o pipeline com Jira Cloud (REST v3): ao criar/registrar uma issue (`ocf:discovery` / `ocf:develop` / `scripts/create_issue.sh`), criar o card no backlog do Jira se não existir (campo novo `Jira: DEV-123`); se a chave já existir, vincular o card à issue da `known_issues.md`. Sincronizar automaticamente TODAS as transições de status (backlog→ready→in-progress→in-review→in-qa→in-publish→resolved) para o workflow do Jira via mapa configurável por projeto. Alinhar comentários do repositório → Jira (uma via). Sync via script `sync-jira.sh` (curl REST v3) + hooks nos scripts existentes + comando dedicado `ocf:sync-jira` para reconciliação completa. MCP Jira registrado opcionalmente em `mcpServers` para consultas de agente (backlog view) — o sync do pipeline vive em script (determinístico, headless, testável em CI).
@@ -403,6 +405,19 @@ See `standards/issues.md` for the full contract.
   10. `standards/issues.md`, `standards/pt/issues.md` e `standards/es/issues.md` documentam o campo `Jira:`.
   11. Testes automatizados em `scripts/tests/` cobrem: criação, idempotência, mapeamento de status, falha de rede e estado desabilitado.
   12. `opencode.json` válido após registrar o comando `ocf:sync-jira` e o MCP Jira opcional.
+- Tests:
+  1. Jira configurado (mock/recording da API REST v3) + `create_issue.sh <id>` → card criado no backlog e campo `Jira: <KEY-N>` preenchido na `known_issues.md` → ✓
+  2. Rodar `create_issue.sh` novamente na mesma issue (ou `sync-jira.sh ensure-card`) → nenhuma criação duplicada (`Jira:` preenchido → no-op com warning) → ✓
+  3. `promote.sh <id>` (backlog→ready e ready→in-progress) com card existente → transição no Jira com o status mapeado correto (defaults: To Do / In Progress) → ✓
+  4. `close_issue.sh <id>` em `resolved` com card existente → card transicionado para Done/Closed → ✓
+  5. `sync-jira.sh sync` → reconcilia TODAS as issues com `Jira:` preenchido em um único run (status local → Jira) → ✓
+  6. Sem config Jira (sem jira.json e sem env vars) → TODOS os scripts existentes comportam-se exatamente como hoje (zero chamadas Jira — regressão zero) → ✓
+  7. `JIRA_BASE_URL` apontando para host inacessível (curl falha) → pipeline completa com warning e status local avança (não-bloqueante) → ✓
+  8. Transição não permitida pelo workflow Jira → no-op com warning, sem erro fatal → ✓
+  9. Valor de `JIRA_API_TOKEN`/`JIRA_EMAIL` → nunca aparece em arquivos versionados nem em logs (verificação por grep nos testes) → ✓
+  10. `standards/issues.md`, `standards/pt/issues.md` e `standards/es/issues.md` documentam o campo `Jira:` → ✓
+  11. Testes automatizados em `scripts/tests/` cobrem: criação, idempotência, mapeamento de status, falha de rede e estado desabilitado → ✓
+  12. `opencode.json` válido após registrar o comando `ocf:sync-jira` e o MCP Jira opcional (documentado em `standards/mcp-registry.md`) → ✓
 - Suggested fix: (1) criar `scripts/sync-jira.sh` (core REST v3: create-card, transition, add-comment, get-by-key; idempotente; não-bloqueante; auth via `JIRA_API_TOKEN`), (2) adicionar suporte a Jira em `scripts/config.sh` (leitura de `.opencode/jira.json` + env vars), (3) hookar `create_issue.sh`, `promote.sh` e `close_issue.sh`, (4) registrar `ocf:sync-jira` (e MCP Jira opcional) no `opencode.json`, (5) documentar o campo `Jira:` em standards (en/pt/es) e o MCP Jira em `standards/mcp-registry.md`, (6) testes em `scripts/tests/` + docs em `scripts/README.md`. Origem: Proposal 2026-08-06-1 em `prioritization.md`.
 
 
