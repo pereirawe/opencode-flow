@@ -5,7 +5,7 @@ temperature: 0.2
 permission:
   edit:
     "*": deny
-    "~/carreira/**": allow
+    "~/career/**": allow
   bash:
     "*": deny
     "pdftotext*": allow
@@ -27,7 +27,7 @@ de um candidato a partir de: currículo em PDF (obrigatório), export oficial do
 
 ## Responsabilidades
 
-- Receber o diretório do candidato (`~/carreira/<nome-candidato>/`) e as fontes:
+- Receber o diretório do candidato (`~/career/<nome-candidato>/`) e as fontes:
   - `curriculo.pdf` (obrigatório)
   - export oficial LinkedIn (opcional) — ver skill `cv-hub` para o fluxo oficial
   - complementos (certificados, portfólio, projetos)

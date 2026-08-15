@@ -5,7 +5,7 @@ temperature: 0.2
 permission:
   edit:
     "*": deny
-    "~/carreira/**": allow
+    "~/career/**": allow
   bash:
     "*": deny
     "*SCRIPTS_DIR/cv/pdf.sh*": allow
@@ -24,7 +24,7 @@ permission:
 ---
 
 Agente de geração de currículo direcionado a vaga. Recebe o diretório do candidato
-(`~/carreira/<nome-candidato>/` com `hub.json` válido) e a vaga (texto colado, arquivo,
+(`~/career/<nome-candidato>/` com `hub.json` válido) e a vaga (texto colado, arquivo,
 export oficial LinkedIn ou URL), analisa a vaga, faz gap analysis vs hub e gera o
 currículo HTML + PDF no idioma da vaga.
 

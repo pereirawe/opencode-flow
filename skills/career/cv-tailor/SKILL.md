@@ -12,7 +12,7 @@ existem no `hub.json`. Nada é fabricado.
 ## Pré-requisito
 
 O candidato deve ter um hub construído (`ocf:cv-hub` / skill `cv-hub`):
-`~/carreira/<nome-candidato>/hub.json` válido.
+`~/career/<nome-candidato>/hub.json` válido.
 
 ## Entrada da vaga
 
@@ -112,7 +112,7 @@ Reordene, destaque e reformule **apenas o que já existe no hub**:
 ## Estrutura de saída
 
 ```
-~/carreira/<nome-candidato>/curriculos/<slug-da-vaga>/
+~/career/<nome-candidato>/curriculos/<slug-da-vaga>/
 ├── index.html            # currículo HTML (idioma da vaga)
 ├── curriculo.pdf         # PDF A4 gerado
 ├── gap-analysis.md       # análise de requisitos vs hub

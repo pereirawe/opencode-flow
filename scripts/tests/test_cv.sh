@@ -93,7 +93,7 @@ if [[ -n "$CHROME" ]]; then
     fi
   fi
 
-  # Non-ASCII output path (e.g. ~/carreira/joão-silva/) must render content,
+  # Non-ASCII output path (e.g. ~/career/joão-silva/) must render content,
   # not Chrome's error page (regression for file_url UTF-8 encoding).
   mkdir -p "$TMP/joão-silva"
   cp "$TMP/resume.html" "$TMP/joão-silva/index.html"

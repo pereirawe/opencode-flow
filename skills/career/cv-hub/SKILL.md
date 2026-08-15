@@ -12,7 +12,7 @@ humano). O hub é a base da geração de currículos direcionados (`cv-tailor`).
 ## Estrutura do diretório do candidato
 
 ```
-~/carreira/<nome-candidato>/
+~/career/<nome-candidato>/
 ├── hub.json          # schema canônico (fonte de verdade para IA)
 ├── README.md         # resumo executivo humano, gerado a partir do hub.json
 ├── entradas/         # arquivos-fonte originais

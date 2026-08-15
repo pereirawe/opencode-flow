@@ -14,12 +14,12 @@ direcionados com `/ocf:cv-tailor`.
 ### Uso
 
 ```
-/ocf:cv-optimize ~/carreira/maria-silva
+/ocf:cv-optimize ~/career/maria-silva
 ```
 
 ### Fluxo
 
-1. **Verificar o hub** — se `~/carreira/<candidato>/hub.json` não existir ou
+1. **Verificar o hub** — se `~/career/<candidato>/hub.json` não existir ou
    for inválido, invoca o fluxo do `/ocf:cv-hub` primeiro (perguntando os
    caminhos das fontes) e então continua.
 2. **Validar** — `python3 $SCRIPTS_DIR/cv/validate.py hub.json`.

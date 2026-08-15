@@ -22,7 +22,7 @@ bloqueia e isso viola os termos. Apenas o export oficial é aceito.
 ### Uso
 
 ```
-/ocf:cv-hub ~/carreira/maria-silva
+/ocf:cv-hub ~/career/maria-silva
 ```
 
 - Se o diretório não existir, cria-se a estrutura:
