@@ -102,6 +102,8 @@ Section order (H2):
 1. Job context
 2. Requirements
 3. Gap analysis
+4. Match percentage
+5. Keyword density & coverage
 
 Content per section:
 
@@ -111,6 +113,15 @@ Content per section:
    of the extracted requirements.
 3. **Gap analysis** — the canonical gap analysis table (Section 4.1): every
    requirement → match value → hub evidence.
+4. **Match percentage** — the canonical weighted match table (Section 4.5):
+   the weighted met/total computation (mandatory requirements weigh 2x,
+   desirable 1x) and the resulting percentage, rounded to the nearest
+   integer.
+5. **Keyword density & coverage** — the canonical keyword density table
+   (Section 4.6) mapping each job keyword to its count in the FINAL resume
+   text (extracted from `index.html` or the PDF via `pdftotext`), followed
+   by the canonical coverage table (Section 4.7) ranking the resume sections
+   by how many job keyword occurrences each contains.
 
 ### 3.3 `inferencias.md` (cv-tailor)
 
@@ -179,6 +190,56 @@ Columns: `Inference | Context | Decision | Status`
 - `Status` — `pending` (awaiting the candidate's decision) | `resolved`
   (candidate decided).
 
+### 4.5 Match percentage (weighted)
+
+Columns: `Metric | Weight | Met | Total | Weighted`
+
+- `Metric` — the requirement category: `Mandatory` or `Desirable`.
+- `Weight` — `2x` for mandatory requirements, `1x` for desirable.
+- `Met` — the number of requirements in the category classified
+  `atendido` (fully met; `parcial` counts as 0.5 toward `Met`).
+- `Total` — the number of requirements in the category.
+- `Weighted` — rendered as `met-w/total-w` (e.g. `6/8`): `Met × Weight`
+  over `Total × Weight`.
+
+The match percentage is computed on the weighted totals and rounded to the
+nearest integer:
+
+```
+match_percentage = round( (Σ Met × Weight) / (Σ Total × Weight) × 100 )
+```
+
+The computation MUST be shown (via the table) so the candidate can reproduce
+it, and the rounded percentage is stated after the table (e.g. `Match: 70%`).
+
+### 4.6 Keyword density map
+
+Columns: `Keyword | Count in resume`
+
+- `Keyword` — the job keyword (from the extracted requirements/keywords).
+- `Count in resume` — the number of occurrences of the keyword in the
+  FINAL resume text (case-insensitive), computed from `index.html`
+  (strip the HTML tags) or from the PDF via `pdftotext` when
+  available. `0` when the keyword does not appear in the resume.
+
+Rows are ordered by `Count in resume` descending; keywords with count `0`
+are listed last.
+
+### 4.7 Coverage summary by section
+
+Columns: `Resume section | Job keywords found | Count`
+
+- `Resume section` — the resume section name: Summary, Experience,
+  Education, Skills, Certifications, Projects, Languages (localized to the
+  resume language; only sections present in the resume appear).
+- `Job keywords found` — the job keywords appearing in that section
+  (comma-separated, at most 3 shown, then `...`).
+- `Count` — the total number of job keyword occurrences found in that
+  section.
+
+Rows are ordered by `Count` descending — the sections with the most job
+keywords at the top.
+
 ## 5. `[INFERIDO]` convention
 
 `[INFERIDO]` is a protocol token — never translated, never localized,
@@ -230,7 +291,7 @@ complex merges, no nested layouts.
 - [ ] Report written in the user's communication language (Section 1)
 - [ ] Exactly one `H1` title; `H2` sections in the mandated order
 - [ ] No metadata header ("Generated on:", "Source:", "Tool:", "Note:")
-- [ ] Only canonical tables used (Sections 4.1–4.4), with the exact columns
+- [ ] Only canonical tables used (Sections 4.1–4.7), with the exact columns
 - [ ] Every inference marked `[INFERIDO]` inline — no global warning banner
 - [ ] No concrete jobs/companies/URLs in target profiles
 - [ ] No sensitive data (CPF, full address, bank)

@@ -1031,4 +1031,142 @@ else
   t_fail "opencode.json missing at $OP_CONFIG"
 fi
 
+# --- cv-tailor gap-analysis metrics contract (issue #71) ---
+# The gap analysis must carry: weighted match percentage (mandatory 2x,
+# desirable 1x), keyword density map, and coverage summary by section — all
+# computed on the FINAL resume text, per standards/cv-analysis.md §3.2/§4.5-§4.7.
+CV_ANALYSIS_STD="$SCRIPT_DIR/../../standards/cv-analysis.md"
+if [[ -f "$CV_ANALYSIS_STD" ]]; then
+  # §3.2 mandates the new gap-analysis sections (BR 6 / AC 5)
+  assert_contains "$CV_ANALYSIS_STD" "4. Match percentage" \
+    "cv-analysis standard §3.2 mandates the match percentage section (BR 1)"
+  assert_contains "$CV_ANALYSIS_STD" "5. Keyword density & coverage" \
+    "cv-analysis standard §3.2 mandates the keyword density & coverage section (BR 2/3)"
+  # canonical tables §4.5-§4.7 (AC 5)
+  assert_contains "$CV_ANALYSIS_STD" "### 4.5 Match percentage" \
+    "cv-analysis standard defines the weighted match table (BR 4)"
+  assert_contains "$CV_ANALYSIS_STD" "### 4.6 Keyword density map" \
+    "cv-analysis standard defines the keyword density table (BR 2)"
+  assert_contains "$CV_ANALYSIS_STD" "### 4.7 Coverage summary by section" \
+    "cv-analysis standard defines the coverage table (BR 3)"
+  assert_contains "$CV_ANALYSIS_STD" "\`2x\` for mandatory requirements" \
+    "cv-analysis standard documents the 2x mandatory weight (BR 4)"
+  assert_contains "$CV_ANALYSIS_STD" "strip the HTML tags" \
+    "cv-analysis standard computes counts on the final resume text from index.html (BR 5)"
+  assert_contains "$CV_ANALYSIS_STD" "pdftotext" \
+    "cv-analysis standard computes counts from the PDF via pdftotext (BR 5)"
+else
+  t_fail "cv-analysis standard missing at $CV_ANALYSIS_STD"
+fi
+
+if [[ -f "$TAILOR_SKILL" ]]; then
+  # BR 1/4 — weighted match percentage (mandatory 2x, desirable 1x)
+  assert_contains "$TAILOR_SKILL" "match percentage" \
+    "cv-tailor skill computes the match percentage (BR 1)"
+  assert_contains "$TAILOR_SKILL" "mandatory requirements weigh 2x" \
+    "cv-tailor skill documents the 2x mandatory / 1x desirable weights (BR 4)"
+  # BR 2/3/5 — keyword density + coverage on the FINAL resume text
+  assert_contains "$TAILOR_SKILL" "Keyword density map" \
+    "cv-tailor skill computes the keyword density map (BR 2)"
+  assert_contains "$TAILOR_SKILL" "Coverage summary by section" \
+    "cv-tailor skill computes the coverage summary by section (BR 3)"
+  assert_contains "$TAILOR_SKILL" "pdftotext" \
+    "cv-tailor skill extracts the final resume text via pdftotext (BR 5)"
+  assert_contains "$TAILOR_SKILL" "strip the HTML tags" \
+    "cv-tailor skill extracts the final resume text from index.html (BR 5)"
+  # BR 6 — canonical structure of standards/cv-analysis.md
+  assert_contains "$TAILOR_SKILL" "standards/cv-analysis.md" \
+    "cv-tailor skill references standards/cv-analysis.md (BR 6)"
+else
+  t_fail "cv-tailor skill missing at $TAILOR_SKILL"
+fi
+
+if [[ -f "$TAILOR_AGENT" ]]; then
+  assert_contains "$TAILOR_AGENT" "match percentage" \
+    "cv-tailor agent computes the weighted match percentage (BR 1/4)"
+  assert_contains "$TAILOR_AGENT" "keyword density map" \
+    "cv-tailor agent computes the keyword density map (BR 2)"
+  assert_contains "$TAILOR_AGENT" "coverage summary" \
+    "cv-tailor agent computes the coverage summary by section (BR 3)"
+  assert_contains "$TAILOR_AGENT" "pdftotext" \
+    "cv-tailor agent extracts the final resume text via pdftotext (BR 5)"
+else
+  t_fail "cv-tailor agent missing at $TAILOR_AGENT"
+fi
+
+if [[ -f "$TAILOR_CMD" ]]; then
+  assert_contains "$TAILOR_CMD" "match percentage" \
+    "ocf:cv-tailor command documents the match percentage (BR 1)"
+  assert_contains "$TAILOR_CMD" "keyword density map" \
+    "ocf:cv-tailor command documents the keyword density map (BR 2)"
+  assert_contains "$TAILOR_CMD" "coverage summary" \
+    "ocf:cv-tailor command documents the coverage summary (BR 3)"
+else
+  t_fail "ocf:cv-tailor command missing at $TAILOR_CMD"
+fi
+
+# fixture: gap-analysis.md with the match-percentage table must follow the
+# report structure rules of the standard (exactly one H1, NO metadata header,
+# H2 sections in the mandated order) — mirrors the ats-score fixture checks.
+cat > "$TMP/gap-analysis-fixture.md" <<'MDEOF'
+# Gap Analysis — senior-backend-engineer
+
+## Job context
+
+Backend Engineer — Acme, senior, English.
+
+## Requirements
+
+### Required
+
+- Kubernetes
+- Go
+
+### Desirable
+
+- Kafka
+
+## Gap analysis
+
+| Requirement | Match | Evidence in hub |
+| --- | --- | --- |
+| Kubernetes | atendido | skills: Kubernetes (level: advanced) |
+| Go | atendido | skills: Go (level: advanced) |
+| Kafka | not_met | not found in hub |
+
+## Match percentage
+
+| Metric | Weight | Met | Total | Weighted |
+| --- | --- | --- | --- | --- |
+| Mandatory | 2x | 2 | 2 | 4/4 |
+| Desirable | 1x | 0 | 1 | 0/1 |
+
+Match: 80%
+
+## Keyword density & coverage
+
+| Keyword | Count in resume |
+| --- | --- |
+| Kubernetes | 3 |
+| Go | 2 |
+| Kafka | 0 |
+
+| Resume section | Job keywords found | Count |
+| --- | --- | --- |
+| Skills | Kubernetes, Go | 4 |
+| Summary | Kubernetes | 1 |
+MDEOF
+if [[ "$(head -n1 "$TMP/gap-analysis-fixture.md")" == "# Gap Analysis"* ]]; then
+  t_ok "gap-analysis.md starts directly with the H1 title (no metadata header)"
+else
+  t_fail "gap-analysis.md does not start with the H1 title (metadata header present)"
+fi
+H1_COUNT_GA="$(grep -c '^# ' "$TMP/gap-analysis-fixture.md" || true)"
+assert_eq "1" "$H1_COUNT_GA" "gap-analysis.md fixture has exactly one H1 title"
+if grep -qE '^(Generated on:|Source:|Tool:|Note:)' "$TMP/gap-analysis-fixture.md" 2>/dev/null; then
+  t_fail "gap-analysis.md fixture contains a metadata header line"
+else
+  t_ok "gap-analysis.md fixture has no metadata header lines"
+fi
+
 t_finish
