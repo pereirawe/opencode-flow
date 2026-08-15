@@ -912,5 +912,137 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
   7. No existing functionality breaks.
 - Suggested fix: Refactor validate.py to use schema.json; add format/cross-field validation; create agents/career/README.md; define README.md template; remove curl -L from cv-tailor. Execute after #64 (English schema). Origem: Proposal 2026-08-14-11 em prioritization.md.
 
+### 73. Standardize project language to English (prompts, skills, docs, scripts) with locale-aware responses
+- Status: ready
+- Type: feat
+- Severity: high
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (docs, qa)
+- Remote: -
+- PR: -
+- Location: agents/** (PT prompts), commands/** (PT docs + opencode.json command templates), skills/**/SKILL.md native (PT frontmatter/body, excl. vendor/**), scripts/*.sh (PT comments/usage/messages), scripts/tests/test_*.sh (PT assertion messages), scripts/tests/test_language.sh (NEW), AGENTS.md, workflow.md, conventions.md, decisions.md, architecture.md, standards/*.md EN originals, standards/aibot-messages.md (exemption note only), standards/telegram-messages.md (EN original + move PT to standards/pt/), skills/shared/locale-loader/SKILL.md
+- Description: Rewrite ALL remaining Portuguese-language artifacts to English: agent prompts, skill prompts (frontmatter + body), command docs and opencode.json command templates, scripts (comments, usage/help, errors), root docs (AGENTS.md, workflow.md, conventions.md, decisions.md, architecture.md), and standards/*.md English originals. Standards keep pt/es translations. Add the canonical response-language rule to AGENTS.md (input language → .opencode/locale project → global → EN) and per-agent one-line references; update locale-loader SKILL.md. Ship scripts/tests/test_language.sh as an advisory-then-blocking language-conformance gate (heuristic accent+stopword, auto-discovered by run_all.sh). standards/aibot-messages.md is exempted as a PT-BR domain contract (issue #39). Issue #64 lands first; career files are not re-rewritten.
+- Impact: Every agent that reads these prompts (developer, reviewers, QA, committer, sector agents), every project that inherits the global config, and the maintainer — PT/EN mixing (~44 files) is eliminated; outputs remain localized for the user. No runtime behavior change; touching core prompts carries regression risk mitigated by the gate + QA pre-development + senior review.
+- Business rules:
+  1. English MUST be the operational language of: agent prompts (agents/**), skill prompts (skills/**/SKILL.md frontmatter + body), command docs and opencode.json command templates, scripts (scripts/** comments, usage, help, error messages, interactive prompts), root docs (AGENTS.md, workflow.md, conventions.md, decisions.md, architecture.md), and standards/*.md English originals.
+  2. Rewrite is content-preserving (language only). Technical terms, command names, code identifiers, and domain constants ([INFERIDO], aibot message templates — BR 3) remain unchanged.
+  3. standards/aibot-messages.md is a PT-BR domain constant (issue #39 spec — the message templates ARE the PT output contract, same precedent as [INFERIDO] in #64). Exempted from the gate and NOT rewritten; a one-line EN header may be added noting the exemption. The remote-issue-comment language exception (aibot posts PT-BR) is documented in the AGENTS.md canonical rule.
+  4. Standards keep pt/es translations under standards/{locale}/; EN originals are the source of truth (locale-loader resolves per .opencode/locale).
+  5. Response-language rule (canonical in AGENTS.md): every agent responds/produces user-facing output in the user's input language; fallback = .opencode/locale (project → global) → EN. Applies to chat, reports, Telegram, remote issue comments. Per-agent one-line references added to each rewritten prompt; locale-loader SKILL.md updated to match.
+  6. New artifacts MUST be authored in English; user-facing new agents/skills carry the response rule; new standards ship pt/es translations.
+  7. Gate (scripts/tests/test_language.sh, auto-discovered by run_all.sh): heuristic detection (accent chars + PT stopword co-occurrence with per-file thresholding), NOT grep-only. Covers agents/, commands/, skills/ (native, excl. vendor/), scripts/, root docs, and standards EN originals. Advisory on first run (produces authoritative file inventory) → QA-reviewed → blocking thereafter. Exemptions: standards/pt|es/**, vendor/**, domain constants (BR 3), git history/archive, historical entries.
+  8. Historical content not retroactively rewritten (resolved_issues.md, git history, closed proposals); new/edited known_issues.md entries and new proposals authored in EN; mixed-language entries migrated opportunistically only (gate uses diff-only mode for known_issues.md — historical PT entries are exempt).
+  9. vendor/** out of scope (ADR 2026-08-05).
+  10. Scripts' static user-facing messages MUST be EN; interactive prompts MAY follow project locale but default to EN.
+  11. Skill frontmatter description: EN canonical, preserving all current trigger keywords (bilingual keyword retention — PT trigger phrases preserved as keyword appendix since users trigger skills in PT; test-runner, telegram-notifier verified PT → converted with keyword parity); QA verifies no PT description is load-bearing for triggering.
+  12. PT assertion messages in existing scripts/tests/test_*.sh are converted to EN — test-observability strings, not exemptions.
+  13. Overlap with #64/career bundle: #64 lands first; career files standardized by #64/#62/#63/#65–72 are NOT re-rewritten; merge order = career bundle → this issue.
+  14. Verification: make test-scripts passes; gate green; no behavior change (QA pre-development + senior review confirm).
+- Acceptance criteria:
+  1. All PT artifacts in agents/, commands/, native skills/**/SKILL.md, scripts/**, root docs (AGENTS.md, workflow.md, conventions.md, decisions.md, architecture.md), and standards/*.md EN originals are rewritten to English with no instruction/business-rule/behavior change (QA compares before/after for content parity).
+  2. scripts/tests/test_language.sh exists and is auto-discovered by run_all.sh (matches existing test_*.sh glob); detection is heuristic (accented chars + PT stopword co-occurrence with per-file thresholding), not a bare grep.
+  3. Gate covers agents/, commands/, native skills/ (excl. vendor/**), scripts/, root docs, and standards EN originals; the exemption set (standards/pt|es/**, vendor/**, aibot-messages.md, git history/archive, historical entries) is enforced without glob over-matching.
+  4. Gate is advisory on its first run (emits authoritative file inventory for QA review) and blocking on all runs thereafter (explicit mode switch, not magic).
+  5. AGENTS.md contains the canonical response-language rule (input language → .opencode/locale project → global → EN) with the aibot PT-BR exception documented; every rewritten agent/skill prompt carries a one-line reference.
+  6. skills/shared/locale-loader/SKILL.md is updated to match the response-language rule; standards/pt/ and standards/es/ translations preserved; EN originals remain source of truth.
+  7. standards/aibot-messages.md is NOT rewritten — PT-BR templates byte-identical except optional one-line EN exemption header; the gate does not flag it.
+  8. Every skill frontmatter description converted to EN preserves all current trigger keywords (bilingual keyword appendix); QA confirms no PT description was load-bearing for skill triggering.
+  9. PT assertion messages in existing scripts/tests/test_*.sh converted to EN; suites still pass.
+  10. Scripts' static user-facing messages (usage/help/errors) are EN; interactive prompts default to EN and may follow project locale.
+  11. standards/telegram-messages.md EN original created; PT content moved to standards/pt/telegram-messages.md (currently the EN-root file is PT-only — must be corrected).
+  12. No career-bundle file standardized by #64/#62/#63/#65–#72 is re-rewritten (no duplicate diffs); merge order = career bundle first, then this issue.
+  13. No behavior change: make test-scripts passes, gate green, command names (ocf:cv-hub, ocf:develop, etc.), code identifiers, and domain constants ([INFERIDO]) unchanged — confirmed by QA pre-development and senior review.
+  14. New/edited known_issues.md entries and new prioritization.md proposals are authored in EN; resolved_issues.md, git history, and closed proposals untouched.
+  15. vendor/** third-party skills untouched (ADR 2026-08-05 / issue #50).
+- Tests:
+  1. Gate fixture PT prose (accented: "Instruções de desenvolvimento") in an agent prompt → advisory mode flags the file in the report with exit 0; blocking mode exits ≠ 0 listing the file.
+  2. Gate fixture accent-free PT prose ("Regras do fluxo de cada sistema sobre o trabalho") → flagged via stopword heuristic (stopword+threshold detection), not just accents.
+  3. Gate fixture legit EN prose (with "café"/"naïve" accents and shared Romance tokens) → 0 violations in both modes (no false positives).
+  4. PT content under standards/pt/**, standards/es/**, vendor/**, resolved_issues.md, and the exact aibot-messages.md file → gate reports 0 violations in both modes (exemptions honored, no glob over-matching).
+  5. PT word inside a fenced code block / inline backtick in an EN doc → not flagged; PT comment line inside a code block → flagged per documented per-file rule.
+  6. grep -r "idêntico\|DEVE\|Instruções" over scripts/tests/*.sh assertion messages → 0 PT assertion phrases (converted to EN); test_sync_regression.sh label spot-checked.
+  7. skills/**/SKILL.md frontmatter descriptions scanned → 0 PT descriptions; PT trigger keywords retained where documented (assert_contains on preserved bilingual triggers).
+  8. Root docs (AGENTS.md, workflow.md, conventions.md, decisions.md, architecture.md) + standards/*.md EN originals → gate scan reports 0 violations; standards/pt/** and standards/es/** parity files still exist (assert_contains).
+  9. Content-preserving baseline: assert_contains of unchanged tokens (ocf:cv-hub, ocf:develop, ocf:cv-tailor, [INFERIDO], code identifiers) in sampled rewritten files.
+  10. Canonical rule text: AGENTS.md + locale-loader contain the exact resolution order "input language → .opencode/locale → global → EN" with the aibot exception documented (assert_contains wording).
+  11. Mode transition: same fixture run with --mode=advisory then --mode=blocking → advisory exit 0 + report generated; blocking exit 1 (assert exit codes + report content).
+  12. make test-scripts regression: full suite including new test_language.sh → exit 0 (no breakage of existing tests).
+  13. (manual QA) Session in PT input → response PT; EN input → response EN; ES .opencode/locale with EN input → response EN (input wins) — behavioral checklist for QA reviewer.
+  14. (manual QA) Senior reviewer samples ≥5 rewritten files → semantics identical, only language changed (content-preservation spot-check per BR 2).
+- Suggested fix: (1) write the gate FIRST (scripts/tests/test_language.sh — heuristic accents + PT stopwords, advisory mode emitting the authoritative PT-file inventory, exemptions per BR 3/7/8/9); (2) rewrite each artifact to EN content-preserving using the inventory; (3) add canonical response rule to AGENTS.md + update locale-loader SKILL.md; (4) convert skill description frontmatter to EN with bilingual trigger-keyword appendix; (5) create standards/telegram-messages.md EN original + move PT to standards/pt/; (6) convert PT assertion messages in existing test_*.sh; (7) run make test-scripts + QA pre-development confirmation. Effort ~16–24h. Execute AFTER #64 and the career bundle (#62/#63/#65–72). Origem: Proposal 2026-08-14-12 em prioritization.md.
+
+### 74. Validate and run delivery sessions in isolated containers for effective parallelization
+- Status: ready
+- Type: feat
+- Severity: high
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (devops, security)
+- Remote: -
+- PR: -
+- Location: scripts/run-parallel-delivery.sh (NEW orchestrator), scripts/tests/test_parallel_delivery.sh (NEW), .opencode/spikes/containerized-delivery.md (NEW), state/parallel-delivery/ (host lockfiles, NEW, gitignored), scripts/telegram-notify.sh (env-var verification/tests), scripts/test-runner.sh (cache seeding integration), workflow.md (entry-point + boundary docs), opencode.json (command registration if applicable), scripts/README.md, aibot-repos.json (consumed, unchanged), Dockerfile (reference only — #40 image base)
+- Description: Spike-first. Prove that N=3 parallel containerized delivery sessions complete concurrently on one host with zero file-write/git conflicts and results identical to serial execution, documenting the outcome in .opencode/spikes/containerized-delivery.md with pass/fail criteria. Each session runs the full delivery pipeline (promote → develop → senior review → QA → corrections → committer gate → MR) inside its own container with a private working-tree snapshot (feature branch issue-<id>-<slug> on the base branch), reusing the #40 image ghcr.io/pereirawe/opencode-flow (semver-tagged). Orchestrator handles per-issue host-side flock locking (state/parallel-delivery/), parallelism cap AIBOT_MAX_PARALLEL (default 3), cache seeding, session result contract, working-tree-only sync-back to host known_issues.md, resource limits/cleanup, and orphan reaping. Security/allowlist/no-merge-polling boundaries from #39/#40 preserved. If the spike fails, fall back to host-side git worktree isolation or #39 flock serialization.
+- Impact: The delivery pipeline's throughput bottleneck on the local machine — concurrent ocf:delivery/ocf:develop sessions collide today on one shared working tree. This unblocks N parallel deliveries (default 3) per host. Touches the core lifecycle (promote/develop/publish) and security boundaries — regression risk mitigated by spike-gating, idempotency requirements, and the #39/#40 gate semantics being reused. BLOCKED ON #40 landing on main + GHCR image publish (semver) — do not promote to in-progress until that lands.
+- Business rules:
+  1. Spike-first with explicit preconditions: Docker daemon availability; image obtainment (GHCR pull OR build from #40 branch with semver tag); model-API egress from containers; explicit API-level parallelism measurement (not just wall-clock — the model API is likely the real bottleneck). Outcome documented in .opencode/spikes/containerized-delivery.md (or ADR) with pass/fail criteria.
+  2. Spike evaluates BOTH isolation candidates: (a) git worktree host-side worktrees (bind-mounted into containers or worktree-only) and (b) full volume-copy clone per session (isolated .git). Pass/fail includes git-metadata race analysis; if shared-.git races cannot be eliminated, full-clone wins.
+  3. Isolation semantics: each session runs in its own container with a private working tree; feature branch issue-<id>-<slug> on top of base branch; all writes/git ops confined to the session.
+  4. Per-issue lock MUST be host-side (flock on host lockfile under state/parallel-delivery/); snapshot spawn re-checks fresh host status inside the lock (TOCTOU guard). Different issues run in parallel up to AIBOT_MAX_PARALLEL (default 3, runtime-configurable), capped by host resources AND model-API concurrency. Lock scope per-issue, never global.
+  5. Image reuse: base MUST be ghcr.io/pereirawe/opencode-flow:latest + semver tag, semver-tagged and rebuildable via the #40 pipeline; extensions layered and versioned.
+  6. Config source decision: spike validates both bind-mount ~/.config/opencode (rw session workspace + read-only config) and immutable image config; when the image is stale vs local config, bind-mount wins.
+  7. Cache seeding: each snapshot is seeded with a copy of host .opencode/test-cache/; sessions never share cache (each container its own copy). Seeded cache may be stale (base-branch fingerprint) — test-runner --check reports stale and falls back to --run (never blocks).
+  8. No-merge-polling boundary preserved: sessions never poll merge/PR status; closing remote issues remains exclusive to ocf:check-pr/Close Requester.
+  9. Security: deny rules (global bash deny list + edit denies on opencode.json, aibot-repos.json, state/**, ~/.ssh/**) bind via --auto with the packaged config; non-root containers; only session workspace (rw) + read-only config mounted; ~/.ssh, state/, and telegram.env are NEVER mounted (runtime env injection only).
+  10. Allowlist: remote posting only for repos in aibot-repos.json; messages per standards/aibot-messages.md (one per trigger).
+  11. Credentials/state injection: GH_TOKEN/GL_TOKEN/OPENCODE_API_KEY env-injected at runtime, never baked into the image.
+  12. Session result contract: each session MUST emit a structured result (exit code + result file at a fixed container path: final issue status, PR number, or cannot-develop) consumed by sync-back.
+  13. Sync-back is working-tree only: host workspace not modified by sessions; orchestrator (a) fetches the pushed branch, (b) updates host known_issues.md with the session's final status as an uncommitted diff — never commit/push to host main, per-entry replace only (session entry wins, authoritative), AND the host tracker file is flocked during sync-back writes (concurrent sync-backs must not interleave/corrupt the file); failures logged, never silent.
+  14. Resource management: CPU/mem limits, hard timeout, cleanup-on-exit; orphaned containers reaped by the orchestrator (including reap at startup, not only at session end).
+  15. Idempotency: re-running a session for the same issue MUST NOT duplicate branches, MRs, tracker entries, or remote comments.
+  16. telegram-notify.sh env-var path: the env-var credential loading (TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID) already exists in the script — this issue VERIFIES it works with no telegram.env file mounted (container mode) and adds test coverage + credential redaction assertion. Implementation only if the verification finds a gap.
+  17. Spike success criteria: N=3 parallel sessions on one host, zero file/git conflicts, no lost tracker updates, no duplicate MRs, wall-clock materially below 3× serial, identical end state to serial, resource peaks within configured limits.
+  18. Fallback: spike failure → documented findings + recommendation (host-side git worktree isolation, or #39 flock serialization); NO production implementation without a passing spike or explicit user approval.
+- Acceptance criteria:
+  1. .opencode/spikes/containerized-delivery.md (or ADR) exists documenting the spike with explicit pass/fail criteria covering the four preconditions: Docker daemon availability, image obtainment (GHCR pull or #40-branch build with semver tag), model-API egress from containers, and API-level parallelism measurement (not just wall-clock).
+  2. The spike evaluated BOTH isolation candidates — host-side git worktree worktrees AND full volume-copy clones with isolated .git — including a documented git-metadata race analysis; if shared-.git races cannot be eliminated, the full-clone candidate wins.
+  3. Spike success at N=3 on one host demonstrated: zero file/git conflicts, no lost tracker updates, no duplicate MRs, wall-clock materially below 3× serial, end state identical to serial execution, resource peaks within configured limits.
+  4. If the spike failed, findings + fallback recommendation (host-side git worktree isolation, or #39 flock serialization) documented and NO production implementation proceeds without a passing spike or explicit user approval.
+  5. Orchestrator enforces per-issue host-side flock on lockfiles under state/parallel-delivery/ (never a global lock); snapshot spawn re-checks fresh host issue status inside the lock (TOCTOU guard); different issues run in parallel up to AIBOT_MAX_PARALLEL (default 3, runtime-configurable), capped by host resources and model-API concurrency.
+  6. Each session runs in its own container with a private working tree; feature branch issue-<id>-<slug> created on top of base branch; all file writes and git operations confined to the session container, never overlapping other sessions.
+  7. Container base is ghcr.io/pereirawe/opencode-flow pinned to a semver tag (not latest-only), rebuildable via the #40 pipeline; extensions layered and versioned.
+  8. Spike documented the config-source decision between bind-mount ~/.config/opencode (rw session workspace + read-only config) and immutable image config; when the image is stale vs local config, bind-mount wins.
+  9. Each session snapshot seeded with a copy of host .opencode/test-cache/; sessions never share a cache (each container its own copy); stale seeded cache falls back to --run (never blocks).
+  10. Sessions never poll merge/PR status; closing remote issues remains exclusive to ocf:check-pr/Close Requester (no-merge-polling boundary preserved).
+  11. Security boundary verified: global bash deny list and edit denies (opencode.json, aibot-repos.json, state/**, ~/.ssh/**) bind via --auto with the packaged config; containers run non-root; only session workspace (rw) + read-only config volume mounted; ~/.ssh, state/, and telegram.env never mounted.
+  12. Remote posting allowed only for repos in the aibot-repos.json allowlist; others refused with the standard message; remote comments follow standards/aibot-messages.md (one message per trigger).
+  13. GH_TOKEN/GL_TOKEN/OPENCODE_API_KEY injected as env vars at runtime, never baked into the image, never in logs (redaction verified).
+  14. Each session emits a structured result contract — exit code + result file (fixed container path) containing final issue status, PR number, or cannot-develop — consumed by sync-back.
+  15. Sync-back is working-tree only: host workspace never modified directly by sessions; orchestrator fetches the pushed branch and updates host known_issues.md with the session's final status as an uncommitted diff (never commits/pushes to host main), per-entry replace only (session entry authoritative), tracker file flocked during writes; failures logged, never silent.
+  16. Resource management: each session container has CPU/memory limits, a hard timeout, cleanup-on-exit; orchestrator reaps orphaned containers (at startup and session end).
+  17. Idempotency verified: re-running a session for the same issue produces no duplicate branches, MRs, tracker entries, or remote comments.
+  18. scripts/telegram-notify.sh works with only TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID env vars (no telegram.env file mounted) — verified with a mock-curl test; existing file-based fallback retained; credentials redacted from logs.
+  19. Dependency gate: the issue may promote on main only after #40 lands and the GHCR image is published (semver); until then it stays ready/backlog with the dependency documented.
+- Tests:
+  1. Two concurrent runs of run-parallel-delivery.sh for the SAME issue → exactly one proceeds; the other exits with the skip message; flock file created under state/parallel-delivery/ (mock opencode via PATH).
+  2. TOCTOU: status flips to in-progress between lock acquisition and branch creation (mock known_issues.md mutation) → orchestrator re-reads status post-lock and skips.
+  3. Idempotent re-run: completed issue (PR: #n present) run again → no duplicate MR creation, no duplicate tracker entry; reports already-in-progress; exactly one result consumed.
+  4. AIBOT_MAX_PARALLEL=1 with 3 ready issues → sessions execute serially (mock invocation log: no overlap, count = 3).
+  5. Sync-back per-entry: session result contract (fixed path, machine-parseable) contains only its own issue block → host known_issues.md updated for that entry only; all other entries byte-identical (diff limited to the one block).
+  6. Concurrent sync-back: two session results flushed simultaneously → host tracker file flocked during write; file remains valid with both entries intact (no interleave/corruption).
+  7. Container crash mid-run (mock kill) → orchestrator reaps the container, runs cleanup, marks session failed, host status → cannot-develop.
+  8. Hard timeout exceeded (mock sleep) → orchestrator kills session, cleanup runs, failure logged.
+  9. Credential redaction: session logs containing GH_TOKEN / OPENCODE_API_KEY / TELEGRAM_BOT_TOKEN literal values → persisted logs/errors contain no token values (assert_not_contains on output artifacts).
+  10. Env-var credentials: telegram-notify.sh with only TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID env (mock curl via PATH) → sends notification; missing token → graceful error, exit ≠ 0, no crash.
+  11. Mount restrictions: docker argv contains rw mount ONLY for the session workspace; no ~/.ssh, no state/, no telegram.env mounts; container runs non-root (mock docker asserts argv).
+  12. Allowlist gating: repo not in aibot-repos.json → session refuses with standard message; allowlisted repo → proceeds (mock allowlist + message-count assert).
+  13. Image ref: container launched from ghcr.io/pereirawe/opencode-flow:<semver> (assert image argv; no custom base).
+  14. Cache seeding: host .opencode/test-cache seeded; stale fingerprint in container → mock test-runner --check reports stale → fallback to --run executes (never blocks).
+  15. Missing docker binary/daemon → clear diagnostic message, exit ≠ 0, no partial state.
+  16. make test-scripts regression: full suite including new test_parallel_delivery.sh → exit 0.
+  17. (spike gate — manual/PM) Spike doc .opencode/spikes/containerized-delivery.md exists with N=3 pass criteria met, both isolation candidates evaluated, API-concurrency cap measured → verified before production implementation is promoted.
+  18. (manual QA/integration) Real N=3 parallel run on host: zero file/git conflicts, no duplicate MRs, wall-clock materially < 3× serial, resource peaks within limits → recorded in spike doc.
+- Suggested fix: (1) run the spike first: validate the four preconditions (Docker daemon, image obtainment via GHCR or #40-branch build, model-API egress, API-level parallelism measurement), evaluate both isolation candidates (host-side git worktree vs full volume-copy clone with isolated .git) including git-metadata race analysis, document pass/fail in .opencode/spikes/containerized-delivery.md; (2) on pass: implement the orchestrator script scripts/run-parallel-delivery.sh (per-issue host-side flock under state/parallel-delivery/ with TOCTOU re-check, AIBOT_MAX_PARALLEL runtime cap, snapshot spawn with cache seeding, CPU/mem/time limits, cleanup + orphan reap, session result contract, working-tree-only sync-back as uncommitted diff with tracker flock); (3) verify/extend scripts/telegram-notify.sh env-only credentials (likely verification + tests only — support already exists); (4) add scripts/tests/test_parallel_delivery.sh covering locking, idempotency, result contract, sync-back, and deny-rule/allowlist gating; (5) document in workflow.md + scripts/README.md. Effort ~28–36h, spike-gated. BLOCKED ON #40 landing on main + GHCR image publish (semver) — do not promote to in-progress until that lands. Origem: Proposal 2026-08-14-13 em prioritization.md.
+
 
 
