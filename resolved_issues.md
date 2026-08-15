@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 57. Time-tracking fields in issue lifecycle (Opened/Ready/Started/Resolved + Durations)
+- Resolved: 2026-08-14
+- Durations: -
+- Severity: medium
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #65
+- Summary: Add timestamp fields (Opened, Ready, Started) to the known_issues.md entry format, stamp them on script status transitions (promote.sh, create_issue.sh), stamp Resolved at close time, and compute stage durations (Durations) into the resolved archive so per-stage cycle time can be measured. — Add `Opened`/`Ready`/`Started` to the known_issues.md entry format and stamping logic in promote.sh (Ready on backlog→ready, Started on ready→in-progress, backfill `Opened` set-if-absent) and create_issue.sh (`Opened` on remote success); extend close_issue.sh to stamp `Resolved` and compute `Durations` using `TZ=UTC date -d "$d" +%s` with per-component guards/floors and the dup guard preserved; update standards/issues.md (en+pt+es) and standards/resolved-issue.md (en); add scripts/tests/test_timestamps.sh (t01–t25). Rebase onto #56 after it lands (shared standards/issues.md + workflow.md).
+
 ### 56. Mandatory `Tests:` field captured during discovery (test standards pre-development)
 - Resolved: 2026-08-14
 - Type: feat
