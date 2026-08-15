@@ -213,6 +213,12 @@ resume-optimization flow (issue #60):
   fabricates content; inferences are resolved with the candidate
   (`inferencias.md`) and never appear as `[INFERIDO]` in the final HTML/PDF
   (gate: `scripts/cv/check-inferido.sh`).
+- **Design standard** — every generated resume MUST follow
+  `standards/cv-design.md` (ATS-friendly, A4 print with 12–15mm margins, sober
+  grayscale-safe style, page-count by seniority), starting from the reference
+  template `skills/career/cv-pdf/templates/resume.html` (never CSS from
+  scratch); cv-tailor verifies conformity against the standard's checklist
+  before producing the PDF.
 
 Backed by `agents/career/*`, `skills/career/*`, and `scripts/cv/*`.
 

@@ -101,8 +101,13 @@ Reordene, destaque e reformule **apenas o que já existe no hub**:
    fabricação).
 4. **Contato** — inclua telefone/e-mail/endereço somente se existirem no hub.
    Dados sensíveis (CPF, documento, banco) nunca.
-5. **ATS-friendly** — seções claras com headings (`h1`/`h2`), sem tabelas
-   complexas, sem imagens/ícones decorativos, datas em formato texto, A4.
+5. **Padrão de design obrigatório** — todo currículo DEVE seguir
+   `standards/cv-design.md` (ATS, impressão A4/P&B, estilo sóbrio, páginas por
+   senioridade), partindo do template de referência
+   `skills/career/cv-pdf/templates/resume.html` — adapte o conteúdo, NUNCA
+   escreva CSS do zero. Antes do PDF, verifique a conformidade (checklist do
+   padrão: headings semânticos, coluna única, sem emoji/Google Fonts, margens
+   12–15mm, 1–2 páginas).
 
 ## Estrutura de saída
 
@@ -118,12 +123,18 @@ Reordene, destaque e reformule **apenas o que já existe no hub**:
 
 ## Geração do PDF
 
-1. Escreva `index.html` com CSS inline/embutido: `@page { size: A4; margin:
-   16-18mm }`, tipografia limpa (system fonts: `Helvetica, Arial,
-   sans-serif`), seções claras.
-2. **Rode o gate de inferências ANTES do PDF**:
+1. Copie o template de referência `skills/career/cv-pdf/templates/resume.html`
+   para `curriculos/<slug-da-vaga>/index.html` e adapte o CONTEÚDO (nunca o
+   CSS) conforme o padrão `standards/cv-design.md`: ajuste `lang` para o
+   idioma da vaga, traduza os títulos das seções, preencha os dados do hub e
+   omita seções vazias.
+2. **Verifique a conformidade com o padrão** (checklist ATS/print/páginas do
+   `standards/cv-design.md`) ANTES de gerar o PDF: headings semânticos, coluna
+   única, sem imagens/tabelas complexas, sem emoji/Google Fonts, `@page {
+   size: A4; margin: 12mm 15mm; }`, `@media print` limpo, 1–2 páginas.
+3. **Rode o gate de inferências ANTES do PDF**:
    `bash $SCRIPTS_DIR/cv/check-inferido.sh index.html` — o gate DEVE passar
    (exit 0) antes de continuar. Se falhar, remova/reformule as marcações e
    rode novamente. Este gate é obrigatório e não pode ser pulado.
-3. Rode `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
-4. Se o script falhar, reporte o erro do engine — nunca entregue um PDF vazio.
+4. Rode `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
+5. Se o script falhar, reporte o erro do engine — nunca entregue um PDF vazio.

@@ -40,15 +40,22 @@ A vaga pode ser fornecida como:
 5. **Decisão humana sobre inferências** — listar todas em
    `curriculos/<slug-da-vaga>/inferencias.md` e pedir a decisão do candidato
    (reformular/omitir/promover com dado real) antes do output final.
-6. **Adaptar conteúdo** — reordenar/destacar/condensar apenas o que existe no
-   hub; NUNCA `[INFERIDO]` no HTML/PDF final; idioma = idioma da vaga.
-7. **Gate obrigatório** — `bash $SCRIPTS_DIR/cv/check-inferido.sh index.html`
+6. **Adaptar conteúdo** — a partir do template de referência
+   `skills/career/cv-pdf/templates/resume.html`, seguindo o padrão
+   `standards/cv-design.md`; reordenar/destacar/condensar apenas o que existe
+   no hub; NUNCA `[INFERIDO]` no HTML/PDF final; idioma = idioma da vaga.
+7. **Verificar conformidade** com o padrão (checklist ATS/print/páginas do
+   `standards/cv-design.md`) antes do PDF.
+8. **Gate obrigatório** — `bash $SCRIPTS_DIR/cv/check-inferido.sh index.html`
    DEVE passar (exit 0) antes do PDF.
-8. **Gerar PDF** — `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
+9. **Gerar PDF** — `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
 
 ### Regras
 
 - NUNCA inventar experiência, skills, projetos, certificações ou contato.
+- Layout conforme `standards/cv-design.md` (ATS/print/páginas), partindo do
+  template `skills/career/cv-pdf/templates/resume.html` — nunca CSS do zero;
+  verificar conformidade antes do PDF.
 - `[INFERIDO]` é permitido APENAS em artefactos internos (hub.json,
   gap-analysis.md, inferencias.md). No HTML/PDF final NENHUM `[INFERIDO]` pode
   aparecer — o gate `check-inferido.sh` bloqueia a geração.

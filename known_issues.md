@@ -505,13 +505,13 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Suggested fix: Add `Opened`/`Ready`/`Started` to the known_issues.md entry format and stamping logic in promote.sh (Ready on backlog→ready, Started on ready→in-progress, backfill `Opened` set-if-absent) and create_issue.sh (`Opened` on remote success); extend close_issue.sh to stamp `Resolved` and compute `Durations` using `TZ=UTC date -d "$d" +%s` with per-component guards/floors and the dup guard preserved; update standards/issues.md (en+pt+es) and standards/resolved-issue.md (en); add scripts/tests/test_timestamps.sh (t01–t25). Rebase onto #56 after it lands (shared standards/issues.md + workflow.md).
 
 ### 63. Padrão de design de currículo ATS-friendly — standards/cv-design.md + template HTML/CSS de referência
-- Status: backlog
+- Status: in-review
 - Type: feat
 - Severity: high
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 2 (frontend, ux-ui)
-- Remote: -
+- Remote: #61
 - PR: -
 - Location: standards/cv-design.md (NEW), skills/career/cv-pdf/templates/resume.html (NEW), skills/career/cv-pdf/SKILL.md, skills/career/cv-tailor/SKILL.md, agents/career/cv-tailor.md, commands/ocf:cv-tailor.md, opencode.json, workflow.md, scripts/tests/test_cv.sh
 - Description: Hoje o design do currículo é ad-hoc: regras mínimas no cv-pdf (A4, system fonts, headings semânticos) e uma linha ATS no cv-tailor; cada agente escreve CSS inline do zero. Não existe padrão documentado nem template. Entregar um padrão de design do setor career: documento `standards/cv-design.md` com regras concretas e testáveis (ATS, impressão A4/P&B, estilo sóbrio, regra de páginas por senioridade) + template HTML/CSS de referência (`skills/career/cv-pdf/templates/resume.html`) usado como base obrigatória pelo cv-tailor + atualização dos prompts dos agentes/skills para mandatar o padrão.
