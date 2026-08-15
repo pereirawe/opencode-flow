@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 69. ATS compatibility scoring of generated resume — ocf:cv-ats-score
+- Resolved: 2026-08-15
+- Durations: backlog=0d waiting=0d dev=0d total=0d
+- Severity: medium
+- Type: feat
+- Report: william_pereira
+- Reviewers: 1
+- Remote: #83
+- Summary: Create command `ocf:cv-ats-score <candidate-dir> <job-slug>`, agent `career/cv-ats-score`, skill `cv-ats-score`. Given a generated resume PDF (from cv-tailor) and the original job description, extract text from the PDF (pdftotext), analyze keyword density vs the job's requirements, detect ATS red flags (tables, images, multi-column, missing standard sections), and produce a score (0-100) + actionable recommendations. Output as `ats-score.md` in the job's slug directory. — Create agent, skill, command; register in opencode.json; use pdftotext for text extraction; compute score and recommendations. Execute after #64, #62, and #65. Origem
+
 ### 68. Interview preparation kit — ocf:cv-interview-prep
 - Resolved: 2026-08-15
 - Durations: backlog=0d waiting=0d dev=0d total=0d
