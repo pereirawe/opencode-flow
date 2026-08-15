@@ -372,7 +372,7 @@ See `standards/issues.md` for the full contract.
  - Suggested fix (alternativo): Se o spike do modo headless falhar, avaliar self-hosted GitHub runner na mesma VM do opencode web, com `--attach http://127.0.0.1:4096` — mantém paralelismo sem exigir suporte headless do opencode. SPIKE PASSED — alternativa NÃO necessária.
 
 ### 65. Standard structure for career sector analysis reports — standards/cv-analysis.md + report templates
-- Status: in-review
+- Status: in-publish
 - Opened: 2026-08-15
 - Ready: 2026-08-15
 - Started: 2026-08-15
