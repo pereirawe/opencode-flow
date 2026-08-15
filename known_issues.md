@@ -409,7 +409,7 @@ See `standards/issues.md` for the full contract.
   9. Report language rule is documented and followed.
   10. [INFERIDO] inline convention is documented and followed.
 - Tests: incomplete-spec — missing test scenarios (feat/high requires ≥3 scenario → outcome lines per standards/issues.md; Tests: field absent at discovery); to be captured in the next discovery cycle.
- - Suggested fix: Create `standards/cv-analysis.md`; update cv-optimizer and cv-tailor skills/agents/commands to reference it; create HTML template for analise-perfil.html. Execute after #64. Origem: Proposal 2026-08-14-4 em prioritization.md.
+- Suggested fix: Create `standards/cv-analysis.md`; update cv-optimizer and cv-tailor skills/agents/commands to reference it; create HTML template for analise-perfil.html. Execute after #64. Origem: Proposal 2026-08-14-4 em prioritization.md.
 
 ### 66. Cover letter generation — ocf:cv-cover-letter
 - Status: backlog
