@@ -419,6 +419,76 @@ else
   t_fail "cv-optimizer skill missing at $OPT_SKILL"
 fi
 
+# --- cv-cover-letter contract (issue #66) ---
+CL_SKILL="$SCRIPT_DIR/../../skills/career/cv-cover-letter/SKILL.md"
+if [[ -f "$CL_SKILL" ]]; then
+  # English schema keys (issue #64) — no legacy Portuguese keys
+  assert_not_contains "$CL_SKILL" "resumo_i18n" \
+    "cv-cover-letter skill has no legacy resumo_i18n key"
+  assert_contains "$CL_SKILL" "summary_i18n" \
+    "cv-cover-letter skill references the English summary_i18n key"
+  # mandatory [INFERIDO] gate before the PDF + design/analysis standards
+  assert_contains "$CL_SKILL" "check-inferido.sh" \
+    "cv-cover-letter skill mandates the check-inferido.sh gate"
+  assert_contains "$CL_SKILL" "standards/cv-design.md" \
+    "cv-cover-letter skill mandates standards/cv-design.md"
+  assert_contains "$CL_SKILL" "standards/cv-analysis.md" \
+    "cv-cover-letter skill references standards/cv-analysis.md"
+  assert_contains "$CL_SKILL" "templates/resume.html" \
+    "cv-cover-letter skill references the reference template"
+  # output structure per BR 8 (cartas/<slug>/carta-apresentacao.pdf + index.html)
+  assert_contains "$CL_SKILL" "cartas/<job-slug>" \
+    "cv-cover-letter skill defines the cartas/<job-slug> output directory"
+  assert_contains "$CL_SKILL" "carta-apresentacao.pdf" \
+    "cv-cover-letter skill defines carta-apresentacao.pdf output"
+  assert_contains "$CL_SKILL" "NEVER invent" \
+    "cv-cover-letter skill forbids fabrication (BR 5)"
+  assert_contains "$CL_SKILL" "inferencias.md" \
+    "cv-cover-letter skill documents the inferencias.md human-decision flow"
+else
+  t_fail "cv-cover-letter skill missing at $CL_SKILL"
+fi
+
+CL_AGENT="$SCRIPT_DIR/../../agents/career/cv-cover-letter.md"
+if [[ -f "$CL_AGENT" ]]; then
+  assert_contains "$CL_AGENT" "check-inferido.sh" \
+    "cv-cover-letter agent invokes the check-inferido.sh gate"
+  assert_contains "$CL_AGENT" "~/career/**" \
+    "cv-cover-letter agent restricts edits to ~/career/** (BR 11)"
+  assert_contains "$CL_AGENT" "validate.py" \
+    "cv-cover-letter agent validates the hub (BR 2)"
+  assert_contains "$CL_AGENT" "carta-apresentacao.pdf" \
+    "cv-cover-letter agent produces carta-apresentacao.pdf"
+else
+  t_fail "cv-cover-letter agent missing at $CL_AGENT"
+fi
+
+CL_CMD="$SCRIPT_DIR/../../commands/ocf:cv-cover-letter.md"
+if [[ -f "$CL_CMD" ]]; then
+  assert_contains "$CL_CMD" "templates/resume.html" \
+    "ocf:cv-cover-letter command references the reference template"
+  assert_contains "$CL_CMD" "standards/cv-design.md" \
+    "ocf:cv-cover-letter command mandates standards/cv-design.md"
+  assert_contains "$CL_CMD" "carta-apresentacao.pdf" \
+    "ocf:cv-cover-letter command documents the PDF output path"
+else
+  t_fail "ocf:cv-cover-letter command missing at $CL_CMD"
+fi
+
+# opencode.json registers the command and the skill allow (BR 12 / AC 4)
+OP_CONFIG="$SCRIPT_DIR/../../opencode.json"
+if [[ -f "$OP_CONFIG" ]]; then
+  python3 - "$OP_CONFIG" <<'PYEOF' || t_fail "opencode.json cv-cover-letter registration invalid"
+import json, sys
+cfg = json.load(open(sys.argv[1]))
+assert "ocf:cv-cover-letter" in cfg.get("command", {}), "command ocf:cv-cover-letter not registered"
+assert cfg["permission"]["skill"].get("cv-cover-letter") == "allow", "skill cv-cover-letter not allow"
+PYEOF
+  t_ok "opencode.json registers ocf:cv-cover-letter command + skill allow"
+else
+  t_fail "opencode.json missing at $OP_CONFIG"
+fi
+
 # validate.py must accept a valid 'since' year and reject malformed ones
 TMP_ENV="$TMP" python3 - <<'EOF' > "$TMP/hub-since-valid.json"
 import json, os
