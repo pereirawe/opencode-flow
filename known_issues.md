@@ -382,7 +382,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 2 (frontend, ux-ui)
 - Remote: #77
-- PR: -
+- PR: #78
 - Tests: - (discovery gap — feat with no scenario → outcome lines captured during discovery; flagged for QA pre-development review / refinement per workflow)
 - Location: agents/career/cv-cover-letter.md (NEW), skills/career/cv-cover-letter/SKILL.md (NEW), commands/ocf:cv-cover-letter.md (NEW), opencode.json
 - Description: Create command `ocf:cv-cover-letter <candidate-dir> <job>`, agent `career/cv-cover-letter`, and skill `cv-cover-letter`. Given the candidate hub and a job description (same input as cv-tailor — pasted text, file, URL), generate a tailored cover letter in PDF (HTML→PDF via cv-pdf) in the job's language. Reuse the gap analysis from cv-tailor if available, or generate inline. Never fabricate content — only rephrase and highlight what exists in the hub. The cover letter follows the same design standard (standards/cv-design.md from #63) and analysis standard (standards/cv-analysis.md from #65).
