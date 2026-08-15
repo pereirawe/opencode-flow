@@ -382,7 +382,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 1 (qa)
 - Remote: #87
-- PR: -
+- PR: #88
 - Location: skills/career/cv-tailor/SKILL.md, agents/career/cv-tailor.md, commands/ocf:cv-tailor.md, standards/cv-analysis.md
 - Description: Enhance the cv-tailor gap analysis to include: (1) match percentage (requirements met / total requirements × 100), (2) keyword density map showing each job keyword and its count in the resume, (3) a coverage summary by section showing which resume sections contain the most job keywords. These metrics complement the ATS score (#69) and give the candidate actionable insight at the gap analysis stage.
 - Impact: A qualitative atendido/parcial/not_met classification is useful but not actionable enough. Quantifying the match gives the candidate a clear metric to optimize and compare across jobs.
