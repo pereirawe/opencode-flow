@@ -2,6 +2,15 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 63. Padrão de design de currículo ATS-friendly — standards/cv-design.md + template HTML/CSS de referência
+- Resolved: 2026-08-14
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #61
+- Severity: high
+- Summary: Added standards/cv-design.md with testable ATS/print/sober-style/page-count rules and the reference template skills/career/cv-pdf/templates/resume.html (A4 12-15mm, system fonts, single-column, no emoji/Google Fonts, @media print, locale-aware). cv-tailor now starts from the template and verifies conformity before PDF generation (never CSS from scratch); cv-pdf skill documents the standard. 64 tests green.
+
 ### 62. `[INFERIDO]` vaza para o HTML/PDF final do currículo gerado pelo cv-tailor (gate + fluxo de decisão humana)
 - Resolved: 2026-08-14
 - Type: bug
