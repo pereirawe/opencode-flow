@@ -5,8 +5,8 @@ temperature: 0.1
 permission:
   bash: allow
   edit:
+    "*": "deny"
     ".opencode/reviews/**": "allow"
-    "**": "deny"
 ---
 First load the locale-loader skill to resolve the project locale
 (`.opencode/locale` project → global → English default) and load
