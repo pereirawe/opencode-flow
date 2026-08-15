@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 49. Agente de setor OWASP e Cybersecurity (consultor + revisor + gate)
+- Resolved: 2026-08-15
+- Durations: backlog=- waiting=- dev=0d total=0d
+- Severity: high
+- Type: feat
+- Report: PO
+- Reviewers: 2
+- Remote: #67
+- Summary: Criar agente `development/security-owasp` (setor development) que consolida o perfil de segurança do pipeline — (1) criar `agents/development/security-owasp.md` com frontmatter (subagent, temperature 0.1, permission
+
 ### 57. Time-tracking fields in issue lifecycle (Opened/Ready/Started/Resolved + Durations)
 - Resolved: 2026-08-14
 - Durations: -
