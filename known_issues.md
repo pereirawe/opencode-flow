@@ -381,7 +381,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 2 (devops, security)
 - Remote: #69
-- PR: -
+- PR: #70
 - Location: scripts/sync-jira.sh (novo), scripts/config.sh, scripts/create_issue.sh, scripts/promote.sh, scripts/close_issue.sh, opencode.json, standards/issues.md, standards/pt/issues.md, standards/es/issues.md, standards/mcp-registry.md, scripts/README.md, scripts/tests/
 - Description: Integrar o pipeline com Jira Cloud (REST v3): ao criar/registrar uma issue (`ocf:discovery` / `ocf:develop` / `scripts/create_issue.sh`), criar o card no backlog do Jira se não existir (campo novo `Jira: DEV-123`); se a chave já existir, vincular o card à issue da `known_issues.md`. Sincronizar automaticamente TODAS as transições de status (backlog→ready→in-progress→in-review→in-qa→in-publish→resolved) para o workflow do Jira via mapa configurável por projeto. Alinhar comentários do repositório → Jira (uma via). Sync via script `sync-jira.sh` (curl REST v3) + hooks nos scripts existentes + comando dedicado `ocf:sync-jira` para reconciliação completa. MCP Jira registrado opcionalmente em `mcpServers` para consultas de agente (backlog view) — o sync do pipeline vive em script (determinístico, headless, testável em CI).
 - Impact: Unifica o tracking — cada issue do pipeline tem contraparte real no backlog do Jira com status, comentários e refinamento sincronizados automaticamente entre `known_issues.md` e o Jira. Elimina dupla manutenção e garante que stakeholders no Jira vejam o progresso real. Reforça `known_issues.md` como fonte de verdade única (Jira é espelho; local→remoto sempre vence).
