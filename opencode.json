@@ -249,7 +249,13 @@
             "cv-hub": "allow",
             "cv-tailor": "allow",
             "cv-pdf": "allow",
-            "cv-optimizer": "allow"
+            "cv-optimizer": "allow",
+            "owasp-top10": "allow",
+            "owasp-asvs": "allow",
+            "owasp-wstg": "allow",
+            "owasp-samm": "allow",
+            "threat-modeling": "allow",
+            "secure-code-review": "allow"
         },
         "external_directory": {
             "~/.config/opencode/**": "allow",

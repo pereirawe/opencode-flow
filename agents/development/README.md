@@ -26,4 +26,5 @@ Agents are loaded via OpenCode's subagent mechanism. Each agent has a specific f
 | `test-automation` | Automated test suites |
 | `backup` | Intelligent timestamped backups excluding junk |
 | `review-external` | External branch/MR review with structured report generation |
+| `security-owasp` | OWASP security consultant, senior security reviewer (profile `security`), and critical/high vulnerability gate |
 | `development/senior-reviewers/` | Specialized domain reviewers (10 roles) |
