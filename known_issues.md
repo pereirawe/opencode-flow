@@ -124,7 +124,7 @@ See `standards/issues.md` for the full contract.
 - Suggested fix: Alterar `"/temp/*"` para `"/tmp/*"`.
 
 ### 28. `close_issue.sh` fecha issue remota sem verificar merge do PR para status não-`in-publish`
-- Status: in-progress
+- Status: in-review
 - Type: bug
 - Severity: medium
 - Report: opencode
