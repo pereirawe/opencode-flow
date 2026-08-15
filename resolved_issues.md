@@ -2,6 +2,15 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 62. `[INFERIDO]` vaza para o HTML/PDF final do currículo gerado pelo cv-tailor (gate + fluxo de decisão humana)
+- Resolved: 2026-08-14
+- Type: bug
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #59
+- Severity: critical
+- Summary: Created `scripts/cv/check-inferido.sh` gate blocking [INFERIDO] (case-insensitive) in the final resume HTML/PDF — exit 1 listing occurrences, best-effort pdftotext. Reworked cv-tailor skill/agent/command prompts to resolve inferences with the candidate (inferencias.md) before generation. cv-hub/cv-optimizer keep [INFERIDO] in internal artifacts; 46 tests green.
+
 ### 42. Agente designer + skills de design-taste para UI de frontend
 - Resolved: 2026-08-14
 - Type: feat
