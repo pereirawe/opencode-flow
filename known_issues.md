@@ -382,7 +382,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 1 (qa)
 - Remote: #83
-- PR: -
+- PR: #84
 - Location: agents/career/cv-ats-score.md (NEW), skills/career/cv-ats-score/SKILL.md (NEW), commands/ocf:cv-ats-score.md (NEW), opencode.json
 - Description: Create command `ocf:cv-ats-score <candidate-dir> <job-slug>`, agent `career/cv-ats-score`, skill `cv-ats-score`. Given a generated resume PDF (from cv-tailor) and the original job description, extract text from the PDF (pdftotext), analyze keyword density vs the job's requirements, detect ATS red flags (tables, images, multi-column, missing standard sections), and produce a score (0-100) + actionable recommendations. Output as `ats-score.md` in the job's slug directory.
 - Impact: Closes the loop — generate, measure, optimize. Without it, the candidate has no feedback on whether the tailored resume actually matches the job's ATS keywords.
