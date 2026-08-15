@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 64. Standardize career sector language — English prompts, English hub.json schema, user-locale analysis outputs
+- Resolved: 2026-08-15
+- Durations: backlog=0d waiting=0d dev=0d total=0d
+- Severity: critical
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #71
+- Summary: Rewrite ALL career sector prompts (agents, skills, commands, schema descriptions, validator messages) in English. Migrate hub.json keys and ENUM values from Portuguese to English. Add locale rule — Rewrite all career prompts in English; migrate schema.json keys/enums to English and update validate.py accordingly; update test_cv.sh fixtures; provide a migration helper (scripts/cv/migrate-schema.py or documented manual steps); verify opencode.json consistency. Coordinate merge order
+
 ### 75. Rename candidate directory root `~/carreira/` → `~/career/` (English standardization follow-up)
 - Resolved: 2026-08-15
 - Durations: backlog=0d waiting=0d dev=0d total=0d
