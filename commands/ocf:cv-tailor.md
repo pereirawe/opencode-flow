@@ -35,12 +35,16 @@ The job can be provided as:
    directory and the job.
 3. **Analyze the job** — required/desirable requirements, keywords, seniority,
    languages.
-4. **Gap analysis** — requirements → met/partial/not_met table, saved in
+4. **Gap analysis** — uniform table `Requirement | Match | Evidence in hub`
+   (match values `atendido`/`parcial`/`not_met` per
+   `standards/cv-analysis.md` §4.1), saved in
    `curriculos/<job-slug>/gap-analysis.md` (written in the user's
    communication language).
 5. **Human decision on inferences** — list all of them in
-   `curriculos/<job-slug>/inferencias.md` and ask the candidate to decide on
-   each (rephrase/omit/promote with real data) before the final output.
+   `curriculos/<job-slug>/inferencias.md` per `standards/cv-analysis.md`
+   §3.3/§4.4 (table `Inference | Context | Decision | Status`) and ask the
+   candidate to decide on each (rephrase/omit/promote with real data) before
+   the final output.
 6. **Adapt content** — starting from the reference template
    `skills/career/cv-pdf/templates/resume.html`, following the
    `standards/cv-design.md` standard; reorder/highlight/condense only what
@@ -59,14 +63,15 @@ The job can be provided as:
   template `skills/career/cv-pdf/templates/resume.html` — never CSS from
   scratch; verify conformity before the PDF.
 - `[INFERIDO]` is allowed ONLY in internal artifacts (hub.json,
-  gap-analysis.md, inferencias.md). In the final HTML/PDF NO `[INFERIDO]` may
-  appear — the `check-inferido.sh` gate blocks generation.
+  gap-analysis.md, inferencias.md) per `standards/cv-analysis.md` §5. In the
+  final HTML/PDF NO `[INFERIDO]` may appear — the `check-inferido.sh` gate
+  blocks generation.
 - Contact only if present in the hub; sensitive data never.
 - A4 PDF ready for ATS, clean typography, semantic headings.
 
 ### Report to the user
 
 - Generated PDF path (`~/career/<name>/curriculos/<slug>/curriculo.pdf`).
-- Gap analysis summary (met/partial/not_met requirements).
+- Gap analysis summary (`atendido`/`parcial`/`not_met` requirements).
 - Resolved inferences list (rephrased/omitted/promoted) the candidate
   approved — no `[INFERIDO]` marker in the shareable artifact.

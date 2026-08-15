@@ -33,13 +33,17 @@ The report MUST be written in the language the user communicates in (detected
 from the session locale — `.opencode/locale` project → global → English — or
 an explicit user instruction). This applies to `analise-perfil.md`,
 `gap-analysis.md` and `inferencias.md` (career analysis outputs). Technical
-terms, command names and the `[INFERIDO]` label remain unchanged.
+terms, command names and the `[INFERIDO]` label remain unchanged. See
+`standards/cv-analysis.md` §1 for the full resolution order.
 
 ## Report format
 
-The report **must not contain a metadata header** (no lines like
-"Generated on:", "Source:", "Tool:", "Note:"). Start directly with the
-content:
+The report MUST follow the canonical structure defined in
+`standards/cv-analysis.md` (heading hierarchy, section order, canonical
+tables, `[INFERIDO]` inline convention, report language rule). Load that
+standard and conform to it.
+
+Canonical section order (H2) in `analise-perfil.md`:
 
 1. **Profile score** (global + per section)
 2. **General qualifications**
@@ -48,16 +52,28 @@ content:
 5. **Context gaps**
 6. **Prioritized action plan**
 
-The `[INFERIDO]` markers go inline next to each estimate — not as a warning
-at the top of the document.
+Rules (per `standards/cv-analysis.md`):
+
+- **No metadata header** — no lines like "Generated on:", "Source:", "Tool:",
+  "Note:". Start directly with the content (exactly one `H1` title, then the
+  first section).
+- **Score table** — the canonical table: `Section | Score (0-100) |
+  Justification` (one row per hub section + the `Global` row).
+- **Action plan table** — the canonical table: `ID | Action | Impact |
+  Effort | Priority | Target profile`.
+- The `[INFERIDO]` markers go inline next to each estimate — not as a warning
+  at the top of the document.
 
 ## PDF generation
 
 After writing `analise-perfil.md`, also generate the PDF for easier reading:
 
-1. Render the content into `analise-perfil.html` (A4 via `@page { size: A4;
-   margin: 16mm }`, clean typography, semantic headings — same standard as
-   cv-pdf).
+1. Copy the reference template
+   `skills/career/cv-optimizer/templates/analise-perfil.html` to
+   `analise-perfil.html` and adapt the CONTENT (never the CSS), following the
+   design language of `standards/cv-design.md` and the structure of
+   `standards/cv-analysis.md` (A4 via `@page { size: A4; margin: 12mm 15mm }`,
+   clean typography, semantic headings, no metadata header).
 2. Run `bash $SCRIPTS_DIR/cv/pdf.sh analise-perfil.html analise-perfil.pdf`.
 3. If the engine fails, report the error — never deliver an empty PDF.
 
@@ -110,6 +126,11 @@ Rules:
 - **Textual justification required** for every score.
 - Scores are estimates — no `[INFERIDO]` on the score itself (it is
   computed), but any inference used in the justification must be marked.
+- **Output table** — the report's score table MUST be the canonical format of
+  `standards/cv-analysis.md` §4.2:
+  `Section | Score (0-100) | Justification` — one row per hub section key
+  (`personal_info`, `summary`, `experience`, `education`, `skills`,
+  `certifications`, `projects`, `languages`, `links`) plus the `Global` row.
 
 ### 4. Target job profiles (offline)
 
@@ -159,15 +180,22 @@ impact of the profile:
 
 ### 7. Prioritized action plan
 
-Each action with:
+**Output table** — the report's action plan MUST be the canonical table of
+`standards/cv-analysis.md` §4.3:
+
+```
+| ID | Action | Impact | Effort | Priority | Target profile |
+```
+
+- **ID** — sequential identifier (A1, A2, ...)
 - **Action** — what to do (e.g. "Add metrics to 3 Acme achievements")
-- **Estimated impact** — high/medium/low on strengthening the profile
+- **Impact** — high/medium/low on strengthening the profile
 - **Effort** — low/medium/high
 - **Priority** — P1 (high impact + low effort) up to P3
-- **Related target job** — which job profile the action serves
+- **Target profile** — which job profile the action serves (`-` when general)
 
-Group by category: fill hub gaps, strengthen weak sections, close target-job
-gaps (courses/certifications/languages), positioning.
+Group rows by category: fill hub gaps, strengthen weak sections, close
+target-job gaps (courses/certifications/languages), positioning.
 
 ## Hard rules
 
@@ -177,14 +205,17 @@ gaps (courses/certifications/languages), positioning.
 4. No sensitive data (CPF, full address, bank) in the report.
 5. No concrete jobs/companies/URLs — only generic profiles.
 6. Sensitive data already excluded by cv-hub stays excluded.
-7. NO metadata header in the report (no "Generated on:", "Source:", "Tool:",
+7. The report MUST follow `standards/cv-analysis.md` (canonical structure:
+   heading hierarchy, section order, canonical tables, no metadata header).
+   NO metadata header in the report (no "Generated on:", "Source:", "Tool:",
    "Note:" at the top) — start directly with the content. The `[INFERIDO]`
    markers are inline, not a global warning.
 8. Skill years of experience MUST be computed dynamically
    (current year − `since`) whenever `since` is present in the hub — never
    display a fixed `years_of_experience` as current fact.
 9. Report language = the user's communication language (session locale or
-   explicit user instruction); English is the fallback.
+   explicit user instruction); English is the fallback — per
+   `standards/cv-analysis.md` §1.
 
 ## tasks.json (optional)
 

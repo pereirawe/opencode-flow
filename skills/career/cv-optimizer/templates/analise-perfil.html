@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<!--
+  REFERENCE TEMPLATE — profile analysis report (standards/cv-analysis.md,
+  design language from standards/cv-design.md).
+
+  MANDATORY BASE for the cv-optimizer report render: copy this file to
+  ~/career/<candidate-name>/analise-perfil.html and adapt ONLY the content —
+  NEVER rewrite the CSS from scratch.
+
+  Required adjustments when adapting:
+    - lang: the report language (the user's communication language).
+    - Translate the <title> and all section headings to the report language.
+    - Replace the placeholder candidate name with the hub's name.
+    - Fill each <section> with the analysis content per standards/cv-analysis.md
+      (canonical section order and canonical tables only).
+    - NO metadata header in the rendered output ("Generated on:", "Source:",
+      "Tool:", "Note:").
+    - [INFERIDO] markers are ALLOWED inline in this artifact (internal
+      analysis report — NOT submitted to ATS). Never in the final resume.
+      Gate: scripts/cv/check-inferido.sh.
+
+  Rules this template already complies with: A4 12-15mm margins, system
+  fonts, semantic headings, sober grayscale-safe style, no emoji/Google
+  Fonts/gradients/shadows, clean @media print, break-inside: avoid.
+-->
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Análise de Perfil — Nome do Candidato</title>
+<style>
+  :root {
+    /* Single optional accent — grayscale-safe by default (same as text).
+       If changed, keep contrast >= 4.5:1 and black-and-white readability. */
+    --accent: #1a1a1a;
+  }
+
+  @page { size: A4; margin: 12mm 15mm; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 10pt;
+    line-height: 1.45;
+    color: #1a1a1a;            /* near-black — never pure #000 */
+    background: #ffffff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ===== Header ===== */
+  .header { margin-bottom: 6mm; }
+  .header h1 {
+    font-size: 17pt;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--accent);
+    margin-bottom: 1mm;
+  }
+  .header .role {
+    font-size: 11pt;
+    font-weight: 600;
+    margin-bottom: 1.5mm;
+  }
+
+  /* ===== Sections ===== */
+  section { margin-bottom: 6mm; }
+  section h2 {
+    font-size: 10.5pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    border-bottom: 0.4pt solid #d9d9d9;   /* structural hairline */
+    padding-bottom: 1mm;
+    margin-bottom: 2.5mm;
+  }
+  h3 {
+    font-size: 10pt;
+    font-weight: 700;
+    margin-bottom: 1mm;
+  }
+  p, li { font-size: 9.5pt; }
+  ul { padding-left: 4mm; }
+  li { margin-bottom: 0.6mm; }
+
+  /* ===== Canonical tables (analysis report — NOT ATS-submitted) ===== */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 3mm;
+  }
+  th, td {
+    font-size: 9pt;
+    text-align: left;
+    vertical-align: top;
+    padding: 1.2mm 2mm;
+    border-bottom: 0.4pt solid #d9d9d9;
+  }
+  th { font-weight: 700; }
+
+  /* ===== Clean print ===== */
+  @media print {
+    body { background: none; }
+    section { break-inside: avoid; }
+    .header { break-after: avoid; }
+    h2 { break-after: avoid; }
+    table tr { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+  <header class="header">
+    <h1>Análise de Perfil — Nome do Candidato</h1>
+    <p class="role">Título profissional / senioridade inferida [INFERIDO]</p>
+  </header>
+
+  <!-- Sections in the canonical order (standards/cv-analysis.md §3.1).
+       Translate headings to the report language. Keep only canonical tables. -->
+
+  <section>
+    <h2>Score do Perfil</h2>
+    <table>
+      <thead>
+        <tr><th>Seção</th><th>Score (0-100)</th><th>Justificativa</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>personal_info</td><td>80</td><td>Justificativa do score.</td></tr>
+        <tr><td>experience</td><td>85</td><td>Justificativa do score.</td></tr>
+        <tr><td>Global</td><td>72</td><td>Média ponderada (experience e skills 1.5x).</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Qualificações Gerais</h2>
+    <h3>Senioridade inferida</h3>
+    <p>Senior — ~8 anos [INFERIDO]</p>
+    <h3>Principais skills</h3>
+    <ul>
+      <li>Python — avançado (desde 2018, ~8 anos)</li>
+      <li>Kubernetes — intermediário (desde 2021, ~5 anos)</li>
+    </ul>
+    <h3>Pontos fortes</h3>
+    <ul>
+      <li>Conquistas com métricas na experiência recente.</li>
+    </ul>
+    <h3>Pontos fracos</h3>
+    <ul>
+      <li>Seção de certificações vazia.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Perfis de Vagas-Alvo</h2>
+    <h3>Senior Data Engineer [INFERIDO]</h3>
+    <p>Segmentos: fintech, e-commerce [INFERIDO] · Stack: Python, Spark, Airflow [INFERIDO] · Senioridade: sênior [INFERIDO]</p>
+  </section>
+
+  <section>
+    <h2>Mercado Salarial (CLT vs PJ)</h2>
+    <h3>Senior Data Engineer | São Paulo (SP) [INFERIDO]</h3>
+    <ul>
+      <li>CLT: R$ 14.000 – 20.000 [INFERIDO]</li>
+      <li>PJ: R$ 22.000 – 30.000 [INFERIDO]</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Lacunas de Contexto</h2>
+    <ul>
+      <li>Conquistas sem métricas (sugestão: "Reduzi X em Y%").</li>
+      <li>Projetos sem link.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Plano de Ações Priorizado</h2>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Ação</th><th>Impacto</th><th>Esforço</th><th>Prioridade</th><th>Perfil-alvo</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>A1</td><td>Adicionar métricas às conquistas da Acme.</td><td>alto</td><td>baixo</td><td>P1</td><td>Senior Data Engineer</td></tr>
+        <tr><td>A2</td><td>Adicionar link aos projetos.</td><td>médio</td><td>baixo</td><td>P1</td><td>-</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+</body>
+</html>

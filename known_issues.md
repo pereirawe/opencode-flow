@@ -372,13 +372,16 @@ See `standards/issues.md` for the full contract.
  - Suggested fix (alternativo): Se o spike do modo headless falhar, avaliar self-hosted GitHub runner na mesma VM do opencode web, com `--attach http://127.0.0.1:4096` — mantém paralelismo sem exigir suporte headless do opencode. SPIKE PASSED — alternativa NÃO necessária.
 
 ### 65. Standard structure for career sector analysis reports — standards/cv-analysis.md + report templates
-- Status: backlog
+- Status: in-review
+- Opened: 2026-08-15
+- Ready: 2026-08-15
+- Started: 2026-08-15
 - Type: feat
 - Severity: high
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 2 (docs, qa)
-- Remote: -
+- Remote: #75
 - PR: -
 - Location: standards/cv-analysis.md (NEW), skills/career/cv-optimizer/SKILL.md, skills/career/cv-tailor/SKILL.md, agents/career/cv-optimizer.md, agents/career/cv-tailor.md, commands/ocf:cv-optimize.md, commands/ocf:cv-tailor.md
 - Description: Create `standards/cv-analysis.md` defining the canonical structure for ALL career sector report files: standard heading hierarchy, section order, table formats (gap analysis, score, actions), [INFERIDO] inline rules (internal files only — from #62), locale rules (output language = user communication language — from #64), and report-specific templates. Create HTML templates for analise-perfil.html (A4, same design language as cv-pdf). Apply the standard across cv-optimizer and cv-tailor skills/agents.
@@ -405,7 +408,8 @@ See `standards/issues.md` for the full contract.
   8. No metadata headers in any report.
   9. Report language rule is documented and followed.
   10. [INFERIDO] inline convention is documented and followed.
-- Suggested fix: Create `standards/cv-analysis.md`; update cv-optimizer and cv-tailor skills/agents/commands to reference it; create HTML template for analise-perfil.html. Execute after #64. Origem: Proposal 2026-08-14-4 em prioritization.md.
+- Tests: incomplete-spec — missing test scenarios (feat/high requires ≥3 scenario → outcome lines per standards/issues.md; Tests: field absent at discovery); to be captured in the next discovery cycle.
+ - Suggested fix: Create `standards/cv-analysis.md`; update cv-optimizer and cv-tailor skills/agents/commands to reference it; create HTML template for analise-perfil.html. Execute after #64. Origem: Proposal 2026-08-14-4 em prioritization.md.
 
 ### 66. Cover letter generation — ocf:cv-cover-letter
 - Status: backlog

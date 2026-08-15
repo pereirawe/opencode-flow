@@ -27,7 +27,9 @@ plan in `analise-perfil.md`.
 
 ## Responsibilities
 
-1. Load the `cv-optimizer` skill (full analysis protocol).
+1. Load the `cv-optimizer` skill (full analysis protocol) and the
+   `standards/cv-analysis.md` standard (canonical report structure, tables,
+   `[INFERIDO]` and language rules).
 2. Read `hub.json` and validate with `python3 $SCRIPTS_DIR/cv/validate.py`;
    missing/invalid hub → tell the user that `ocf:cv-hub` must run first.
 3. Analyze general qualifications (inferred seniority, top skills,
@@ -48,8 +50,10 @@ plan in `analise-perfil.md`.
 3. No web search — 100% offline analysis over the hub.
 4. No sensitive data in the report.
 5. No concrete jobs/companies/URLs — only generic profiles.
-6. NO metadata header in the report (no "Generated on:", "Source:",
-   "Tool:", "Note:" at the top) — start directly with the content.
+6. Report structure per `standards/cv-analysis.md` — NO metadata header in
+   the report (no "Generated on:", "Source:", "Tool:", "Note:" at the top) —
+   start directly with the content; canonical tables (score, action plan);
+   `[INFERIDO]` inline.
 7. Skill years of experience computed dynamically (current year − `since`)
    whenever `since` exists in the hub.
 
