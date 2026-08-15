@@ -372,14 +372,17 @@ See `standards/issues.md` for the full contract.
  - Suggested fix (alternativo): Se o spike do modo headless falhar, avaliar self-hosted GitHub runner na mesma VM do opencode web, com `--attach http://127.0.0.1:4096` — mantém paralelismo sem exigir suporte headless do opencode. SPIKE PASSED — alternativa NÃO necessária.
 
 ### 70. Hub update flow — incremental edits to existing hub.json
-- Status: backlog
+- Status: in-publish
+- Opened: 2026-08-15
+- Ready: 2026-08-15
+- Started: 2026-08-15
 - Type: feat
 - Severity: high
 - Report: william_pereira
 - Base branch: main
-- Reviewers: 2 (runtime, docs)
-- Remote: -
-- PR: -
+- Reviewers: 2 (runtime, qa)
+- Remote: #85
+- PR: #86
 - Location: commands/ocf:cv-hub-update.md (NEW) OR commands/ocf:cv-hub.md (--update flag), agents/career/cv-extractor.md, skills/career/cv-hub/SKILL.md, opencode.json
 - Description: Create command `ocf:cv-hub-update <candidate-dir>`, enhancing the existing cv-hub flow to support incremental edits. The user provides new information (pasted text, new PDF, new file) and the agent updates the existing hub.json with the new entries (new experience, skill, certification, project) without recreating the entire hub. Alternatively, accept manual edits to hub.json and validate + regenerate README.md. Command can also be `ocf:cv-hub <dir> --update`.
 - Impact: Today the only way to update the hub is to recreate it from scratch. Candidates frequently need to add a new experience, certification, or skill. An incremental update flow avoids re-processing the entire PDF/LinkedIn export.
@@ -405,6 +408,12 @@ See `standards/issues.md` for the full contract.
   8. A diff/summary of changes is reported.
   9. Agent permissions allow hub.json edits (unlike cv-optimizer).
   10. `make test-scripts` passes with new test cases.
+- Tests:
+  1. Update a fixture hub.json with a new skill entry → validate.py passes, README.md regenerated with the new skill, existing entries byte-identical.
+  2. Duplicate entry (same company+title+start_date / same name) passed as new → merged into existing entry, no duplicate row.
+  3. Existing entry with [INFERIDO] marker updated via update-mode → marker preserved after validation.
+  4. Run `ocf:cv-hub-update <dir>` with no hub.json present → user told to run `ocf:cv-hub` first; no file created.
+  5. `make test-scripts` → exit 0 (new contract assertions in test_cv.sh cover hub-update behavior).
 - Suggested fix: Extend cv-hub skill/agent with update mode; create command (separate or --update flag); register in opencode.json with hub.json edit permission. Execute after #64 (English schema). Origem: Proposal 2026-08-14-9 em prioritization.md.
 
 ### 71. Keyword density and match percentage in gap analysis
