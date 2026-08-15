@@ -512,7 +512,7 @@ Auto-created by `ocf:promote` or `ocf:develop` if still missing.
 - Base branch: main
 - Reviewers: 2 (docs, runtime)
 - Remote: #59
-- PR: -
+- PR: #60
 - Location: skills/career/cv-tailor/SKILL.md:75-78, agents/career/cv-tailor.md:45, commands/ocf:cv-tailor.md:41,47, opencode.json:123, workflow.md:210-213, scripts/cv/check-inferido.sh (NEW), scripts/cv/pdf.sh, scripts/tests/test_cv.sh
 - Description: O fluxo cv-tailor instrui os agentes a marcar `[INFERIDO]` no HTML/PDF final (skill cv-tailor regra rígida 2, agente career/cv-tailor regra 2, comando ocf:cv-tailor, template do comando em opencode.json, workflow.md secção career). A etiqueta vaza para o artefacto partilhável: o recrutador vê "inferido"/"inventado" no PDF, o candidato não consegue partilhar o arquivo, e a qualidade percebida é quebrada. Correção: `[INFERIDO]` passa a ser permitido APENAS em artefactos internos de revisão humana; gate de verificação bloqueia qualquer ocorrência no HTML/PDF final; fluxo de validação humana com lista de inferências antes da geração.
 - Impact: CRÍTICO para o uso real do fluxo career — o principal artefacto de saída (PDF partilhável) fica inutilizável. Viola o princípio de qualidade percebida (currículo direcionado deve transparecer confiança). Afeta todas as gerações futuras de currículos.
