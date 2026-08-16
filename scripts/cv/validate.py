@@ -253,7 +253,7 @@ def _date_parts(value, side="start"):
         return None
     if side == "end":
         month = month if month is not None else 12
-        day = day if day is not None else 28
+        day = day if day is not None else 31
     else:
         month = month if month is not None else 1
         day = day if day is not None else 1

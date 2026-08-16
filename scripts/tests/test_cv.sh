@@ -909,6 +909,12 @@ write("hub-cert-expiry.json",
                                      "year": "2023", "expiry_date": "2020-01"}]})
 write("hub-unknown-key.json",
       {**base(), "bogus_section": []})
+write("hub-day-start-coarse-end.json",
+      {**base(), "experience": [{"company": "Acme", "title": "Dev",
+                                 "start_date": "2021-12-31", "end_date": "2021-12"}]})
+write("hub-equal-month.json",
+      {**base(), "experience": [{"company": "Acme", "title": "Dev",
+                                 "start_date": "2021-06", "end_date": "2021-06"}]})
 EOF
 
 run_both "1" "validate.py rejects an invalid email address" "$TMP/hub-bad-email.json"
@@ -921,6 +927,8 @@ run_both "0" "validate.py accepts experience with an open-ended 'atual' end" "$T
 run_both "1" "validate.py rejects education end before start" "$TMP/hub-educ-range.json"
 run_both "1" "validate.py rejects a future certification year" "$TMP/hub-cert-future.json"
 run_both "1" "validate.py rejects a certification year after expiry" "$TMP/hub-cert-expiry.json"
+run_both "0" "validate.py accepts a day-level start with a coarse month end (M1)" "$TMP/hub-day-start-coarse-end.json"
+run_both "0" "validate.py accepts start equal to end (same month)" "$TMP/hub-equal-month.json"
 
 # unknown-key rejection is jsonschema-only (schema additionalProperties: false);
 # the hand-rolled fallback is intentionally lenient on unknown keys (documented).
