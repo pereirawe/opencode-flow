@@ -127,6 +127,64 @@ with the legacy Portuguese keys, run
   the hub (only city/state/country when available).
 - **Reverse chronological order** in `experience`, `education`, `projects`.
 
+## README.md template
+
+`README.md` is the human-readable **mirror** of `hub.json` — it MUST be
+generated from the hub and never edited manually in divergence. The canonical
+structure (sections appear ONLY when the hub has data for them):
+
+```markdown
+# <name> — <professional_title>
+
+## Contact
+- Phone: <phone>                (only when present in the hub)
+- Email: <email>                (only when present in the hub)
+- Location: <city>, <state> — <country>
+- LinkedIn: <linkedin>
+- GitHub: <github>
+- Site: <site>
+
+## Summary
+<summary> (the hub's primary-language summary — from `summary` or
+`summary_i18n`)
+
+## Experience
+### <title> — <company>
+<start_date> — <end_date> · <location> · <type>
+- <achievement / responsibility bullet>
+
+## Education
+### <course> — <institution>
+<start_date> — <end_date> · <status>
+
+## Skills
+- <name> (<level>, since <since>) — grouped by <category> when present
+
+## Certifications
+- <name> — <issuer> (<year>)
+
+## Projects
+### <name>
+<description> · <link> · <technologies>
+
+## Languages
+- <language> (<level> — <scale_note>)
+
+## Links
+- <name>: <url>
+```
+
+Rules:
+
+1. Section order mirrors the hub: name + title, contact, summary, experience,
+   education, skills, certifications, projects, languages, links.
+2. Empty sections are omitted (e.g. no certifications → no `## Certifications`).
+3. Contact fields appear only when present in `personal_info`; sensitive data
+   (CPF, document, bank details) never.
+4. The README language follows the hub's primary language (the `summary`
+   field / `summary_i18n`; English is the default when the hub has no clear
+   primary language).
+
 ## Tools and limits
 
 - PDF extraction: `pdftotext -layout` (preferred) → Python fallback
