@@ -412,7 +412,7 @@ See `standards/issues.md` for the full contract.
 - Suggested fix: Enhance cv-tailor skill/agent with keyword density and match percentage logic; update gap-analysis.md format in standards/cv-analysis.md. Execute after #64 and #65. Origem: Proposal 2026-08-14-10 em prioritization.md.
 
 ### 72. Technical corrections — validate.py, schema.json, agents/README, templates, curl security
-- Status: in-review
+- Status: in-publish
 - Opened: 2026-08-15
 - Ready: 2026-08-15
 - Started: 2026-08-15
@@ -626,3 +626,34 @@ See `standards/issues.md` for the full contract.
   3. QA pre-development re-checks `Tests:` on all new issues (no recurrence).
 - Tests: -
 - Suggested fix: Discovery refinement: capture the `Tests:` field for #67 (proposed lines in the QA post-review report of 2026-08-15) and for #68-#72 in their respective discovery cycles; enforce the field in QA Phase 5 going forward. Optionally add a mechanical lint gate in promote.sh (follow-up noted in standards/issues.md).
+
+### 77. cv-cover-letter ainda carrega o padrão curl -L (SSRF) — follow-up do #72 D5
+- Status: backlog
+- Opened: 2026-08-15
+- Ready: -
+- Started: -
+- Type: bug
+- Severity: medium
+- Report: senior-reviewers/runtime
+- Base branch: main
+- Reviewers: 1 (security)
+- Remote: -
+- PR: -
+- Location: agents/career/cv-cover-letter.md:19,43, commands/ocf:cv-cover-letter.md:30, skills/career/cv-cover-letter/SKILL.md:30, opencode.json:139
+- Description: O issue #72 (D5) removeu `curl -L` do cv-tailor (vetor SSRF via file:// redirects; LinkedIn sempre bloqueia). A mesma racionalidade se aplica ao cv-cover-letter, que ainda ensina/permite fetch de URL via `curl -L` no agente, skill, comando e template opencode.json. Encontrado na senior review do #72 (L1) e confirmado na re-review como follow-up obrigatório — fora do escopo do #72.
+- Impact: Vetor SSRF e dependência de fetch de URL não confiável persistente no fluxo de carta de apresentação; inconsistência com o padrão do setor career estabelecido no #72.
+- Business rules:
+  1. `curl -L*` DEVE ser removido das permissões bash do agente cv-cover-letter (agents/career/cv-cover-letter.md:19).
+  2. As instruções de fetch via URL com curl DEVM ser substituídas por "peça ao usuário para colar o texto da vaga" no agente, skill (skills/career/cv-cover-letter/SKILL.md:30) e comando (commands/ocf:cv-cover-letter.md:30).
+  3. O template do comando ocf:cv-cover-letter em opencode.json (linha 139) DEVE ser atualizado para remover qualquer instrução de curl -L.
+  4. A entrada de fonte da vaga DEVE aceitar texto colado, arquivo local ou export oficial — nunca fetch de URL com redirects.
+- Acceptance criteria:
+  1. `grep -rn "curl -L" agents/career/cv-cover-letter.md commands/ocf:cv-cover-letter.md skills/career/cv-cover-letter/SKILL.md opencode.json` → 0 ocorrências.
+  2. O fluxo cv-cover-letter solicita texto da vaga colado pelo usuário em vez de fetch URL.
+  3. `make test-scripts` passa com cobertura de teste atualizada (assert_not_contains curl nos quatro artefatos).
+- Tests:
+  1. Permissão bash do cv-cover-letter contém `curl -L` → gate falha e lista o artefato.
+  2. Instrução "curl -L <url>" presente no SKILL/comando/template → gate falha com evidência.
+  3. Texto da vaga colado pelo usuário → fluxo gera carta normalmente sem fetch de URL.
+  4. `make test-scripts` com cv-cover-letter limpo → exit 0 (assert_not_contains curl em todos os artefatos).
+- Suggested fix: Aplicar o mesmo tratamento do #72 D5 ao cv-cover-letter: remover permissão/instruções/template `curl -L` e exigir texto colado. Follow-up registrado na senior review do #72 (L1, não-bloqueante para o #72).
