@@ -44,7 +44,9 @@ language.
    languages.
 5. Gap analysis vs hub → `curriculos/<job-slug>/gap-analysis.md` per
    `standards/cv-analysis.md` §3.2/§4.1 (uniform table `Requirement | Match |
-   Evidence in hub`, match values `atendido`/`parcial`/`not_met`).
+   Evidence in hub`, match values `atendido`/`parcial`/`not_met`). Compute
+   and record the weighted match percentage (mandatory requirements weigh
+   2x, desirable 1x) per `standards/cv-analysis.md` §4.5.
 6. List ALL inferences/placeholders in
    `curriculos/<job-slug>/inferencias.md` per `standards/cv-analysis.md`
    §3.3/§4.4 (table `Inference | Context | Decision | Status`) and ask the
@@ -61,6 +63,14 @@ language.
 9. **Run the mandatory gate**: `bash $SCRIPTS_DIR/cv/check-inferido.sh index.html`
    — the gate MUST pass (exit 0) before the PDF.
 10. Generate the PDF: `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
+11. Compute the gap-analysis metrics on the FINAL resume text — the
+    keyword density map (each job keyword → its count, extracted from
+    `index.html` stripped of HTML tags, or from the PDF via `pdftotext`
+    when available) and the coverage summary by section (which resume
+    sections contain the most job keywords) — record both in
+    `gap-analysis.md` per `standards/cv-analysis.md` §4.6/§4.7. Never
+    invent counts: if no text source is available, note the limitation in
+    the report.
 
 ## Rules
 
@@ -78,6 +88,8 @@ language.
 6. A4 PDF via Chrome headless (`$SCRIPTS_DIR/cv/pdf.sh`), LibreOffice fallback.
 7. If the engine fails, report the error — never deliver an empty PDF.
 
-Report at the end: PDF path, gap analysis summary and the list of resolved
-inferences (rephrased/omitted/promoted) the candidate approved — no
-`[INFERIDO]` marker may appear in the shareable artifact.
+Report at the end: PDF path, gap analysis summary (`atendido`/`parcial`/
+`not_met` requirements), the weighted match percentage, the keyword density
+map and coverage summary by section, and the list of resolved inferences
+(rephrased/omitted/promoted) the candidate approved — no `[INFERIDO]` marker
+may appear in the shareable artifact.

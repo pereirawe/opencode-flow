@@ -69,6 +69,50 @@ communicates in (session locale or explicit user instruction; English as the
 fallback), like the other career analysis outputs (resolution order in
 `standards/cv-analysis.md` §1). The resume itself follows the job's language.
 
+### Match percentage (weighted)
+
+After classifying every requirement, compute the match percentage with
+weighted scoring: **mandatory requirements weigh 2x, desirable 1x**. Only
+`atendido` requirements count fully toward the met total; `parcial` counts
+as half (0.5); `not_met` counts zero.
+
+```
+match_percentage = round( (Σ Met × Weight) / (Σ Total × Weight) × 100 )
+```
+
+Example: 4 mandatory + 2 desirable requirements, 3 mandatory + 1 desirable
+met → `(3×2 + 1×1) / (4×2 + 2×1) × 100 = 70%`.
+
+Record the weighted computation and the resulting percentage in
+`gap-analysis.md` following the canonical match table of
+`standards/cv-analysis.md` §4.5 (mandatory requirements weigh 2x, desirable
+1x).
+
+### Keyword density & coverage
+
+AFTER generating the final resume (`index.html` and the PDF when available),
+extract the FINAL resume text and compute the metrics against the job
+keywords — never against the hub or the job text:
+
+1. **Extract the text** — from `index.html` (strip the HTML tags and read
+   the real selectable text) or from the PDF via `pdftotext <pdf> -` when
+   available. If both sources are unavailable or empty, note the limitation
+   in `gap-analysis.md` instead of inventing counts.
+2. **Keyword density map** — count the occurrences of each job keyword in
+   the extracted text (case-insensitive). Record `keyword → count` in
+   `gap-analysis.md` following the canonical keyword density table of
+   `standards/cv-analysis.md` §4.6.
+3. **Coverage summary by section** — count how many job keyword occurrences
+   fall in each resume section (Summary, Experience, Education, Skills,
+   Certifications, Projects, Languages) and rank the sections by that count.
+   Record the ranking in `gap-analysis.md` following the canonical coverage
+   table of `standards/cv-analysis.md` §4.7.
+
+These metrics complement the ATS score (`cv-ats-score` skill): the density
+map here is computed at gap-analysis time on the generated resume text; the
+ATS score re-computes its own keyword match on the final PDF. They must not
+be duplicated or replaced by the ATS score.
+
 ## Human validation flow for inferences
 
 Before generating the final HTML/PDF, list ALL inferences and placeholders in
@@ -147,7 +191,7 @@ Reorder, highlight and rephrase **only what already exists in the hub**:
 ~/career/<candidate-name>/curriculos/<job-slug>/
 ├── index.html            # resume HTML (job language)
 ├── curriculo.pdf         # generated A4 PDF
-├── gap-analysis.md       # requirements vs hub analysis
+├── gap-analysis.md       # requirements vs hub analysis + match % + keyword density & coverage
 └── inferencias.md        # resolved inferences list (human review)
 ```
 

@@ -1031,4 +1031,240 @@ else
   t_fail "opencode.json missing at $OP_CONFIG"
 fi
 
+# --- cv-tailor gap-analysis metrics contract (issue #71) ---
+# The gap analysis must carry: weighted match percentage (mandatory 2x,
+# desirable 1x), keyword density map, and coverage summary by section — all
+# computed on the FINAL resume text, per standards/cv-analysis.md §3.2/§4.5-§4.7.
+CV_ANALYSIS_STD="$SCRIPT_DIR/../../standards/cv-analysis.md"
+if [[ -f "$CV_ANALYSIS_STD" ]]; then
+  # §3.2 mandates the new gap-analysis sections (BR 6 / AC 5)
+  assert_contains "$CV_ANALYSIS_STD" "4. Match percentage" \
+    "cv-analysis standard §3.2 mandates the match percentage section (BR 1)"
+  assert_contains "$CV_ANALYSIS_STD" "5. Keyword density & coverage" \
+    "cv-analysis standard §3.2 mandates the keyword density & coverage section (BR 2/3)"
+  # canonical tables §4.5-§4.7 (AC 5)
+  assert_contains "$CV_ANALYSIS_STD" "### 4.5 Match percentage" \
+    "cv-analysis standard defines the weighted match table (BR 4)"
+  assert_contains "$CV_ANALYSIS_STD" "### 4.6 Keyword density map" \
+    "cv-analysis standard defines the keyword density table (BR 2)"
+  assert_contains "$CV_ANALYSIS_STD" "### 4.7 Coverage summary by section" \
+    "cv-analysis standard defines the coverage table (BR 3)"
+  assert_contains "$CV_ANALYSIS_STD" "\`2x\` for mandatory requirements" \
+    "cv-analysis standard documents the 2x mandatory weight (BR 4)"
+  assert_contains "$CV_ANALYSIS_STD" "strip the HTML tags" \
+    "cv-analysis standard computes counts on the final resume text from index.html (BR 5)"
+  assert_contains "$CV_ANALYSIS_STD" "pdftotext" \
+    "cv-analysis standard computes counts from the PDF via pdftotext (BR 5)"
+else
+  t_fail "cv-analysis standard missing at $CV_ANALYSIS_STD"
+fi
+
+if [[ -f "$TAILOR_SKILL" ]]; then
+  # BR 1/4 — weighted match percentage (mandatory 2x, desirable 1x)
+  assert_contains "$TAILOR_SKILL" "match percentage" \
+    "cv-tailor skill computes the match percentage (BR 1)"
+  assert_contains "$TAILOR_SKILL" "mandatory requirements weigh 2x" \
+    "cv-tailor skill documents the 2x mandatory / 1x desirable weights (BR 4)"
+  # BR 2/3/5 — keyword density + coverage on the FINAL resume text
+  assert_contains "$TAILOR_SKILL" "Keyword density map" \
+    "cv-tailor skill computes the keyword density map (BR 2)"
+  assert_contains "$TAILOR_SKILL" "Coverage summary by section" \
+    "cv-tailor skill computes the coverage summary by section (BR 3)"
+  assert_contains "$TAILOR_SKILL" "pdftotext" \
+    "cv-tailor skill extracts the final resume text via pdftotext (BR 5)"
+  assert_contains "$TAILOR_SKILL" "strip the HTML tags" \
+    "cv-tailor skill extracts the final resume text from index.html (BR 5)"
+  # BR 6 — canonical structure of standards/cv-analysis.md
+  assert_contains "$TAILOR_SKILL" "standards/cv-analysis.md" \
+    "cv-tailor skill references standards/cv-analysis.md (BR 6)"
+else
+  t_fail "cv-tailor skill missing at $TAILOR_SKILL"
+fi
+
+if [[ -f "$TAILOR_AGENT" ]]; then
+  assert_contains "$TAILOR_AGENT" "match percentage" \
+    "cv-tailor agent computes the weighted match percentage (BR 1/4)"
+  assert_contains "$TAILOR_AGENT" "keyword density map" \
+    "cv-tailor agent computes the keyword density map (BR 2)"
+  assert_contains "$TAILOR_AGENT" "coverage summary" \
+    "cv-tailor agent computes the coverage summary by section (BR 3)"
+  assert_contains "$TAILOR_AGENT" "pdftotext" \
+    "cv-tailor agent extracts the final resume text via pdftotext (BR 5)"
+else
+  t_fail "cv-tailor agent missing at $TAILOR_AGENT"
+fi
+
+if [[ -f "$TAILOR_CMD" ]]; then
+  assert_contains "$TAILOR_CMD" "match percentage" \
+    "ocf:cv-tailor command documents the match percentage (BR 1)"
+  assert_contains "$TAILOR_CMD" "keyword density map" \
+    "ocf:cv-tailor command documents the keyword density map (BR 2)"
+  assert_contains "$TAILOR_CMD" "coverage summary" \
+    "ocf:cv-tailor command documents the coverage summary (BR 3)"
+else
+  t_fail "ocf:cv-tailor command missing at $TAILOR_CMD"
+fi
+
+# fixture: gap-analysis.md with the match-percentage table must follow the
+# report structure rules of the standard (exactly one H1, NO metadata header,
+# H2 sections in the mandated order) — mirrors the ats-score fixture checks.
+# The fixture exercises the documented 70% example (Tests: 1 of issue #71):
+# 4 mandatory + 2 desirable requirements, 3 mandatory + 1 desirable met →
+# (3×2 + 1×1) / (4×2 + 2×1) × 100 = 70%.
+cat > "$TMP/gap-analysis-fixture.md" <<'MDEOF'
+# Gap Analysis — senior-backend-engineer
+
+## Job context
+
+Backend Engineer — Acme, senior, English.
+
+## Requirements
+
+### Required
+
+- Kubernetes
+- Go
+- Docker
+- AWS ECS
+
+### Desirable
+
+- Kafka
+- gRPC
+
+## Gap analysis
+
+| Requirement | Match | Evidence in hub |
+| --- | --- | --- |
+| Kubernetes | atendido | skills: Kubernetes (level: advanced) |
+| Go | atendido | skills: Go (level: advanced) |
+| Docker | atendido | skills: Docker (level: advanced) |
+| AWS ECS | not_met | not found in hub |
+| Kafka | atendido | skills: Kafka (level: intermediate) |
+| gRPC | not_met | not found in hub |
+
+## Match percentage
+
+| Metric | Weight | Met | Total | Weighted |
+| --- | --- | --- | --- | --- |
+| Mandatory | 2x | 3 | 4 | 6/8 |
+| Desirable | 1x | 1 | 2 | 1/2 |
+
+Match: 70%
+
+## Keyword density & coverage
+
+| Keyword | Count in resume |
+| --- | --- |
+| Kubernetes | 3 |
+| Docker | 2 |
+| Go | 2 |
+| Kafka | 1 |
+| AWS ECS | 0 |
+| gRPC | 0 |
+
+| Resume section | Job keywords found | Count |
+| --- | --- | --- |
+| Skills | Kubernetes, Go | 4 |
+| Experience | Kubernetes | 2 |
+| Summary | Docker | 1 |
+MDEOF
+
+# partial-match fixture (Tests: 4 of issue #71): one mandatory requirement
+# classified `parcial` counts as 0.5 met → weighted total reflects 0.5.
+cat > "$TMP/gap-analysis-parcial-fixture.md" <<'MDEOF'
+# Gap Analysis — partial-match example
+
+## Match percentage
+
+| Metric | Weight | Met | Total | Weighted |
+| --- | --- | --- | --- | --- |
+| Mandatory | 2x | 0.5 | 1 | 1/2 |
+
+Match: 50%
+MDEOF
+if [[ "$(head -n1 "$TMP/gap-analysis-fixture.md")" == "# Gap Analysis"* ]]; then
+  t_ok "gap-analysis.md starts directly with the H1 title (no metadata header)"
+else
+  t_fail "gap-analysis.md does not start with the H1 title (metadata header present)"
+fi
+H1_COUNT_GA="$(grep -c '^# ' "$TMP/gap-analysis-fixture.md" || true)"
+assert_eq "1" "$H1_COUNT_GA" "gap-analysis.md fixture has exactly one H1 title"
+if grep -qE '^(Generated on:|Source:|Tool:|Note:)' "$TMP/gap-analysis-fixture.md" 2>/dev/null; then
+  t_fail "gap-analysis.md fixture contains a metadata header line"
+else
+  t_ok "gap-analysis.md fixture has no metadata header lines"
+fi
+
+# --- issue #71 review-correction assertions (senior QA findings F1-F8) ---
+
+# F1 — the documented 70% example is exercised and pinned (Tests: 1)
+assert_contains "$TMP/gap-analysis-fixture.md" "Match: 70%" \
+  "fixture computes the documented 70% weighted match (Tests: 1)"
+assert_contains "$TMP/gap-analysis-fixture.md" "| Mandatory | 2x | 3 | 4 | 6/8 |" \
+  "fixture weighted row: 3 mandatory met × 2 = 6/8 (Tests: 1)"
+assert_contains "$TMP/gap-analysis-fixture.md" "| Desirable | 1x | 1 | 2 | 1/2 |" \
+  "fixture weighted row: 1 desirable met × 1 = 1/2 (Tests: 1)"
+assert_contains "$TAILOR_SKILL" "(3×2 + 1×1)" \
+  "cv-tailor skill documents the 70% example (3×2 + 1×1) (Tests: 1)"
+
+# F2 — coverage table ranks Skills and Experience at the top (Tests: 3)
+assert_contains "$TMP/gap-analysis-fixture.md" "| Experience | Kubernetes | 2 |" \
+  "coverage fixture has an Experience row ranking at the top (Tests: 3)"
+# §4.7 — rows ordered by Count descending: Skills 4 > Experience 2 > Summary 1
+COV_LINE_SKILLS="$(grep -n '^| Skills | Kubernetes, Go | 4 |' "$TMP/gap-analysis-fixture.md" | cut -d: -f1)"
+COV_LINE_EXP="$(grep -n '^| Experience | Kubernetes | 2 |' "$TMP/gap-analysis-fixture.md" | cut -d: -f1)"
+COV_LINE_SUM="$(grep -n '^| Summary | Docker | 1 |' "$TMP/gap-analysis-fixture.md" | cut -d: -f1)"
+if [[ -n "$COV_LINE_SKILLS" && -n "$COV_LINE_EXP" && -n "$COV_LINE_SUM" \
+      && "$COV_LINE_SKILLS" -lt "$COV_LINE_EXP" && "$COV_LINE_EXP" -lt "$COV_LINE_SUM" ]]; then
+  t_ok "coverage table rows ordered by Count descending (Skills > Experience > Summary)"
+else
+  t_fail "coverage table rows not ordered by Count descending (Skills > Experience > Summary)"
+fi
+
+# §4.6 — density rows ordered by count descending; keywords with count 0 last
+DENS_LINE_K8S="$(grep -n '^| Kubernetes | 3 |' "$TMP/gap-analysis-fixture.md" | cut -d: -f1)"
+DENS_LINE_GRPC="$(grep -n '^| gRPC | 0 |' "$TMP/gap-analysis-fixture.md" | cut -d: -f1)"
+if [[ -n "$DENS_LINE_K8S" && -n "$DENS_LINE_GRPC" && "$DENS_LINE_K8S" -lt "$DENS_LINE_GRPC" ]]; then
+  t_ok "density rows ordered by count descending; count-0 keywords listed last"
+else
+  t_fail "density rows not ordered by count descending (count-0 keywords must be last)"
+fi
+
+# F3 — parcial counts as half (0.5) toward Met (new BR 9 / Tests: 4)
+assert_contains "$TAILOR_SKILL" "as half (0.5)" \
+  "cv-tailor skill documents parcial counts as half (BR 9)"
+assert_contains "$CV_ANALYSIS_STD" "counts as 0.5 toward" \
+  "cv-analysis standard §4.5 documents parcial as 0.5 toward Met (BR 9)"
+assert_contains "$TMP/gap-analysis-parcial-fixture.md" "| Mandatory | 2x | 0.5 | 1 | 1/2 |" \
+  "parcial match counts as 0.5 met in the weighted table (BR 9 / Tests: 4)"
+assert_contains "$TMP/gap-analysis-parcial-fixture.md" "Match: 50%" \
+  "parcial 0.5 met yields the weighted 50% match (BR 9 / Tests: 4)"
+
+# F4 — case-insensitive keyword counting is documented and pinned
+assert_contains "$CV_ANALYSIS_STD" "case-insensitive" \
+  "cv-analysis standard §4.6 counts keywords case-insensitively"
+assert_contains "$TAILOR_SKILL" "case-insensitive" \
+  "cv-tailor skill counts keywords case-insensitively"
+
+# F5 — missing-text-source limitation is documented (never invent counts)
+assert_contains "$TAILOR_SKILL" "note the limitation" \
+  "cv-tailor skill documents the missing-text-source limitation"
+assert_contains "$TAILOR_AGENT" "invent counts: if no text source" \
+  "cv-tailor agent forbids inventing counts"
+assert_contains "$TAILOR_CMD" "Never invent counts" \
+  "ocf:cv-tailor command forbids inventing counts"
+
+# F6 — row-ordering rules are documented in the standard
+assert_contains "$CV_ANALYSIS_STD" "Rows are ordered by" \
+  "cv-analysis standard §4.6/§4.7 document the row-ordering rules"
+assert_contains "$CV_ANALYSIS_STD" "listed last" \
+  "cv-analysis standard §4.6 lists count-0 keywords last"
+
+# F8 — the match_percentage formula block is pinned
+assert_contains "$CV_ANALYSIS_STD" "match_percentage = round" \
+  "cv-analysis standard documents the match_percentage formula"
+assert_contains "$TAILOR_SKILL" "match_percentage = round" \
+  "cv-tailor skill documents the match_percentage formula"
+
 t_finish

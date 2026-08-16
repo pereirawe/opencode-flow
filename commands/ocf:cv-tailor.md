@@ -37,7 +37,8 @@ The job can be provided as:
    languages.
 4. **Gap analysis** — uniform table `Requirement | Match | Evidence in hub`
    (match values `atendido`/`parcial`/`not_met` per
-   `standards/cv-analysis.md` §4.1), saved in
+   `standards/cv-analysis.md` §4.1) + the weighted match percentage
+   (mandatory requirements weigh 2x, desirable 1x per §4.5), saved in
    `curriculos/<job-slug>/gap-analysis.md` (written in the user's
    communication language).
 5. **Human decision on inferences** — list all of them in
@@ -55,6 +56,11 @@ The job can be provided as:
 8. **Mandatory gate** — `bash $SCRIPTS_DIR/cv/check-inferido.sh index.html`
    MUST pass (exit 0) before the PDF.
 9. **Generate the PDF** — `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
+10. **Gap-analysis metrics** — after the PDF, extract the FINAL resume text
+    (`index.html` stripped of HTML tags, or the PDF via `pdftotext` when
+    available) and record the keyword density map (`Keyword | Count in
+    resume`) and the coverage summary by section in `gap-analysis.md` per
+    `standards/cv-analysis.md` §4.6/§4.7. Never invent counts.
 
 ### Rules
 
@@ -72,6 +78,9 @@ The job can be provided as:
 ### Report to the user
 
 - Generated PDF path (`~/career/<name>/curriculos/<slug>/curriculo.pdf`).
-- Gap analysis summary (`atendido`/`parcial`/`not_met` requirements).
+- Gap analysis summary (`atendido`/`parcial`/`not_met` requirements) and the
+  weighted match percentage.
+- Keyword density map and coverage summary by section (computed from the
+  generated resume text).
 - Resolved inferences list (rephrased/omitted/promoted) the candidate
   approved — no `[INFERIDO]` marker in the shareable artifact.
