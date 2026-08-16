@@ -422,7 +422,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 1 (runtime)
 - Remote: #89
-- PR: -
+- PR: #90
 - Location: scripts/cv/validate.py, scripts/cv/schema.json, agents/career/README.md (NEW), skills/career/cv-hub/SKILL.md, skills/career/cv-tailor/SKILL.md, agents/career/cv-tailor.md, commands/ocf:cv-tailor.md, opencode.json, scripts/tests/test_cv.sh
 - Description: Bundle of technical corrections: (D1) validate.py should use schema.json via jsonschema library with fallback to hand-rolled validator; (D2) improve validation — formats (email, url), nested required fields, summary_i18n, cross-field consistency (start < end in experience, since <= current year); (D3) create agents/career/README.md listing the 3 agents, responsibilities, flow, and commands; (D4) define README.md template for hub output; (D5) restrict or remove curl -L in cv-tailor (replace with "paste text" requirement to eliminate SSRF via file:// redirects).
 - Impact: Fixes latent bugs and structural gaps in the career sector infrastructure that reduce reliability and maintainability.
