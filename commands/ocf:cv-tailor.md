@@ -25,8 +25,9 @@ The job can be provided as:
 - **Pasted text** of the description (recommended — most reliable);
 - **Local file** (txt/html/pdf) with the description;
 - **Official LinkedIn export** (local Download My Data files);
-- **URL** — try `curl -L` respecting robots; LinkedIn always blocks, so in
-  that case ask for pasted text. Never bypass anti-bot.
+- **URL** — not fetched: ask the user to paste the job description text
+  (URL fetching is removed — LinkedIn always blocks it and redirects may
+  point to file://, an SSRF vector). Never bypass anti-bot.
 
 ### Flow
 

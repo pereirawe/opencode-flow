@@ -22,9 +22,10 @@ The user provides the job through one of these means:
 - **Local file** — a file with the job description (txt, html, pdf).
 - **Official LinkedIn export** — saved/viewed jobs may appear in Download My
   Data files.
-- **URL** — if the user pastes only a URL, try to download the content with
-  `curl -L` respecting robots. If the portal blocks (LinkedIn always blocks),
-  ask for pasted text. NEVER try to bypass blocking/anti-bot.
+- **URL** — NOT fetched: if the user pastes only a URL, ask them to paste the
+  job description text instead. URLs are never downloaded — LinkedIn always
+  blocks fetching and other portals may redirect to file:// (an SSRF vector).
+  Never try to bypass blocking/anti-bot.
 
 ## Job analysis
 
