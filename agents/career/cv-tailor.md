@@ -15,7 +15,6 @@ permission:
     "ls *": allow
     "mkdir -p *": allow
     "mv *": allow
-    "curl -L*": allow
     "file *": allow
     "realpath *": allow
   read: allow
@@ -37,9 +36,11 @@ language.
    inferencias structure, uniform tables, `[INFERIDO]` and language rules).
 2. Read the candidate's `hub.json` and validate with
    `python3 $SCRIPTS_DIR/cv/validate.py`.
-3. Receive the job: pasted text | local file | LinkedIn export | URL
-   (curl -L if possible; LinkedIn blocks — ask for pasted text, never bypass
-   anti-bot).
+3. Receive the job: pasted text (recommended) | local file | LinkedIn
+   export (local files). If the user pastes only a URL, do NOT fetch it —
+   ask them to paste the job description text instead (URLs are never
+   downloaded: LinkedIn always blocks fetching and other portals may redirect
+   to file:// — an SSRF vector).
 4. Extract from the job: required/desirable requirements, keywords, seniority,
    languages.
 5. Gap analysis vs hub → `curriculos/<job-slug>/gap-analysis.md` per
