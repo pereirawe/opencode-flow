@@ -412,13 +412,16 @@ See `standards/issues.md` for the full contract.
 - Suggested fix: Enhance cv-tailor skill/agent with keyword density and match percentage logic; update gap-analysis.md format in standards/cv-analysis.md. Execute after #64 and #65. Origem: Proposal 2026-08-14-10 em prioritization.md.
 
 ### 72. Technical corrections — validate.py, schema.json, agents/README, templates, curl security
-- Status: backlog
+- Status: in-progress
+- Opened: 2026-08-15
+- Ready: 2026-08-15
+- Started: 2026-08-15
 - Type: chore
 - Severity: medium
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 1 (runtime)
-- Remote: -
+- Remote: #89
 - PR: -
 - Location: scripts/cv/validate.py, scripts/cv/schema.json, agents/career/README.md (NEW), skills/career/cv-hub/SKILL.md, skills/career/cv-tailor/SKILL.md, agents/career/cv-tailor.md, commands/ocf:cv-tailor.md, opencode.json, scripts/tests/test_cv.sh
 - Description: Bundle of technical corrections: (D1) validate.py should use schema.json via jsonschema library with fallback to hand-rolled validator; (D2) improve validation — formats (email, url), nested required fields, summary_i18n, cross-field consistency (start < end in experience, since <= current year); (D3) create agents/career/README.md listing the 3 agents, responsibilities, flow, and commands; (D4) define README.md template for hub output; (D5) restrict or remove curl -L in cv-tailor (replace with "paste text" requirement to eliminate SSRF via file:// redirects).
@@ -439,6 +442,7 @@ See `standards/issues.md` for the full contract.
   5. curl -L is removed from cv-tailor agent permissions and skill/command instructions.
   6. `make test-scripts` passes with updated test_cv.sh.
   7. No existing functionality breaks.
+- Tests: -
 - Suggested fix: Refactor validate.py to use schema.json; add format/cross-field validation; create agents/career/README.md; define README.md template; remove curl -L from cv-tailor. Execute after #64 (English schema). Origem: Proposal 2026-08-14-11 em prioritization.md.
 
 ### 73. Standardize project language to English (prompts, skills, docs, scripts) with locale-aware responses
