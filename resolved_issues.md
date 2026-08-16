@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 72. Technical corrections — validate.py, schema.json, agents/README, templates, curl security
+- Resolved: 2026-08-16
+- Durations: backlog=0d waiting=0d dev=1d total=1d
+- Severity: medium
+- Type: chore
+- Report: william_pereira
+- Reviewers: 1
+- Remote: #89
+- Summary: Bundle of technical corrections — Refactor validate.py to use schema.json; add format/cross-field validation; create agents/career/README.md; define README.md template; remove curl -L from cv-tailor. Execute after #64 (English schema). Origem
+
 ### 70. Hub update flow — incremental edits to existing hub.json
 - Resolved: 2026-08-15
 - Durations: backlog=0d waiting=0d dev=0d total=0d
