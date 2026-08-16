@@ -848,6 +848,93 @@ assert_eq "0" "$rc_since_ok" "validate.py accepts a skill with valid since (YYYY
 assert_eq "1" "$rc_since_bad" "validate.py rejects a skill with malformed since"
 assert_eq "1" "$rc_since_future" "validate.py rejects a skill with future since"
 
+# --- issue #72: validate.py format + summary_i18n + cross-field checks ---
+# Both the jsonschema path (default) and the hand-rolled fallback
+# (CV_VALIDATE_FALLBACK=1) MUST agree on every shared semantic check.
+run_both() {
+  local expected="$1" label="$2" file="$3"
+  set +e
+  python3 "$VALIDATOR" "$file" >/dev/null 2>&1; rc_p=$?
+  CV_VALIDATE_FALLBACK=1 python3 "$VALIDATOR" "$file" >/dev/null 2>&1; rc_f=$?
+  set -e
+  assert_eq "$expected" "$rc_p" "$label (jsonschema path)"
+  assert_eq "$expected" "$rc_f" "$label (hand-rolled fallback)"
+}
+
+TMP_ENV="$TMP" python3 - <<'EOF'
+import json, os, time
+tmp = os.environ["TMP_ENV"]
+
+def base():
+    return {
+        "personal_info": {"name": "Test"},
+        "summary": "summary",
+        "experience": [{"company": "Acme", "title": "Dev"}],
+        "education": [{"institution": "USP", "course": "CS"}],
+        "skills": [{"name": "Python"}],
+        "certifications": [{"name": "AWS"}],
+        "projects": [{"name": "proj"}],
+        "languages": [{"language": "English"}],
+        "links": [{"name": "GH", "url": "https://github.com/x"}],
+    }
+
+def write(name, hub):
+    json.dump(hub, open(os.path.join(tmp, name), "w"))
+
+write("hub-bad-email.json",
+      {**base(), "personal_info": {**base()["personal_info"], "email": "not-an-email"}})
+write("hub-bad-url.json",
+      {**base(), "links": [{"name": "GH", "url": "not-a-url"}]})
+write("hub-bad-i18n-key.json",
+      {**base(), "summary_i18n": {"fr": "bonjour"}})
+write("hub-bad-i18n-type.json",
+      {**base(), "summary_i18n": {"pt": 123}})
+write("hub-bad-range.json",
+      {**base(), "experience": [{"company": "Acme", "title": "Dev",
+                                 "start_date": "2023-06", "end_date": "2021-01"}]})
+write("hub-good-range.json",
+      {**base(), "experience": [{"company": "Acme", "title": "Dev",
+                                 "start_date": "2021-01", "end_date": "present"}]})
+write("hub-good-range-atual.json",
+      {**base(), "experience": [{"company": "Acme", "title": "Dev",
+                                 "start_date": "2020", "end_date": "atual"}]})
+write("hub-educ-range.json",
+      {**base(), "education": [{"institution": "USP", "course": "CS",
+                                "start_date": "2023-01", "end_date": "2019-12"}]})
+write("hub-cert-future.json",
+      {**base(), "certifications": [{"name": "AWS",
+                                     "year": str(int(time.strftime("%Y")) + 1)}]})
+write("hub-cert-expiry.json",
+      {**base(), "certifications": [{"name": "AWS",
+                                     "year": "2023", "expiry_date": "2020-01"}]})
+write("hub-unknown-key.json",
+      {**base(), "bogus_section": []})
+EOF
+
+run_both "1" "validate.py rejects an invalid email address" "$TMP/hub-bad-email.json"
+run_both "1" "validate.py rejects an invalid URL" "$TMP/hub-bad-url.json"
+run_both "1" "validate.py rejects an invalid summary_i18n locale key" "$TMP/hub-bad-i18n-key.json"
+run_both "1" "validate.py rejects a non-string summary_i18n value" "$TMP/hub-bad-i18n-type.json"
+run_both "1" "validate.py rejects experience end before start" "$TMP/hub-bad-range.json"
+run_both "0" "validate.py accepts experience with an open-ended 'present' end" "$TMP/hub-good-range.json"
+run_both "0" "validate.py accepts experience with an open-ended 'atual' end" "$TMP/hub-good-range-atual.json"
+run_both "1" "validate.py rejects education end before start" "$TMP/hub-educ-range.json"
+run_both "1" "validate.py rejects a future certification year" "$TMP/hub-cert-future.json"
+run_both "1" "validate.py rejects a certification year after expiry" "$TMP/hub-cert-expiry.json"
+
+# unknown-key rejection is jsonschema-only (schema additionalProperties: false);
+# the hand-rolled fallback is intentionally lenient on unknown keys (documented).
+set +e
+python3 "$VALIDATOR" "$TMP/hub-unknown-key.json" >/dev/null 2>&1; rc_unknown_p=$?
+CV_VALIDATE_FALLBACK=1 python3 "$VALIDATOR" "$TMP/hub-unknown-key.json" >/dev/null 2>&1; rc_unknown_f=$?
+set -e
+if python3 -c "import jsonschema" >/dev/null 2>&1; then
+  assert_eq "1" "$rc_unknown_p" "jsonschema path rejects unknown root keys (additionalProperties)"
+else
+  assert_eq "0" "$rc_unknown_p" "primary path (fallback, no jsonschema) accepts unknown root keys"
+fi
+assert_eq "0" "$rc_unknown_f" "hand-rolled fallback accepts unknown root keys (documented leniency)"
+
 # --- cv-design standard + reference template (issue #63) ---
 CV_DESIGN="$SCRIPT_DIR/../../standards/cv-design.md"
 CV_TEMPLATE="$SCRIPT_DIR/../../skills/career/cv-pdf/templates/resume.html"
@@ -1266,5 +1353,59 @@ assert_contains "$CV_ANALYSIS_STD" "match_percentage = round" \
   "cv-analysis standard documents the match_percentage formula"
 assert_contains "$TAILOR_SKILL" "match_percentage = round" \
   "cv-tailor skill documents the match_percentage formula"
+
+# --- issue #72: agents/career/README.md, README template, curl removal ---
+# 1. agents/career/README.md exists and lists every career agent + command
+CAREER_README="$SCRIPT_DIR/../../agents/career/README.md"
+if [[ -f "$CAREER_README" ]]; then
+  for agent in cv-extractor cv-optimizer cv-tailor cv-cover-letter cv-linkedin \
+               cv-interview-prep cv-ats-score; do
+    assert_contains "$CAREER_README" "$agent" \
+      "agents/career/README.md lists the $agent agent (BR 3)"
+  done
+  for cmd in ocf:cv-hub ocf:cv-hub-update ocf:cv-optimize ocf:cv-tailor \
+             ocf:cv-cover-letter ocf:cv-linkedin ocf:cv-interview-prep \
+             ocf:cv-ats-score; do
+    assert_contains "$CAREER_README" "$cmd" \
+      "agents/career/README.md documents the $cmd command (BR 3)"
+  done
+else
+  t_fail "agents/career/README.md missing at $CAREER_README"
+fi
+
+# 2. README.md template defined in the cv-hub skill (BR 4 / AC 4)
+if [[ -f "$HUB_SKILL" ]]; then
+  assert_contains "$HUB_SKILL" "## README.md template" \
+    "cv-hub skill defines the README.md template section (BR 4)"
+  for section in "## Contact" "## Summary" "## Experience" "## Education" \
+                 "## Skills" "## Certifications" "## Projects" "## Languages" \
+                 "## Links"; do
+    assert_contains "$HUB_SKILL" "$section" \
+      "README template covers the $section section (BR 4)"
+  done
+else
+  t_fail "cv-hub skill missing at $HUB_SKILL"
+fi
+
+# 3. curl -L removed from cv-tailor (BR 5 / AC 5) — URLs are never fetched
+assert_not_contains "$TAILOR_SKILL" "curl" \
+  "cv-tailor skill has no curl/URL-fetching instructions (BR 5)"
+assert_not_contains "$TAILOR_AGENT" '"curl -L*": allow' \
+  "cv-tailor agent grants no curl -L bash permission (BR 5)"
+assert_not_contains "$TAILOR_AGENT" "curl" \
+  "cv-tailor agent has no curl/URL-fetching instructions (BR 5)"
+assert_not_contains "$TAILOR_CMD" "curl" \
+  "ocf:cv-tailor command has no curl/URL-fetching instructions (BR 5)"
+if [[ -f "$OP_CONFIG" ]]; then
+  python3 - "$OP_CONFIG" <<'PYEOF' || t_fail "ocf:cv-tailor template still references curl (BR 5)"
+import json, sys
+cfg = json.load(open(sys.argv[1]))
+template = cfg["command"]["ocf:cv-tailor"]["template"]
+assert "curl" not in template, "ocf:cv-tailor template must not mention curl"
+PYEOF
+  t_ok "ocf:cv-tailor command template has no curl instructions (BR 5)"
+else
+  t_fail "opencode.json missing at $OP_CONFIG"
+fi
 
 t_finish
