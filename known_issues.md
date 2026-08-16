@@ -412,7 +412,7 @@ See `standards/issues.md` for the full contract.
 - Suggested fix: Enhance cv-tailor skill/agent with keyword density and match percentage logic; update gap-analysis.md format in standards/cv-analysis.md. Execute after #64 and #65. Origem: Proposal 2026-08-14-10 em prioritization.md.
 
 ### 72. Technical corrections — validate.py, schema.json, agents/README, templates, curl security
-- Status: in-progress
+- Status: in-review
 - Opened: 2026-08-15
 - Ready: 2026-08-15
 - Started: 2026-08-15
