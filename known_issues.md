@@ -344,7 +344,7 @@ See `standards/issues.md` for the full contract.
  - Suggested fix (alternativo): Se o spike do modo headless falhar, avaliar self-hosted GitHub runner na mesma VM do opencode web, com `--attach http://127.0.0.1:4096` — mantém paralelismo sem exigir suporte headless do opencode. SPIKE PASSED — alternativa NÃO necessária.
 
 ### 73. Standardize project language to English (prompts, skills, docs, scripts) with locale-aware responses
-- Status: ready
+- Status: in-review
 - Type: feat
 - Severity: high
 - Report: william_pereira

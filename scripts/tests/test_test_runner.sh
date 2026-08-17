@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # test_test_runner.sh — unit tests for scripts/test-runner.sh.
-# Covers: check válido/inválido, run popula cache, re-run não re-executa,
-# fingerprint muda com edição, fallback sem git, diagnóstico de ambiente.
+# Covers: valid/invalid check, run populates the cache, re-run does not re-execute,
+# fingerprint changes with edits, git-less fallback, environment diagnostics.
 # Uses a mock runner (go) in PATH with an invocation counter.
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -48,7 +48,7 @@ reset_mock() {
   echo "0" > "$MOCK_EXIT_FILE"
 }
 
-# --- 1. --check antes de qualquer run → exit 3 ---
+# --- 1. --check before any run → exit 3 ---
 repo="$TMP/proj"
 make_repo "$repo"
 reset_mock
@@ -57,35 +57,35 @@ reset_mock
   PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --check >/dev/null 2>&1
   echo $?
 ) > "$TMP/check1.rc"
-assert_eq "3" "$(cat "$TMP/check1.rc")" "--check sem cache válido sai com exit 3"
+assert_eq "3" "$(cat "$TMP/check1.rc")" "--check without a valid cache exits 3"
 
-# --- 2. --run grava cache com fingerprint e exit code corretos ---
+# --- 2. --run writes a cache with the correct fingerprint and exit code ---
 reset_mock
 (
   cd "$repo"
   PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run >/dev/null 2>&1
   echo $?
 ) > "$TMP/run1.rc"
-assert_eq "0" "$(cat "$TMP/run1.rc")" "--run exit 0 quando suite passa"
-assert_eq "1" "$(invocations)" "--run invocou o runner exatamente 1x"
+assert_eq "0" "$(cat "$TMP/run1.rc")" "--run exits 0 when the suite passes"
+assert_eq "1" "$(invocations)" "--run invoked the runner exactly once"
 branch="$(git -C "$repo" rev-parse --abbrev-ref HEAD)"
-assert_eq "1" "$([[ -f "$repo/.opencode/test-cache/$branch-go.result" ]] && echo 1 || echo 0)" "cache .result criado"
-assert_contains "$repo/.opencode/test-cache/$branch-go.result" "exit_code=0" "cache registra exit_code"
-assert_contains "$repo/.opencode/test-cache/$branch-go.result" "fingerprint=" "cache registra fingerprint"
+assert_eq "1" "$([[ -f "$repo/.opencode/test-cache/$branch-go.result" ]] && echo 1 || echo 0)" "cache .result created"
+assert_contains "$repo/.opencode/test-cache/$branch-go.result" "exit_code=0" "cache records exit_code"
+assert_contains "$repo/.opencode/test-cache/$branch-go.result" "fingerprint=" "cache records fingerprint"
 
-# --- 3. re-run com mesma fingerprint → NÃO re-executa (usa cache) ---
+# --- 3. re-run with the same fingerprint → does NOT re-execute (uses cache) ---
 reset_mock
 (
   cd "$repo"
   PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run >/dev/null 2>&1
   echo $?
 ) > "$TMP/run2.rc"
-assert_eq "0" "$(cat "$TMP/run2.rc")" "re-run exit 0 (vem do cache)"
-assert_eq "0" "$(invocations)" "re-run NÃO invoca o runner de novo (contador 0)"
+assert_eq "0" "$(cat "$TMP/run2.rc")" "re-run exits 0 (from the cache)"
+assert_eq "0" "$(invocations)" "re-run does NOT invoke the runner again (counter 0)"
 out=$(cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run 2>&1 || true)
-assert_contains <(printf '%s' "$out") "reusing cached result" "re-run reporta uso de cache"
+assert_contains <(printf '%s' "$out") "reusing cached result" "re-run reports cache use"
 
-# --- 4. tocar arquivo de teste → fingerprint muda → re-executa ---
+# --- 4. touching a test file → fingerprint changes → re-executes ---
 reset_mock
 printf 'package main\n\nvar x = 1\n' > "$repo/main.go"
 (
@@ -93,33 +93,33 @@ printf 'package main\n\nvar x = 1\n' > "$repo/main.go"
   PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run >/dev/null 2>&1
   echo $?
 ) > "$TMP/run3.rc"
-assert_eq "0" "$(cat "$TMP/run3.rc")" "run após mudança exit 0"
-assert_eq "1" "$(invocations)" "mudança mínima re-executa o runner"
+assert_eq "0" "$(cat "$TMP/run3.rc")" "run after a change exits 0"
+assert_eq "1" "$(invocations)" "minimal change re-executes the runner"
 
-# --- 5. --check depois de run válido → exit 0 + caminho do relatório ---
+# --- 5. --check after a valid run → exit 0 + report path ---
 out=$(cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --check 2>&1 || true)
-assert_contains <(printf '%s' "$out") ".opencode/test-cache/$branch-go.result" "--check imprime o caminho do relatório"
+assert_contains <(printf '%s' "$out") ".opencode/test-cache/$branch-go.result" "--check prints the report path"
 rc=$(cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --check >/dev/null 2>&1; echo $?)
-assert_eq "0" "$rc" "--check com cache válido sai exit 0"
+assert_eq "0" "$rc" "--check with a valid cache exits 0"
 
-# --- 6. falha do runner é propagada e cacheada ---
+# --- 6. runner failure is propagated and cached ---
 reset_mock
 echo "1" > "$MOCK_EXIT_FILE"
 printf 'package main\n\nvar x = 2\n' > "$repo/main.go"
 rc=$(cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run >/dev/null 2>&1; echo $?)
-assert_eq "1" "$rc" "--run propaga exit code de falha do runner"
-assert_contains "$repo/.opencode/test-cache/$branch-go.result" "exit_code=1" "cache registra exit_code de falha"
+assert_eq "1" "$rc" "--run propagates the runner failure exit code"
+assert_contains "$repo/.opencode/test-cache/$branch-go.result" "exit_code=1" "cache records the failure exit_code"
 
-# --- 7. --status sem git → diagnostica sem quebrar ---
+# --- 7. --status without git → diagnoses without breaking ---
 nogit="$TMP/nogit"
 mkdir -p "$nogit"
 printf 'def test_x():\n    assert True\n' > "$nogit/test_x.py"
 out=$(cd "$nogit" && bash "$SCRIPT" --status 2>&1 || true)
-assert_contains <(printf '%s' "$out") "test-runner status" "--status funciona sem git"
-assert_contains <(printf '%s' "$out") "git repo:     no" "--status diagnostica ausência de git"
+assert_contains <(printf '%s' "$out") "test-runner status" "--status works without git"
+assert_contains <(printf '%s' "$out") "git repo:     no" "--status diagnoses the absence of git"
 
-# --- 8. --run sem git não quebra (fingerprint por conteúdo) ---
-# Força detecção de runner Python fake mesmo sem git
+# --- 8. --run without git does not break (content fingerprint) ---
+# Force fake Python runner detection even without git
 cat > "$MOCK_BIN/pytest" <<'EOF'
 #!/usr/bin/env bash
 echo "pytest called: $*" >> "$MOCK_LOG"
@@ -129,44 +129,44 @@ chmod +x "$MOCK_BIN/pytest"
 printf '[project]\nname = "x"\nversion = "0.1.0"\n' > "$nogit/pyproject.toml"
 printf 'def test_y():\n    assert True\n' > "$nogit/test_y.py"
 rc=$(cd "$nogit" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run >/dev/null 2>&1; echo $?)
-assert_eq "0" "$rc" "--run sem git exit 0 (fallback por conteúdo)"
-assert_contains <(cd "$nogit" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --status 2>&1) "git repo:     no" "--status sem git continua coerente"
+assert_eq "0" "$rc" "--run without git exits 0 (content fallback)"
+assert_contains <(cd "$nogit" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --status 2>&1) "git repo:     no" "--status without git stays coherent"
 
-# --- 9. diagnóstico de ambiente: runner ausente ---
+# --- 9. environment diagnostics: runner missing ---
 empty="$TMP/empty"
 mkdir -p "$empty"
 out=$(cd "$empty" && bash "$SCRIPT" --run 2>&1 || true)
-assert_contains <(printf '%s' "$out") "no test runner detected" "runner ausente produz diagnóstico claro"
+assert_contains <(printf '%s' "$out") "no test runner detected" "missing runner produces a clear diagnostic"
 rc=$(cd "$empty" && bash "$SCRIPT" --run >/dev/null 2>&1; echo $?)
-assert_eq "2" "$rc" "--run sem runner exit 2 (cannot run, não falha de teste)"
+assert_eq "2" "$rc" "--run without a runner exits 2 (cannot run, not a test failure)"
 rc=$(cd "$empty" && bash "$SCRIPT" --check >/dev/null 2>&1; echo $?)
-assert_eq "3" "$rc" "--check sem runner exit 3"
+assert_eq "3" "$rc" "--check without a runner exits 3"
 
-# --- 10. package.json sem script test → diagnosticado, não falha silencioso ---
+# --- 10. package.json without a test script → diagnosed, no silent failure ---
 noproj="$TMP/nopkgtest"
 mkdir -p "$noproj"
 printf '{"dependencies":{}}\n' > "$noproj/package.json"
 out=$(cd "$noproj" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run 2>&1 || true)
-assert_contains <(printf '%s' "$out") "no 'test' script" "package.json sem test script é diagnosticado"
+assert_contains <(printf '%s' "$out") "no 'test' script" "package.json without a test script is diagnosed"
 
-# --- 11. filtro (--run -- <args>) NÃO toca o cache compartilhado (B1) ---
+# --- 11. filter (--run -- <args>) does NOT touch the shared cache (B1) ---
 reset_mock
-# garante um cache completo FRESCO e PASSANDO primeiro (invalida o de falha do teste 6)
+# ensure a complete FRESH and PASSING cache first (invalidates the test-6 failure cache)
 echo "0" > "$MOCK_EXIT_FILE"
 printf 'package main\n\nvar x = 11\n' > "$repo/main.go"
 ( cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run >/dev/null 2>&1 )
 fp_full="$(awk -F= '/^fingerprint=/{print $2}' "$repo/.opencode/test-cache/$branch-go.result")"
-# run filtrado — deve executar de verdade e NÃO sobrescrever o cache
+# filtered run — must actually execute and NOT overwrite the cache
 reset_mock
 rc=$(cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run -- -run TestFoo >/dev/null 2>&1; echo $?)
-assert_eq "0" "$rc" "--run com filtro exit 0"
-assert_eq "1" "$(invocations)" "run filtrado executa o runner (não usa cache)"
+assert_eq "0" "$rc" "--run with a filter exits 0"
+assert_eq "1" "$(invocations)" "filtered run executes the runner (does not use cache)"
 fp_after="$(awk -F= '/^fingerprint=/{print $2}' "$repo/.opencode/test-cache/$branch-go.result")"
-assert_eq "$fp_full" "$fp_after" "run filtrado NÃO sobrescreve o cache compartilhado (B1)"
+assert_eq "$fp_full" "$fp_after" "filtered run does NOT overwrite the shared cache (B1)"
 rc=$(cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --check >/dev/null 2>&1; echo $?)
-assert_eq "0" "$rc" "--check continua válido após run filtrado"
+assert_eq "0" "$rc" "--check stays valid after a filtered run"
 
-# --- 12. deleção de arquivo invalida o fingerprint (B2) ---
+# --- 12. file deletion invalidates the fingerprint (B2) ---
 reset_mock
 printf 'package main\n\nvar x = 3\n' > "$repo/extra.go"
 ( cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run >/dev/null 2>&1 )
@@ -174,23 +174,23 @@ fp_before="$(awk -F= '/^fingerprint=/{print $2}' "$repo/.opencode/test-cache/$br
 rm "$repo/extra.go"
 reset_mock
 ( cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run >/dev/null 2>&1 )
-assert_eq "1" "$(invocations)" "deleção de arquivo re-executa o runner (B2)"
+assert_eq "1" "$(invocations)" "file deletion re-executes the runner (B2)"
 fp_after="$(awk -F= '/^fingerprint=/{print $2}' "$repo/.opencode/test-cache/$branch-go.result")"
 if [[ "$fp_before" != "$fp_after" ]]; then
-  t_ok "deleção muda o fingerprint (B2)"
+  t_ok "deletion changes the fingerprint (B2)"
 else
-  t_fail "deleção NÃO mudou o fingerprint (B2)"
+  t_fail "deletion did NOT change the fingerprint (B2)"
 fi
 
-# --- 13. cache fresco de suite FALHADA não satisfaz --check (B4) ---
+# --- 13. a fresh cache from a FAILED suite does not satisfy --check (B4) ---
 reset_mock
 echo "1" > "$MOCK_EXIT_FILE"
 printf 'package main\n\nvar x = 4\n' > "$repo/main.go"
 ( cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run >/dev/null 2>&1 )
 rc=$(cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --check >/dev/null 2>&1; echo $?)
-assert_eq "3" "$rc" "--check com cache fresco PORÉM falho sai exit 3 (B4)"
+assert_eq "3" "$rc" "--check with a fresh but FAILED cache exits 3 (B4)"
 
-# --- 14. caminho com espaços invalida o fingerprint (B3) ---
+# --- 14. a path with spaces invalidates the fingerprint (B3) ---
 reset_mock
 echo "0" > "$MOCK_EXIT_FILE"
 printf 'package main\n\nvar x = 5\n' > "$repo/main.go"
@@ -200,34 +200,34 @@ mkdir -p "$repo/dir with space"
 printf 'package main\n\nvar y = 1\n' > "$repo/dir with space/extra_test.go"
 reset_mock
 ( cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run >/dev/null 2>&1 )
-assert_eq "1" "$(invocations)" "arquivo com espaço re-executa o runner (B3)"
+assert_eq "1" "$(invocations)" "file with spaces re-executes the runner (B3)"
 fp_after="$(awk -F= '/^fingerprint=/{print $2}' "$repo/.opencode/test-cache/$branch-go.result")"
 if [[ "$fp_space" != "$fp_after" ]]; then
-  t_ok "arquivo com espaço muda o fingerprint (B3)"
+  t_ok "file with spaces changes the fingerprint (B3)"
 else
-  t_fail "arquivo com espaço NÃO mudou o fingerprint (B3)"
+  t_fail "file with spaces did NOT change the fingerprint (B3)"
 fi
 rm -rf "$repo/dir with space"
 reset_mock
 ( cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run >/dev/null 2>&1 )
-assert_eq "1" "$(invocations)" "deleção de arquivo com espaço re-executa (B3)"
+assert_eq "1" "$(invocations)" "deletion of a file with spaces re-executes (B3)"
 
-# --- 15. run filtrado usa log separado, não sobrescreve o da suite (improvement) ---
+# --- 15. filtered run uses a separate log, does not overwrite the suite log (improvement) ---
 reset_mock
 echo "0" > "$MOCK_EXIT_FILE"
 printf 'package main\n\nvar x = 6\n' > "$repo/main.go"
 ( cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run >/dev/null 2>&1 )
 full_log="$repo/.opencode/test-cache/$branch-go.log"
 if [[ -f "$full_log" ]]; then
-  t_ok "log da suite existe antes do run filtrado"
+  t_ok "suite log exists before the filtered run"
 else
-  t_fail "log da suite não existe antes do run filtrado"
+  t_fail "suite log does not exist before the filtered run"
 fi
 ( cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run -- -run TestFoo >/dev/null 2>&1 )
 if [[ -f "$repo/.opencode/test-cache/$branch-go-filtered.log" ]]; then
-  t_ok "run filtrado cria log separado (-filtered.log)"
+  t_ok "filtered run creates a separate log (-filtered.log)"
 else
-  t_fail "run filtrado NÃO criou log separado"
+  t_fail "filtered run did NOT create a separate log"
 fi
 
 t_finish

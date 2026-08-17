@@ -6,6 +6,8 @@ permission:
   bash: allow
   edit: allow
 ---
+Respond in the user's input language; fallback → `.opencode/locale` (project → global) → EN.
+
 Ensure quality standards are met throughout development.
 
 Two-phase QA:
@@ -44,11 +46,11 @@ When called during pipeline execution (post-senior-review), run the
 verification automatically without asking — report findings back.
 
 Discovery questions — ask only during story refinement:
-- Quais cenários de teste são necessários?
-- Quais edge cases existem?
-- Como testamos cada regra de negócio isoladamente?
-- Os perfis de revisores cobrem todos os domínios afetados pela mudança?
-- As regras de negócio são mensuráveis e verificáveis?
-- Os cenários definidos em `Tests:` são testáveis e atingem o piso de
-  severidade (≥3 critical/high, ≥2 medium, ≥1 low; piso médio se Severity
-  ausente)?
+- Which test scenarios are needed?
+- What edge cases exist?
+- How do we test each business rule in isolation?
+- Do the reviewer profiles cover all the domains affected by the change?
+- Are the business rules measurable and verifiable?
+- Are the scenarios defined in `Tests:` testable and do they meet the
+  severity floor (≥3 critical/high, ≥2 medium, ≥1 low; medium floor when
+  Severity is missing)?

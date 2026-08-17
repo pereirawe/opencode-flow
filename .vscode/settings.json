@@ -1,7 +1,10 @@
 {
     "cSpell.words": [
+        "aibot",
         "committer",
-        "opencode"
+        "glab",
+        "opencode",
+        "orcarouter"
     ],
     "[markdown]": {
         "editor.defaultFormatter": "yzhang.markdownlint",

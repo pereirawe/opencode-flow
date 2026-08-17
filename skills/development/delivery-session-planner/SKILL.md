@@ -5,119 +5,122 @@ description: Plan and generate delivery-session prompts that batch refined (read
 
 # Delivery Session Planner
 
-Cria prompts de sessão para entregar em lote as issues `ready` de
-`known_issues.md`, priorizando as mais fáceis/rápidas, paralelizando quando
-seguro e dividindo o trabalho em **várias sessões pequenas** (não uma sessão
-gigante) para poupar contexto/tokens.
+Response language: user's input language → `.opencode/locale` (project → global) → EN.
+
+Creates session prompts to deliver the `ready` issues from `known_issues.md`
+in batches, prioritizing the easiest/fastest, parallelizing when safe and
+splitting the work into **several small sessions** (not one giant session) to
+save context/tokens.
 
 ## Input
 
-- O projeto (default: workspace atual) — o `known_issues.md` fica em
-  `<projeto>/.opencode/known_issues.md`.
-- Regras de prioridade do usuário (ex.: "só backend", "só docs", "máx Xh por
-  sessão"). Se não dadas, use os defaults abaixo.
+- The project (default: current workspace) — the `known_issues.md` lives in
+  `<project>/.opencode/known_issues.md`.
+- User priority rules (e.g. "backend only", "docs only", "max Xh per
+  session"). If not given, use the defaults below.
 
-## Passo 1 — Coletar issues elegíveis
+## Step 1 — Collect eligible issues
 
-1. Ler `known_issues.md` e listar todas com `- Status: ready`.
-2. Para cada uma, extrair do registro:
+1. Read `known_issues.md` and list every issue with `- Status: ready`.
+2. For each one, extract from the record:
    - `ID`, `Type`, `Severity`
-   - `Location:` (paths reais — usados para detectar conflitos de git)
-   - `Dependencies:` / notas de sequenciamento
-   - Esforço estimado no `Suggested fix:` (padrão `~Nh`, `~N-Mh`, ou
-     breakdown `schema ~4h; APIs ~6h`)
-   - `Reviewers:`, `Tests:` (confirmar que a issue está refinada)
-3. **Excluir** issues `backlog` (a menos que explicitamente refinadas e
-   `ready`), `in-publish`/`resolved`/`in-progress` e `incomplete-spec`.
+   - `Location:` (real paths — used to detect git conflicts)
+   - `Dependencies:` / sequencing notes
+   - Estimated effort in the `Suggested fix:` (pattern `~Nh`, `~N-Mh`, or a
+     breakdown like `schema ~4h; APIs ~6h`)
+   - `Reviewers:`, `Tests:` (confirm the issue is refined)
+3. **Exclude** `backlog` issues (unless explicitly refined and `ready`),
+   `in-publish`/`resolved`/`in-progress` and `incomplete-spec`.
 
-## Passo 2 — Classificar por esforço
+## Step 2 — Classify by effort
 
-| Faixa | Rótulo | Exemplo |
+| Range | Label | Example |
 |-------|--------|---------|
-| ≤ 2h | `quick` | chore/docs de 1h |
-| 3–8h | `small` | feature frontend isolada, doc 6h |
-| 9–15h | `medium` | backend com 1 endpoint complexo |
-| 16h+ | `large` | migration de schema, integração de gateway |
+| ≤ 2h | `quick` | 1h chore/docs |
+| 3–8h | `small` | isolated frontend feature, 6h doc |
+| 9–15h | `medium` | backend with 1 complex endpoint |
+| 16h+ | `large` | schema migration, gateway integration |
 
-Ordenar cada faixa por esforço crescente.
+Order each range by increasing effort.
 
-## Passo 3 — Detectar conflitos de git (crítico)
+## Step 3 — Detect git conflicts (critical)
 
-Regras que determinam o que **NÃO pode** rodar em paralelo:
+Rules that determine what can NOT run in parallel:
 
-1. **Mesmos arquivos em `Location:`** → nunca paralelo (ex.: duas issues
-   editando `negocio-form.tsx` ou `messages/*.json`). Sequenciar.
-2. **`prisma/schema.prisma` / migrations** → nunca paralelo; migrations são
-   obrigatoriamente sequenciais (ex.: `#88` 1ª migration → `#89` 2ª).
-3. **`src/middleware.ts`** → ponto de contenção de auth (ex.: `#89` e `#90`
-   ambos editam) → nunca paralelo.
-4. **`next.config.js`, `vercel.json`, `package.json`** → pontos globais;
-   paralelizar só se as mudanças forem em blocos distintos e sem sobreposição.
-5. **Dependência de dados/schema** (issue B "depende do merge da #A") → B
-   roda depois de A entregue.
-6. **Crons** (vercel.json) → se duas issues adicionam crons, podem coexistir
-   mas exigem consolidação; documentar como pré-requisito de merge.
+1. **Same files in `Location:`** → never parallel (e.g. two issues editing
+   `business-form.tsx` or `messages/*.json`). Sequence them.
+2. **`prisma/schema.prisma` / migrations** → never parallel; migrations must
+   be sequential (e.g. `#88` 1st migration → `#89` 2nd).
+3. **`src/middleware.ts`** → auth contention point (e.g. `#89` and `#90`
+   both edit it) → never parallel.
+4. **`next.config.js`, `vercel.json`, `package.json`** → global points;
+   parallelize only when the changes are in distinct, non-overlapping blocks.
+5. **Data/schema dependency** (issue B "depends on #A's merge") → B runs
+   after A is delivered.
+6. **Crons** (vercel.json) → if two issues add crons they may coexist but
+   require consolidation; document it as a merge prerequisite.
 
-Marcar cada par (A,B) como `PARALELO-OK` ou `CONFLITO` com o motivo.
+Mark each pair (A,B) as `PARALLEL-OK` or `CONFLICT` with the reason.
 
-## Passo 4 — Agrupar em fases e sessões
+## Step 4 — Group into phases and sessions
 
-**Fase 1 — Quick wins** (rápidas + pequenas, independentes):
-- Paralelizáveis entre si se `PARALELO-OK`.
-- Cada uma pode ser **1 sessão própria** (prompt curto, execução autônoma).
+**Phase 1 — Quick wins** (fast + small, independent):
+- Parallelizable among themselves if `PARALLEL-OK`.
+- Each can be **its own session** (short prompt, autonomous execution).
 
-**Fase 2 — Grandes** (médias + grandes):
-- Sequenciar por dependência e conflito de arquivos.
-- Uma issue `large` sozinha por sessão (não misturar com outras grandes na
-  mesma sessão).
+**Phase 2 — Large ones** (medium + large):
+- Sequence by dependency and file conflict.
+- One `large` issue alone per session (do not mix with other large ones in
+  the same session).
 
-**Regra de tamanho de sessão (economia de tokens):**
-- **1 sessão = 1 issue**, a menos que 2+ issues sejam `quick`/`small` **e**
-  `PARALELO-OK` e juntas ≤ ~8h → aí podem ir na mesma sessão em sequência.
-- Nunca colocar issue `large` + outra `large` na mesma sessão.
-- Se o usuário quer paralelismo real: gerar **N prompts separados** (um por
-  sessão/issue) em vez de um prompt gigante.
-- Meta: cada sessão com contexto autocontido (o prompt embute o registro da
-  issue) para não depender de contexto global compartilhado.
+**Session size rule (token economy):**
+- **1 session = 1 issue**, unless 2+ issues are `quick`/`small` **and**
+  `PARALLEL-OK` and together ≤ ~8h → then they can go in the same session in
+  sequence.
+- Never put a `large` issue + another `large` issue in the same session.
+- If the user wants real parallelism: generate **N separate prompts** (one
+  per session/issue) instead of one giant prompt.
+- Goal: each session with self-contained context (the prompt embeds the issue
+  record) so it does not depend on shared global context.
 
-## Passo 5 — Gerar os prompts
+## Step 5 — Generate the prompts
 
-Para cada sessão, criar um arquivo em `<projeto>/docs/delivery-prompts/`:
-`delivery-<YYYYMMDD>-sessao-<n>.md` (ou o padrão que o projeto usar). O prompt
-DEVE conter:
+For each session, create a file in `<project>/docs/delivery-prompts/`:
+`delivery-<YYYYMMDD>-session-<n>.md` (or whatever pattern the project uses).
+The prompt MUST contain:
 
-1. **Papel**: "Você executa o pipeline de delivery (promote → develop →
-   senior review → QA → committer gate → MR) para a(s) issue(s) X".
-2. **Comando**: `/ocf:delivery <id>` ou `ocf:develop <id>` — pipeline
-   contínuo, sem pausa entre fases.
-3. **Registro embutido**: copiar do `known_issues.md` o bloco da issue
-   (Location, Business rules, AC, Tests, Reviewers, Base branch) para a sessão
-   ser autocontida.
-4. **Instruções de entrega**:
-   - `Remote: -` → auto-cria na promoção; não perguntar.
-   - Parar quando MR criada (`Status: in-publish`, `PR: #n`); NÃO rodar Close
-     Requester.
-   - Ordem das issues dentro da sessão (se >1).
-   - Conflitos conhecidos com outras sessões em paralelo (ex.: "não toque
-     middleware.ts — outra sessão está editando").
-5. **Nota de paralelismo**: se houver outras sessões rodando em paralelo,
-   listar os arquivos que esta sessão NÃO deve tocar.
+1. **Role**: "You run the delivery pipeline (promote → develop →
+   senior review → QA → committer gate → MR) for issue(s) X".
+2. **Command**: `/ocf:delivery <id>` or `ocf:develop <id>` — continuous
+   pipeline, no pause between phases.
+3. **Embedded record**: copy the issue block from `known_issues.md`
+   (Location, Business rules, AC, Tests, Reviewers, Base branch) so the
+   session is self-contained.
+4. **Delivery instructions**:
+   - `Remote: -` → auto-created at promotion; do not ask.
+   - Stop when the MR is created (`Status: in-publish`, `PR: #n`); do NOT run
+     the Close Requester.
+   - Order of the issues within the session (if >1).
+   - Known conflicts with other parallel sessions (e.g. "do not touch
+     middleware.ts — another session is editing it").
+5. **Parallelism note**: if other sessions are running in parallel, list the
+   files this session must NOT touch.
 
-## Output final
+## Final output
 
-- Lista de sessões geradas: por sessão → issues, faixa de esforço, arquivos
-  tocados, conflitos evitados.
-- Ordem de execução recomendada (Fase 1 paralela primeiro, Fase 2 sequencial
-  depois).
-- Estimativa de economia de contexto: `N sessões pequenas vs 1 gigante`.
-- Se o usuário pedir, também salvar um `README` na pasta de prompts listando
-  todas as sessões e o status (pendente/em andamento/concluída).
+- List of generated sessions: per session → issues, effort range, files
+  touched, conflicts avoided.
+- Recommended execution order (Phase 1 parallel first, Phase 2 sequential
+  after).
+- Context-economy estimate: `N small sessions vs 1 giant one`.
+- If the user asks, also save a `README` in the prompts folder listing all
+  sessions and their status (pending/in progress/completed).
 
-## Lembrete de qualidade
+## Quality reminder
 
-- Sempre justificar `PARALELO-OK` vs `CONFLITO` com caminhos reais de arquivo
-  (nunca só "não dá").
-- Esforço vem do `Suggested fix:`/breakdown da issue — nunca inventar.
-- Issues `incomplete-spec` não entram no batch.
-- Ao final, sugerir notificação via `telegram-notifier` resumindo as sessões
-  criadas.
+- Always justify `PARALLEL-OK` vs `CONFLICT` with real file paths (never
+  just "no").
+- Effort comes from the issue's `Suggested fix:`/breakdown — never invent.
+- `incomplete-spec` issues do not enter the batch.
+- At the end, suggest a `telegram-notifier` notification summarizing the
+  sessions created.

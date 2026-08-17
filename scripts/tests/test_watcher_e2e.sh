@@ -169,7 +169,7 @@ get_field_() { # <tracker> <id> <Field>
 
 reset_logs() {
   : > "$TMP/gh.log"; : > "$TMP/glab.log"; : > "$TMP/opencode.log"
-  printf '%s\n' "30" > "$TMP/issues.txt"   # default: issue 30 é a única issue real
+  printf '%s\n' "30" > "$TMP/issues.txt"   # default: issue 30 is the only real issue
 }
 
 # ============================================================================
@@ -183,18 +183,18 @@ cp "$TMP/comments-one.json" "$TMP/comments.json"
 reset_logs
 run_watcher "$TMP/allow1.json" "$ws"
 assert_eq "0" "$?" "S1: watcher exit 0"
-assert_contains "$TMP/opencode.log" "DEVELOP:7"             "S1: develop disparado para issue local 7"
-assert_contains "$TMP/opencode.log" "NOTIFY:30 success 107" "S1: notificação success com PR 107"
-assert_contains "$TMP/run.log" "in-publish"                 "S1: tracker atualizado para in-publish"
-assert_eq "#107" "$(get_field_ "$ws/known_issues.md" 7 PR)" "S1: PR populado no tracker"
+assert_contains "$TMP/opencode.log" "DEVELOP:7"             "S1: develop triggered for local issue 7"
+assert_contains "$TMP/opencode.log" "NOTIFY:30 success 107" "S1: success notification with PR 107"
+assert_contains "$TMP/run.log" "in-publish"                 "S1: tracker updated to in-publish"
+assert_eq "#107" "$(get_field_ "$ws/known_issues.md" 7 PR)" "S1: PR populated in tracker"
 # F3 (runtime): BR 7 exact command form — attach+auto, qualified model, NO `--`
 assert_contains "$TMP/opencode.log" "run --attach http://up.local --auto" "S1: forma BR 7 (--attach --auto)"
 assert_contains "$TMP/opencode.log" "--model opencode-go/deepseek-v4-flash" "S1: modelo qualificado"
-assert_contains "$TMP/opencode.log" "--command ocf:develop 7" "S1: args seguem --command sem separador"
+assert_contains "$TMP/opencode.log" "--command ocf:develop 7" "S1: args follow --command without a separator"
 assert_not_contains "$TMP/opencode.log" "--command ocf:develop -- " "S1: formulário com -- proibido"
 
 # ============================================================================
-# S2 — BR 4/AC 3: issue não rastreada → not-tracked, sem develop
+# S2 — BR 4/AC 3: untracked issue → not-tracked, no develop
 # ============================================================================
 ws="$TMP/ws2"
 make_workspace "$ws" "git@github.com:test/repo.git" "ready"
@@ -202,14 +202,14 @@ make_allowlist "$TMP/allow2.json" "test/repo" "$ws"
 seed_cursor "test/repo" 0
 printf '%s\n' '{"id":6,"author":"dev","issue":999,"body":"@aibot:develop"}' > "$TMP/comments.json"
 reset_logs
-printf '%s\n' "999" > "$TMP/issues.txt"   # 999 é issue real, apenas não rastreada
+printf '%s\n' "999" > "$TMP/issues.txt"   # 999 is a real issue, just not tracked
 run_watcher "$TMP/allow2.json" "$ws"
 assert_eq "0" "$?" "S2: watcher exit 0"
-assert_contains "$TMP/opencode.log" "NOTIFY:999 not-tracked" "S2: notificação not-tracked"
-assert_not_contains "$TMP/opencode.log" "DEVELOP"            "S2: nenhum develop"
+assert_contains "$TMP/opencode.log" "NOTIFY:999 not-tracked" "S2: not-tracked notification"
+assert_not_contains "$TMP/opencode.log" "DEVELOP"            "S2: no develop"
 
 # ============================================================================
-# S3 — BR 5/AC 4: status in-progress → already-in-progress, sem develop
+# S3 — BR 5/AC 4: status in-progress → already-in-progress, no develop
 # ============================================================================
 ws="$TMP/ws3"
 make_workspace "$ws" "git@github.com:test/repo.git" "in-progress"
@@ -218,11 +218,11 @@ seed_cursor "test/repo" 0
 cp "$TMP/comments-one.json" "$TMP/comments.json"
 reset_logs
 run_watcher "$TMP/allow3.json" "$ws"
-assert_contains "$TMP/opencode.log" "NOTIFY:30 already-in-progress" "S3: notificação already-in-progress"
-assert_not_contains "$TMP/opencode.log" "DEVELOP"                   "S3: nenhum develop"
+assert_contains "$TMP/opencode.log" "NOTIFY:30 already-in-progress" "S3: already-in-progress notification"
+assert_not_contains "$TMP/opencode.log" "DEVELOP"                   "S3: no develop"
 
 # ============================================================================
-# S4 — BR 2/AC 8/AC 13: replay não re-triggera (cursor persiste)
+# S4 — BR 2/AC 8/AC 13: replay does not re-trigger (cursor persists)
 # ============================================================================
 ws="$TMP/ws4"
 make_workspace "$ws" "git@github.com:test/repo.git" "ready"
@@ -232,10 +232,10 @@ cp "$TMP/comments-one.json" "$TMP/comments.json"
 reset_logs
 run_watcher "$TMP/allow4.json" "$ws"
 run_watcher "$TMP/allow4.json" "$ws"
-assert_count "$TMP/opencode.log" "DEVELOP:7" 1 "S4: replay → exatamente um develop"
+assert_count "$TMP/opencode.log" "DEVELOP:7" 1 "S4: replay → exactly one develop"
 
 # ============================================================================
-# S5 — BR 3/AC 7: comentários sem token → cursor avança, nada dispara
+# S5 — BR 3/AC 7: comments without token → cursor advances, nothing triggers
 # ============================================================================
 ws="$TMP/ws5"
 make_workspace "$ws" "git@github.com:test/repo.git" "ready"
@@ -247,12 +247,12 @@ printf '%s\n' \
   > "$TMP/comments.json"
 reset_logs
 run_watcher "$TMP/allow5.json" "$ws"
-assert_not_contains "$TMP/opencode.log" "DEVELOP" "S5: nenhum develop"
-assert_not_contains "$TMP/opencode.log" "NOTIFY"  "S5: nenhuma notificação"
-assert_eq "8" "$(cat "$STATE/test_repo.cursor")" "S5: cursor avançou até o último comentário"
+assert_not_contains "$TMP/opencode.log" "DEVELOP" "S5: no develop"
+assert_not_contains "$TMP/opencode.log" "NOTIFY"  "S5: no notification"
+assert_eq "8" "$(cat "$STATE/test_repo.cursor")" "S5: cursor advanced to the last comment"
 
 # ============================================================================
-# S6 — BR 17/AC 14: comentário do próprio aibot nunca dispara
+# S6 — BR 17/AC 14: the aibot own comment never triggers
 # ============================================================================
 ws="$TMP/ws6"
 make_workspace "$ws" "git@github.com:test/repo.git" "ready"
@@ -261,11 +261,11 @@ seed_cursor "test/repo" 0
 printf '%s\n' '{"id":9,"author":"aibot[bot]","issue":30,"body":"@aibot:develop"}' > "$TMP/comments.json"
 reset_logs
 run_watcher "$TMP/allow6.json" "$ws"
-assert_not_contains "$TMP/opencode.log" "DEVELOP" "S6: self-trigger não dispara"
-assert_not_contains "$TMP/opencode.log" "NOTIFY"  "S6: self-trigger não notifica"
+assert_not_contains "$TMP/opencode.log" "DEVELOP" "S6: self-trigger does not fire"
+assert_not_contains "$TMP/opencode.log" "NOTIFY"  "S6: self-trigger does not notify"
 
 # ============================================================================
-# S7 — BR 3/AC 15: token em fence/quoted/linked não dispara
+# S7 — BR 3/AC 15: token in fence/quoted/linked does not trigger
 # ============================================================================
 ws="$TMP/ws7"
 make_workspace "$ws" "git@github.com:test/repo.git" "ready"
@@ -278,12 +278,12 @@ printf '%s\n' \
   > "$TMP/comments.json"
 reset_logs
 run_watcher "$TMP/allow7.json" "$ws"
-assert_not_contains "$TMP/opencode.log" "DEVELOP" "S7: token em fence/quoted/linked não dispara"
-assert_not_contains "$TMP/opencode.log" "NOTIFY"  "S7: sem notificações"
-assert_eq "12" "$(cat "$STATE/test_repo.cursor")" "S7: cursor avançou"
+assert_not_contains "$TMP/opencode.log" "DEVELOP" "S7: token in fence/quoted/linked does not trigger"
+assert_not_contains "$TMP/opencode.log" "NOTIFY"  "S7: no notifications"
+assert_eq "12" "$(cat "$STATE/test_repo.cursor")" "S7: cursor advanced"
 
 # ============================================================================
-# S8 — BR 1: remote path ≠ chave allowlist → recusa antes de qualquer fetch
+# S8 — BR 1: remote path ≠ allowlist key → refused before any fetch
 # ============================================================================
 ws="$TMP/ws8"
 make_workspace "$ws" "git@github.com:other/repo.git" "ready"
@@ -292,22 +292,22 @@ seed_cursor "test/repo" 0
 reset_logs
 run_watcher "$TMP/allow8.json" "$ws"
 assert_eq "0" "$?" "S8: watcher exit 0"
-assert_not_contains "$TMP/gh.log" "GH-CALL"        "S8: nenhuma chamada gh (refused no allowlist gate)"
-assert_not_contains "$TMP/opencode.log" "DEVELOP"  "S8: nenhum develop"
-assert_contains "$TMP/run.log" "não corresponde à chave allowlist" "S8: log de recusa"
+assert_not_contains "$TMP/gh.log" "GH-CALL"        "S8: no gh call (refused at allowlist gate)"
+assert_not_contains "$TMP/opencode.log" "DEVELOP"  "S8: no develop"
+assert_contains "$TMP/run.log" "does not match allowlist key" "S8: refusal log"
 
 # ============================================================================
-# S9 — AC 17: workspace vazio/inexistente → recusa limpa
+# S9 — AC 17: empty/nonexistent workspace → clean refusal
 # ============================================================================
 make_allowlist "$TMP/allow9.json" "test/repo" "$TMP/does-not-exist"
 seed_cursor "test/repo" 0
 reset_logs
 run_watcher "$TMP/allow9.json" "$TMP/does-not-exist"
 assert_eq "0" "$?" "S9: watcher exit 0"
-assert_contains "$TMP/run.log" "vazio ou inexistente" "S9: log de recusa de workspace"
+assert_contains "$TMP/run.log" "empty or nonexistent" "S9: workspace refusal log"
 
 # ============================================================================
-# S10 — BR 12/AC 9: web server down → tick pulado, saída limpa
+# S10 — BR 12/AC 9: web server down → tick skipped, clean exit
 # ============================================================================
 ws="$TMP/ws10"
 make_workspace "$ws" "git@github.com:test/repo.git" "ready"
@@ -316,9 +316,9 @@ rm -rf "$STATE"
 reset_logs
 AIBOT_WEB_URL="http://down.local" run_watcher "$TMP/allow10.json" "$ws"
 assert_eq "0" "$?" "S10: watcher exit 0 com web down"
-assert_not_contains "$TMP/gh.log" "GH-CALL"       "S10: nenhuma chamada gh"
-assert_not_contains "$TMP/opencode.log" "DEVELOP" "S10: nenhum develop"
-assert_eq "0" "$([[ -d "$STATE" ]] && echo 1 || echo 0)" "S10: state não criado com web down"
+assert_not_contains "$TMP/gh.log" "GH-CALL"       "S10: no gh call"
+assert_not_contains "$TMP/opencode.log" "DEVELOP" "S10: no develop"
+assert_eq "0" "$([[ -d "$STATE" ]] && echo 1 || echo 0)" "S10: state not created with web down"
 
 # ============================================================================
 # S11 — AC 18: provider gitlab via glab
@@ -332,12 +332,12 @@ printf '%s\n' "30" > "$TMP/issues.txt"
 reset_logs
 run_watcher "$TMP/allow11.json" "$ws"
 assert_eq "0" "$?" "S11: watcher exit 0"
-assert_contains "$TMP/glab.log" "GLAB-CALL"              "S11: glab usado para gitlab"
-assert_contains "$TMP/opencode.log" "DEVELOP:7"          "S11: develop disparado (gitlab)"
-assert_contains "$TMP/opencode.log" "NOTIFY:30 success"  "S11: sucesso notificado (gitlab)"
+assert_contains "$TMP/glab.log" "GLAB-CALL"              "S11: glab used for gitlab"
+assert_contains "$TMP/opencode.log" "DEVELOP:7"          "S11: develop triggered (gitlab)"
+assert_contains "$TMP/opencode.log" "NOTIFY:30 success"  "S11: success notified (gitlab)"
 
 # ============================================================================
-# S12 — AC 18: remote desconhecido → recusado
+# S12 — AC 18: unknown remote → refused
 # ============================================================================
 ws="$TMP/ws12"
 make_workspace "$ws" "git@bitbucket.org:team/repo.git" "ready"
@@ -346,13 +346,13 @@ seed_cursor "team/repo" 0
 reset_logs
 run_watcher "$TMP/allow12.json" "$ws"
 assert_eq "0" "$?" "S12: watcher exit 0"
-assert_not_contains "$TMP/gh.log" "GH-CALL"       "S12: nenhuma chamada gh"
-assert_not_contains "$TMP/glab.log" "GLAB-CALL"   "S12: nenhuma chamada glab"
-assert_not_contains "$TMP/opencode.log" "DEVELOP" "S12: nenhum develop"
-assert_contains "$TMP/run.log" "não suportado"    "S12: log de recusa de provider"
+assert_not_contains "$TMP/gh.log" "GH-CALL"       "S12: no gh call"
+assert_not_contains "$TMP/glab.log" "GLAB-CALL"   "S12: no glab call"
+assert_not_contains "$TMP/opencode.log" "DEVELOP" "S12: no develop"
+assert_contains "$TMP/run.log" "not supported"    "S12: provider refusal log"
 
 # ============================================================================
-# S13 — AC 5: dois triggers na mesma issue no mesmo tick → um único develop
+# S13 — AC 5: two triggers on the same issue in the same tick → a single develop
 # ============================================================================
 ws="$TMP/ws13"
 make_workspace "$ws" "git@github.com:test/repo.git" "ready"
@@ -364,15 +364,15 @@ printf '%s\n' \
   > "$TMP/comments.json"
 reset_logs
 run_watcher "$TMP/allow13.json" "$ws"
-assert_count "$TMP/opencode.log" "DEVELOP:7" 1 "S13: exatamente um develop (mesma issue)"
+assert_count "$TMP/opencode.log" "DEVELOP:7" 1 "S13: exactly one develop (same issue)"
 
 # ============================================================================
-# S14 — Security M2: primeiro run inicializa cursor no comentário mais recente
+# S14 — Security M2: first run initializes the cursor at the newest comment
 # ============================================================================
 ws="$TMP/ws14"
 make_workspace "$ws" "git@github.com:test/repo.git" "ready"
 make_allowlist "$TMP/allow14.json" "test/repo" "$ws"
-rm -f "$STATE/test_repo.cursor"   # sem cursor → primeiro run
+rm -f "$STATE/test_repo.cursor"   # no cursor → first run
 printf '%s\n' \
   '{"id":1,"author":"dev","issue":30,"body":"@aibot:develop"}' \
   '{"id":2,"author":"dev","issue":30,"body":"@aibot:develop"}' \
@@ -380,34 +380,34 @@ printf '%s\n' \
   > "$TMP/comments.json"
 reset_logs
 run_watcher "$TMP/allow14.json" "$ws"
-assert_eq "3" "$(cat "$STATE/test_repo.cursor")" "S14: cursor inicializado no mais recente"
-assert_not_contains "$TMP/opencode.log" "DEVELOP" "S14: sem replay de comentários históricos"
-assert_not_contains "$TMP/opencode.log" "NOTIFY"  "S14: sem notificações no init"
+assert_eq "3" "$(cat "$STATE/test_repo.cursor")" "S14: cursor initialized at the newest comment"
+assert_not_contains "$TMP/opencode.log" "DEVELOP" "S14: no replay of historical comments"
+assert_not_contains "$TMP/opencode.log" "NOTIFY"  "S14: no notifications at init"
 
 # ============================================================================
-# S15 — BR 18/AC 16: comentário em PR (issue não-real) é filtrado
+# S15 — BR 18/AC 16: comment on a PR (non-real issue) is filtered
 # ============================================================================
 ws="$TMP/ws15"
 make_workspace "$ws" "git@github.com:test/repo.git" "ready"
 make_allowlist "$TMP/allow15.json" "test/repo" "$ws"
 seed_cursor "test/repo" 0
-printf '%s\n' "30" > "$TMP/issues.txt"            # apenas issue 30 é issue real
+printf '%s\n' "30" > "$TMP/issues.txt"            # only issue 30 is a real issue
 printf '%s\n' \
   '{"id":5,"author":"dev","issue":30,"body":"@aibot:develop"}' \
   '{"id":14,"author":"dev","issue":999,"body":"@aibot:develop"}' \
   > "$TMP/comments.json"
 reset_logs
 run_watcher "$TMP/allow15.json" "$ws"
-assert_count "$TMP/opencode.log" "DEVELOP:7" 1       "S15: develop apenas na issue real"
-assert_not_contains "$TMP/opencode.log" "NOTIFY:999" "S15: PR comment não notifica"
-assert_eq "14" "$(cat "$STATE/test_repo.cursor")"    "S15: cursor passou pelo PR comment"
+assert_count "$TMP/opencode.log" "DEVELOP:7" 1       "S15: develop only on the real issue"
+assert_not_contains "$TMP/opencode.log" "NOTIFY:999" "S15: PR comment does not notify"
+assert_eq "14" "$(cat "$STATE/test_repo.cursor")"    "S15: cursor passed the PR comment"
 
 # ============================================================================
 # S16 — Security M3: MAX_TRIGGERS_PER_TICK limita spawns paralelos
 # ============================================================================
 ws="$TMP/ws16"
 make_workspace "$ws" "git@github.com:test/repo.git" "ready"
-# segunda issue rastreada para o segundo trigger
+# second tracked issue for the second trigger
 cat >> "$ws/known_issues.md" <<'EOF'
 
 ### 8. Second issue
@@ -431,20 +431,20 @@ printf '%s\n' \
   '{"id":15,"author":"dev","issue":31,"body":"@aibot:develop"}' \
   > "$TMP/comments.json"
 reset_logs
-printf '%s\n' "30" "31" > "$TMP/issues.txt"   # ambas são issues reais
+printf '%s\n' "30" "31" > "$TMP/issues.txt"   # both are real issues
 run_watcher "$TMP/allow16.json" "$ws"
-assert_count "$TMP/opencode.log" "DEVELOP" 1 "S16: cap MAX_TRIGGERS_PER_TICK=1 → um spawn"
-assert_contains "$TMP/run.log" "deferido" "S16: segundo trigger deferido (log)"
-assert_eq "5" "$(cat "$STATE/test_repo.cursor")" "S16: cursor NÃO avança para o comentário deferido"
-# run 2: o comentário deferido é reexaminado e dispara (F1 — deferral, não perda)
+assert_count "$TMP/opencode.log" "DEVELOP" 1 "S16: cap MAX_TRIGGERS_PER_TICK=1 → one spawn"
+assert_contains "$TMP/run.log" "deferred" "S16: second trigger deferred (log)"
+assert_eq "5" "$(cat "$STATE/test_repo.cursor")" "S16: cursor does NOT advance for the deferred comment"
+# run 2: the deferred comment is re-examined and triggers (F1 — deferral, not loss)
 run_watcher "$TMP/allow16.json" "$ws"
-assert_count "$TMP/opencode.log" "DEVELOP" 2 "S16: deferido é desenvolvido no próximo tick"
-assert_contains "$TMP/opencode.log" "DEVELOP:8" "S16: segunda issue desenvolvida"
-assert_contains "$TMP/opencode.log" "NOTIFY:31 success 108" "S16: success notificado para a segunda issue"
-assert_eq "15" "$(cat "$STATE/test_repo.cursor")" "S16: cursor avançou após processar deferido"
+assert_count "$TMP/opencode.log" "DEVELOP" 2 "S16: deferred issue is developed on the next tick"
+assert_contains "$TMP/opencode.log" "DEVELOP:8" "S16: second issue developed"
+assert_contains "$TMP/opencode.log" "NOTIFY:31 success 108" "S16: success notified for the second issue"
+assert_eq "15" "$(cat "$STATE/test_repo.cursor")" "S16: cursor advanced after processing the deferred comment"
 
 # ============================================================================
-# S18 — BR 9/AC 11: develop bloqueado (exit != 0) → cannot-develop, sem MR
+# S18 — BR 9/AC 11: blocked develop (exit != 0) → cannot-develop, no MR
 # ============================================================================
 ws="$TMP/ws18"
 make_workspace "$ws" "git@github.com:test/repo.git" "ready"
@@ -453,14 +453,14 @@ seed_cursor "test/repo" 0
 cp "$TMP/comments-one.json" "$TMP/comments.json"
 reset_logs
 run_watcher "$TMP/allow18.json" "$ws" MOCK_DEVELOP_EXIT=1
-assert_eq "1" "$(count_occurrences "$TMP/opencode.log" "DEVELOP:7")" "S18: develop foi tentado"
-assert_contains "$TMP/opencode.log" "NOTIFY:30 cannot-develop" "S18: falha → cannot-develop"
-assert_not_contains "$TMP/opencode.log" "NOTIFY:30 success" "S18: sem notificação de sucesso"
-assert_eq "ready" "$(get_field_ "$ws/known_issues.md" 7 Status)" "S18: tracker sem MR (status intacto)"
-assert_eq "-" "$(get_field_ "$ws/known_issues.md" 7 PR)" "S18: PR não populado"
+assert_eq "1" "$(count_occurrences "$TMP/opencode.log" "DEVELOP:7")" "S18: develop was attempted"
+assert_contains "$TMP/opencode.log" "NOTIFY:30 cannot-develop" "S18: failure → cannot-develop"
+assert_not_contains "$TMP/opencode.log" "NOTIFY:30 success" "S18: no success notification"
+assert_eq "ready" "$(get_field_ "$ws/known_issues.md" 7 Status)" "S18: tracker without MR (status intact)"
+assert_eq "-" "$(get_field_ "$ws/known_issues.md" 7 PR)" "S18: PR not populated"
 
 # ============================================================================
-# S19 — BR 9/AC 11: develop termina mas sem MR → cannot-develop, sem MR
+# S19 — BR 9/AC 11: develop finishes but without MR → cannot-develop, no MR
 # ============================================================================
 ws="$TMP/ws19"
 make_workspace "$ws" "git@github.com:test/repo.git" "ready"
@@ -469,21 +469,21 @@ seed_cursor "test/repo" 0
 cp "$TMP/comments-one.json" "$TMP/comments.json"
 reset_logs
 run_watcher "$TMP/allow19.json" "$ws" MOCK_DEVELOP_NO_MR=1
-assert_eq "1" "$(count_occurrences "$TMP/opencode.log" "DEVELOP:7")" "S19: develop foi tentado"
-assert_contains "$TMP/opencode.log" "NOTIFY:30 cannot-develop" "S19: sem MR → cannot-develop"
-assert_not_contains "$TMP/opencode.log" "NOTIFY:30 success" "S19: sem notificação de sucesso"
-assert_eq "ready" "$(get_field_ "$ws/known_issues.md" 7 Status)" "S19: tracker sem MR (status intacto)"
-assert_eq "-" "$(get_field_ "$ws/known_issues.md" 7 PR)" "S19: PR não populado"
+assert_eq "1" "$(count_occurrences "$TMP/opencode.log" "DEVELOP:7")" "S19: develop was attempted"
+assert_contains "$TMP/opencode.log" "NOTIFY:30 cannot-develop" "S19: no MR → cannot-develop"
+assert_not_contains "$TMP/opencode.log" "NOTIFY:30 success" "S19: no success notification"
+assert_eq "ready" "$(get_field_ "$ws/known_issues.md" 7 Status)" "S19: tracker without MR (status intact)"
+assert_eq "-" "$(get_field_ "$ws/known_issues.md" 7 PR)" "S19: PR not populated"
 
 # ============================================================================
-# S17 — sem allowlist file → saída limpa
+# S17 — no allowlist file → clean exit
 # ============================================================================
 ws="$TMP/ws17"
 make_workspace "$ws" "git@github.com:test/repo.git" "ready"
 seed_cursor "test/repo" 0
 reset_logs
 AIBOT_REPOS_FILE="$TMP/nonexistent-repos.json" run_watcher "$TMP/nonexistent-repos.json" "$ws"
-assert_eq "0" "$?" "S17: watcher exit 0 sem allowlist"
-assert_not_contains "$TMP/opencode.log" "DEVELOP" "S17: nenhum develop"
+assert_eq "0" "$?" "S17: watcher exit 0 without allowlist"
+assert_not_contains "$TMP/opencode.log" "DEVELOP" "S17: no develop"
 
 t_finish

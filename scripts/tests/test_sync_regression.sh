@@ -66,9 +66,9 @@ cp "$HERE/../config.sh" "$old/config.sh"
 (cd "$fix" && PATH="$MOCK:$PATH" bash "$HERE/../sync_github_issues.sh" --dry-run) > "$TMP/new.out" 2>&1
 
 if diff -u "$TMP/old.out" "$TMP/new.out" > "$TMP/diff.out" 2>&1; then
-  t_ok "AC12: sync --dry-run idêntico antes/depois da extração de remote.sh"
+  t_ok "AC12: sync --dry-run identical before/after the remote.sh extraction"
 else
-  t_fail "AC12: output diverge (diff:)"
+  t_fail "AC12: outputs diverge (diff:)"
   cat "$TMP/diff.out"
 fi
 

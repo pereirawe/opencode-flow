@@ -5,6 +5,8 @@ description: Exported Go APIs, constructors, options, call-site shape, backward 
 
 # Go API Design
 
+Response language: user's input language → `.opencode/locale` (project → global) → EN.
+
 Use this skill when the task is primarily about Go API surface, especially:
 
 - what should be exported
@@ -316,8 +318,6 @@ When an API decision is non-obvious, ask the user instead of assuming.
 
 This is mandatory when the task may change public contract shape and the codebase does not already provide a clear precedent.
 
-Ask the user in Brazilian Portuguese.
-
 Ask a short conceptual question when any of these are unclear:
 
 - should this be part of the public contract at all?
@@ -331,10 +331,10 @@ Prefer questions that present the tradeoff, not implementation trivia.
 
 Good examples:
 
-- "Isso deve mesmo fazer parte do contrato publico, ou e melhor manter privado para preservar liberdade de evolucao?"
-- "Voce quer priorizar compatibilidade com callers atuais, ou simplificar a API mesmo que a transicao fique mais custosa?"
-- "Nesse caso, faz mais sentido dar mais poder ao caller, ou manter uma superficie menor e mais segura por padrao?"
-- "Voce quer otimizar o caso comum para um call site mais curto, ou prefere deixar a configuracao mais explicita mesmo com mais verbosidade?"
+- "Should this really be part of the public contract, or is it better to keep it private to preserve evolution freedom?"
+- "Do you want to prioritize compatibility with current callers, or simplify the API even if the transition gets costlier?"
+- "In this case, does it make more sense to give the caller more power, or keep a smaller and safer surface by default?"
+- "Do you want to optimize the common case for a shorter call site, or prefer more explicit configuration even with more verbosity?"
 
 When offering options, prefer a recommended option first and keep the choices conceptual.
 

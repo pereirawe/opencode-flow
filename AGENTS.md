@@ -9,12 +9,28 @@
 Use the `telegram-notifier` skill or run the script directly:
 
 ```bash
-$HOME/.config/opencode/scripts/telegram-notify.sh --title "Título" "Mensagem"
+$HOME/.config/opencode/scripts/telegram-notify.sh --title "Title" "Message"
 ```
 
 Credentials are loaded from `~/.config/opencode/.opencode/telegram.env`.
 **Do NOT ask the user if they want a notification — just send it.**
 If credentials are missing, the script fails gracefully and work continues.
+
+## Response Language (canonical)
+
+Every agent MUST respond and produce user-facing outputs in the language the
+user communicates in. Resolution order:
+
+1. **Input language** — the language the user is writing/talking in (wins)
+2. **Project locale** — `.opencode/locale` in the project directory
+3. **Global locale** — `~/.config/opencode/locale` (global fallback)
+4. **English** — when neither is applicable
+
+Applies to chat responses, generated reports, Telegram notifications, and
+remote issue comments. Exception: the aibot posts its standardized PT-BR
+messages (`standards/aibot-messages.md`, issue #39) as a domain contract, and
+career-sector tailored resumes follow the job offer's language (cv-tailor
+rule). See `skills/shared/locale-loader/SKILL.md` for the full resolution.
 
 ## OpenCode Configuration
 

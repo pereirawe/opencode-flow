@@ -5,6 +5,8 @@ description: Authentication and authorization architecture — JWT, OAuth 2.0, O
 
 # Auth Architecture
 
+Response language: user's input language → `.opencode/locale` (project → global) → EN.
+
 Use this skill when the task involves designing, implementing, or reviewing authentication and authorization systems. Covers login flows, token management, permission models, multi-tenant data isolation, and security hardening.
 
 ## When to use
@@ -366,11 +368,11 @@ CREATE INDEX idx_audit_time ON auth_audit_log(created_at);
 
 When the auth approach is unclear, ask the user:
 
-1. "O sistema é monolito ou microserviços? Isso afeta se JWT é validado localmente ou via introspecção."
-2. "Quantos tenants/organizações o sistema terá? Multi-tenancy exige isolamento desde o início."
-3. "Os usuários são internos (equipe) ou externos (clientes)? Isso define SSO/SAML vs social login."
-4. "Qual o nível de granularidade das permissões? RBAC simples ou precisa de ABAC/ReBAC?"
-5. "Exigência de audit trail? Regulatórios (LGPD, SOC2) ou apenas operacional?"
+1. "Is the system a monolith or microservices? This affects whether JWT is validated locally or via introspection."
+2. "How many tenants/organizations will the system have? Multi-tenancy requires isolation from the start."
+3. "Are the users internal (team) or external (customers)? This defines SSO/SAML vs social login."
+4. "What is the permission granularity level? Simple RBAC or does it need ABAC/ReBAC?"
+5. "Is an audit trail required? Regulatory (LGPD, SOC2) or just operational?"
 
 ## Output
 

@@ -1,58 +1,61 @@
 ---
 name: test-runner
-description: Entrypoint único de testes com cache de resultados (fingerprint) para agentes de development. Use quando precisar validar testes (check/run/status), consumir um cache fresco sem re-executar, ou rodar a suite para o próprio uso quando não há cache. Nunca invoque comandos de teste ad hoc (go test, pytest, npm test) — use este runner.
+description: Single test entry point with a result cache (fingerprint) for development agents. Use when you need to validate tests (check/run/status), consume a fresh cache without re-executing, or run the suite for your own use when there is no cache. Never invoke ad hoc test commands (go test, pytest, npm test) — use this runner.
 ---
 
 # Test Runner
 
-Entrypoint único de testes para agentes de development. Elimina execuções
-repetidas da mesma suite com saída idêntica ao longo do pipeline e padroniza o
-diagnóstico de ambiente.
+Response language: user's input language → `.opencode/locale` (project → global) → EN.
 
-## Protocolo
+Single test entry point for development agents. Eliminates repeated
+executions of the same suite with identical output along the pipeline and
+standardizes environment diagnostics.
+
+## Protocol
 
 ```bash
-scripts/test-runner.sh --check    # cache fresco? exit 0 + caminho do relatório; senão exit 3
-scripts/test-runner.sh --run      # executa a suite (ou reutiliza cache fresco), imprime resumo + exit code
-scripts/test-runner.sh --status   # estado legível do runner/cache/fingerprint
+scripts/test-runner.sh --check    # fresh cache? exit 0 + report path; otherwise exit 3
+scripts/test-runner.sh --run      # runs the suite (or reuses a fresh cache), prints summary + exit code
+scripts/test-runner.sh --status   # readable runner/cache/fingerprint state
 ```
 
-Args adicionais após `--` são passados ao comando de teste
-(ex.: `test-runner.sh --run -- -run TestFoo`).
+Additional args after `--` are passed to the test command
+(e.g. `test-runner.sh --run -- -run TestFoo`).
 
-## Regras para o agente
+## Rules for the agent
 
-1. **Sempre use o runner** — nunca `go test`, `pytest`, `npm test` ad hoc.
-2. **Cache fresco e passando → reutilize.** `--check` com exit 0 significa que o
-   código não mudou desde a última execução **e** a suite passou: use o
-   relatório cacheado, não re-rote.
-3. **Sem cache válido → rode para o seu próprio uso.** `--check` exit 3 não é
-   bloqueio: rode `--run` e use o resultado para a sua validação.
-4. **Cache nunca bloqueia.** Se o script falhar por qualquer motivo, rode os
-   testes diretamente e siga com o resultado.
-5. **Testes pontuais do domínio** (ex.: um teste específico que você quer
-   verificar) são livres — use `--run -- <filtro>`. Runs filtrados NUNCA tocam
-   o cache compartilhado: executam de verdade e não afetam o sinal "suite
-   passou" que check/committer/pre_commit consomem.
-6. **Exit codes** de `--run`: `0` = suite passou; `1` = suite falhou; `2` =
-   impossível rodar (sem runner/suite) — trata `2` como "sem testes", não como
-   falha. O relatório completo fica em `.opencode/test-cache/<branch>-<runner>.log`.
-7. **`--check`** exit 0 apenas quando há cache fresco E a última execução passou
-   (`exit_code=0`). Cache fresco de suite falhada → exit 3.
+1. **Always use the runner** — never `go test`, `pytest`, `npm test` ad hoc.
+2. **Fresh passing cache → reuse it.** `--check` with exit 0 means the code
+   has not changed since the last run **and** the suite passed: use the
+   cached report, do not re-run.
+3. **No valid cache → run for your own use.** `--check` exit 3 is not a
+   block: run `--run` and use the result for your validation.
+4. **Cache never blocks.** If the script fails for any reason, run the tests
+   directly and proceed with the result.
+5. **Domain-specific spot tests** (e.g. one specific test you want to check)
+   are free — use `--run -- <filter>`. Filtered runs NEVER touch the shared
+   cache: they actually execute and do not affect the "suite passed" signal
+   that check/committer/pre_commit consume.
+6. **Exit codes** of `--run`: `0` = suite passed; `1` = suite failed; `2` =
+   cannot run (no runner/suite) — treat `2` as "no tests", not as a failure.
+   The full report is in `.opencode/test-cache/<branch>-<runner>.log`.
+7. **`--check`** exits 0 only when there is a fresh cache AND the last run
+   passed (`exit_code=0`). A fresh cache from a failed suite → exit 3.
 
-## Onde o cache fica
+## Where the cache lives
 
 ```
 .opencode/test-cache/<branch>-<runner>.result   # fingerprint + exit_code + timestamp
-.opencode/test-cache/<branch>-<runner>.log      # saída completa da última execução
+.opencode/test-cache/<branch>-<runner>.log      # full output of the last run
 ```
 
-O diretório `.opencode/test-cache/` é gitignored. O fingerprint é derivado do
-HEAD do git + arquivos de código/teste alterados — qualquer mudança mínima
-invalida o cache e força re-execução.
+The `.opencode/test-cache/` directory is gitignored. The fingerprint is derived
+from the git HEAD + changed code/test files — any minimal change invalidates
+the cache and forces re-execution.
 
 ## Fallback
 
-Sem git repo, o runner usa fingerprint por conteúdo (ainda funcional). Sem
-runner detectado, o runner diagnostica claramente e o agente deve rodar os
-testes do projeto diretamente, reportando o resultado para o próprio uso.
+Without a git repo, the runner uses a content-based fingerprint (still
+functional). Without a detected runner, the runner diagnoses clearly and the
+agent should run the project tests directly, reporting the result for its own
+use.
