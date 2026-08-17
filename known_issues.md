@@ -81,7 +81,7 @@ See `standards/issues.md` for the full contract.
 - Suggested fix: Remover open do ciclo de vida ou fazer create_issue.sh transicionar ready→open ao criar remote com sucesso.
 
 ### 28. `close_issue.sh` fecha issue remota sem verificar merge do PR para status não-`in-publish`
-- Status: in-progress
+- Status: resolved
 - Type: bug
 - Severity: medium
 - Report: opencode
@@ -209,7 +209,7 @@ See `standards/issues.md` for the full contract.
 - Suggested fix: Usar `glab issue view --json state --jq '.state'` se suportado. Adicionar lógica de close para GitLab resolved.
 
 ### 37. Delegar `ocf:develop` para router e agentes Go/Python
-- Status: in-progress
+- Status: resolved
 - Type: feat
 - Severity: medium
 - Report: opencode
