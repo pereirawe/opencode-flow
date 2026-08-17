@@ -81,7 +81,7 @@ See `standards/issues.md` for the full contract.
 - Suggested fix: Remover open do ciclo de vida ou fazer create_issue.sh transicionar ready→open ao criar remote com sucesso.
 
 ### 27. `opencode.json` referencia `/temp/*` em vez de `/tmp/*`
-- Status: in-review
+- Status: in-publish
 - Type: bug
 - Severity: low
 - Report: opencode
