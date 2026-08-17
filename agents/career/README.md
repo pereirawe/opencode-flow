@@ -49,8 +49,8 @@ the single source of truth for every agent and skill.
 
 - `hub.json` follows `scripts/cv/schema.json` (English keys) and is validated
   with `scripts/cv/validate.py` (jsonschema with a hand-rolled fallback).
-- Analysis reports (`analise-perfil.md`, `gap-analysis.md`, `inferencias.md`,
-  `preparacao-entrevista.md`, `linkedin-optimization.md`, `ats-score.md`)
+- Analysis reports (`analise-perfil.md`, `gap-analysis.md`, `inferences.md`,
+  `interview-preparation.md`, `linkedin-optimization.md`, `ats-score.md`)
   follow `standards/cv-analysis.md`.
 - Resumes and PDFs follow `standards/cv-design.md`, starting from the
   reference template `skills/career/cv-pdf/templates/resume.html`.

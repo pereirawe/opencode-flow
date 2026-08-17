@@ -19,9 +19,9 @@ flow must run first (the `ocf:cv-optimize` command already handles this).
 ## Output
 
 ```
-~/career/<candidate-name>/analise-perfil.md    # report (markdown)
-~/career/<candidate-name>/analise-perfil.html  # rendered report (for PDF)
-~/career/<candidate-name>/analise-perfil.pdf   # report PDF (A4)
+~/career/<candidate-name>/profile-analysis.md    # report (markdown)
+~/career/<candidate-name>/profile-analysis.html  # rendered report (for PDF)
+~/career/<candidate-name>/profile-analysis.pdf   # report PDF (A4)
 ~/career/<candidate-name>/tasks.json           # optional — structured tasks
 ```
 
@@ -31,8 +31,8 @@ The report does NOT modify `hub.json` — it only reports.
 
 The report MUST be written in the language the user communicates in (detected
 from the session locale — `.opencode/locale` project → global → English — or
-an explicit user instruction). This applies to `analise-perfil.md`,
-`gap-analysis.md` and `inferencias.md` (career analysis outputs). Technical
+an explicit user instruction). This applies to `profile-analysis.md`,
+`gap-analysis.md` and `inferences.md` (career analysis outputs). Technical
 terms, command names and the `[INFERIDO]` label remain unchanged. See
 `standards/cv-analysis.md` §1 for the full resolution order.
 
@@ -43,7 +43,7 @@ The report MUST follow the canonical structure defined in
 tables, `[INFERIDO]` inline convention, report language rule). Load that
 standard and conform to it.
 
-Canonical section order (H2) in `analise-perfil.md`:
+Canonical section order (H2) in `profile-analysis.md`:
 
 1. **Profile score** (global + per section)
 2. **General qualifications**
@@ -66,15 +66,15 @@ Rules (per `standards/cv-analysis.md`):
 
 ## PDF generation
 
-After writing `analise-perfil.md`, also generate the PDF for easier reading:
+After writing `profile-analysis.md`, also generate the PDF for easier reading:
 
 1. Copy the reference template
-   `skills/career/cv-optimizer/templates/analise-perfil.html` to
-   `analise-perfil.html` and adapt the CONTENT (never the CSS), following the
+   `skills/career/cv-optimizer/templates/profile-analysis.html` to
+   `profile-analysis.html` and adapt the CONTENT (never the CSS), following the
    design language of `standards/cv-design.md` and the structure of
    `standards/cv-analysis.md` (A4 via `@page { size: A4; margin: 12mm 15mm }`,
    clean typography, semantic headings, no metadata header).
-2. Run `bash $SCRIPTS_DIR/cv/pdf.sh analise-perfil.html analise-perfil.pdf`.
+2. Run `bash $SCRIPTS_DIR/cv/pdf.sh profile-analysis.html profile-analysis.pdf`.
 3. If the engine fails, report the error — never deliver an empty PDF.
 
 ## Analysis protocol

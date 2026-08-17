@@ -203,7 +203,7 @@ assert_eq "1" "$(test -s "$TMP/samedir/curriculo.pdf" && echo 1 || echo 0)" "sam
 
 # --- check-inference.sh gate ---
 # The gate blocks [INFERIDO] markers (case-insensitive) in the FINAL HTML/PDF.
-# Internal artifacts (hub.json, gap-analysis.md, inferencias.md) keep them.
+# Internal artifacts (hub.json, gap-analysis.md, inferences.md) keep them.
 
 # 1. HTML with uppercase [INFERIDO] -> exit 1, occurrence listed
 cat > "$TMP/inferido-upper.html" <<'HTMLEOF'
@@ -371,9 +371,9 @@ if [[ -f "$TAILOR_SKILL" ]]; then
   # it MUST document the mandatory gate before the PDF
   assert_contains "$TAILOR_SKILL" "check-inference.sh" \
     "cv-tailor skill mandates the check-inference.sh gate"
-  # and the human-decision flow via inferencias.md
-  assert_contains "$TAILOR_SKILL" "inferencias.md" \
-    "cv-tailor skill documents the inferencias.md human-decision flow"
+  # and the human-decision flow via inferences.md
+  assert_contains "$TAILOR_SKILL" "inferences.md" \
+    "cv-tailor skill documents the inferences.md human-decision flow"
   # issue #64: the skill MUST use the English schema keys
   assert_contains "$TAILOR_SKILL" "summary_i18n" \
     "cv-tailor skill references the English summary_i18n key"
@@ -389,8 +389,8 @@ if [[ -f "$TAILOR_AGENT" ]]; then
     "cv-tailor agent no longer instructs marking [INFERIDO] in the HTML/PDF"
   assert_contains "$TAILOR_AGENT" "check-inference.sh" \
     "cv-tailor agent invokes the check-inference.sh gate"
-  assert_contains "$TAILOR_AGENT" "inferencias.md" \
-    "cv-tailor agent documents the inferencias.md human-decision flow"
+  assert_contains "$TAILOR_AGENT" "inferences.md" \
+    "cv-tailor agent documents the inferences.md human-decision flow"
 else
   t_fail "cv-tailor agent missing at $TAILOR_AGENT"
 fi
@@ -409,8 +409,8 @@ if [[ -f "$OPT_SKILL" ]]; then
   assert_contains "$OPT_SKILL" "[INFERIDO]" "cv-optimizer skill mandates [INFERIDO] markers"
   assert_contains "$OPT_SKILL" "NEVER modify \`hub.json\`" "cv-optimizer skill forbids hub.json edits"
   assert_contains "$OPT_SKILL" "validate.py" "cv-optimizer skill references hub validation"
-  assert_contains "$OPT_SKILL" "analise-perfil.md" "cv-optimizer skill defines report output"
-  assert_contains "$OPT_SKILL" "analise-perfil.pdf" "cv-optimizer skill defines PDF output"
+  assert_contains "$OPT_SKILL" "profile-analysis.md" "cv-optimizer skill defines report output"
+  assert_contains "$OPT_SKILL" "profile-analysis.pdf" "cv-optimizer skill defines PDF output"
   assert_contains "$OPT_SKILL" "NO metadata header" "cv-optimizer skill forbids metadata header"
   assert_contains "$OPT_SKILL" "since" "cv-optimizer skill uses the English since field"
   assert_contains "$OPT_SKILL" "current year − \`since\`" "cv-optimizer skill computes skill years dynamically"
@@ -443,8 +443,8 @@ if [[ -f "$CL_SKILL" ]]; then
     "cv-cover-letter skill defines carta-apresentacao.pdf output"
   assert_contains "$CL_SKILL" "NEVER invent" \
     "cv-cover-letter skill forbids fabrication (BR 5)"
-  assert_contains "$CL_SKILL" "inferencias.md" \
-    "cv-cover-letter skill documents the inferencias.md human-decision flow"
+  assert_contains "$CL_SKILL" "inferences.md" \
+    "cv-cover-letter skill documents the inferences.md human-decision flow"
 else
   t_fail "cv-cover-letter skill missing at $CL_SKILL"
 fi
@@ -584,8 +584,8 @@ if [[ -f "$IP_SKILL" ]]; then
   assert_contains "$IP_SKILL" "communication language" \
     "cv-interview-prep skill mandates the user's communication language (AC 8)"
   # output file (BR 5) + kit components (BR 2)
-  assert_contains "$IP_SKILL" "preparacao-entrevista.md" \
-    "cv-interview-prep skill defines the preparacao-entrevista.md output (BR 5)"
+  assert_contains "$IP_SKILL" "interview-preparation.md" \
+    "cv-interview-prep skill defines the interview-preparation.md output (BR 5)"
   assert_contains "$IP_SKILL" "Likely interview questions" \
     "cv-interview-prep skill covers likely interview questions (BR 2)"
   assert_contains "$IP_SKILL" "Suggested STAR answers" \
@@ -619,8 +619,8 @@ if [[ -f "$IP_AGENT" ]]; then
     "cv-interview-prep agent runs at temperature 0.2 (BR 9)"
   assert_contains "$IP_AGENT" "validate.py" \
     "cv-interview-prep agent validates the hub (BR 7)"
-  assert_contains "$IP_AGENT" "preparacao-entrevista.md" \
-    "cv-interview-prep agent produces preparacao-entrevista.md (BR 5)"
+  assert_contains "$IP_AGENT" "interview-preparation.md" \
+    "cv-interview-prep agent produces interview-preparation.md (BR 5)"
   assert_not_contains "$IP_AGENT" '"curl -L*": allow' \
     "cv-interview-prep agent grants no curl -L permission"
 else
@@ -629,8 +629,8 @@ fi
 
 IP_CMD="$SCRIPT_DIR/../../commands/ocf:cv-interview-prep.md"
 if [[ -f "$IP_CMD" ]]; then
-  assert_contains "$IP_CMD" "preparacao-entrevista.md" \
-    "ocf:cv-interview-prep command documents the preparacao-entrevista.md output"
+  assert_contains "$IP_CMD" "interview-preparation.md" \
+    "ocf:cv-interview-prep command documents the interview-preparation.md output"
   assert_contains "$IP_CMD" "standards/cv-analysis.md" \
     "ocf:cv-interview-prep command references standards/cv-analysis.md (BR 11)"
   assert_contains "$IP_CMD" "<candidate-directory> <job>" \

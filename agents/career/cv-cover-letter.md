@@ -34,7 +34,7 @@ cover letter in the job's language and generates the letter HTML + PDF.
 
 1. Load the `cv-cover-letter` skill (full process), the `cv-pdf` skill (PDF
    generation), the `standards/cv-design.md` standard (ATS/print/pages) and
-   the `standards/cv-analysis.md` standard (gap analysis and inferencias
+   the `standards/cv-analysis.md` standard (gap analysis and inferences
    structure, uniform tables, `[INFERIDO]` and language rules).
 2. Read the candidate's `hub.json` and validate with
    `python3 $SCRIPTS_DIR/cv/validate.py`; missing/invalid hub → tell the user
@@ -45,12 +45,12 @@ cover letter in the job's language and generates the letter HTML + PDF.
 4. Extract from the job: required/desirable requirements, keywords, seniority,
    languages, company profile.
 5. **Reuse the gap analysis** from cv-tailor when available:
-   `~/career/<candidate-name>/curriculos/<job-slug>/gap-analysis.md`. When
+   `~/career/<candidate-name>/resumes/<job-slug>/gap-analysis.md`. When
    absent, build it inline (uniform table `Requirement | Match | Evidence in
    hub`, match values `atendido`/`parcial`/`not_met` per
    `standards/cv-analysis.md` §4.1).
 6. List ALL inferences/placeholders in
-   `~/career/<candidate-name>/cartas/<job-slug>/inferencias.md` per
+   `~/career/<candidate-name>/cartas/<job-slug>/inferences.md` per
    `standards/cv-analysis.md` §3.3/§4.4 (table `Inference | Context | Decision
    | Status`) and ask the candidate to decide on each one
    (rephrase/omit/promote with real data) BEFORE generating the final output.
@@ -69,7 +69,7 @@ cover letter in the job's language and generates the letter HTML + PDF.
 
 1. NEVER invent experience, skills, projects, certifications or contact.
 2. `[INFERIDO]` is allowed ONLY in internal artifacts (hub.json,
-   gap-analysis.md, inferencias.md) per `standards/cv-analysis.md` §5. In the
+   gap-analysis.md, inferences.md) per `standards/cv-analysis.md` §5. In the
    final HTML/PDF NO `[INFERIDO]` may appear (nor case-insensitive variants) —
    the `check-inference.sh` gate blocks generation.
 3. Cover letter language = job language (pt/en/es).

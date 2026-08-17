@@ -50,7 +50,7 @@ For each requirement, classify the match using the canonical match values of
 | `parcial` | Present approximately (e.g. the job asks for Kubernetes, the hub has Docker + AWS ECS) |
 | `not_met` | Requirement does not exist in the hub |
 
-Record the result in `curriculos/<job-slug>/gap-analysis.md` following the
+Record the result in `resumes/<job-slug>/gap-analysis.md` following the
 canonical structure of `standards/cv-analysis.md` §3.2, with the uniform gap
 analysis table:
 
@@ -64,7 +64,7 @@ analysis table:
 - `Evidence in hub` — citation of the hub entry supporting the match
   (e.g. `skills: Kubernetes (level: advanced)`) or a reason for the gap.
 
-**Gap analysis language**: `gap-analysis.md` and `inferencias.md` are
+**Gap analysis language**: `gap-analysis.md` and `inferences.md` are
 analysis artifacts — they MUST be written in the language the user
 communicates in (session locale or explicit user instruction; English as the
 fallback), like the other career analysis outputs (resolution order in
@@ -117,7 +117,7 @@ be duplicated or replaced by the ATS score.
 ## Human validation flow for inferences
 
 Before generating the final HTML/PDF, list ALL inferences and placeholders in
-`curriculos/<job-slug>/inferencias.md` following the canonical structure of
+`resumes/<job-slug>/inferences.md` following the canonical structure of
 `standards/cv-analysis.md` §3.3 — the canonical inferences table:
 
 ```
@@ -141,7 +141,7 @@ Ask the candidate to decide on each one:
 | `promote` | Use as fact only if the candidate confirms real data (no marker in the output) |
 
 After the human decision, generate the HTML with NO `[INFERIDO]` marker. The
-resolved list stays recorded in `inferencias.md` for traceability.
+resolved list stays recorded in `inferences.md` for traceability.
 
 ## Content adaptation (without fabricating)
 
@@ -189,11 +189,11 @@ Reorder, highlight and rephrase **only what already exists in the hub**:
 ## Output structure
 
 ```
-~/career/<candidate-name>/curriculos/<job-slug>/
+~/career/<candidate-name>/resumes/<job-slug>/
 ├── index.html            # resume HTML (job language)
 ├── curriculo.pdf         # generated A4 PDF
 ├── gap-analysis.md       # requirements vs hub analysis + match % + keyword density & coverage
-└── inferencias.md        # resolved inferences list (human review)
+└── inferences.md        # resolved inferences list (human review)
 ```
 
 `<job-slug>` = normalized company + title (e.g. `acme-senior-data-engineer`).
@@ -201,7 +201,7 @@ Reorder, highlight and rephrase **only what already exists in the hub**:
 ## PDF generation
 
 1. Copy the reference template `skills/career/cv-pdf/templates/resume.html`
-   to `curriculos/<job-slug>/index.html` and adapt the CONTENT (never the
+   to `resumes/<job-slug>/index.html` and adapt the CONTENT (never the
    CSS) per the `standards/cv-design.md` standard: set `lang` to the job's
    language, translate the section titles, fill in the hub data and omit
    empty sections.

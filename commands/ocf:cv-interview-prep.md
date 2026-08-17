@@ -1,7 +1,7 @@
 ## /ocf:cv-interview-prep <candidate-directory> <job>
 
 ---
-description: Generate a structured interview preparation kit from the candidate hub and a target job — likely interview questions (behavioral + technical), suggested STAR-format answers mapped to real hub experience, questions to ask the interviewer, and technical topics to review; outputs preparacao-entrevista.md in the user's communication language (never fabricates experience)
+description: Generate a structured interview preparation kit from the candidate hub and a target job — likely interview questions (behavioral + technical), suggested STAR-format answers mapped to real hub experience, questions to ask the interviewer, and technical topics to review; outputs interview-preparation.md in the user's communication language (never fabricates experience)
 ---
 
 Generates a structured interview preparation kit for a specific job
@@ -49,7 +49,7 @@ URL, ask them to paste the job description text instead.
    - Questions to ask the interviewer;
    - Technical topics to review (have from the hub vs gap topics);
    - Preparation gaps (questions/requirements the hub cannot evidence).
-5. **Write** `~/career/<candidate-name>/preparacao-entrevista.md` following
+5. **Write** `~/career/<candidate-name>/interview-preparation.md` following
    the `standards/cv-analysis.md` structure (exactly one H1 title, NO
    metadata header, start directly with content), in the user's communication
    language per `standards/cv-analysis.md` §1.
@@ -57,7 +57,7 @@ URL, ask them to paste the job description text instead.
 ### Output
 
 ```
-~/career/<candidate-name>/preparacao-entrevista.md
+~/career/<candidate-name>/interview-preparation.md
 ```
 
 Sections: Target role | Likely interview questions (Behavioral; Technical) |
@@ -68,7 +68,7 @@ to review (Have from the hub; Gap topics) | Preparation gaps.
 
 - NEVER invent experience, skills, achievements, projects or content — STAR
   answers MUST reference real hub entries; no hub evidence → preparation gap.
-- NO `[INFERIDO]` in `preparacao-entrevista.md` (nor case-insensitive
+- NO `[INFERIDO]` in `interview-preparation.md` (nor case-insensitive
   variants, nor the word "inferido") — actionable preparation file, same rule
   as final resume PDFs per `standards/cv-analysis.md` §5.
 - Questions MUST be role-appropriate (derived from the job's requirements and
@@ -79,7 +79,7 @@ to review (Have from the hub; Gap topics) | Preparation gaps.
 
 ### Report to the user
 
-- Output path (`~/career/<candidate>/preparacao-entrevista.md`).
+- Output path (`~/career/<candidate>/interview-preparation.md`).
 - The target role used (job title, company, seniority).
 - Summary of the kit: question count (behavioral/technical), STAR answers
   count, questions-to-ask count, technical topics count (have/gap),

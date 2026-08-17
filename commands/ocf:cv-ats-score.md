@@ -20,7 +20,7 @@ The candidate needs a valid hub at `~/career/<candidate-name>/hub.json`
 `/ocf:cv-tailor`:
 
 ```
-~/career/<candidate-name>/curriculos/<job-slug>/
+~/career/<candidate-name>/resumes/<job-slug>/
 ├── curriculo.pdf         # generated A4 PDF (primary text source)
 ├── index.html            # resume HTML (fallback text source)
 └── gap-analysis.md       # Job context + Required/Desirable requirements
@@ -37,11 +37,11 @@ missing, run `/ocf:cv-tailor` for the job slug first.
 
 - `<candidate-directory>` — the candidate directory with `hub.json`.
 - `<job-slug>` — the slug directory name under
-  `~/career/<candidate>/curriculos/` (the same slug used by cv-tailor).
+  `~/career/<candidate>/resumes/` (the same slug used by cv-tailor).
 
 ### Flow
 
-1. **Verify artifacts** — check `curriculos/<job-slug>/curriculo.pdf`,
+1. **Verify artifacts** — check `resumes/<job-slug>/curriculo.pdf`,
    `index.html` and `gap-analysis.md` exist; missing → tell the user to run
    `/ocf:cv-tailor` for the job slug first.
 2. **Validate hub** — `python3 $SCRIPTS_DIR/cv/validate.py hub.json`; if the
@@ -52,7 +52,7 @@ missing, run `/ocf:cv-tailor` for the job slug first.
    `pdftotext` is unavailable, report the limitation and fall back to the
    `index.html` text; no source → `cannot-analyze` outcome, never an invented
    score).
-5. **Load job keywords** — from `curriculos/<job-slug>/gap-analysis.md`
+5. **Load job keywords** — from `resumes/<job-slug>/gap-analysis.md`
    (Job context + Required/Desirable requirements).
 6. **Analyze** —
    - Keyword density (job keywords found vs total, per-keyword counts);
@@ -60,7 +60,7 @@ missing, run `/ocf:cv-tailor` for the job slug first.
      standard sections — contact, experience, education, skills);
    - Score 0-100: `keyword_match` (40%), `section_completeness` (30%),
      `format_compliance` (30%), global weighted total.
-7. **Write** `~/career/<candidate-name>/curriculos/<job-slug>/ats-score.md`
+7. **Write** `~/career/<candidate-name>/resumes/<job-slug>/ats-score.md`
    in the user's communication language per `standards/cv-analysis.md` §1,
    following the standard's structure (exactly one H1 title, NO metadata
    header, start directly with content; canonical score table per §4.2; H2
@@ -70,7 +70,7 @@ missing, run `/ocf:cv-tailor` for the job slug first.
 ### Output
 
 ```
-~/career/<candidate-name>/curriculos/<job-slug>/ats-score.md
+~/career/<candidate-name>/resumes/<job-slug>/ats-score.md
 ```
 
 Sections: Job context | ATS score | Keyword density | ATS red flags |
@@ -81,7 +81,7 @@ Recommendations.
 - NEVER fabricate counts, scores, flags or recommendations — every metric is
   computed from the actual resume text and gap-analysis.md.
 - The agent is read-only besides the report: it NEVER modifies `hub.json`,
-  `gap-analysis.md`, `inferencias.md`, `index.html` or `curriculo.pdf`.
+  `gap-analysis.md`, `inferences.md`, `index.html` or `curriculo.pdf`.
 - `[INFERIDO]` MAY appear inline in `ats-score.md` (internal analysis report
   per `standards/cv-analysis.md` §5) — never in the shareable resume
   artifacts.
@@ -93,7 +93,7 @@ Recommendations.
 
 ### Report to the user
 
-- Output path (`~/career/<candidate>/curriculos/<job-slug>/ats-score.md`).
+- Output path (`~/career/<candidate>/resumes/<job-slug>/ats-score.md`).
 - The global score and the breakdown (keyword_match / section_completeness /
   format_compliance).
 - The text source used (pdftotext of the PDF, or the HTML fallback with the

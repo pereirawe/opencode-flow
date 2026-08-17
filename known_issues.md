@@ -60,7 +60,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 2 (qa, ux-ui)
 - Remote: #20
-- PR: -
+- PR: #93
 - Location: agents/development/anderson.md, opencode.json, workflow.md
 - Description: Criar agente "Anderson" — usuário leigo, ansioso, paulistano e puxa-saco — que comenta automaticamente em PT-BR nas MRs após o publish-requester, simulando feedback do cliente final.
 - Impact: Fecha o gap de validação do ponto de vista do usuário final no pipeline. Força PRs a serem escritas de forma clara para não-técnicos.
@@ -75,7 +75,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 1
 - Remote: -
-- PR: -
+- PR: #93
 - Location: scripts/pre_commit.sh:36-61, standards/commits.md
 - Description: standards/commits.md documenta que trailers (Status:, Closes) sincronizam automaticamente com known_issues.md via pre_commit.sh, mas o script apenas detecta e loga os trailers — nunca modifica o arquivo de issues.
 - Impact: Sincronização automática documentada não existe. Usuários/agentes precisam atualizar known_issues.md manualmente após cada commit.
@@ -89,7 +89,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 1
 - Remote: -
-- PR: -
+- PR: #93
 - Location: scripts/promote.sh, scripts/create_issue.sh, workflow.md, standards/issues.md
 - Description: O ciclo de vida documentado é backlog→ready→open→in-progress, mas promote.sh transiciona backlog→ready e ready→in-progress sem nunca passar por open. create_issue.sh mantém status como ready. Nenhum script ou agente seta Status: open.
 - Impact: Estado open é inatingível. Código que referencia Status: open (maintain.sh, pre_commit.sh) é dead logic. Diagrama de lifecycle é enganoso.
@@ -103,7 +103,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 1
 - Remote: -
-- PR: -
+- PR: #93
 - Location: opencode.json:89
 - Description: Linha 89 tem `"/temp/*": "allow"` — o diretório temporário padrão no Linux é `/tmp/`, não `/temp/`. Provável typo.
 - Impact: Se um agente precisar escrever em `/tmp/`, a permissão será negada.
@@ -117,7 +117,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 1 (devops)
 - Remote: -
-- PR: -
+- PR: #93
 - Location: scripts/close_issue.sh:42-65
 - Description: O script aceita status ready, open, in-progress, resolved e executa `gh issue close` sem verificar se o PR foi merged. Apenas in-publish tem verificação de merge.
 - Impact: Fechamento acidental de issues remotas ainda em desenvolvimento. Sem proteção ou confirmação.
@@ -147,7 +147,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 1
 - Remote: -
-- PR: -
+- PR: #93
 - Location: resolved_issues.md:17-25, resolved_issues.md:44-51
 - Description: Duas entradas em resolved_issues.md têm o mesmo ID `### 7.` — uma para "Melhorar ocf:init" e outra para "Workflow de revisão externa". close_issue.sh nunca verifica duplicatas antes de append.
 - Impact: IDs não únicos no arquivo de resolução. Confusão ao referenciar issues resolvidas por ID.
@@ -161,7 +161,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 1
 - Remote: -
-- PR: -
+- PR: #93
 - Location: scripts/promote.sh:25, scripts/create_issue.sh:21, scripts/close_issue.sh:20
 - Description: As scripts usam `awk '/^### Status/ {exit}'` como sentinela de terminação, mas known_issues.md não tem linha começando com `### Status` — apenas `### Format`. O padrão nunca é triggerado.
 - Impact: Código morto. Sem impacto em runtime pois a lógica de boundary é tratada por outros patterns.
@@ -175,7 +175,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 1
 - Remote: -
-- PR: -
+- PR: #93
 - Location: scripts/import_claude_skill.sh:30-42
 - Description: O script lê e escreve opencode.json com json.dump sem validação, sem write atômico, sem preservar formatação original, e com `2>/dev/null` suprimindo erros.
 - Impact: Se a escrita for interrompida, a configuração do opencode pode ser corrompida.
@@ -189,7 +189,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 1
 - Remote: -
-- PR: -
+- PR: #93
 - Location: scripts/*.sh (12 scripts, 0 testes)
 - Description: 12 scripts shell sem nenhum teste automatizado. Eles contêm lógica awk complexa, paths de erro e edge cases que seriam pegos por testes.
 - Impact: Bugs em scripts passam despercebidos. Propenso a regressões. A infraestrutura do pipeline é a parte menos testada do sistema.
@@ -203,7 +203,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 1
 - Remote: -
-- PR: -
+- PR: #93
 - Location: scripts/promote.sh:162
 - Description: `git fetch origin "$BASE_BRANCH" 2>/dev/null || git fetch origin 2>/dev/null || true` — erros de rede, autenticação ou remote inexistente são completamente suprimidos sem warning.
 - Impact: Desenvolvedores podem trabalhar em branch stale sem saber que o remote está inacessível. Possíveis conflitos de merge depois.
@@ -217,7 +217,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 1
 - Remote: -
-- PR: -
+- PR: #93
 - Location: opencode.json:6
 - Description: `opencode.json` inclui `~/.config/opencode/known_issues.md` no array `instructions`. Como a config é herdada por todos os projetos, as issues do opencode são injetadas no contexto de qualquer projeto que use esta config global.
 - Impact: Poluição de contexto do agente — issues do opencode (como "Agente Anderson") aparecem em sessões de outros projetos.
@@ -231,7 +231,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 1
 - Remote: -
-- PR: -
+- PR: #93
 - Location: scripts/sync_github_issues.sh:92-93
 - Description: Detecção de estado no GitLab usa `glab issue view | head -5 | grep -i state` — frágil e dependente de formatação. Além disso, o branch GitLab nunca chama `SHOULD_CLOSE=true` para status resolved (linhas 91-94 faltam a lógica de fechamento).
 - Impact: Issues GitLab em status resolved nunca são fechadas automaticamente pelo sync. Detecção quebra com mudanças de versão do glab.
@@ -245,7 +245,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 1 (docs, runtime)
 - Remote: -
-- PR: -
+- PR: #93
 - Location: commands/ocf:develop.md, opencode.json, agents/development/develop-router.md, agents/development/devs/golang.md, agents/development/devs/python.md, skills/development/go/*, skills/development/python/*
 - Description: Atualizar `ocf:develop` para invocar `develop-router` e registrar agentes especializados para Go e Python com skills dedicadas.
 - Impact: O fluxo de desenvolvimento passa a rotear automaticamente para o agente mais específico, em vez de cair sempre no `developer` genérico, melhorando a qualidade idiomática em projetos Go e Python.
@@ -268,7 +268,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 1 (docs, runtime)
 - Remote: -
-- PR: -
+- PR: #93
 - Location: agents/development/discovery.md, agents/development/delivery.md, agents/README.md, agents/development/README.md, opencode.json, workflow.md
 - Description: Criar dois meta-agentes que orquestram as fases do pipeline: Discovery (fases 1-6: PO -> CTO -> Tech Lead -> PO -> QA -> PM) e Delivery (fases 6-12: PM -> Developer -> Review -> QA -> Committer -> Publish -> Close). Registrar comandos `ocf:discovery` e `ocf:delivery` no opencode.json.
 - Impact: Simplifica o uso do pipeline — usuários podem invocar um único comando para executar todas as fases de discovery ou delivery, em vez de invocar cada agente individualmente.
@@ -290,7 +290,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 2 (devops, security)
 - Remote: #32
-- PR: -
+- PR: #93
 - Location: .github/workflows/aibot-develop.yml, Dockerfile, scripts/build-opencode-image.sh, scripts/run-ci-workflow.sh, opencode.json, workflow.md, scripts/README.md
 - Description: Executar o pipeline de desenvolvimento completo em CI remoto (GitHub Actions / GitLab CI) ao detectar `@aibot:develop` em comentário de issue. O workflow usa uma **imagem Docker pre-built** do opencode config (`ghcr.io/pereirawe/opencode-flow:latest` + tag semver) que inclui opencode binary + config completa (agents, skills, commands, scripts, deny rules). O workflow roda `opencode run --command "ocf:develop" <id> --auto` em **modo headless** (sem `--attach`) no runner CI, cria a MR e o aibot comenta o link. Paralelismo massivo: cada repo/issue corre no próprio runner, sem consumir recursos locais.
 - Impact: Libera a máquina local; escala horizontalmente com runners GitHub/GitLab; isola cada run; paridade local/CI via imagem imutável. O watcher local (issue 39) vira fallback.
@@ -344,14 +344,14 @@ See `standards/issues.md` for the full contract.
  - Suggested fix (alternativo): Se o spike do modo headless falhar, avaliar self-hosted GitHub runner na mesma VM do opencode web, com `--attach http://127.0.0.1:4096` — mantém paralelismo sem exigir suporte headless do opencode. SPIKE PASSED — alternativa NÃO necessária.
 
 ### 73. Standardize project language to English (prompts, skills, docs, scripts) with locale-aware responses
-- Status: in-review
+- Status: in-publish
 - Type: feat
 - Severity: high
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 2 (docs, qa)
 - Remote: -
-- PR: -
+- PR: #93
 - Location: agents/** (PT prompts), commands/** (PT docs + opencode.json command templates), skills/**/SKILL.md native (PT frontmatter/body, excl. vendor/**), scripts/*.sh (PT comments/usage/messages), scripts/tests/test_*.sh (PT assertion messages), scripts/tests/test_language.sh (NEW), AGENTS.md, workflow.md, conventions.md, decisions.md, architecture.md, standards/*.md EN originals, standards/aibot-messages.md (exemption note only), standards/telegram-messages.md (EN original + move PT to standards/pt/), skills/shared/locale-loader/SKILL.md
 - Description: Rewrite ALL remaining Portuguese-language artifacts to English: agent prompts, skill prompts (frontmatter + body), command docs and opencode.json command templates, scripts (comments, usage/help, errors), root docs (AGENTS.md, workflow.md, conventions.md, decisions.md, architecture.md), and standards/*.md English originals. Standards keep pt/es translations. Add the canonical response-language rule to AGENTS.md (input language → .opencode/locale project → global → EN) and per-agent one-line references; update locale-loader SKILL.md. Ship scripts/tests/test_language.sh as an advisory-then-blocking language-conformance gate (heuristic accent+stopword, auto-discovered by run_all.sh). standards/aibot-messages.md is exempted as a PT-BR domain contract (issue #39). Issue #64 lands first; career files are not re-rewritten.
 - Impact: Every agent that reads these prompts (developer, reviewers, QA, committer, sector agents), every project that inherits the global config, and the maintainer — PT/EN mixing (~44 files) is eliminated; outputs remain localized for the user. No runtime behavior change; touching core prompts carries regression risk mitigated by the gate + QA pre-development + senior review.
@@ -411,7 +411,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 2 (devops, security)
 - Remote: -
-- PR: -
+- PR: #93
 - Location: scripts/run-parallel-delivery.sh (NEW orchestrator), scripts/tests/test_parallel_delivery.sh (NEW), .opencode/spikes/containerized-delivery.md (NEW), state/parallel-delivery/ (host lockfiles, NEW, gitignored), scripts/telegram-notify.sh (env-var verification/tests), scripts/test-runner.sh (cache seeding integration), workflow.md (entry-point + boundary docs), opencode.json (command registration if applicable), scripts/README.md, aibot-repos.json (consumed, unchanged), Dockerfile (reference only — #40 image base)
 - Description: Spike-first. Prove that N=3 parallel containerized delivery sessions complete concurrently on one host with zero file-write/git conflicts and results identical to serial execution, documenting the outcome in .opencode/spikes/containerized-delivery.md with pass/fail criteria. Each session runs the full delivery pipeline (promote → develop → senior review → QA → corrections → committer gate → MR) inside its own container with a private working-tree snapshot (feature branch issue-<id>-<slug> on the base branch), reusing the #40 image ghcr.io/pereirawe/opencode-flow (semver-tagged). Orchestrator handles per-issue host-side flock locking (state/parallel-delivery/), parallelism cap AIBOT_MAX_PARALLEL (default 3), cache seeding, session result contract, working-tree-only sync-back to host known_issues.md, resource limits/cleanup, and orphan reaping. Security/allowlist/no-merge-polling boundaries from #39/#40 preserved. If the spike fails, fall back to host-side git worktree isolation or #39 flock serialization.
 - Impact: The delivery pipeline's throughput bottleneck on the local machine — concurrent ocf:delivery/ocf:develop sessions collide today on one shared working tree. This unblocks N parallel deliveries (default 3) per host. Touches the core lifecycle (promote/develop/publish) and security boundaries — regression risk mitigated by spike-gating, idempotency requirements, and the #39/#40 gate semantics being reused. BLOCKED ON #40 landing on main + GHCR image publish (semver) — do not promote to in-progress until that lands.
@@ -476,16 +476,18 @@ See `standards/issues.md` for the full contract.
 - Suggested fix: (1) run the spike first: validate the four preconditions (Docker daemon, image obtainment via GHCR or #40-branch build, model-API egress, API-level parallelism measurement), evaluate both isolation candidates (host-side git worktree vs full volume-copy clone with isolated .git) including git-metadata race analysis, document pass/fail in .opencode/spikes/containerized-delivery.md; (2) on pass: implement the orchestrator script scripts/run-parallel-delivery.sh (per-issue host-side flock under state/parallel-delivery/ with TOCTOU re-check, AIBOT_MAX_PARALLEL runtime cap, snapshot spawn with cache seeding, CPU/mem/time limits, cleanup + orphan reap, session result contract, working-tree-only sync-back as uncommitted diff with tracker flock); (3) verify/extend scripts/telegram-notify.sh env-only credentials (likely verification + tests only — support already exists); (4) add scripts/tests/test_parallel_delivery.sh covering locking, idempotency, result contract, sync-back, and deny-rule/allowlist gating; (5) document in workflow.md + scripts/README.md. Effort ~28–36h, spike-gated. BLOCKED ON #40 landing on main + GHCR image publish (semver) — do not promote to in-progress until that lands. Origem: Proposal 2026-08-14-13 em prioritization.md.
 
 ### 75. standards/cv-analysis.md lacks a report-type section for linkedin-optimization.md
-- Status: backlog
+- Status: in-publish
+- Ready: 2026-08-17
+- Started: 2026-08-17
 - Type: doc
 - Severity: low
 - Report: opencode
 - Base branch: main
 - Reviewers: 1 (docs)
 - Remote: -
-- PR: -
+- PR: #93
 - Location: standards/cv-analysis.md (section 3), skills/career/cv-linkedin/SKILL.md
-- Description: Issue #67 (ocf:cv-linkedin) introduced a new career-sector report type, `linkedin-optimization.md`, and the skill/agent/command correctly reference `standards/cv-analysis.md` for its structure. However, `standards/cv-analysis.md` §3 ("Report-type structures") only documents `analise-perfil.md` (§3.1), `gap-analysis.md` (§3.2) and `inferencias.md` (§3.3) — there is no §3.x entry defining the canonical structure of `linkedin-optimization.md` (H2 section order: Target role → Headline → About → Skills ranking → Featured). The implementation follows the standard's general rules (§1 language, §2 structure, §5 INFERIDO) and defines the section order inline in the skill, so the delivered contract is met; the standard itself is incomplete for future consistency.
+- Description: Issue #67 (ocf:cv-linkedin) introduced a new career-sector report type, `linkedin-optimization.md`, and the skill/agent/command correctly reference `standards/cv-analysis.md` for its structure. However, `standards/cv-analysis.md` §3 ("Report-type structures") only documents `profile-analysis.md` (§3.1), `gap-analysis.md` (§3.2) and `inferences.md` (§3.3) — there is no §3.x entry defining the canonical structure of `linkedin-optimization.md` (H2 section order: Target role → Headline → About → Skills ranking → Featured). The implementation follows the standard's general rules (§1 language, §2 structure, §5 INFERIDO) and defines the section order inline in the skill, so the delivered contract is met; the standard itself is incomplete for future consistency.
 - Impact: The report type's canonical structure lives in the skill instead of the shared standard; future report types (e.g. #68 interview prep, #69 ATS score) will not have a single canonical reference. Low severity — no functional impact on #67.
 - Business rules:
   1. `standards/cv-analysis.md` DEVE document the `linkedin-optimization.md` report type structure in §3 (as §3.4 or a generic §3.x), matching the section order implemented in the cv-linkedin skill: Target role, Headline suggestions, About section draft, Skills ranking, Featured section.
@@ -509,7 +511,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 1 (qa)
 - Remote: -
-- PR: -
+- PR: #93
 - Location: known_issues.md (issues #66, #67, #68, #69, #70, #71, #72), standards/issues.md, workflow.md
 - Description: The `Tests:` field is MANDATORY for every new issue, captured during discovery as `scenario → outcome` lines (feat/high → ≥3 lines; feat/bug → never `-`). All career-bundle issues were created WITHOUT the field: #66 (closed 2026-08-15), #67 (in-review), and #68-#72 (backlog). The QA pre-development Phase 5 check was skipped for this bundle and the senior reviewers did not flag it. This is an incomplete-spec discovery gap, NOT a bug — no code was written against undocumented scenarios (developers wrote tests from the sector standards), but the issue entries fail the mandatory field contract.
 - Impact: Issue entries do not comply with the mandatory `Tests:` standard; the enforcement chain (QA Phase 5 → senior review → post-review QA) did not catch the systematic gap. Without capture, the committer cannot verify the test floor, and future discovery cycles lack the per-issue scenario contract. #67 itself is otherwise fully verified (all 12 BRs/ACs, tests passing) — only the entry field is missing.
@@ -536,7 +538,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 1 (security)
 - Remote: -
-- PR: -
+- PR: #93
 - Location: agents/career/cv-cover-letter.md:19,43, commands/ocf:cv-cover-letter.md:30, skills/career/cv-cover-letter/SKILL.md:30, opencode.json:139
 - Description: O issue #72 (D5) removeu `curl -L` do cv-tailor (vetor SSRF via file:// redirects; LinkedIn sempre bloqueia). A mesma racionalidade se aplica ao cv-cover-letter, que ainda ensina/permite fetch de URL via `curl -L` no agente, skill, comando e template opencode.json. Encontrado na senior review do #72 (L1) e confirmado na re-review como follow-up obrigatório — fora do escopo do #72.
 - Impact: Vetor SSRF e dependência de fetch de URL não confiável persistente no fluxo de carta de apresentação; inconsistência com o padrão do setor career estabelecido no #72.

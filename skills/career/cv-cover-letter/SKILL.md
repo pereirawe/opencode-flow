@@ -47,7 +47,7 @@ Extract from the job:
 The gap analysis tells you which requirements the candidate already meets, so
 the letter can highlight the strongest matches.
 
-- **Reuse**: if `~/career/<candidate-name>/curriculos/<job-slug>/gap-analysis.md`
+- **Reuse**: if `~/career/<candidate-name>/resumes/<job-slug>/gap-analysis.md`
   exists (produced by cv-tailor for the same job), load it and use its
   `atendido`/`parcial` matches to select the achievements to highlight.
 - **Build inline**: otherwise, classify each requirement against the hub using
@@ -73,7 +73,7 @@ the letter can highlight the strongest matches.
   - `Evidence in hub` — citation of the hub entry supporting the match
     (e.g. `skills: Kubernetes (level: advanced)`) or a reason for the gap.
 
-**Gap analysis language**: `gap-analysis.md` and `inferencias.md` are
+**Gap analysis language**: `gap-analysis.md` and `inferences.md` are
 analysis artifacts — they MUST be written in the language the user
 communicates in (session locale or explicit user instruction; English as the
 fallback), like the other career analysis outputs (resolution order in
@@ -83,7 +83,7 @@ language.
 ## Human validation flow for inferences
 
 Before generating the final HTML/PDF, list ALL inferences and placeholders in
-`cartas/<job-slug>/inferencias.md` following the canonical structure of
+`cartas/<job-slug>/inferences.md` following the canonical structure of
 `standards/cv-analysis.md` §3.3 — the canonical inferences table:
 
 ```
@@ -107,7 +107,7 @@ Ask the candidate to decide on each one:
 | `promote` | Use as fact only if the candidate confirms real data (no marker in the output) |
 
 After the human decision, generate the HTML with NO `[INFERIDO]` marker. The
-resolved list stays recorded in `inferencias.md` for traceability.
+resolved list stays recorded in `inferences.md` for traceability.
 
 ## Drafting the letter (without fabricating)
 
@@ -161,7 +161,7 @@ structured as:
 ├── index.html            # cover letter HTML (job language)
 ├── carta-apresentacao.pdf  # generated A4 PDF
 ├── gap-analysis.md       # requirements vs hub analysis (when built inline)
-└── inferencias.md        # resolved inferences list (human review)
+└── inferences.md        # resolved inferences list (human review)
 ```
 
 `<job-slug>` = normalized company + title (e.g. `acme-senior-data-engineer`).
