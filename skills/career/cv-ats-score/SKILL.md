@@ -201,7 +201,7 @@ the `[INFERIDO]` marker MAY appear INLINE next to estimates, per
 `standards/cv-analysis.md` §5 — e.g. an estimated ATS parse behavior
 `[INFERIDO]`. It MUST NEVER appear in the shareable resume artifacts
 (`index.html`, `curriculo.pdf`) — the report NEVER edits those files, and
-`scripts/cv/check-inferido.sh` remains the gate for the resume itself.
+`scripts/cv/check-inference.sh` remains the gate for the resume itself.
 
 ## Hard rules
 

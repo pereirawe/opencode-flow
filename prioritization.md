@@ -293,7 +293,7 @@ at proposal time. Unknown rules will be captured during discovery refinement.
   1. `[INFERIDO]` DEVE ser permitido APENAS em artefactos internos de revisão humana: hub.json, analise-perfil.md, analise-perfil.pdf, gap-analysis.md e listas de inferências (ex.: `curriculos/<slug>/inferencias.md`).
   2. NO output partilhável final — `curriculos/<slug>/index.html` e `curriculos/<slug>/curriculo.pdf` — NENHUM `[INFERIDO]` pode aparecer (nem variações case-insensitive: [inferido], [Inferido], "inferido").
   3. Conteúdo inferido DEVE ser omitido, reformulado ou aprovado pelo candidato ANTES da geração — nunca embutido no output final.
-  4. DEVE existir um gate de verificação (script `scripts/cv/check-inferido.sh` ou hook no pdf.sh) que escaneie o HTML (e o texto do PDF via pdftotext quando disponível) e BLOQUEIE a geração com exit != 0 e mensagem clara listando as ocorrências.
+  4. DEVE existir um gate de verificação (script `scripts/cv/check-inference.sh` ou hook no pdf.sh) que escaneie o HTML (e o texto do PDF via pdftotext quando disponível) e BLOQUEIE a geração com exit != 0 e mensagem clara listando as ocorrências.
   5. Fluxo de validação humana: o agente DEVE listar todas as inferências e pedir decisão do candidato sobre cada uma (reformular/omitir, ou promover a facto apenas com confirmação de dado real) ANTES de gerar o HTML/PDF final.
   6. As instruções que pedem "marcar [INFERIDO] no HTML/PDF" DEVEM ser removidas de: skill cv-tailor, agente career/cv-tailor, comando ocf:cv-tailor, template do comando em opencode.json e workflow.md.
   7. cv-hub (hub.json) e cv-optimizer (analise-perfil.md/pdf, gap-analysis) MANTÊM `[INFERIDO]` nos artefactos internos — sem alteração de comportamento.

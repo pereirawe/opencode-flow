@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Tests for the career CV scripts: scripts/cv/validate.py, scripts/cv/pdf.sh,
-# the scripts/cv/check-inferido.sh gate, and scripts/cv/migrate-schema.py.
+# the scripts/cv/check-inference.sh gate, and scripts/cv/migrate-schema.py.
 # Self-contained: generates its own fixtures under a temp dir, no network, no TTY.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
@@ -11,7 +11,7 @@ t_begin "test_cv"
 CV_DIR="$SCRIPT_DIR/../cv"
 VALIDATOR="$CV_DIR/validate.py"
 PDF_SH="$CV_DIR/pdf.sh"
-CHECK_INFERIDO="$CV_DIR/check-inferido.sh"
+CHECK_INFERIDO="$CV_DIR/check-inference.sh"
 MIGRATE="$CV_DIR/migrate-schema.py"
 
 TMP="$(mktemp -d)"
@@ -201,7 +201,7 @@ set -e
 assert_eq "0" "$rc_samedir" "LibreOffice fallback succeeds in the same-dir invocation"
 assert_eq "1" "$(test -s "$TMP/samedir/curriculo.pdf" && echo 1 || echo 0)" "same-dir fallback PDF written"
 
-# --- check-inferido.sh gate ---
+# --- check-inference.sh gate ---
 # The gate blocks [INFERIDO] markers (case-insensitive) in the FINAL HTML/PDF.
 # Internal artifacts (hub.json, gap-analysis.md, inferencias.md) keep them.
 
@@ -369,8 +369,8 @@ if [[ -f "$TAILOR_SKILL" ]]; then
   assert_not_contains "$TAILOR_SKILL" "marcar \`[INFERIDO]\`" \
     "cv-tailor skill has no 'mark [INFERIDO]' instruction"
   # it MUST document the mandatory gate before the PDF
-  assert_contains "$TAILOR_SKILL" "check-inferido.sh" \
-    "cv-tailor skill mandates the check-inferido.sh gate"
+  assert_contains "$TAILOR_SKILL" "check-inference.sh" \
+    "cv-tailor skill mandates the check-inference.sh gate"
   # and the human-decision flow via inferencias.md
   assert_contains "$TAILOR_SKILL" "inferencias.md" \
     "cv-tailor skill documents the inferencias.md human-decision flow"
@@ -387,8 +387,8 @@ TAILOR_AGENT="$SCRIPT_DIR/../../agents/career/cv-tailor.md"
 if [[ -f "$TAILOR_AGENT" ]]; then
   assert_not_contains "$TAILOR_AGENT" "marcado \`[INFERIDO]\` no HTML/PDF" \
     "cv-tailor agent no longer instructs marking [INFERIDO] in the HTML/PDF"
-  assert_contains "$TAILOR_AGENT" "check-inferido.sh" \
-    "cv-tailor agent invokes the check-inferido.sh gate"
+  assert_contains "$TAILOR_AGENT" "check-inference.sh" \
+    "cv-tailor agent invokes the check-inference.sh gate"
   assert_contains "$TAILOR_AGENT" "inferencias.md" \
     "cv-tailor agent documents the inferencias.md human-decision flow"
 else
@@ -428,8 +428,8 @@ if [[ -f "$CL_SKILL" ]]; then
   assert_contains "$CL_SKILL" "summary_i18n" \
     "cv-cover-letter skill references the English summary_i18n key"
   # mandatory [INFERIDO] gate before the PDF + design/analysis standards
-  assert_contains "$CL_SKILL" "check-inferido.sh" \
-    "cv-cover-letter skill mandates the check-inferido.sh gate"
+  assert_contains "$CL_SKILL" "check-inference.sh" \
+    "cv-cover-letter skill mandates the check-inference.sh gate"
   assert_contains "$CL_SKILL" "standards/cv-design.md" \
     "cv-cover-letter skill mandates standards/cv-design.md"
   assert_contains "$CL_SKILL" "standards/cv-analysis.md" \
@@ -451,8 +451,8 @@ fi
 
 CL_AGENT="$SCRIPT_DIR/../../agents/career/cv-cover-letter.md"
 if [[ -f "$CL_AGENT" ]]; then
-  assert_contains "$CL_AGENT" "check-inferido.sh" \
-    "cv-cover-letter agent invokes the check-inferido.sh gate"
+  assert_contains "$CL_AGENT" "check-inference.sh" \
+    "cv-cover-letter agent invokes the check-inference.sh gate"
   assert_contains "$CL_AGENT" "~/career/**" \
     "cv-cover-letter agent restricts edits to ~/career/** (BR 11)"
   assert_contains "$CL_AGENT" "validate.py" \

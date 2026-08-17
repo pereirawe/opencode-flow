@@ -10,7 +10,7 @@ permission:
     "*": deny
     "*SCRIPTS_DIR/cv/pdf.sh*": allow
     "*SCRIPTS_DIR/cv/validate.py*": allow
-    "*SCRIPTS_DIR/cv/check-inferido.sh*": allow
+    "*SCRIPTS_DIR/cv/check-inference.sh*": allow
     "python3 *": allow
     "ls *": allow
     "mkdir -p *": allow
@@ -61,7 +61,7 @@ language.
 8. **Verify conformity with the standard** — the ATS/print/pages checklist of
    `standards/cv-design.md` (headings, single column, no emoji/Google Fonts,
    12–15mm margins, 1–2 pages) before generating the PDF.
-9. **Run the mandatory gate**: `bash $SCRIPTS_DIR/cv/check-inferido.sh index.html`
+9. **Run the mandatory gate**: `bash $SCRIPTS_DIR/cv/check-inference.sh index.html`
    — the gate MUST pass (exit 0) before the PDF.
 10. Generate the PDF: `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
 11. Compute the gap-analysis metrics on the FINAL resume text — the
@@ -79,7 +79,7 @@ language.
 2. `[INFERIDO]` is allowed ONLY in internal artifacts (hub.json, gap-analysis.md,
    inferencias.md) per `standards/cv-analysis.md` §5. In the final HTML/PDF NO
    `[INFERIDO]` may appear (nor case-insensitive variants) — the
-   `check-inferido.sh` gate blocks generation.
+   `check-inference.sh` gate blocks generation.
 3. Resume language = job language (pt/en/es).
 4. Contact (phone/email/address) only if present in the hub. Always omit
    sensitive data.

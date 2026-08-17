@@ -5,8 +5,10 @@
 # Internal analysis files (hub.json, analise-perfil.md, gap-analysis.md,
 # inferencias.md) MAY keep [INFERIDO]. The final HTML/PDF MUST NOT.
 #
-# Usage: check-inferido.sh <file> [<file> ...]
-#   - HTML: greps the raw content for "inferido" (case-insensitive).
+# Usage: check-inference.sh <file> [<file> ...]
+#   - HTML: strips HTML/CSS comments (non-rendered, not part of the
+#     shareable artifact) then greps the visible content for "inferido"
+#     (case-insensitive).
 #   - PDF: extracts text via pdftotext when available (best-effort); if
 #     pdftotext is missing, the HTML gate is authoritative.
 #
@@ -17,7 +19,7 @@
 set -euo pipefail
 
 if [[ $# -lt 1 ]]; then
-  echo "Usage: check-inferido.sh <file> [<file> ...]" >&2
+  echo "Usage: check-inference.sh <file> [<file> ...]" >&2
   exit 2
 fi
 
@@ -50,7 +52,9 @@ for f in "${FILES[@]}"; do
       fi
       ;;
     *)
-      scan_text "$f" "$(cat "$f")"
+      # Strip HTML and CSS comments: they are not rendered and must not trip
+      # the gate (e.g. the template guard comment references the marker).
+      scan_text "$f" "$(perl -0pe 's/<!--.*?-->//gs; s{/\*.*?\*/}{}gs' "$f" 2>/dev/null || cat "$f")"
       ;;
   esac
 done

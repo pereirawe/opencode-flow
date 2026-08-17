@@ -255,7 +255,7 @@ case-preserved.
    (`index.html`, `curriculo.pdf`) and any artifact submitted to an
    ATS/recruiter MUST NOT contain `[INFERIDO]` — nor case-insensitive
    variants (`[inferido]`, `[Inferido]`) or the bare word "inferido".
-4. **Gate** — `scripts/cv/check-inferido.sh` MUST pass (exit 0) on the final
+4. **Gate** — `scripts/cv/check-inference.sh` MUST pass (exit 0) on the final
    resume HTML/PDF before delivery; it blocks with exit 1 when markers are
    found.
 5. **Resume handling** — inferred content in a resume is omitted, rephrased,
@@ -296,4 +296,4 @@ complex merges, no nested layouts.
 - [ ] No concrete jobs/companies/URLs in target profiles
 - [ ] No sensitive data (CPF, full address, bank)
 - [ ] HTML render follows the template + cv-design.md design language
-- [ ] `[INFERIDO]` NEVER in shareable resume artifacts (`check-inferido.sh`)
+- [ ] `[INFERIDO]` NEVER in shareable resume artifacts (`check-inference.sh`)

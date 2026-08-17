@@ -54,7 +54,7 @@ The job can be provided as:
    job language.
 7. **Verify conformity** with the standard (the ATS/print/pages checklist of
    `standards/cv-design.md`) before the PDF.
-8. **Mandatory gate** — `bash $SCRIPTS_DIR/cv/check-inferido.sh index.html`
+8. **Mandatory gate** — `bash $SCRIPTS_DIR/cv/check-inference.sh index.html`
    MUST pass (exit 0) before the PDF.
 9. **Generate the PDF** — `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
 10. **Gap-analysis metrics** — after the PDF, extract the FINAL resume text
@@ -71,7 +71,7 @@ The job can be provided as:
   scratch; verify conformity before the PDF.
 - `[INFERIDO]` is allowed ONLY in internal artifacts (hub.json,
   gap-analysis.md, inferencias.md) per `standards/cv-analysis.md` §5. In the
-  final HTML/PDF NO `[INFERIDO]` may appear — the `check-inferido.sh` gate
+  final HTML/PDF NO `[INFERIDO]` may appear — the `check-inference.sh` gate
   blocks generation.
 - Contact only if present in the hub; sensitive data never.
 - A4 PDF ready for ATS, clean typography, semantic headings.

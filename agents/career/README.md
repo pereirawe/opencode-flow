@@ -55,5 +55,5 @@ the single source of truth for every agent and skill.
 - Resumes and PDFs follow `standards/cv-design.md`, starting from the
   reference template `skills/career/cv-pdf/templates/resume.html`.
 - Skills live under `skills/career/*`; supporting scripts under
-  `scripts/cv/*` (`pdf.sh`, `validate.py`, `check-inferido.sh`,
+  `scripts/cv/*` (`pdf.sh`, `validate.py`, `check-inference.sh`,
   `migrate-schema.py`).

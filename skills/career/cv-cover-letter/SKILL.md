@@ -178,7 +178,7 @@ structured as:
    single column, no images/complex tables, no emoji/Google Fonts, `@page {
    size: A4; margin: 12mm 15mm; }`, clean `@media print`, fits one page.
 3. **Run the inference gate BEFORE the PDF**:
-   `bash $SCRIPTS_DIR/cv/check-inferido.sh index.html` — the gate MUST pass
+   `bash $SCRIPTS_DIR/cv/check-inference.sh index.html` — the gate MUST pass
    (exit 0) before continuing. If it fails, remove/rephrase the markers and
    run again. This gate is mandatory and cannot be skipped.
 4. Run `bash $SCRIPTS_DIR/cv/pdf.sh index.html carta-apresentacao.pdf`.

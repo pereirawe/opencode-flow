@@ -10,7 +10,7 @@ permission:
     "*": deny
     "*SCRIPTS_DIR/cv/pdf.sh*": allow
     "*SCRIPTS_DIR/cv/validate.py*": allow
-    "*SCRIPTS_DIR/cv/check-inferido.sh*": allow
+    "*SCRIPTS_DIR/cv/check-inference.sh*": allow
     "python3 *": allow
     "pdftotext *": allow
     "ls *": allow
@@ -61,7 +61,7 @@ cover letter in the job's language and generates the letter HTML + PDF.
    `skills/career/cv-pdf/templates/resume.html` following the
    `standards/cv-design.md` standard (A4, sober, ATS-clean; NEVER rewrite the
    CSS from scratch; NEVER `[INFERIDO]` in the final HTML/PDF).
-9. **Run the mandatory gate**: `bash $SCRIPTS_DIR/cv/check-inferido.sh index.html`
+9. **Run the mandatory gate**: `bash $SCRIPTS_DIR/cv/check-inference.sh index.html`
    — the gate MUST pass (exit 0) before the PDF.
 10. Generate the PDF: `bash $SCRIPTS_DIR/cv/pdf.sh index.html carta-apresentacao.pdf`.
 
@@ -71,7 +71,7 @@ cover letter in the job's language and generates the letter HTML + PDF.
 2. `[INFERIDO]` is allowed ONLY in internal artifacts (hub.json,
    gap-analysis.md, inferencias.md) per `standards/cv-analysis.md` §5. In the
    final HTML/PDF NO `[INFERIDO]` may appear (nor case-insensitive variants) —
-   the `check-inferido.sh` gate blocks generation.
+   the `check-inference.sh` gate blocks generation.
 3. Cover letter language = job language (pt/en/es).
 4. The letter MUST reference specific hub achievements matching the job's key
    requirements — not generic praise.
