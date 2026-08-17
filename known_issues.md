@@ -52,22 +52,6 @@ and ready→in-progress; close_issue.sh stamps `Resolved:` and computes
 `Durations:` into the archive). Set-if-absent, idempotent, new issues only.
 See `standards/issues.md` for the full contract.
 
-### 20. Agente Anderson — feedback de usuário leigo nas MRs
-- Status: resolved
-- Resolved: 2026-08-17
-- Type: feat
-- Severity: medium
-- Report: PO
-- Base branch: main
-- Reviewers: 2 (qa, ux-ui)
-- Remote: #20
-- PR: #93
-- Location: agents/development/anderson.md, opencode.json, workflow.md
-- Description: Criar agente "Anderson" — usuário leigo, ansioso, paulistano e puxa-saco — que comenta automaticamente em PT-BR nas MRs após o publish-requester, simulando feedback do cliente final.
-- Impact: Fecha o gap de validação do ponto de vista do usuário final no pipeline. Força PRs a serem escritas de forma clara para não-técnicos.
-- Business rules: all 12 implemented
-- Suggested fix: Implemented
-
 ### 24. `pre_commit.sh` não sincroniza trailers de status com `known_issues.md`
 - Status: backlog
 - Type: bug
@@ -261,29 +245,6 @@ See `standards/issues.md` for the full contract.
   8. O ecossistema Python pode incluir skill especializada para Flask quando o desafio principal for desenho de API HTTP e nao sintaxe da linguagem.
 - Suggested fix: Adicionar o router, registrar os agentes especializados e atualizar o comando/config para usar o novo fluxo.
 
-### 38. Criar agentes orquestradores Discovery e Delivery
-- Status: resolved
-- Resolved: 2026-08-17
-- Type: feat
-- Severity: medium
-- Report: william_pereira
-- Base branch: main
-- Reviewers: 1 (docs, runtime)
-- Remote: -
-- PR: #93
-- Location: agents/development/discovery.md, agents/development/delivery.md, agents/README.md, agents/development/README.md, opencode.json, workflow.md
-- Description: Criar dois meta-agentes que orquestram as fases do pipeline: Discovery (fases 1-6: PO -> CTO -> Tech Lead -> PO -> QA -> PM) e Delivery (fases 6-12: PM -> Developer -> Review -> QA -> Committer -> Publish -> Close). Registrar comandos `ocf:discovery` e `ocf:delivery` no opencode.json.
-- Impact: Simplifica o uso do pipeline — usuários podem invocar um único comando para executar todas as fases de discovery ou delivery, em vez de invocar cada agente individualmente.
-- Business rules:
-  1. Discovery agent DEVE orquestrar fases 1-6 sequencialmente (PO -> CTO -> Tech Lead -> PO -> QA -> PM)
-  2. Delivery agent DEVE orquestrar fases 6-12 sequencialmente (PM -> Developer -> Review -> QA -> Committer -> Publish -> Close)
-  3. Após promoção (fase 6), fases 7-11 DEVEM executar automaticamente sem confirmação do usuário
-  4. Fase 12 (Close Requester) DEVE pausar após criação da MR — apenas dispara quando MR é merged
-  5. Comandos `ocf:discovery` e `ocf:delivery` DEVEM ser registrados no opencode.json
-  6. agents/README.md e agents/development/README.md DEVEM listar os novos agentes orquestradores
-  7. workflow.md DEVE documentar os agentes orquestradores
-- Suggested fix: Criar agents/development/discovery.md e agents/development/delivery.md com instruções completas de orquestração. Atualizar READMEs e workflow.md. Registrar comandos no opencode.json.
-
 ### 40. AIBot nativo em GitHub Actions / GitLab CI com imagem Docker do opencode config
 - Status: in-progress
 - Type: feat
@@ -344,67 +305,6 @@ See `standards/issues.md` for the full contract.
   8. **Testes**: `scripts/tests/test_run_ci_workflow.sh` (bash puro, sem BATS) cobre as gates do `run-ci-workflow.sh` (autor/token/allowlist/tracker/status/headless argv) com mocks de `opencode`/`gh` via PATH; `bash -n` em todos os scripts; `actionlint` ausente na máquina — validação do YAML feita com parser do Ruby/`docker` fallback (AC 3 verificado estaticamente; exige runner para validação real do GitHub Actions). `docker build` executado (AC 1) se o daemon estiver disponível.
   9. **GitLab CI (AC 15)**: este repo é GitHub-only (origin github.com). O `.github/workflows/aibot-develop.yml` cobre GitHub Actions; o mesmo `scripts/run-ci-workflow.sh` é provider-agnostic (detecta github/gitlab do remote) e pode ser invocado de um `.gitlab-ci.yml` equivalente — documentado no `scripts/README.md` (seção "GitLab CI"). Matriz de provider coberta no script; o workflow YAML GitLab não foi criado por ausência de repo GitLab no allowlist (flag incompleto se o PO quiser).
  - Suggested fix (alternativo): Se o spike do modo headless falhar, avaliar self-hosted GitHub runner na mesma VM do opencode web, com `--attach http://127.0.0.1:4096` — mantém paralelismo sem exigir suporte headless do opencode. SPIKE PASSED — alternativa NÃO necessária.
-
-### 73. Standardize project language to English (prompts, skills, docs, scripts) with locale-aware responses
-- Status: resolved
-- Resolved: 2026-08-17
-- Type: feat
-- Severity: high
-- Report: william_pereira
-- Base branch: main
-- Reviewers: 2 (docs, qa)
-- Remote: -
-- PR: #93
-- Location: agents/** (PT prompts), commands/** (PT docs + opencode.json command templates), skills/**/SKILL.md native (PT frontmatter/body, excl. vendor/**), scripts/*.sh (PT comments/usage/messages), scripts/tests/test_*.sh (PT assertion messages), scripts/tests/test_language.sh (NEW), AGENTS.md, workflow.md, conventions.md, decisions.md, architecture.md, standards/*.md EN originals, standards/aibot-messages.md (exemption note only), standards/telegram-messages.md (EN original + move PT to standards/pt/), skills/shared/locale-loader/SKILL.md
-- Description: Rewrite ALL remaining Portuguese-language artifacts to English: agent prompts, skill prompts (frontmatter + body), command docs and opencode.json command templates, scripts (comments, usage/help, errors), root docs (AGENTS.md, workflow.md, conventions.md, decisions.md, architecture.md), and standards/*.md English originals. Standards keep pt/es translations. Add the canonical response-language rule to AGENTS.md (input language → .opencode/locale project → global → EN) and per-agent one-line references; update locale-loader SKILL.md. Ship scripts/tests/test_language.sh as an advisory-then-blocking language-conformance gate (heuristic accent+stopword, auto-discovered by run_all.sh). standards/aibot-messages.md is exempted as a PT-BR domain contract (issue #39). Issue #64 lands first; career files are not re-rewritten.
-- Impact: Every agent that reads these prompts (developer, reviewers, QA, committer, sector agents), every project that inherits the global config, and the maintainer — PT/EN mixing (~44 files) is eliminated; outputs remain localized for the user. No runtime behavior change; touching core prompts carries regression risk mitigated by the gate + QA pre-development + senior review.
-- Business rules:
-  1. English MUST be the operational language of: agent prompts (agents/**), skill prompts (skills/**/SKILL.md frontmatter + body), command docs and opencode.json command templates, scripts (scripts/** comments, usage, help, error messages, interactive prompts), root docs (AGENTS.md, workflow.md, conventions.md, decisions.md, architecture.md), and standards/*.md English originals.
-  2. Rewrite is content-preserving (language only). Technical terms, command names, code identifiers, and domain constants ([INFERIDO], aibot message templates — BR 3) remain unchanged.
-  3. standards/aibot-messages.md is a PT-BR domain constant (issue #39 spec — the message templates ARE the PT output contract, same precedent as [INFERIDO] in #64). Exempted from the gate and NOT rewritten; a one-line EN header may be added noting the exemption. The remote-issue-comment language exception (aibot posts PT-BR) is documented in the AGENTS.md canonical rule.
-  4. Standards keep pt/es translations under standards/{locale}/; EN originals are the source of truth (locale-loader resolves per .opencode/locale).
-  5. Response-language rule (canonical in AGENTS.md): every agent responds/produces user-facing output in the user's input language; fallback = .opencode/locale (project → global) → EN. Applies to chat, reports, Telegram, remote issue comments. Per-agent one-line references added to each rewritten prompt; locale-loader SKILL.md updated to match.
-  6. New artifacts MUST be authored in English; user-facing new agents/skills carry the response rule; new standards ship pt/es translations.
-  7. Gate (scripts/tests/test_language.sh, auto-discovered by run_all.sh): heuristic detection (accent chars + PT stopword co-occurrence with per-file thresholding), NOT grep-only. Covers agents/, commands/, skills/ (native, excl. vendor/), scripts/, root docs, and standards EN originals. Advisory on first run (produces authoritative file inventory) → QA-reviewed → blocking thereafter. Exemptions: standards/pt|es/**, vendor/**, domain constants (BR 3), git history/archive, historical entries.
-  8. Historical content not retroactively rewritten (resolved_issues.md, git history, closed proposals); new/edited known_issues.md entries and new proposals authored in EN; mixed-language entries migrated opportunistically only (gate uses diff-only mode for known_issues.md — historical PT entries are exempt).
-  9. vendor/** out of scope (ADR 2026-08-05).
-  10. Scripts' static user-facing messages MUST be EN; interactive prompts MAY follow project locale but default to EN.
-  11. Skill frontmatter description: EN canonical, preserving all current trigger keywords (bilingual keyword retention — PT trigger phrases preserved as keyword appendix since users trigger skills in PT; test-runner, telegram-notifier verified PT → converted with keyword parity); QA verifies no PT description is load-bearing for triggering.
-  12. PT assertion messages in existing scripts/tests/test_*.sh are converted to EN — test-observability strings, not exemptions.
-  13. Overlap with #64/career bundle: #64 lands first; career files standardized by #64/#62/#63/#65–72 are NOT re-rewritten; merge order = career bundle → this issue.
-  14. Verification: make test-scripts passes; gate green; no behavior change (QA pre-development + senior review confirm).
-- Acceptance criteria:
-  1. All PT artifacts in agents/, commands/, native skills/**/SKILL.md, scripts/**, root docs (AGENTS.md, workflow.md, conventions.md, decisions.md, architecture.md), and standards/*.md EN originals are rewritten to English with no instruction/business-rule/behavior change (QA compares before/after for content parity).
-  2. scripts/tests/test_language.sh exists and is auto-discovered by run_all.sh (matches existing test_*.sh glob); detection is heuristic (accented chars + PT stopword co-occurrence with per-file thresholding), not a bare grep.
-  3. Gate covers agents/, commands/, native skills/ (excl. vendor/**), scripts/, root docs, and standards EN originals; the exemption set (standards/pt|es/**, vendor/**, aibot-messages.md, git history/archive, historical entries) is enforced without glob over-matching.
-  4. Gate is advisory on its first run (emits authoritative file inventory for QA review) and blocking on all runs thereafter (explicit mode switch, not magic).
-  5. AGENTS.md contains the canonical response-language rule (input language → .opencode/locale project → global → EN) with the aibot PT-BR exception documented; every rewritten agent/skill prompt carries a one-line reference.
-  6. skills/shared/locale-loader/SKILL.md is updated to match the response-language rule; standards/pt/ and standards/es/ translations preserved; EN originals remain source of truth.
-  7. standards/aibot-messages.md is NOT rewritten — PT-BR templates byte-identical except optional one-line EN exemption header; the gate does not flag it.
-  8. Every skill frontmatter description converted to EN preserves all current trigger keywords (bilingual keyword appendix); QA confirms no PT description was load-bearing for skill triggering.
-  9. PT assertion messages in existing scripts/tests/test_*.sh converted to EN; suites still pass.
-  10. Scripts' static user-facing messages (usage/help/errors) are EN; interactive prompts default to EN and may follow project locale.
-  11. standards/telegram-messages.md EN original created; PT content moved to standards/pt/telegram-messages.md (currently the EN-root file is PT-only — must be corrected).
-  12. No career-bundle file standardized by #64/#62/#63/#65–#72 is re-rewritten (no duplicate diffs); merge order = career bundle first, then this issue.
-  13. No behavior change: make test-scripts passes, gate green, command names (ocf:cv-hub, ocf:develop, etc.), code identifiers, and domain constants ([INFERIDO]) unchanged — confirmed by QA pre-development and senior review.
-  14. New/edited known_issues.md entries and new prioritization.md proposals are authored in EN; resolved_issues.md, git history, and closed proposals untouched.
-  15. vendor/** third-party skills untouched (ADR 2026-08-05 / issue #50).
-- Tests:
-  1. Gate fixture PT prose (accented: "Instruções de desenvolvimento") in an agent prompt → advisory mode flags the file in the report with exit 0; blocking mode exits ≠ 0 listing the file.
-  2. Gate fixture accent-free PT prose ("Regras do fluxo de cada sistema sobre o trabalho") → flagged via stopword heuristic (stopword+threshold detection), not just accents.
-  3. Gate fixture legit EN prose (with "café"/"naïve" accents and shared Romance tokens) → 0 violations in both modes (no false positives).
-  4. PT content under standards/pt/**, standards/es/**, vendor/**, resolved_issues.md, and the exact aibot-messages.md file → gate reports 0 violations in both modes (exemptions honored, no glob over-matching).
-  5. PT word inside a fenced code block / inline backtick in an EN doc → not flagged; PT comment line inside a code block → flagged per documented per-file rule.
-  6. grep -r "idêntico\|DEVE\|Instruções" over scripts/tests/*.sh assertion messages → 0 PT assertion phrases (converted to EN); test_sync_regression.sh label spot-checked.
-  7. skills/**/SKILL.md frontmatter descriptions scanned → 0 PT descriptions; PT trigger keywords retained where documented (assert_contains on preserved bilingual triggers).
-  8. Root docs (AGENTS.md, workflow.md, conventions.md, decisions.md, architecture.md) + standards/*.md EN originals → gate scan reports 0 violations; standards/pt/** and standards/es/** parity files still exist (assert_contains).
-  9. Content-preserving baseline: assert_contains of unchanged tokens (ocf:cv-hub, ocf:develop, ocf:cv-tailor, [INFERIDO], code identifiers) in sampled rewritten files.
-  10. Canonical rule text: AGENTS.md + locale-loader contain the exact resolution order "input language → .opencode/locale → global → EN" with the aibot exception documented (assert_contains wording).
-  11. Mode transition: same fixture run with --mode=advisory then --mode=blocking → advisory exit 0 + report generated; blocking exit 1 (assert exit codes + report content).
-  12. make test-scripts regression: full suite including new test_language.sh → exit 0 (no breakage of existing tests).
-  13. (manual QA) Session in PT input → response PT; EN input → response EN; ES .opencode/locale with EN input → response EN (input wins) — behavioral checklist for QA reviewer.
-  14. (manual QA) Senior reviewer samples ≥5 rewritten files → semantics identical, only language changed (content-preservation spot-check per BR 2).
-- Suggested fix: (1) write the gate FIRST (scripts/tests/test_language.sh — heuristic accents + PT stopwords, advisory mode emitting the authoritative PT-file inventory, exemptions per BR 3/7/8/9); (2) rewrite each artifact to EN content-preserving using the inventory; (3) add canonical response rule to AGENTS.md + update locale-loader SKILL.md; (4) convert skill description frontmatter to EN with bilingual trigger-keyword appendix; (5) create standards/telegram-messages.md EN original + move PT to standards/pt/; (6) convert PT assertion messages in existing test_*.sh; (7) run make test-scripts + QA pre-development confirmation. Effort ~16–24h. Execute AFTER #64 and the career bundle (#62/#63/#65–72). Origem: Proposal 2026-08-14-12 em prioritization.md.
 
 ### 74. Validate and run delivery sessions in isolated containers for effective parallelization
 - Status: ready
@@ -477,32 +377,6 @@ See `standards/issues.md` for the full contract.
   17. (spike gate — manual/PM) Spike doc .opencode/spikes/containerized-delivery.md exists with N=3 pass criteria met, both isolation candidates evaluated, API-concurrency cap measured → verified before production implementation is promoted.
   18. (manual QA/integration) Real N=3 parallel run on host: zero file/git conflicts, no duplicate MRs, wall-clock materially < 3× serial, resource peaks within limits → recorded in spike doc.
 - Suggested fix: (1) run the spike first: validate the four preconditions (Docker daemon, image obtainment via GHCR or #40-branch build, model-API egress, API-level parallelism measurement), evaluate both isolation candidates (host-side git worktree vs full volume-copy clone with isolated .git) including git-metadata race analysis, document pass/fail in .opencode/spikes/containerized-delivery.md; (2) on pass: implement the orchestrator script scripts/run-parallel-delivery.sh (per-issue host-side flock under state/parallel-delivery/ with TOCTOU re-check, AIBOT_MAX_PARALLEL runtime cap, snapshot spawn with cache seeding, CPU/mem/time limits, cleanup + orphan reap, session result contract, working-tree-only sync-back as uncommitted diff with tracker flock); (3) verify/extend scripts/telegram-notify.sh env-only credentials (likely verification + tests only — support already exists); (4) add scripts/tests/test_parallel_delivery.sh covering locking, idempotency, result contract, sync-back, and deny-rule/allowlist gating; (5) document in workflow.md + scripts/README.md. Effort ~28–36h, spike-gated. BLOCKED ON #40 landing on main + GHCR image publish (semver) — do not promote to in-progress until that lands. Origem: Proposal 2026-08-14-13 em prioritization.md.
-
-### 75. standards/cv-analysis.md lacks a report-type section for linkedin-optimization.md
-- Status: resolved
-- Resolved: 2026-08-17
-- Ready: 2026-08-17
-- Started: 2026-08-17
-- Type: doc
-- Severity: low
-- Report: opencode
-- Base branch: main
-- Reviewers: 1 (docs)
-- Remote: -
-- PR: #93
-- Location: standards/cv-analysis.md (section 3), skills/career/cv-linkedin/SKILL.md
-- Description: Issue #67 (ocf:cv-linkedin) introduced a new career-sector report type, `linkedin-optimization.md`, and the skill/agent/command correctly reference `standards/cv-analysis.md` for its structure. However, `standards/cv-analysis.md` §3 ("Report-type structures") only documents `profile-analysis.md` (§3.1), `gap-analysis.md` (§3.2) and `inferences.md` (§3.3) — there is no §3.x entry defining the canonical structure of `linkedin-optimization.md` (H2 section order: Target role → Headline → About → Skills ranking → Featured). The implementation follows the standard's general rules (§1 language, §2 structure, §5 INFERIDO) and defines the section order inline in the skill, so the delivered contract is met; the standard itself is incomplete for future consistency.
-- Impact: The report type's canonical structure lives in the skill instead of the shared standard; future report types (e.g. #68 interview prep, #69 ATS score) will not have a single canonical reference. Low severity — no functional impact on #67.
-- Business rules:
-  1. `standards/cv-analysis.md` DEVE document the `linkedin-optimization.md` report type structure in §3 (as §3.4 or a generic §3.x), matching the section order implemented in the cv-linkedin skill: Target role, Headline suggestions, About section draft, Skills ranking, Featured section.
-  2. A DEVE explicitar que o relatório segue as regras gerais de §2 (H1 único, sem metadata header, conteúdo direto) e a convenção [INFERIDO] de §5.
-  3. NÃO DEVE alterar o comportamento da skill cv-linkedin — documento de referência, não implementação.
-- Acceptance criteria:
-  1. `standards/cv-analysis.md` tem entrada §3.x documentando `linkedin-optimization.md` com a ordem de seções H2 da skill.
-  2. A entrada referencia §2 (regras gerais) e §5 ([INFERIDO]).
-  3. Nenhuma mudança funcional na skill/agente/comando cv-linkedin.
-- Tests: -
-- Suggested fix: Add a §3.4 entry to `standards/cv-analysis.md` documenting the `linkedin-optimization.md` report structure (H2 section order per the cv-linkedin skill), referencing §2 general rules and §5 [INFERIDO] convention. Can be done as part of the #65 standard maintenance or a standalone docs commit.
 
 ### 76. Mandatory `Tests:` field missing across career-bundle issues (#66-#72) — incomplete-spec discovery gap
 - Status: backlog

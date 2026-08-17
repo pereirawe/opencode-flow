@@ -12,6 +12,36 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 73. Standardize project language to English (prompts, skills, docs, scripts) with locale-aware responses
+- Resolved: 2026-08-17
+- Durations: backlog=0d waiting=0d dev=0d total=0d
+- Severity: high
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2 (docs, qa)
+- Remote: -
+- Summary: Rewrite ALL remaining Portuguese-language artifacts to English. Add canonical response-language rule to AGENTS.md. Ship scripts/tests/test_language.sh as language-conformance gate. Standards keep pt/es translations. PR #93 merged.
+
+### 38. Criar agentes orquestradores Discovery e Delivery
+- Resolved: 2026-08-17
+- Durations: backlog=0d waiting=0d dev=0d total=0d
+- Severity: medium
+- Type: feat
+- Report: william_pereira
+- Reviewers: 1 (docs, runtime)
+- Remote: -
+- Summary: Create Discovery and Delivery orchestrator agents. Register ocf:discovery and ocf:delivery commands. Update READMEs and workflow.md. PR #93 merged.
+
+### 20. Agente Anderson — feedback de usuário leigo nas MRs
+- Resolved: 2026-08-17
+- Durations: backlog=0d waiting=0d dev=0d total=0d
+- Severity: medium
+- Type: feat
+- Report: PO
+- Reviewers: 2 (qa, ux-ui)
+- Remote: #20
+- Summary: Create Anderson agent that posts automated PT-BR feedback on MRs. All 12 business rules implemented. PR #93 merged.
+
 ### 71. Keyword density and match percentage in gap analysis
 - Resolved: 2026-08-17
 - Durations: backlog=0d waiting=0d dev=2d total=2d
