@@ -25,28 +25,28 @@ set +euo pipefail   # neutralize the watcher's strict options for the harness
 assert_cmd_ok()  { local l="$1"; shift; if "$@" >/dev/null 2>&1; then t_ok "$l"; else t_fail "$l"; fi; }
 assert_cmd_fail(){ local l="$1"; shift; if "$@" >/dev/null 2>&1; then t_fail "$l"; else t_ok "$l"; fi; }
 
-assert_cmd_ok   "token standalone linha"         has_token "@aibot:develop"
-assert_cmd_ok   "token standalone com espacos"   has_token "   @aibot:develop   "
-assert_cmd_ok   "token em linha propria multi"   has_token $'algum texto\n@aibot:develop\nmais texto'
-assert_cmd_fail "token dentro de code fence"     has_token $'```\n@aibot:develop\n```'
-assert_cmd_fail "token em fence com linguagem"   has_token $'```bash\n@aibot:develop\n```'
-assert_cmd_fail "token em fence ~~~"             has_token $'~~~\n@aibot:develop\n~~~'
-assert_cmd_fail "token em fence sem fechamento"  has_token $'```\n@aibot:develop'
-assert_cmd_fail "token em bloco <pre>"           has_token $'<pre>\n@aibot:develop\n</pre>'
-assert_cmd_fail "token em bloco <code>"          has_token $'<code>\n@aibot:develop\n</code>'
-assert_cmd_fail "token em <pre> com atributo"    has_token $'<pre class="x">\n@aibot:develop\n</pre>'
-assert_cmd_fail "token em <pre><code> aninhado"  has_token $'<pre><code>\n@aibot:develop\n</code></pre>'
-assert_cmd_fail "token em quoted reply"          has_token $'> @aibot:develop'
-assert_cmd_fail "token em texto linkado"         has_token "[@aibot:develop](https://example.com)"
-assert_cmd_fail "token no meio de frase"         has_token "veja @aibot:develop por favor"
-assert_cmd_fail "body vazio"                     has_token ""
-assert_cmd_fail "sem token"                      has_token "comentario comum"
+assert_cmd_ok   "token standalone line"          has_token "@aibot:develop"
+assert_cmd_ok   "token standalone with spaces"   has_token "   @aibot:develop   "
+assert_cmd_ok   "token on its own line multi"    has_token $'some text\n@aibot:develop\nmore text'
+assert_cmd_fail "token inside code fence"        has_token $'```\n@aibot:develop\n```'
+assert_cmd_fail "token in fenced with language"  has_token $'```bash\n@aibot:develop\n```'
+assert_cmd_fail "token in ~~~ fence"             has_token $'~~~\n@aibot:develop\n~~~'
+assert_cmd_fail "token in unclosed fence"        has_token $'```\n@aibot:develop'
+assert_cmd_fail "token in <pre> block"           has_token $'<pre>\n@aibot:develop\n</pre>'
+assert_cmd_fail "token in <code> block"          has_token $'<code>\n@aibot:develop\n</code>'
+assert_cmd_fail "token in <pre> with attribute"  has_token $'<pre class="x">\n@aibot:develop\n</pre>'
+assert_cmd_fail "token in nested <pre><code>"    has_token $'<pre><code>\n@aibot:develop\n</code></pre>'
+assert_cmd_fail "token in quoted reply"          has_token $'> @aibot:develop'
+assert_cmd_fail "token in linked text"           has_token "[@aibot:develop](https://example.com)"
+assert_cmd_fail "token mid-sentence"             has_token "see @aibot:develop please"
+assert_cmd_fail "empty body"                     has_token ""
+assert_cmd_fail "no token"                       has_token "a common comment"
 
 # --- find_tracked_issue (BR 4) ---
 cat > "$TMP/tracker.md" <<'EOF'
 ## Known Issues
 
-### 7. Issue rastreada
+### 7. Tracked issue
 - Status: ready
 - Type: feat
 - Severity: medium
@@ -54,7 +54,7 @@ cat > "$TMP/tracker.md" <<'EOF'
 - Remote: #30
 - PR: -
 
-### 8. Issue com remote '-' 
+### 8. Issue with remote '-' 
 - Status: backlog
 - Type: chore
 - Severity: low
@@ -62,7 +62,7 @@ cat > "$TMP/tracker.md" <<'EOF'
 - Remote: -
 - PR: -
 
-### 9. Issue com remote espaco
+### 9. Issue with remote with space
 - Status: ready
 - Type: feat
 - Severity: medium
@@ -71,47 +71,47 @@ cat > "$TMP/tracker.md" <<'EOF'
 - PR: -
 EOF
 
-assert_eq "7"   "$(find_tracked_issue "$TMP/tracker.md" 30)" "find issue por Remote #30"
-assert_eq "9"   "$(find_tracked_issue "$TMP/tracker.md" 31)" "Remote com trailing space é tolerado"
-assert_eq ""    "$(find_tracked_issue "$TMP/tracker.md" 999)" "issue não rastreada → vazio"
-assert_eq ""    "$(find_tracked_issue "$TMP/missing.md" 30)" "tracker inexistente → vazio"
+assert_eq "7"   "$(find_tracked_issue "$TMP/tracker.md" 30)" "find issue by Remote #30"
+assert_eq "9"   "$(find_tracked_issue "$TMP/tracker.md" 31)" "Remote with trailing space is tolerated"
+assert_eq ""    "$(find_tracked_issue "$TMP/tracker.md" 999)" "untracked issue → empty"
+assert_eq ""    "$(find_tracked_issue "$TMP/missing.md" 30)" "missing tracker → empty"
 
 # --- get_field (BR 5 / BR 8) ---
 assert_eq "ready"      "$(get_field "$TMP/tracker.md" 7 "Status")" "get_field Status"
 assert_eq "#30"        "$(get_field "$TMP/tracker.md" 7 "Remote")" "get_field Remote"
 assert_eq "-"          "$(get_field "$TMP/tracker.md" 7 "PR")"     "get_field PR default -"
-assert_eq ""           "$(get_field "$TMP/tracker.md" 7 "Nope")"   "campo ausente → vazio"
+assert_eq ""           "$(get_field "$TMP/tracker.md" 7 "Nope")"   "absent field → empty"
 
 # --- resolve_tracker (BR 4 / CWD quirk / Note 1) ---
 ws="$TMP/ws-root"
 mkdir -p "$ws/.opencode"
 cp "$TMP/tracker.md" "$ws/known_issues.md"          # root tracker real
 : > "$ws/.opencode/known_issues.md"                  # template vazio
-assert_eq "$ws/known_issues.md" "$(resolve_tracker "$ws")" "fallback root quando .opencode é template vazio"
+assert_eq "$ws/known_issues.md" "$(resolve_tracker "$ws")" "fallback to root when .opencode is an empty template"
 
 ws="$TMP/ws-dot"
 mkdir -p "$ws/.opencode"
 cp "$TMP/tracker.md" "$ws/.opencode/known_issues.md" # .opencode real
 cp "$TMP/tracker.md" "$ws/known_issues.md"
-assert_eq "$ws/.opencode/known_issues.md" "$(resolve_tracker "$ws")" ".opencode com entries tem precedência"
+assert_eq "$ws/.opencode/known_issues.md" "$(resolve_tracker "$ws")" ".opencode with entries has precedence"
 
 ws="$TMP/ws-none"
 mkdir -p "$ws/.opencode"
 : > "$ws/.opencode/known_issues.md"
-assert_eq "$ws/.opencode/known_issues.md" "$(resolve_tracker "$ws")" "fallback final: template .opencode existente"
+assert_eq "$ws/.opencode/known_issues.md" "$(resolve_tracker "$ws")" "final fallback: existing .opencode template"
 
 # --- is_aibot_author (BR 17 / AC 14) ---
 AIBOT_AUTHORS="alice,carol"
-assert_cmd_ok   "autor *[bot] é aibot"        is_aibot_author "github-actions[bot]"
-assert_cmd_ok   "autor na lista AIBOT_AUTHORS" is_aibot_author "carol"
-assert_cmd_ok   "autor = identidade local"    is_aibot_author "william" "william"
-assert_cmd_fail "autor comum não é aibot"     is_aibot_author "bob" "william"
-assert_cmd_fail "autor vazio"                 is_aibot_author "" "william"
+assert_cmd_ok   "author *[bot] is aibot"        is_aibot_author "github-actions[bot]"
+assert_cmd_ok   "author in AIBOT_AUTHORS list"  is_aibot_author "carol"
+assert_cmd_ok   "author = local identity"       is_aibot_author "william" "william"
+assert_cmd_fail "common author is not aibot"    is_aibot_author "bob" "william"
+assert_cmd_fail "empty author"                  is_aibot_author "" "william"
 
 # --- slug / cursor state (BR 15) ---
-assert_eq "test_repo" "$(slug "test/repo")"   "slug converte / e : para _"
-assert_eq "group_project" "$(slug "group/project")" "slug gitlab path"
-assert_eq "" "$(read_cursor "test/repo")"      "cursor inicial vazio"
+assert_eq "test_repo" "$(slug "test/repo")"   "slug converts / and : to _"
+assert_eq "group_project" "$(slug "group/project")" "gitlab path slug"
+assert_eq "" "$(read_cursor "test/repo")"      "initial cursor is empty"
 write_cursor "test/repo" "42"
 assert_eq "42" "$(read_cursor "test/repo")"    "write/read cursor round-trip"
 assert_eq "$AIBOT_STATE_DIR/test_repo.cursor"  "$(cursor_file "test/repo")" "cursor file path"

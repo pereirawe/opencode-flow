@@ -5,6 +5,8 @@ description: analyze and recommend idiomatic go package boundaries, directory la
 
 # Go Package Design
 
+Response language: user's input language → `.opencode/locale` (project → global) → EN.
+
 ## Authoritative references
 
 Treat these as the primary source of truth, in this order:
@@ -305,13 +307,11 @@ Inspect the existing module, imports, call sites, tests, and dependency directio
 
 Ask only when the intended visibility, ownership, or reuse cannot be inferred and the answer would materially change import paths or API commitments.
 
-Ask the user in Brazilian Portuguese.
-
 Good examples:
 
-- "Esse conceito pertence especificamente ao domínio de `supportchat`, ou deve existir como uma capacidade independente do projeto?"
-- "Esse package deve ficar protegido por `internal/`, ou existe a intenção real de permitir imports por outros módulos?"
-- "A separação precisa isolar uma dependência concreta agora, ou seria apenas uma preparação para possível reutilização futura?"
+- "Does this concept belong specifically to the `supportchat` domain, or should it exist as an independent project capability?"
+- "Should this package be protected by `internal/`, or is there a real intent to allow imports from other modules?"
+- "Does the split need to isolate a concrete dependency now, or would it just be preparation for possible future reuse?"
 
 Prefer questions about design intent and tradeoffs rather than implementation trivia.
 

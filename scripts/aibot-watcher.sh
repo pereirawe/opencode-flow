@@ -90,7 +90,7 @@ list_repos() {
   err="$(mktemp)"
   out="$(jq -r 'to_entries[] | select(.key | startswith("_") | not) |
          [.key, (.value.workspace // "")] | @tsv' "$AIBOT_REPOS_FILE" 2>"$err")" \
-    || { log "AVISO: falha ao parsear $AIBOT_REPOS_FILE (JSON malformado?): $(head -c 200 "$err" 2>/dev/null)"; rm -f "$err"; return 0; }
+    || { log "WARN: failed to parse $AIBOT_REPOS_FILE (malformed JSON?): $(head -c 200 "$err" 2>/dev/null)"; rm -f "$err"; return 0; }
   rm -f "$err"
   printf '%s\n' "$out"
 }
@@ -246,7 +246,7 @@ fetch_issue_numbers() {
         --jq '.[] | select(.pull_request == null) | .number' \
         < /dev/null 2>"$err")" || rc=$?
       if [[ "$rc" -ne 0 ]]; then
-        log "aviso: gh fetch de issues falhou para $path: $(head -c 200 "$err" 2>/dev/null)"
+        log "WARN: gh issue fetch failed for $path: $(head -c 200 "$err" 2>/dev/null)"
       fi
       rm -f "$err"
       printf '%s\n' "$out"
@@ -258,7 +258,7 @@ fetch_issue_numbers() {
       out="$(glab api "projects/$enc/issues?state=all&per_page=100" --paginate \
         --jq '.[].iid' < /dev/null 2>"$err")" || rc=$?
       if [[ "$rc" -ne 0 ]]; then
-        log "aviso: glab fetch de issues falhou para $path: $(head -c 200 "$err" 2>/dev/null)"
+        log "WARN: glab issue fetch failed for $path: $(head -c 200 "$err" 2>/dev/null)"
       fi
       rm -f "$err"
       printf '%s\n' "$out"
@@ -281,7 +281,7 @@ fetch_comments() {
         --jq '.[] | {id: .id, author: .user.login, issue: (.issue_url | capture("issues/(?<n>[0-9]+)$") | .n), body: .body}' \
         < /dev/null 2>"$err")" || rc=$?
       if [[ "$rc" -ne 0 ]]; then
-        log "aviso: gh fetch de comentários falhou para $path: $(head -c 200 "$err" 2>/dev/null)"
+        log "WARN: gh comment fetch failed for $path: $(head -c 200 "$err" 2>/dev/null)"
       fi
       rm -f "$err"
       printf '%s\n' "$out"
@@ -295,7 +295,7 @@ fetch_comments() {
         --jq '.[] | select(.noteable_type == "Issue") | {id: .id, author: .author.username, issue: .noteable_iid, body: .body}' \
         < /dev/null 2>"$err")" || rc=$?
       if [[ "$rc" -ne 0 ]]; then
-        log "aviso: glab fetch de notas falhou para $path (agregado): $(head -c 200 "$err" 2>/dev/null) — tentando por issue"
+        log "WARN: glab note fetch failed for $path (aggregate): $(head -c 200 "$err" 2>/dev/null) — trying per issue"
       fi
       rm -f "$err"
       if [[ -z "$notes" ]]; then
@@ -331,7 +331,7 @@ opencode_run() {
     run_env+=(OPENCODE_SERVER_PASSWORD="$AIBOT_SERVER_PASSWORD")
   fi
   if ! command -v "$OPENCODE_BIN" >/dev/null 2>&1; then
-    log "opencode binary '$OPENCODE_BIN' não encontrado (set OPENCODE_BIN)"
+    log "opencode binary '$OPENCODE_BIN' not found (set OPENCODE_BIN)"
     return 127
   fi
   # BR 13: --auto auto-approves everything NOT explicitly denied; the explicit
@@ -351,7 +351,7 @@ run_develop() {
   logdir="$AIBOT_STATE_DIR/logs"
   mkdir -p -m 700 "$logdir" 2>/dev/null || true
   logf="$logdir/develop-$(date +%Y%m%d-%H%M%S)-#$local_id.log"
-  log "disparando: opencode run --attach $AIBOT_WEB_URL --auto --dir $workspace --model $AIBOT_MODEL --command ocf:develop $local_id (log: $logf)"
+  log "triggering: opencode run --attach $AIBOT_WEB_URL --auto --dir $workspace --model $AIBOT_MODEL --command ocf:develop $local_id (log: $logf)"
   # < /dev/null: never let the develop run consume the comment stream that the
   # calling while/read loop feeds from (process substitution stdin inheritance).
   opencode_run "$workspace" --command "ocf:develop" "$local_id" \
@@ -370,14 +370,14 @@ run_develop() {
 notify_issue() {
   local workspace="$1" remote_id="$2" msg_key="$3" pr_number="${4:-}"
   if ! command -v "$OPENCODE_BIN" >/dev/null 2>&1; then
-    log "aviso: opencode binary não encontrado — mensagem '$msg_key' para #$remote_id não postada"
+    log "WARN: opencode binary not found — message '$msg_key' for #$remote_id not posted"
     return 0
   fi
-  log "notificando: ocf:aibot-notify #$remote_id '$msg_key'${pr_number:+ (PR $pr_number)}"
+  log "notifying: ocf:aibot-notify #$remote_id '$msg_key'${pr_number:+ (PR $pr_number)}"
   local args=(--command "ocf:aibot-notify" "$remote_id" "$msg_key")
   [[ -n "$pr_number" ]] && args+=("$pr_number")
   opencode_run "$workspace" "${args[@]}" < /dev/null >/dev/null 2>&1 \
-    || log "aviso: falha ao postar mensagem '$msg_key' para #$remote_id"
+    || log "WARN: failed to post message '$msg_key' for #$remote_id"
 }
 
 # ---------------------------------------------------------------------------
@@ -394,7 +394,7 @@ handle_comment() {
 
   # BR 17 / AC 14: comments authored by the aibot never trigger
   if is_aibot_author "$cauthor" "$identity"; then
-    log "comentário $cid ignorado (autor aibot '$cauthor') — self-trigger prevention"
+    log "comment $cid ignored (aibot author '$cauthor') — self-trigger prevention"
     return 0
   fi
 
@@ -404,21 +404,21 @@ handle_comment() {
   # BR 3 / AC 15: only comments with the standalone token trigger; others are
   # ignored (the cursor still advances in process_repo).
   if ! has_token "$body"; then
-    log "comentário $cid sem token standalone '$AIBOT_TOKEN' — ignorado (cursor avança)"
+    log "comment $cid has no standalone token '$AIBOT_TOKEN' — ignored (cursor advances)"
     return 0
   fi
 
-  log "TOKEN detectado: comentário $cid da issue remota #$cissue (autor: $cauthor)"
+  log "TOKEN detected: comment $cid on remote issue #$cissue (author: $cauthor)"
 
   # BR 4 / AC 3: the commented issue must be tracked locally with matching Remote:
   local local_id=""
   local_id="$(find_tracked_issue "$tracker" "$cissue")"
   if [[ -z "$local_id" ]]; then
-    log "issue remota #$cissue não rastreada localmente — postando mensagem padrão"
+    log "remote issue #$cissue not tracked locally — posting standard message"
     notify_issue "$workspace" "$cissue" "not-tracked" ""
     return 0
   fi
-  log "issue remota #$cissue → issue local #$local_id"
+  log "remote issue #$cissue → local issue #$local_id"
 
   # BR 5 / AC 4 / AC 5: status re-check inside the flock
   local status="" pr=""
@@ -426,17 +426,17 @@ handle_comment() {
   pr="$(get_field "$tracker" "$local_id" "PR")"
   case "$status" in
     in-progress|in-review|in-qa|in-publish)
-      log "issue #$local_id status '$status' — já em andamento; sem novo develop"
+      log "issue #$local_id status '$status' — already in progress; no new develop"
       notify_issue "$workspace" "$cissue" "already-in-progress" ""
       return 0
       ;;
     resolved)
-      log "issue #$local_id status 'resolved' — já resolvida"
+      log "issue #$local_id status 'resolved' — already resolved"
       notify_issue "$workspace" "$cissue" "already-resolved" ""
       return 0
       ;;
     ""|-)
-      log "issue #$local_id sem Status — não dispara"
+      log "issue #$local_id has no Status — does not trigger"
       return 0
       ;;
   esac
@@ -448,16 +448,16 @@ handle_comment() {
     new_pr="$(get_field "$tracker" "$local_id" "PR")"
     if [[ "$new_status" == "in-publish" && -n "$new_pr" && "$new_pr" != "-" ]]; then
       # BR 8 / AC 2 / AC 10: success → standardized message with MR link
-      log "develop concluído: issue #$local_id in-publish, PR $new_pr"
+      log "develop finished: issue #$local_id in-publish, PR $new_pr"
       notify_issue "$workspace" "$cissue" "success" "${new_pr#\#}"
     else
       # BR 9 / AC 11: finished but no MR → cannot-develop
-      log "develop terminou sem MR (status=$new_status pr=$new_pr) — cannot-develop"
+      log "develop finished without MR (status=$new_status pr=$new_pr) — cannot-develop"
       notify_issue "$workspace" "$cissue" "cannot-develop" ""
     fi
   else
     # BR 9 / AC 11: blocked develop → cannot-develop
-    log "develop falhou para issue #$local_id — cannot-develop"
+    log "develop failed for issue #$local_id — cannot-develop"
     notify_issue "$workspace" "$cissue" "cannot-develop" ""
   fi
   return 1
@@ -471,11 +471,11 @@ process_repo() {
 
   # AC 17: empty / nonexistent workspace → refuse with standard message, clean exit
   if [[ -z "$workspace" || ! -d "$workspace" ]]; then
-    log "recusando: workspace de '$key' vazio ou inexistente ('$workspace') — mensagem padrão"
+    log "refusing: workspace for '$key' empty or nonexistent ('$workspace') — standard message"
     return 0
   fi
   if ! git -C "$workspace" rev-parse --git-dir >/dev/null 2>&1; then
-    log "recusando: workspace '$workspace' não é um repositório git"
+    log "refusing: workspace '$workspace' is not a git repository"
     return 0
   fi
 
@@ -484,11 +484,11 @@ process_repo() {
   local provider="" path="" ai_bot_identity=""
   read -r provider path <<<"$(parse_remote "$workspace")"
   if [[ "$provider" != "github" && "$provider" != "gitlab" ]]; then
-    log "recusando: provider '$provider' (remote.origin.url) não suportado — AC 18"
+    log "refusing: provider '$provider' (remote.origin.url) not supported — AC 18"
     return 0
   fi
   if [[ "$path" != "$key" ]]; then
-    log "recusando: remote path '$path' não corresponde à chave allowlist '$key' — BR 1"
+    log "refusing: remote path '$path' does not match allowlist key '$key' — BR 1"
     return 0
   fi
 
@@ -499,13 +499,13 @@ process_repo() {
   # (all logging) would be silenced for the rest of this repo's processing.
   local lock="" lockfd=""
   lock="$(lock_file "$key")"
-  exec {lockfd}>"$lock" || { log "falha ao abrir lock $lock"; return 0; }
+  exec {lockfd}>"$lock" || { log "failed to open lock $lock"; return 0; }
   if ! flock -n "$lockfd"; then
-    log "repo '$key' já sendo processado (flock) — deferido para o próximo tick"
+    log "repo '$key' already being processed (flock) — deferred to the next tick"
     exec {lockfd}>&-
     return 0
   fi
-  log "lock adquirido para '$key'"
+  log "lock acquired for '$key'"
 
   local cursor="" tracker="" cjson="" cid="" cauthor="" cissue="" processed=0
   local triggers=0
@@ -521,12 +521,12 @@ process_repo() {
     newest="$(fetch_comments "$provider" "$path" \
       | jq -sr '[.[] | .id] | max // empty' 2>/dev/null || true)"
     if [[ -n "$newest" ]]; then
-      log "primeiro run: cursor inicializado para $newest (comentário mais recente) — sem replay de comentários históricos"
+      log "first run: cursor initialized to $newest (newest comment) — no replay of historical comments"
       write_cursor "$key" "$newest"
       cursor="$newest"
     fi
   fi
-  log "cursor atual '$key': ${cursor:-nenhum}"
+  log "current cursor '$key': ${cursor:-none}"
   log "tracker: $tracker"
 
   # R-M1/S-M1 (BR 18 / AC 16): GitHub PR conversation comments are excluded by
@@ -539,7 +539,7 @@ process_repo() {
   local valid_issues="" fetch_rc=0
   valid_issues="$(fetch_issue_numbers "$provider" "$path")" || fetch_rc=$?
   if [[ "$fetch_rc" -ne 0 || -z "$valid_issues" ]]; then
-    log "aviso: lista de issues indisponível para $path (rc=$fetch_rc) — comentários deferidos, cursor não avança"
+    log "WARN: issue list unavailable for $path (rc=$fetch_rc) — comments deferred, cursor does not advance"
     return 0
   fi
 
@@ -562,7 +562,7 @@ process_repo() {
     fi
     # BR 18 / AC 16: skip comments that are not on a real issue (PR comments)
     if ! printf '%s\n' "$valid_issues" | grep -qxF "$cissue" 2>/dev/null; then
-      log "comentário $cid ignorado (issue #$cissue não é uma issue real — provável comentário de PR)"
+      log "comment $cid ignored (issue #$cissue is not a real issue — likely a PR comment)"
       write_cursor "$key" "$cid"
       continue
     fi
@@ -572,7 +572,7 @@ process_repo() {
     # re-examines it — the BR 5 status re-check already prevents a duplicate
     # develop on the same issue, so deferral only ever delays OTHER issues.
     if [[ "$triggers" -ge "$MAX_TRIGGERS_PER_TICK" ]]; then
-      log "limite de triggers por tick atingido ($MAX_TRIGGERS_PER_TICK) — comentário $cid (issue #$cissue) deferido, cursor NÃO avança"
+      log "trigger cap reached per tick ($MAX_TRIGGERS_PER_TICK) — comment $cid (issue #$cissue) deferred, cursor does NOT advance"
       continue
     fi
     if ! handle_comment "$workspace" "$tracker" "$provider" "$path" \
@@ -583,7 +583,7 @@ process_repo() {
     write_cursor "$key" "$cid"
   done <<< "$stream"
 
-  log "repo '$key': $processed comentário(s) novo(s) processados, $triggers trigger(s)"
+  log "repo '$key': $processed new comment(s) processed, $triggers trigger(s)"
   flock -u "$lockfd" 2>/dev/null || true
   exec {lockfd}>&-
 }
@@ -597,12 +597,12 @@ main() {
 
   # BR 12 / AC 9: health-check the web server first; skip + log when down
   if ! web_healthy; then
-    log "web server ($AIBOT_WEB_URL) indisponível — tick pulado (BR 12 / AC 9)"
+    log "web server ($AIBOT_WEB_URL) unavailable — tick skipped (BR 12 / AC 9)"
     exit 0
   fi
 
   if [[ ! -f "$AIBOT_REPOS_FILE" ]]; then
-    log "sem allowlist ($AIBOT_REPOS_FILE) — nada a fazer"
+    log "no allowlist ($AIBOT_REPOS_FILE) — nothing to do"
     exit 0
   fi
 
@@ -623,10 +623,10 @@ main() {
     for pid in "${pids[@]}"; do
       wait "$pid" || failed=1
     done
-    log "tick concluído (failed=$failed)"
+    log "tick finished (failed=$failed)"
     exit "$failed"
   fi
-  log "tick concluído (nenhum repo allowlisted)"
+  log "tick finished (no allowlisted repo)"
   exit 0
 }
 

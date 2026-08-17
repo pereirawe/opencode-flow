@@ -123,31 +123,31 @@ sudo ./scripts/setup-web.sh --user william_pereira --bin /home/william_pereira/.
 sudo systemctl restart opencode
 ```
 
-### Gestão completa do serviço
+### Full service management
 
-> **Terminal:** os comandos usam `sudo systemctl` — rode-os **no seu terminal**,
-> não de dentro do opencode (o agente não tem terminal para a senha do sudo).
-> Os comandos `ocf:start-web`/`ocf:stop-web`/`ocf:restart-web`/`ocf:reset-web`/
-> `ocf:setup-web` apenas mostram o comando certo para você executar.
+> **Terminal:** the commands use `sudo systemctl` — run them **in your terminal**,
+> not from inside opencode (the agent has no terminal for the sudo password).
+> The `ocf:start-web`/`ocf:stop-web`/`ocf:restart-web`/`ocf:reset-web`/
+> `ocf:setup-web` commands only show the right command for you to run.
 
-| Ação | Comando | `ocf:` |
+| Action | Command | `ocf:` |
 |------|---------|--------|
-| Criar/instalar/atualizar | `scripts/setup-web.sh [--user U] [--bin P]` | `ocf:setup-web` |
-| Iniciar | `sudo systemctl start opencode` | `ocf:start-web` |
-| Parar | `sudo systemctl stop opencode` | `ocf:stop-web` |
-| Reiniciar | `sudo systemctl restart opencode` | `ocf:restart-web` |
+| Create/install/update | `scripts/setup-web.sh [--user U] [--bin P]` | `ocf:setup-web` |
+| Start | `sudo systemctl start opencode` | `ocf:start-web` |
+| Stop | `sudo systemctl stop opencode` | `ocf:stop-web` |
+| Restart | `sudo systemctl restart opencode` | `ocf:restart-web` |
 | Status | `systemctl status opencode --no-pager` | — |
-| Zerar sessões + reiniciar | `scripts/reset-web.sh` | `ocf:reset-web` |
+| Reset sessions + restart | `scripts/reset-web.sh` | `ocf:reset-web` |
 
-**Zerar o cache/sessões** (`scripts/reset-web.sh`): o banco de sessões
-(`~/.local/share/opencode/opencode.db`) cresce com o uso (pode chegar a GBs).
-O reset faz `stop` → move o banco para um backup timestamped em
-`~/.local/share/opencode/backups/` → limpa `log/` → `start`. `auth.json` e
-`account.json` são preservados. Use `--list` para ver o tamanho antes de agir:
+**Clearing the cache/sessions** (`scripts/reset-web.sh`): the session database
+(`~/.local/share/opencode/opencode.db`) grows with use (it can reach GBs).
+The reset does `stop` → moves the database to a timestamped backup in
+`~/.local/share/opencode/backups/` → clears `log/` → `start`. `auth.json` and
+`account.json` are preserved. Use `--list` to check the size before acting:
 
 ```bash
-./scripts/reset-web.sh --list     # mostra serviço/data-dir/tamanho do DB (sem alterar)
-./scripts/reset-web.sh            # stop -> backup -> limpa -> start
+./scripts/reset-web.sh --list     # shows service/data-dir/DB size (no changes)
+./scripts/reset-web.sh            # stop -> backup -> clear -> start
 ```
 
 The service file (`scripts/opencode.service`) is version-controlled here.

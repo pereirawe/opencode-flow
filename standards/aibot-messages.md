@@ -1,3 +1,7 @@
+# Aibot Messages — PT-BR (exempt from language standardization)
+
+NOTE: This file is intentionally written in PT-BR as it defines the standardized Portuguese messages for the Aibot agent (issue #39). It is exempt from the language-conformance gate.
+
 # Aibot Messages — Padrão de mensagens do agente aibot
 
 Padrão uniforme para as mensagens que o agente `development/aibot` posta em

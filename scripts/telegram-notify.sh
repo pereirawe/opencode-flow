@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# telegram-notify.sh — Envia notificação para Telegram via Bot API
-# Uso: telegram-notify.sh [--title <titulo>] [--parse-mode html|markdown] [--chat-id <id>] [mensagem]
-#      echo "mensagem" | telegram-notify.sh [flags]
+# telegram-notify.sh — Sends a Telegram notification via the Bot API
+# Usage: telegram-notify.sh [--title <title>] [--parse-mode html|markdown] [--chat-id <id>] [message]
+#      echo "message" | telegram-notify.sh [flags]
 #
-# Credenciais carregadas de (ordem de prioridade):
-#   1. ./.opencode/telegram.env (projeto atual)
+# Credentials loaded from (priority order):
+#   1. ./.opencode/telegram.env (current project)
 #   2. ~/.config/opencode/.opencode/telegram.env (global)
-#   3. Variáveis de ambiente TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID
+#   3. Environment variables TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID
 
 set -euo pipefail
 
@@ -19,17 +19,17 @@ BOT_TOKEN=""
 
 usage() {
     cat <<EOF
-Uso: telegram-notify.sh [--title <titulo>] [--parse-mode html|markdown] [--chat-id <id>] [mensagem]
+Usage: telegram-notify.sh [--title <title>] [--parse-mode html|markdown] [--chat-id <id>] [message]
 
-Envia uma notificação para Telegram via Bot API.
+Sends a notification to Telegram via the Bot API.
 
-Opções:
-  --title <titulo>       Título da notificação (formatado em negrito)
-  --parse-mode <modo>    Modo de parse: html (default), markdown
-  --chat-id <id>         Chat ID de destino (sobrescreve config/env)
-  -h, --help             Mostra esta ajuda
+Options:
+  --title <title>       Notification title (rendered in bold)
+  --parse-mode <mode>   Parse mode: html (default), markdown
+  --chat-id <id>        Destination chat ID (overrides config/env)
+  -h, --help            Show this help
 
-Mensagem pode ser passada como argumento ou via stdin.
+The message can be passed as an argument or via stdin.
 EOF
     exit 0
 }
@@ -57,7 +57,7 @@ while [[ $# -gt 0 ]]; do
             break
             ;;
         -*)
-            echo "❌ Flag desconhecida: $1" >&2
+            echo "❌ Unknown flag: $1" >&2
             exit 1
             ;;
         *)
@@ -88,14 +88,14 @@ CHAT_ID="${TELEGRAM_CHAT_ID:-$CHAT_ID}"
 
 # --- Validate ---
 if [[ -z "$BOT_TOKEN" ]]; then
-    echo "❌ TELEGRAM_BOT_TOKEN não definido." >&2
-    echo "   Crie .opencode/telegram.env ou exporte a variável." >&2
+    echo "❌ TELEGRAM_BOT_TOKEN not set." >&2
+    echo "   Create .opencode/telegram.env or export the variable." >&2
     exit 1
 fi
 
 if [[ -z "$CHAT_ID" ]]; then
-    echo "❌ TELEGRAM_CHAT_ID não definido." >&2
-    echo "   Passe --chat-id, crie .opencode/telegram.env ou exporte a variável." >&2
+    echo "❌ TELEGRAM_CHAT_ID not set." >&2
+    echo "   Pass --chat-id, create .opencode/telegram.env or export the variable." >&2
     exit 1
 fi
 
@@ -107,8 +107,8 @@ if [[ -z "$MESSAGE" ]]; then
 fi
 
 if [[ -z "$MESSAGE" ]]; then
-    echo "❌ Nenhuma mensagem fornecida." >&2
-    echo "   Passe como argumento ou via stdin." >&2
+    echo "❌ No message provided." >&2
+    echo "   Pass it as an argument or via stdin." >&2
     exit 1
 fi
 
@@ -135,10 +135,10 @@ response=$(curl -s -X POST "$API_URL" \
 
 # --- Check result ---
 if echo "$response" | grep -q '"ok":true'; then
-    echo "✅ Notificação enviada para chat ${CHAT_ID}" >&2
+    echo "✅ Notification sent to chat ${CHAT_ID}" >&2
     exit 0
 else
     error_desc=$(echo "$response" | grep -o '"description":"[^"]*"' | head -1 | cut -d'"' -f4)
-    echo "❌ Falha ao enviar notificação: ${error_desc:-$response}" >&2
+    echo "❌ Failed to send notification: ${error_desc:-$response}" >&2
     exit 1
 fi

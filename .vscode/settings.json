@@ -3,7 +3,8 @@
         "aibot",
         "committer",
         "glab",
-        "opencode"
+        "opencode",
+        "orcarouter"
     ],
     "[markdown]": {
         "editor.defaultFormatter": "yzhang.markdownlint",

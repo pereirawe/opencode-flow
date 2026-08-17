@@ -73,19 +73,19 @@ code is written.
 Each agent must ask context-based questions during discovery. The PO must
 drive the conversation around **business rules** specifically.
 
-- **CTO**: Quais princípios arquiteturais são afetados? Existem trade-offs
-  conhecidos? Como isso se alinha com a visão técnica de longo prazo?
-- **PO**: Quem é o usuário final? Qual o valor de negócio? Qual a urgência?
-  Quais critérios definem sucesso? **Quais são as regras de negócio
-  específicas? Quais condições, limites e exceções existem?**
-- **Tech Lead**: Quais camadas são afetadas? Quais dependências existem?
-  Quais requisitos não-funcionais? Qual o esforço estimado? **As regras de
-  negócio estão completas e consistentes com o modelo técnico? Qual a branch
-  base? Quais perfis de revisores?**
-- **QA**: Quais cenários de teste são necessários? Quais edge cases existem?
-  Como validamos os critérios de aceite? **Como testamos cada regra de
-  negócio isoladamente? Os perfis de revisores cobrem todos os domínios? Os
-  cenários definidos em `Tests:` são testáveis e atingem o piso de severidade?**
+- **CTO**: Which architectural principles are affected? Are there known
+  trade-offs? How does this align with the long-term technical vision?
+- **PO**: Who is the end user? What is the business value? What is the urgency?
+  Which criteria define success? **What are the specific business rules? What
+  conditions, limits, and exceptions exist?**
+- **Tech Lead**: Which layers are affected? Which dependencies exist? Which
+  non-functional requirements apply? What is the estimated effort? **Are the
+  business rules complete and consistent with the technical model? What is the
+  base branch? Which reviewer profiles apply?**
+- **QA**: Which test scenarios are needed? Which edge cases exist? How do we
+  validate the acceptance criteria? **How do we test each business rule in
+  isolation? Do the reviewer profiles cover all domains? Are the `Tests:`
+  scenarios testable and do they meet the severity floor?**
 
 ## Development Workflow
 
@@ -107,6 +107,7 @@ developer updates status to `in-review` and proceeds immediately without asking
 the user.
 
 **Only two scenarios trigger interaction with the user:**
+
 1. **Incomplete refinement**: business rules are missing or ambiguous in the
    issue — the agent flags the gap in `known_issues.md` and continues with
    what is available, rather than blocking. The issue remains in progress
@@ -130,7 +131,7 @@ feeds the continuous pipeline from remote issue comments:
    `/ocf:develop <id>`: promote → develop → senior review → QA → corrections →
    committer gate → MR.
 2. The trigger runs via `opencode run --attach <web-url> --auto --dir <workspace>
-   --command "ocf:develop"` on the existing web server, serialized per repo
+--command "ocf:develop"` on the existing web server, serialized per repo
    with `flock -n` (parallel across repos).
 3. Result messages (success with MR link / already-in-progress /
    already-resolved / not-tracked-locally / cannot-develop) are posted to the
@@ -142,12 +143,12 @@ feeds the continuous pipeline from remote issue comments:
    patterns: rm -rf, force-push, reset --hard, clean -f, branch -D, mkfs, dd,
    curl|sh, chmod -R 777, chown -R, shutdown/reboot) binding the main/command
    session and every agent WITHOUT its own bash config (`developer`, `devs/*`)
-   + agent-level granular bash (`aibot`, `develop-router`: catch-all deny +
-   scoped allows + explicit destructive-git denies after `git *: allow`) +
-   EDIT denies on security-critical files (opencode.json, aibot-repos.json,
-   aibot-watcher.sh, state/**, ~/.ssh/**) ordered so the deny is the LAST
-   matching rule (findLast) and therefore wins under `--auto`; `aibot` also
-   denies reads of `~/.ssh/**` and `state/**`.
+    - agent-level granular bash (`aibot`, `develop-router`: catch-all deny +
+      scoped allows + explicit destructive-git denies after `git *: allow`) +
+      EDIT denies on security-critical files (opencode.json, aibot-repos.json,
+      aibot-watcher.sh, state/**, ~/.ssh/**) ordered so the deny is the LAST
+      matching rule (findLast) and therefore wins under `--auto`; `aibot` also
+      denies reads of `~/.ssh/**` and `state/**`.
 
 **No-merge-polling boundary**: the watcher polls ONLY issue comments. It
 never polls merge/PR status — closing remote issues after merge remains
@@ -157,8 +158,8 @@ exclusive to `ocf:check-pr` and the Close Requester (step 12).
 
 1. **CTO** — define technical vision and guidelines
 2. **Product Owner** — define priorities, create user stories, register
-    prioritization proposals in `.opencode/prioritization.md`
-    (project-level) or `~/.config/opencode/prioritization.md`
+   prioritization proposals in `.opencode/prioritization.md`
+   (project-level) or `~/.config/opencode/prioritization.md`
    (global fallback). **The global file is ONLY for opencode's own improvements —
    never write project proposals there.**
 3. **Tech Lead** — refine stories with technical detail, feasibility analysis,
@@ -183,7 +184,7 @@ exclusive to `ocf:check-pr` and the Close Requester (step 12).
    update status to `in-review` and proceed to senior review without asking the
    user.**
 7. **Senior Reviewers** — review code using the count stored in `- Reviewers:`
-    in the issue entry (set during discovery), verify acceptance criteria,
+   in the issue entry (set during discovery), verify acceptance criteria,
    confirm tests were written and pass (via `test-runner --check` — fresh cache
    suffices; only re-run when stale or for a domain-specific test), identify issues.
    The `security` reviewer profile is delegated to the OWASP specialist agent
@@ -219,12 +220,14 @@ exclusive to `ocf:check-pr` and the Close Requester (step 12).
 Two meta-agents orchestrate the pipeline phases:
 
 **Discovery Agent** (`agents/development/discovery.md`):
+
 - Orchestrates phases 1-6: PO -> CTO -> Tech Lead -> PO -> QA -> PM
 - Transforms raw ideas into tracked issues with complete business rules
 - Ensures all required fields (Base branch, Reviewers, Remote) are populated
 - Output: issue in `known_issues.md` with status `ready`
 
 **Delivery Agent** (`agents/development/delivery.md`):
+
 - Orchestrates phases 6-12: PM -> Developer -> Senior Review -> QA -> Committer -> Publish -> Close
 - Executes automatically without user confirmation after promotion
 - Handles the complete lifecycle from feature branch to merged MR
@@ -240,17 +243,17 @@ resume-optimization flow (issue #60):
 - `/ocf:cv-hub <candidate-dir>` — build the candidate hub (`hub.json` +
   `README.md`) from a CV PDF (required), official LinkedIn export (Download My
   Data — never scraping), and optional extras. Output lives in
-  `~/career/<nome-candidato>/`.
+  `~/career/<candidate-name>/`.
 - `/ocf:cv-optimize <candidate-dir>` — analyze the candidate profile
   (post-hub): profile score, target job profiles, CLT/PJ salary ranges
-  (`[INFERIDO]`), context gaps, and a prioritized improvement plan in
+  (`[INFERRED]`), context gaps, and a prioritized improvement plan in
   `analise-perfil.md`. Never fabricates; never modifies `hub.json`.
 - `/ocf:cv-tailor <candidate-dir> <job>` — analyze a job (multi-portal), gap
   analysis vs `hub.json`, and generate a job-tailored resume PDF (HTML → PDF,
   Chrome headless, fallback LibreOffice) in the job's language. Never
   fabricates content; inferences are resolved with the candidate
-  (`inferencias.md`) and never appear as `[INFERIDO]` in the final HTML/PDF
-  (gate: `scripts/cv/check-inferido.sh`).
+  (`inferences.md`) and never appear as `[INFERRED]` in the final HTML/PDF
+  (gate: `scripts/cv/check-inferred.sh`).
 - **Design standard** — every generated resume MUST follow
   `standards/cv-design.md` (ATS-friendly, A4 print with 12–15mm margins, sober
   grayscale-safe style, page-count by seniority), starting from the reference
@@ -285,8 +288,8 @@ Backed by `agents/career/*`, `skills/career/*`, and `scripts/cv/*`.
    `in-progress` → `in-progress`
 7. Senior review completed, all issues resolved → `in-review`
 8. QA verification:
-   - Corrections needed → `in-qa` → `in-progress` (back to development)
-   - Approved → `in-qa`
+    - Corrections needed → `in-qa` → `in-progress` (back to development)
+    - Approved → `in-qa`
 9. Committer gate passed → `in-publish`
 10. MR/PR created → `in-publish`
 11. MR/PR approved and merged → `in-publish` (PR merged but issue not yet closed)
@@ -336,6 +339,7 @@ Branches are created from the `Base branch:` field in the issue entry
 ### Pull/Merge Request
 
 Must include:
+
 - Tests passing
 - Issue reference
 - Updated docs

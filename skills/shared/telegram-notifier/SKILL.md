@@ -1,81 +1,86 @@
 ---
 name: telegram-notifier
-description: Envia notificações para o Telegram via Bot API quando um comando opencode termina ou quando um agente precisa de resposta do usuário. Use ao finalizar tarefas longas, reportar resultados, ou pedir input do usuário quando ele pode estar longe do terminal.
+description: Sends Telegram notifications via the Bot API when an opencode command finishes or when an agent needs a response from the user. Use when finishing long tasks, reporting results, or asking the user for input when they may be away from the terminal ("notificar", "telegram", "avisar no telegram" also trigger this skill).
 ---
 
 # Telegram Notifier
 
-Envia notificações para o Telegram usando o Bot API.
-O script está em `$HOME/.config/opencode/scripts/telegram-notify.sh`.
+Response language: user's input language → `.opencode/locale` (project → global) → EN.
 
-## Configuração
+Sends Telegram notifications using the Bot API.
+The script is at `$HOME/.config/opencode/scripts/telegram-notify.sh`.
 
-As credenciais são carregadas de (ordem de prioridade):
-1. `./.opencode/telegram.env` (projeto atual)
+## Configuration
+
+Credentials are loaded from (priority order):
+1. `./.opencode/telegram.env` (current project)
 2. `~/.config/opencode/.opencode/telegram.env` (global)
-3. Variáveis de ambiente `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID`
+3. Environment variables `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID`
 
-## Quando usar
+## When to use
 
-**SEMPRE que uma dessas situações ocorrer:**
+**ALWAYS when one of these situations occurs:**
 
-1. **Ao terminar um comando/tarefa** — notifique o resultado (sucesso ou falha).
-2. **Quando precisar de resposta do usuário** — se o usuário não estiver visivelmente ativo no terminal, envie a pergunta pelo Telegram e aguarde.
-3. **Ao encontrar um bloqueio** — regra de negócio ausente, conflito, falha.
-4. **Ao completar um milestone** — pipeline concluído, MR criada, deploy feito.
+1. **When a command/task finishes** — notify the result (success or failure).
+2. **When you need a response from the user** — if the user is not visibly
+   active in the terminal, send the question via Telegram and wait.
+3. **When you hit a blocker** — missing business rule, conflict, failure.
+4. **When a milestone completes** — pipeline done, MR created, deploy done.
 
-## Como enviar notificações
+## How to send notifications
 
-### Mensagem simples (via argumento)
+### Simple message (via argument)
 
 ```bash
-$HOME/.config/opencode/scripts/telegram-notify.sh "Desenvolvimento da issue #42 concluído. MR: https://github.com/..."
+$HOME/.config/opencode/scripts/telegram-notify.sh "Development of issue #42 finished. MR: https://github.com/..."
 ```
 
-### Mensagem com título
+### Message with a title
 
 ```bash
-$HOME/.config/opencode/scripts/telegram-notify.sh --title "⚠️ Ação Necessária" \
-  "A issue #28 precisa de revisão de negócio. O campo 'desconto máximo' não está definido."
+$HOME/.config/opencode/scripts/telegram-notify.sh --title "⚠️ Action Needed" \
+  "Issue #28 needs business review. The 'max discount' field is not defined."
 ```
 
-### Mensagem via stdin (para textos longos)
+### Message via stdin (for long texts)
 
 ```bash
-cat <<EOF | $HOME/.config/opencode/scripts/telegram-notify.sh --title "📋 Relatório de Revisão"
-Revisão concluída:
-- 2 issues críticas encontradas
+cat <<EOF | $HOME/.config/opencode/scripts/telegram-notify.sh --title "📋 Review Report"
+Review finished:
+- 2 critical issues found
 - 5 warnings
-- Cobertura de testes: 87%
+- Test coverage: 87%
 EOF
 ```
 
-### Modo Markdown
+### Markdown mode
 
 ```bash
 $HOME/.config/opencode/scripts/telegram-notify.sh --parse-mode markdown \
-  "*Review concluída*\n\n✅ Testes: passando\n🔒 Segurança: ok"
+  "*Review finished*\n\n✅ Tests: passing\n🔒 Security: ok"
 ```
 
-## Template de mensagens
+## Message template
 
-Use sempre este padrão:
-
-```
-Contexto: <projeto>/<branch>
-<corpo da mensagem>
-
-Ação: <o que o usuário precisa fazer, se aplicável>
-```
-
-Exemplo:
+Always use this pattern:
 
 ```
-Contexto: setup-tecnologia/issue-28-close-issue
-Implementação concluída. MR criada:
+Context: <project>/<branch>
+<message body>
+
+Action: <what the user needs to do, if applicable>
+```
+
+Example:
+
+```
+Context: setup-tecnologia/issue-28-close-issue
+Implementation finished. MR created:
 https://github.com/pereirawe/setup-tecnologia/pull/15
 
-Ação: Revisar e aprovar a MR.
+Action: Review and approve the MR.
 ```
 
-⚠️ **Não pergunte ao usuário se ele quer receber notificação** — apenas envie. Se as credenciais não estiverem configuradas, o script falhará com uma mensagem clara e você continua normalmente.
+⚠️ **Do not ask the user whether they want a notification** — just send it.
+If the credentials are not configured, the script will fail with a clear
+message and you continue normally.

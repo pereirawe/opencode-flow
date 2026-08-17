@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# ocf-telegram.sh — Executa um comando e notifica via Telegram ao finalizar
-# Uso: ocf-telegram.sh <comando...>
+# ocf-telegram.sh — Runs a command and notifies via Telegram when it finishes
+# Usage: ocf-telegram.sh <command...>
 #
-# Exemplo:
+# Example:
 #   ocf-telegram.sh opencode run --command "ocf:develop 42" --auto
 
 set -euo pipefail
 
 if [[ $# -eq 0 ]]; then
-    echo "Uso: ocf-telegram.sh <comando...>" >&2
-    echo "  Executa o comando e envia notificação Telegram ao finalizar." >&2
+    echo "Usage: ocf-telegram.sh <command...>" >&2
+    echo "  Runs the command and sends a Telegram notification when it finishes." >&2
     exit 1
 fi
 
@@ -17,15 +17,15 @@ NOTIFY_SCRIPT="$HOME/.config/opencode/scripts/telegram-notify.sh"
 START_TIME=$(date +%s)
 CMD="$*"
 
-# Contexto do projeto
+# Project context
 PROJECT=$(basename "$(git rev-parse --show-toplevel 2>/dev/null || echo '?')")
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '?')
 
-echo "🚀 Executando: $CMD"
-echo "   Projeto: $PROJECT | Branch: $BRANCH"
+echo "🚀 Running: $CMD"
+echo "   Project: $PROJECT | Branch: $BRANCH"
 echo "---"
 
-# Executa o comando capturando saída
+# Run the command capturing output
 OUTPUT_FILE=$(mktemp)
 set +e
 eval "$CMD" > "$OUTPUT_FILE" 2>&1
@@ -36,21 +36,21 @@ END_TIME=$(date +%s)
 DURATION=$((END_TIME - START_TIME))
 DURATION_STR=$(printf '%dm%ds' $((DURATION/60)) $((DURATION%60)))
 
-# Últimas linhas da saída (se houver erro, mostra mais)
+# Tail of the output (show more when there is an error)
 if [[ $EXIT_CODE -eq 0 ]]; then
     TAIL_LINES=$(tail -5 "$OUTPUT_FILE" 2>/dev/null || true)
     STATUS_ICON="✅"
-    STATUS_TEXT="concluído com sucesso"
+    STATUS_TEXT="completed successfully"
 else
     TAIL_LINES=$(tail -15 "$OUTPUT_FILE" 2>/dev/null || true)
     STATUS_ICON="❌"
-    STATUS_TEXT="falhou (exit $EXIT_CODE)"
+    STATUS_TEXT="failed (exit $EXIT_CODE)"
 fi
 
 # Build notification message
-MSG="${STATUS_ICON} Comando ${STATUS_TEXT}
-⏱ Duração: ${DURATION_STR}
-📂 Projeto: ${PROJECT}
+MSG="${STATUS_ICON} Command ${STATUS_TEXT}
+⏱ Duration: ${DURATION_STR}
+📂 Project: ${PROJECT}
 🌿 Branch: ${BRANCH}
 💻 <code>${CMD}</code>"
 
@@ -58,12 +58,12 @@ if [[ -n "$TAIL_LINES" ]]; then
     MSG="${MSG}"$'\n\n'"<pre>${TAIL_LINES}</pre>"
 fi
 
-# Envia notificação (silenciosa — não quebra se falhar)
+# Send notification (silent — does not break if it fails)
 if [[ -x "$NOTIFY_SCRIPT" ]]; then
-    "$NOTIFY_SCRIPT" --title "${STATUS_ICON} Comando finalizado (${DURATION_STR})" "$MSG" 2>/dev/null || true
+    "$NOTIFY_SCRIPT" --title "${STATUS_ICON} Command finished (${DURATION_STR})" "$MSG" 2>/dev/null || true
 fi
 
 rm -f "$OUTPUT_FILE"
 
-# Repassa o exit code original
+# Forward the original exit code
 exit $EXIT_CODE

@@ -6,6 +6,8 @@ permission:
   bash: allow
   edit: allow
 ---
+Respond in the user's input language; fallback → `.opencode/locale` (project → global) → EN.
+
 Create clean backups of project directories.
 
 Responsibilities:
@@ -19,9 +21,9 @@ Responsibilities:
 When called, review the target directory and create the backup.
 
 Discovery questions before running:
-1. Qual diretório deve ser copiado?
-2. Nome base para o backup (default: dev_backup)?
-3. Criar .zip também?
+1. Which directory should be backed up?
+2. What base name for the backup (default: dev_backup)?
+3. Should a .zip also be created?
 
 Always exclude `bk/`, `node_modules/`, `.venv/`, `__pycache__/`,
 `.pytest_cache/`, `my_pycache/`, `vendor/`, `bootstrap/cache/`,
