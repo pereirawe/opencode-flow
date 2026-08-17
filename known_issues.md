@@ -613,7 +613,7 @@ See `standards/issues.md` for the full contract.
 - Suggested fix: Add `plan.id !== "business-vitrine"` to the conditional guard on line 126: `{previous && plan.id !== "business-vitrine" ? (`
 
 ### 203. Blank space after RESUMO section in cv-pdf resume template — blanket `section { break-inside: avoid; }` pushes Experiência to page 2
-- Status: in-progress
+- Status: in-publish
 - Opened: 2026-08-17
 - Ready: 2026-08-17
 - Started: 2026-08-17
@@ -663,3 +663,39 @@ See `standards/issues.md` for the full contract.
   11. Section ending exactly at a page boundary → h2 heading never orphaned at the bottom of a page (`break-after: avoid` holds).
   12. Senior 2-page resume rendered to PDF → page 2 flows correctly, no stranded single lines (orphans/widows protection).
 - Suggested fix: Apply the Tech Lead approach (Option a): (1) edit `skills/career/cv-pdf/templates/resume.html` print CSS — replace `section { break-inside: avoid; }` with `section { break-inside: auto; orphans: 3; widows: 3; }`, keeping `.entry { break-inside: avoid; }` and `h2`/`.header { break-after: avoid; }`; (2) refine `standards/cv-design.md` §2.4 + §5 checklist to distinguish short sections (keep `break-inside: avoid`) from long content sections (may break); (3) align `standards/cv-analysis.md` §6 by reference; (4) add/extend regression test in scripts/tests/ and run `make test-scripts`; (5) validate with a representative resume with a long Experiência section (explicit task per BR 12); (6) update known_issues.md entry. Effort ~2-4h.
+
+### 204. `profile-analysis.html` template still applies blanket `section { break-inside: avoid; }` — same blank-gap defect in analysis reports
+- Status: backlog
+- Opened: 2026-08-17
+- Ready: -
+- Started: -
+- Type: bug
+- Severity: medium
+- Report: senior-reviewers/docs
+- Base branch: main
+- Reviewers: 1 (frontend)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: skills/career/cv-optimizer/templates/profile-analysis.html:106,109, standards/cv-analysis.md §6
+- Description: Follow-up from issue #203 senior review (docs profile, incomplete-spec finding). `standards/cv-analysis.md` §6 now documents the refined print rule ("short sections and entries keep `break-inside: avoid`; long content sections may break across pages with `orphans`/`widows` protection — per `standards/cv-design.md` §2.4"), but the analysis-report template `skills/career/cv-optimizer/templates/profile-analysis.html` still applies the blanket `section { break-inside: avoid; }` (line 106) plus `table tr { break-inside: avoid; }` (line 109). The docs describe behavior the template does not implement — the same blank-gap defect would occur in analysis reports with long sections. Classified as incomplete-spec during #203 review because BR 3 confined that fix to resume.html; this issue captures the gap for the profile-analysis.html consumer.
+- Impact: Analysis reports (profile-analysis.html/PDF) with long sections can exhibit the same large blank gap after a short preceding section. Lower impact than resumes (analysis reports are reading artifacts, not ATS-submitted), but the documented standard (§6) overstates the template's actual behavior.
+- Business rules:
+  1. The `@media print` block in `skills/career/cv-optimizer/templates/profile-analysis.html` MUST replace the blanket `section { break-inside: avoid; }` with `section { break-inside: auto; orphans: 3; widows: 3; }`.
+  2. `table tr { break-inside: avoid; }` MUST be preserved (canonical tables in analysis reports must not split rows).
+  3. Short sections and `.entry`-like entries MUST keep `break-inside: avoid`; `h2 { break-after: avoid; }` MUST be preserved (no orphaned headings).
+  4. The fix MUST be CSS-only, confined to the profile-analysis.html template — no HTML structure or content changes.
+  5. The template MUST remain the base for cv-optimizer report rendering (content adapted, CSS never rewritten from scratch).
+  6. `standards/cv-analysis.md` §6 MUST remain accurate after the fix (it already documents the refined rule — the template must catch up, not the docs).
+- Acceptance criteria:
+  1. `grep "section { break-inside: avoid" skills/career/cv-optimizer/templates/profile-analysis.html` → 0 matches in the print CSS.
+  2. `grep "break-inside: auto" skills/career/cv-optimizer/templates/profile-analysis.html` → present with `orphans: 3; widows: 3;`.
+  3. `grep "table tr { break-inside: avoid" skills/career/cv-optimizer/templates/profile-analysis.html` → still present.
+  4. `grep "h2 { break-after: avoid" skills/career/cv-optimizer/templates/profile-analysis.html` → still present.
+  5. `make test-scripts` passes with a regression assertion covering the template's print CSS.
+- Tests:
+  1. `grep "section { break-inside: avoid" profile-analysis.html` → 0 matches; `grep "break-inside: auto"` → present with orphans/widows.
+  2. `grep "table tr { break-inside: avoid" profile-analysis.html` → present (table rows still protected).
+  3. `grep "h2 { break-after: avoid" profile-analysis.html` → present (no orphaned headings).
+  4. `make test-scripts` → exit 0 with the new/extended regression test.
+- Suggested fix: Apply the same treatment as issue #203 to `skills/career/cv-optimizer/templates/profile-analysis.html`: replace the blanket `section { break-inside: avoid; }` with `section { break-inside: auto; orphans: 3; widows: 3; }`, keep `table tr { break-inside: avoid; }` and `h2 { break-after: avoid; }`, add a regression assertion in scripts/tests/test_cv.sh, and run `make test-scripts`. Effort ~1-2h. Origem: senior review do #203 (docs profile, finding 1 — incomplete-spec).
