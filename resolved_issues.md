@@ -1,5 +1,15 @@
 # Resolved Issues
 
+### 75. standards/cv-analysis.md lacks a report-type section for linkedin-optimization.md
+- Resolved: 2026-08-17
+- Durations: backlog=0d waiting=0d dev=1d total=1d
+- Severity: low
+- Type: doc
+- Report: opencode
+- Reviewers: 1
+- Remote: -
+- Summary: Add §3.4 to standards/cv-analysis.md documenting linkedin-optimization.md H2 section order; rename all career filenames to English (profile-analysis, inferences, resumes, interview-preparation); add explicit language rule. PR #93 merged.
+
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
 ### 71. Keyword density and match percentage in gap analysis
