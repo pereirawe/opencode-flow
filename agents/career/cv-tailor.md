@@ -33,7 +33,7 @@ language.
 1. Load the `cv-tailor` skill (full process), the `cv-pdf` skill (PDF
    generation), the `standards/cv-design.md` standard (ATS/print/pages) and
    the `standards/cv-analysis.md` standard (canonical gap-analysis and
-   inferencias structure, uniform tables, `[INFERIDO]` and language rules).
+   inferences structure, uniform tables, `[INFERIDO]` and language rules).
 2. Read the candidate's `hub.json` and validate with
    `python3 $SCRIPTS_DIR/cv/validate.py`.
 3. Receive the job: pasted text (recommended) | local file | LinkedIn
@@ -43,13 +43,13 @@ language.
    to file:// — an SSRF vector).
 4. Extract from the job: required/desirable requirements, keywords, seniority,
    languages.
-5. Gap analysis vs hub → `curriculos/<job-slug>/gap-analysis.md` per
+5. Gap analysis vs hub → `resumes/<job-slug>/gap-analysis.md` per
    `standards/cv-analysis.md` §3.2/§4.1 (uniform table `Requirement | Match |
    Evidence in hub`, match values `atendido`/`parcial`/`not_met`). Compute
    and record the weighted match percentage (mandatory requirements weigh
    2x, desirable 1x) per `standards/cv-analysis.md` §4.5.
 6. List ALL inferences/placeholders in
-   `curriculos/<job-slug>/inferencias.md` per `standards/cv-analysis.md`
+   `resumes/<job-slug>/inferences.md` per `standards/cv-analysis.md`
    §3.3/§4.4 (table `Inference | Context | Decision | Status`) and ask the
    candidate to decide on each one (rephrase/omit/promote with real data)
    BEFORE generating the final output.
@@ -77,7 +77,7 @@ language.
 
 1. NEVER invent experience, skills, projects, certifications or contact.
 2. `[INFERIDO]` is allowed ONLY in internal artifacts (hub.json, gap-analysis.md,
-   inferencias.md) per `standards/cv-analysis.md` §5. In the final HTML/PDF NO
+   inferences.md) per `standards/cv-analysis.md` §5. In the final HTML/PDF NO
    `[INFERIDO]` may appear (nor case-insensitive variants) — the
    `check-inference.sh` gate blocks generation.
 3. Resume language = job language (pt/en/es).

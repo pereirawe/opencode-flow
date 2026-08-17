@@ -40,10 +40,10 @@ The job can be provided as:
    (match values `atendido`/`parcial`/`not_met` per
    `standards/cv-analysis.md` §4.1) + the weighted match percentage
    (mandatory requirements weigh 2x, desirable 1x per §4.5), saved in
-   `curriculos/<job-slug>/gap-analysis.md` (written in the user's
+   `resumes/<job-slug>/gap-analysis.md` (written in the user's
    communication language).
 5. **Human decision on inferences** — list all of them in
-   `curriculos/<job-slug>/inferencias.md` per `standards/cv-analysis.md`
+   `resumes/<job-slug>/inferences.md` per `standards/cv-analysis.md`
    §3.3/§4.4 (table `Inference | Context | Decision | Status`) and ask the
    candidate to decide on each (rephrase/omit/promote with real data) before
    the final output.
@@ -70,7 +70,7 @@ The job can be provided as:
   template `skills/career/cv-pdf/templates/resume.html` — never CSS from
   scratch; verify conformity before the PDF.
 - `[INFERIDO]` is allowed ONLY in internal artifacts (hub.json,
-  gap-analysis.md, inferencias.md) per `standards/cv-analysis.md` §5. In the
+  gap-analysis.md, inferences.md) per `standards/cv-analysis.md` §5. In the
   final HTML/PDF NO `[INFERIDO]` may appear — the `check-inference.sh` gate
   blocks generation.
 - Contact only if present in the hub; sensitive data never.
@@ -78,7 +78,7 @@ The job can be provided as:
 
 ### Report to the user
 
-- Generated PDF path (`~/career/<name>/curriculos/<slug>/curriculo.pdf`).
+- Generated PDF path (`~/career/<name>/resumes/<slug>/curriculo.pdf`).
 - Gap analysis summary (`atendido`/`parcial`/`not_met` requirements) and the
   weighted match percentage.
 - Keyword density map and coverage summary by section (computed from the

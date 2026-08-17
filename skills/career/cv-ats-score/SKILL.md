@@ -21,11 +21,11 @@ The candidate must have a resume generated for the job slug by `ocf:cv-tailor`
 (`cv-tailor` skill), producing:
 
 ```
-~/career/<candidate-name>/curriculos/<job-slug>/
+~/career/<candidate-name>/resumes/<job-slug>/
 ├── curriculo.pdf         # generated A4 PDF (primary text source)
 ├── index.html            # resume HTML (fallback text source)
 ├── gap-analysis.md       # Job context + Required/Desirable requirements (keyword source)
-└── inferencias.md        # resolved inferences (optional context)
+└── inferences.md        # resolved inferences (optional context)
 ```
 
 The candidate hub (`~/career/<candidate-name>/hub.json`) must exist and pass
@@ -35,7 +35,7 @@ missing, tell the user to run `ocf:cv-tailor` for the job slug first.
 ## Inputs
 
 - **Candidate directory** — `~/career/<candidate-name>/`.
-- **Job slug** — the `<job-slug>` directory name under `curriculos/` (the same
+- **Job slug** — the `<job-slug>` directory name under `resumes/` (the same
   slug used by cv-tailor).
 
 ## 1. Text extraction (best-effort)
@@ -51,7 +51,7 @@ missing, tell the user to run `ocf:cv-tailor` for the job slug first.
 
 ## 2. Keyword extraction (from the job)
 
-Load the job keywords from `curriculos/<job-slug>/gap-analysis.md`:
+Load the job keywords from `resumes/<job-slug>/gap-analysis.md`:
 
 - **Job context** — job title, company, seniority, job language.
 - **Required requirements** — the skills, technologies, certifications and
@@ -156,7 +156,7 @@ Order recommendations by impact on the global score (highest first).
 
 ## Report structure
 
-Output: `~/career/<candidate-name>/curriculos/<job-slug>/ats-score.md`
+Output: `~/career/<candidate-name>/resumes/<job-slug>/ats-score.md`
 
 Structure (per `standards/cv-analysis.md` §2 — new report type following the
 same pattern as `gap-analysis.md` §3.2):
@@ -209,7 +209,7 @@ the `[INFERIDO]` marker MAY appear INLINE next to estimates, per
    computed from the actual resume text and gap-analysis.md. If a metric
    cannot be computed from the sources, say so instead of inventing it.
 2. **Read-only** — the agent NEVER modifies `hub.json`, `gap-analysis.md`,
-   `inferencias.md`, `index.html` or `curriculo.pdf`. The ONLY file written is
+   `inferences.md`, `index.html` or `curriculo.pdf`. The ONLY file written is
    `ats-score.md`.
 3. **No URL fetching** — the job and the resume are read from local files
    only; never fetch job descriptions from the web.
@@ -222,7 +222,7 @@ the `[INFERIDO]` marker MAY appear INLINE next to estimates, per
 ## Report to the user
 
 Report: the output path
-(`~/career/<candidate>/curriculos/<job-slug>/ats-score.md`), the global score,
+(`~/career/<candidate>/resumes/<job-slug>/ats-score.md`), the global score,
 the breakdown (keyword_match / section_completeness / format_compliance), the
 text source used (pdftotext of the PDF, or the HTML fallback with the
 limitation noted), and the count of recommendations.

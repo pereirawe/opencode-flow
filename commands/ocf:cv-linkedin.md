@@ -10,7 +10,7 @@ high-impact LinkedIn profile sections: **headline** (≤220 chars), **about
 section** (≤2600 chars), **skills ranking** (top 50 by relevance) and
 **featured section** recommendations. When a job is provided the suggestions
 are optimized for that target role; without a job they follow the candidate's
-inferred seniority and target job profiles (from `analise-perfil.md` when
+inferred seniority and target job profiles (from `profile-analysis.md` when
 available). Nothing is fabricated and LinkedIn is **never scraped or
 modified** — the user copies/pastes the suggestions manually.
 
@@ -41,7 +41,7 @@ URL, ask them to paste the job description text instead.
 2. **Invoke the agent** `career/cv-linkedin` via `task:` with the candidate
    directory and the job (when provided).
 3. **Determine the target role** — job provided: analyze its requirements,
-   keywords and seniority; no job: read `analise-perfil.md` target job
+   keywords and seniority; no job: read `profile-analysis.md` target job
    profiles (cv-optimizer) or infer from the hub.
 4. **Generate the four suggestion blocks** — headline (≤220 chars), about
    (≤2600 chars), skills ranking (top 50 by relevance), featured section

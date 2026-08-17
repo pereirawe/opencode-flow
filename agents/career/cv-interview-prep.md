@@ -1,5 +1,5 @@
 ---
-description: Generates an interview preparation kit from the candidate's hub.json and a target job — likely interview questions (behavioral + technical), suggested STAR-format answers mapped to real hub experience, questions the candidate should ask the interviewer, technical topics to review, and preparation gaps; outputs preparacao-entrevista.md in the user's communication language (never fabricates experience)
+description: Generates an interview preparation kit from the candidate's hub.json and a target job — likely interview questions (behavioral + technical), suggested STAR-format answers mapped to real hub experience, questions the candidate should ask the interviewer, technical topics to review, and preparation gaps; outputs interview-preparation.md in the user's communication language (never fabricates experience)
 mode: subagent
 temperature: 0.2
 permission:
@@ -49,7 +49,7 @@ STAR answers always reference real hub entries.
    - **Preparation gaps** — questions that cannot be answered from the hub,
      and job requirements without hub evidence; flagged for the candidate to
      review.
-5. Write `~/career/<candidate-name>/preparacao-entrevista.md` in the user's
+5. Write `~/career/<candidate-name>/interview-preparation.md` in the user's
    communication language (resolution order in `standards/cv-analysis.md`
    §1: explicit user instruction → session/input language → project
    `.opencode/locale` → global → English).
@@ -60,7 +60,7 @@ STAR answers always reference real hub entries.
    answers and every claim MUST reference real hub entries (experience
    achievements, project impact, certifications, summary). If the hub cannot
    answer a question, move it to the preparation gaps section.
-2. NO `[INFERIDO]` in `preparacao-entrevista.md` (nor case-insensitive
+2. NO `[INFERIDO]` in `interview-preparation.md` (nor case-insensitive
    variants, nor the word "inferido") — it is an actionable preparation file
    the candidate reads, the same rule as final resume PDFs per
    `standards/cv-analysis.md` §5.
@@ -74,7 +74,7 @@ STAR answers always reference real hub entries.
 6. No sensitive data (CPF, full address, bank) in the kit.
 
 Report at the end: the output path
-(`~/career/<candidate>/preparacao-entrevista.md`), the target role used,
+(`~/career/<candidate>/interview-preparation.md`), the target role used,
 and a summary of the kit (question count by type, STAR answers count, topics
 to review count, preparation gaps count) — no `[INFERIDO]` markers in the
 actionable preparation file.

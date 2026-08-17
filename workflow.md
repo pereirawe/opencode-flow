@@ -247,7 +247,7 @@ resume-optimization flow (issue #60):
 - `/ocf:cv-optimize <candidate-dir>` — analyze the candidate profile
   (post-hub): profile score, target job profiles, CLT/PJ salary ranges
   (`[INFERRED]`), context gaps, and a prioritized improvement plan in
-  `analise-perfil.md`. Never fabricates; never modifies `hub.json`.
+  `profile-analysis.md`. Never fabricates; never modifies `hub.json`.
 - `/ocf:cv-tailor <candidate-dir> <job>` — analyze a job (multi-portal), gap
   analysis vs `hub.json`, and generate a job-tailored resume PDF (HTML → PDF,
   Chrome headless, fallback LibreOffice) in the job's language. Never

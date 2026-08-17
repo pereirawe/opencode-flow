@@ -20,7 +20,7 @@ summary). The hub is the foundation for tailored resume generation
 │   ├── curriculo.pdf # (required)
 │   ├── linkedin/     # official LinkedIn export (optional)
 │   └── extras/       # certificates, portfolio, projects (optional)
-└── curriculos/       # generated resumes (HTML + PDF)
+└── resumes/       # generated resumes (HTML + PDF)
 ```
 
 ## Inputs
@@ -261,5 +261,5 @@ is the base for the update.
   existing hub stays absent.
 - Sensitive data (CPF, document, full address, bank details) does not enter
   the hub — including in updates.
-- The update never touches other candidate artifacts (curriculos/, cartas/,
+- The update never touches other candidate artifacts (resumes/, cartas/,
   reports) — it only updates `hub.json` and regenerates `README.md`.

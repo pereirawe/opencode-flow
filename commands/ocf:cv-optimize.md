@@ -1,7 +1,7 @@
 ## /ocf:cv-optimize <candidate-directory>
 
 ---
-description: Analyze the candidate profile and generate an improvement plan — profile score, target job profiles, CLT vs PJ salary ranges, context gaps, and a prioritized action plan (analise-perfil.md + PDF)
+description: Analyze the candidate profile and generate an improvement plan — profile score, target job profiles, CLT vs PJ salary ranges, context gaps, and a prioritized action plan (profile-analysis.md + PDF)
 ---
 
 Analyzes a candidate's profile from the hub (built with `/ocf:cv-hub`) and
@@ -25,7 +25,7 @@ to improve the profile substantially before generating tailored resumes with
 2. **Validate** — `python3 $SCRIPTS_DIR/cv/validate.py hub.json`.
 3. **Invoke the agent** `career/cv-optimizer` via `task:` with the candidate
    directory.
-4. **Analyze** — the agent produces `analise-perfil.md` following the
+4. **Analyze** — the agent produces `profile-analysis.md` following the
    canonical structure of `standards/cv-analysis.md` (§3.1, tables §4.2/§4.3):
    - Profile score (0-100 per section + global, with justification)
    - General qualifications (seniority, skills, strengths/weaknesses)
@@ -33,11 +33,11 @@ to improve the profile substantially before generating tailored resumes with
    - CLT vs PJ salary ranges (all `[INFERIDO]` for human review)
    - Context gaps in the hub
    - Prioritized action plan (impact × effort)
-5. **Generate the PDF** — the agent renders `analise-perfil.html` from the
+5. **Generate the PDF** — the agent renders `profile-analysis.html` from the
    reference template
-   `skills/career/cv-optimizer/templates/analise-perfil.html` (adapt content,
+   `skills/career/cv-optimizer/templates/profile-analysis.html` (adapt content,
    never the CSS) and runs `bash $SCRIPTS_DIR/cv/pdf.sh` to produce
-   `analise-perfil.pdf` (A4), making reading/analysis easier.
+   `profile-analysis.pdf` (A4), making reading/analysis easier.
 6. **Report** — report paths (.md and .pdf), global score, top actions and
    the `[INFERIDO]` items the candidate should review.
 

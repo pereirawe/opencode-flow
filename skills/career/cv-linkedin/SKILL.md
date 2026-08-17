@@ -1,6 +1,6 @@
 ---
 name: cv-linkedin
-description: Generate LinkedIn profile optimization suggestions from the candidate's hub.json — optimized headline (≤220 chars), about section (≤2600 chars), top-50 skills ranked by relevance, and featured section recommendations, tailored to a target job or to the candidate's inferred seniority/target profiles (from analise-perfil.md when available). Outputs linkedin-optimization.md in the user's communication language. NEVER scrapes or modifies LinkedIn — the user copies/pastes suggestions manually, and nothing is fabricated. Use when you need to optimize a LinkedIn profile for a target role or improve recruiter discoverability (command ocf:cv-linkedin; "otimização do perfil LinkedIn", "otimizar linkedin" and "melhorar linkedin" also trigger this skill). Career sector.
+description: Generate LinkedIn profile optimization suggestions from the candidate's hub.json — optimized headline (≤220 chars), about section (≤2600 chars), top-50 skills ranked by relevance, and featured section recommendations, tailored to a target job or to the candidate's inferred seniority/target profiles (from profile-analysis.md when available). Outputs linkedin-optimization.md in the user's communication language. NEVER scrapes or modifies LinkedIn — the user copies/pastes suggestions manually, and nothing is fabricated. Use when you need to optimize a LinkedIn profile for a target role or improve recruiter discoverability (command ocf:cv-linkedin; "otimização do perfil LinkedIn", "otimizar linkedin" and "melhorar linkedin" also trigger this skill). Career sector.
 ---
 
 # CV LinkedIn — LinkedIn profile optimization suggestions
@@ -33,7 +33,7 @@ The user may provide a target job to optimize the suggestions for that role:
 URL, ask them to paste the job description text instead.
 
 When NO job is provided, read
-`~/career/<candidate-name>/analise-perfil.md` (cv-optimizer output) and use
+`~/career/<candidate-name>/profile-analysis.md` (cv-optimizer output) and use
 its target job profiles and inferred seniority when available; otherwise
 infer seniority and target profiles from the hub itself.
 
@@ -43,7 +43,7 @@ infer seniority and target profiles from the hub itself.
    keywords/technologies, seniority, languages. These define the target role
    the suggestions optimize for.
 2. **No job provided** — use the target job profiles and inferred seniority
-   from `analise-perfil.md` (cv-optimizer) when present; otherwise infer from
+   from `profile-analysis.md` (cv-optimizer) when present; otherwise infer from
    the hub (seniority from experience depth/titles, target profiles from the
    dominant skills and achievements).
 

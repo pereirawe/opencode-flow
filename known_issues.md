@@ -476,7 +476,9 @@ See `standards/issues.md` for the full contract.
 - Suggested fix: (1) run the spike first: validate the four preconditions (Docker daemon, image obtainment via GHCR or #40-branch build, model-API egress, API-level parallelism measurement), evaluate both isolation candidates (host-side git worktree vs full volume-copy clone with isolated .git) including git-metadata race analysis, document pass/fail in .opencode/spikes/containerized-delivery.md; (2) on pass: implement the orchestrator script scripts/run-parallel-delivery.sh (per-issue host-side flock under state/parallel-delivery/ with TOCTOU re-check, AIBOT_MAX_PARALLEL runtime cap, snapshot spawn with cache seeding, CPU/mem/time limits, cleanup + orphan reap, session result contract, working-tree-only sync-back as uncommitted diff with tracker flock); (3) verify/extend scripts/telegram-notify.sh env-only credentials (likely verification + tests only — support already exists); (4) add scripts/tests/test_parallel_delivery.sh covering locking, idempotency, result contract, sync-back, and deny-rule/allowlist gating; (5) document in workflow.md + scripts/README.md. Effort ~28–36h, spike-gated. BLOCKED ON #40 landing on main + GHCR image publish (semver) — do not promote to in-progress until that lands. Origem: Proposal 2026-08-14-13 em prioritization.md.
 
 ### 75. standards/cv-analysis.md lacks a report-type section for linkedin-optimization.md
-- Status: backlog
+- Status: in-review
+- Ready: 2026-08-17
+- Started: 2026-08-17
 - Type: doc
 - Severity: low
 - Report: opencode
@@ -485,7 +487,7 @@ See `standards/issues.md` for the full contract.
 - Remote: -
 - PR: -
 - Location: standards/cv-analysis.md (section 3), skills/career/cv-linkedin/SKILL.md
-- Description: Issue #67 (ocf:cv-linkedin) introduced a new career-sector report type, `linkedin-optimization.md`, and the skill/agent/command correctly reference `standards/cv-analysis.md` for its structure. However, `standards/cv-analysis.md` §3 ("Report-type structures") only documents `analise-perfil.md` (§3.1), `gap-analysis.md` (§3.2) and `inferencias.md` (§3.3) — there is no §3.x entry defining the canonical structure of `linkedin-optimization.md` (H2 section order: Target role → Headline → About → Skills ranking → Featured). The implementation follows the standard's general rules (§1 language, §2 structure, §5 INFERIDO) and defines the section order inline in the skill, so the delivered contract is met; the standard itself is incomplete for future consistency.
+- Description: Issue #67 (ocf:cv-linkedin) introduced a new career-sector report type, `linkedin-optimization.md`, and the skill/agent/command correctly reference `standards/cv-analysis.md` for its structure. However, `standards/cv-analysis.md` §3 ("Report-type structures") only documents `profile-analysis.md` (§3.1), `gap-analysis.md` (§3.2) and `inferences.md` (§3.3) — there is no §3.x entry defining the canonical structure of `linkedin-optimization.md` (H2 section order: Target role → Headline → About → Skills ranking → Featured). The implementation follows the standard's general rules (§1 language, §2 structure, §5 INFERIDO) and defines the section order inline in the skill, so the delivered contract is met; the standard itself is incomplete for future consistency.
 - Impact: The report type's canonical structure lives in the skill instead of the shared standard; future report types (e.g. #68 interview prep, #69 ATS score) will not have a single canonical reference. Low severity — no functional impact on #67.
 - Business rules:
   1. `standards/cv-analysis.md` DEVE document the `linkedin-optimization.md` report type structure in §3 (as §3.4 or a generic §3.x), matching the section order implemented in the cv-linkedin skill: Target role, Headline suggestions, About section draft, Skills ranking, Featured section.

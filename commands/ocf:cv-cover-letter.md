@@ -38,14 +38,14 @@ The job can be provided as:
    candidate directory and the job.
 3. **Analyze the job** — required/desirable requirements, keywords, seniority,
    languages, company profile.
-4. **Gap analysis** — reuse `curriculos/<job-slug>/gap-analysis.md` from
+4. **Gap analysis** — reuse `resumes/<job-slug>/gap-analysis.md` from
    cv-tailor when available; otherwise build it inline (uniform table
    `Requirement | Match | Evidence in hub`, match values
    `atendido`/`parcial`/`not_met` per `standards/cv-analysis.md` §4.1), saved
    in `cartas/<job-slug>/gap-analysis.md` (written in the user's communication
    language).
 5. **Human decision on inferences** — list all of them in
-   `cartas/<job-slug>/inferencias.md` per `standards/cv-analysis.md`
+   `cartas/<job-slug>/inferences.md` per `standards/cv-analysis.md`
    §3.3/§4.4 (table `Inference | Context | Decision | Status`) and ask the
    candidate to decide on each (rephrase/omit/promote with real data) before
    the final output.
@@ -68,7 +68,7 @@ The job can be provided as:
 ├── index.html             # cover letter HTML (job language)
 ├── carta-apresentacao.pdf # generated A4 PDF
 ├── gap-analysis.md        # requirements vs hub analysis (when built inline)
-└── inferencias.md         # resolved inferences list (human review)
+└── inferences.md         # resolved inferences list (human review)
 ```
 
 ### Rules
@@ -78,7 +78,7 @@ The job can be provided as:
   template `skills/career/cv-pdf/templates/resume.html` — never CSS from
   scratch; verify conformity before the PDF.
 - `[INFERIDO]` is allowed ONLY in internal artifacts (hub.json,
-  gap-analysis.md, inferencias.md) per `standards/cv-analysis.md` §5. In the
+  gap-analysis.md, inferences.md) per `standards/cv-analysis.md` §5. In the
   final HTML/PDF NO `[INFERIDO]` may appear — the `check-inference.sh` gate
   blocks generation.
 - Contact only if present in the hub; sensitive data never.

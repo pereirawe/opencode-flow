@@ -23,7 +23,7 @@ Candidate profile optimization agent. Receives the candidate directory
 (`~/career/<candidate-name>/` with a valid `hub.json`), analyzes the
 qualifications, computes the profile score, suggests target job profiles,
 evaluates CLT vs PJ market salary ranges and generates a prioritized action
-plan in `analise-perfil.md`.
+plan in `profile-analysis.md`.
 
 ## Responsibilities
 
@@ -39,7 +39,7 @@ plan in `analise-perfil.md`.
 6. Evaluate CLT vs PJ market salary ranges (`[INFERIDO]` bands).
 7. Detect context gaps in the hub.
 8. Generate a prioritized action plan (impact × effort).
-9. Write `analise-perfil.md` in `~/career/<candidate>/`.
+9. Write `profile-analysis.md` in `~/career/<candidate>/`.
 10. Also generate `analise-perfil.pdf` (via `bash $SCRIPTS_DIR/cv/pdf.sh` on the
     rendered HTML) for easier reading/analysis.
 

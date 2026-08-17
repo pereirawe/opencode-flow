@@ -1,6 +1,6 @@
 ---
 name: cv-interview-prep
-description: Generate a structured interview preparation kit from the candidate's hub.json and a target job — likely interview questions (behavioral + technical), suggested STAR-format answers mapped to real hub experience, questions to ask the interviewer, and technical topics to review, with preparation gaps flagged for human review. Outputs preparacao-entrevista.md in the user's communication language. NEVER fabricates experience — STAR answers always reference real hub entries. Use when you need to prepare for a job interview, build an interview prep kit, draft STAR answers from real experience, or identify what to review before an interview (command ocf:cv-interview-prep; "preparação para entrevista", "entrevista de emprego", "entrevista" and "STAR" also trigger this skill). Career sector.
+description: Generate a structured interview preparation kit from the candidate's hub.json and a target job — likely interview questions (behavioral + technical), suggested STAR-format answers mapped to real hub experience, questions to ask the interviewer, and technical topics to review, with preparation gaps flagged for human review. Outputs interview-preparation.md in the user's communication language. NEVER fabricates experience — STAR answers always reference real hub entries. Use when you need to prepare for a job interview, build an interview prep kit, draft STAR answers from real experience, or identify what to review before an interview (command ocf:cv-interview-prep; "preparação para entrevista", "entrevista de emprego", "entrevista" and "STAR" also trigger this skill). Career sector.
 ---
 
 # CV Interview Prep — interview preparation kit
@@ -123,7 +123,7 @@ language (unlike resumes/cover letters). Protocol tokens are never translated
 ## Output structure
 
 ```
-~/career/<candidate-name>/preparacao-entrevista.md
+~/career/<candidate-name>/interview-preparation.md
 ```
 
 Structure (per `standards/cv-analysis.md` §2/§3):
@@ -148,7 +148,7 @@ Bullet lists and simple key/value lines are the default; only simple tables
    that are not in the hub do NOT enter the kit. STAR answers MUST reference
    real hub entries (experience achievements, project impact,
    certifications, summary). No hub evidence → preparation gap.
-2. **NO `[INFERIDO]` in the output file** — `preparacao-entrevista.md` is an
+2. **NO `[INFERIDO]` in the output file** — `interview-preparation.md` is an
    actionable preparation file, not an internal analysis: the `[INFERIDO]`
    marker (and case-insensitive variants, and the word "inferido") MUST NOT
    appear, same rule as final resume PDFs per `standards/cv-analysis.md` §5.
@@ -161,7 +161,7 @@ Bullet lists and simple key/value lines are the default; only simple tables
 ## Report
 
 Report to the user: the output path
-(`~/career/<candidate>/preparacao-entrevista.md`), the target role used,
+(`~/career/<candidate>/interview-preparation.md`), the target role used,
 and a summary of the kit: question count (behavioral/technical), STAR answers
 count, questions-to-ask count, technical topics count (have/gap), and
 preparation gaps count — no `[INFERIDO]` markers in the actionable
