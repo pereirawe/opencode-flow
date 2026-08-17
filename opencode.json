@@ -288,7 +288,7 @@
         "external_directory": {
             "~/.config/opencode/**": "allow",
             "~/career/**": "allow",
-            "/temp/*": "allow"
+            "/tmp/*": "allow"
         },
         "task": "allow"
     },
