@@ -45,9 +45,14 @@ values), not opinions.
 3. Backgrounds and images MUST be absent in print. A clean `@media print`
    block MUST exist in the generated HTML that removes any background/image
    and keeps the layout intact.
-4. `break-inside: avoid` MUST be applied to sections and entries so they do
-   not split awkwardly across pages; `break-after: avoid` MUST be applied to
-   `h2` so a section title is never orphaned at the bottom of a page.
+4. SHORT sections and individual entries (`.entry`) MUST keep
+   `break-inside: avoid` so they do not split awkwardly across pages. LONG
+   content sections (e.g. Experience with many entries) MAY break across
+   pages — with `orphans: 3` and `widows: 3` protection so no single line is
+   stranded — so page space is filled instead of leaving a large blank gap
+   after a short preceding section. `break-after: avoid` MUST be applied to
+   `h2` (and the `.header` block) so a section title is never orphaned at the
+   bottom of a page.
 
 ## 3. Sober professional style
 
@@ -84,6 +89,11 @@ Before generating the PDF, the cv-tailor agent MUST verify every item:
 - [ ] Dates as plain text
 - [ ] `@page { size: A4; margin: 12mm 15mm; }` present (margins 12–15mm)
 - [ ] `@media print` block present and clean
+- [ ] Short sections and `.entry` entries keep `break-inside: avoid`
+- [ ] Long content sections may break across pages with `orphans`/`widows`
+      protection (no large blank gap after a short preceding section)
+- [ ] `h2`/`.header` keep `break-after: avoid` (no orphaned headings at page
+      boundaries)
 - [ ] No color-dependent information (legible in black-and-white)
 - [ ] No gradients/shadows/decorative borders/background tints
 - [ ] Page count: 1 page (Junior/Pleno) or at most 2 (Senior+)

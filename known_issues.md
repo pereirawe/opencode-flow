@@ -613,10 +613,10 @@ See `standards/issues.md` for the full contract.
 - Suggested fix: Add `plan.id !== "business-vitrine"` to the conditional guard on line 126: `{previous && plan.id !== "business-vitrine" ? (`
 
 ### 203. Blank space after RESUMO section in cv-pdf resume template — blanket `section { break-inside: avoid; }` pushes Experiência to page 2
-- Status: ready
+- Status: in-progress
 - Opened: 2026-08-17
 - Ready: 2026-08-17
-- Started: -
+- Started: 2026-08-17
 - Type: bug
 - Severity: high
 - Report: william_pereira

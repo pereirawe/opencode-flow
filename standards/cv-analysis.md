@@ -306,8 +306,9 @@ The template shares the design language of `standards/cv-design.md`:
   grayscale-safe accent, no gradients/shadows/decorative borders/emoji.
 - Semantic headings: exactly one `h1` (report title), `h2` per section.
 - No metadata header in the rendered output.
-- Clean `@media print` (no backgrounds; `break-inside: avoid` on sections,
-  entries and table rows).
+- Clean `@media print` (no backgrounds; short sections and entries keep
+  `break-inside: avoid`; long content sections may break across pages with
+  `orphans`/`widows` protection — per `standards/cv-design.md` §2.4).
 
 Unlike resumes, analysis report HTML MAY use the canonical tables — the ATS
 no-table rule applies to resumes submitted to ATS; analysis reports are
