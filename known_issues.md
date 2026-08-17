@@ -561,3 +561,217 @@ See `standards/issues.md` for the full contract.
   3. Texto da vaga colado pelo usuário → fluxo gera carta normalmente sem fetch de URL.
   4. `make test-scripts` com cv-cover-letter limpo → exit 0 (assert_not_contains curl em todos os artefatos).
 - Suggested fix: Aplicar o mesmo tratamento do #72 D5 ao cv-cover-letter: remover permissão/instruções/template `curl -L` e exigir texto colado. Follow-up registrado na senior review do #72 (L1, não-bloqueante para o #72).
+
+### 78. Design sector skills (foundation for Adorable pipeline)
+- Status: backlog
+- Type: feat
+- Severity: high
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (design, frontend)
+- Remote: -
+- PR: -
+- Location: skills/design/reference-library/SKILL.md, skills/design/component-patterns/SKILL.md, skills/design/design-tokens/SKILL.md, skills/design/visual-hierarchy/SKILL.md
+- Description: Create 4 skills under `skills/design/` that encode concrete, testable UI patterns for the Adorable pipeline. These skills are the foundation consumed by all 6 design agents — without them, agents produce generic UI.
+- Impact: All 6 design agents (art-director, ui-architect, ui-implementer, ui-critic, ui-auditor, ui-refactor-planner) depend on these skills for pattern references, token systems, component anatomy, and visual hierarchy rules.
+- Business rules:
+  1. `skills/design/reference-library/SKILL.md` MUST exist with concrete UI patterns (Dashboard Card, Data Table, Nav Rail, Metric Display, Empty State, Command Palette) — each specifies exact CSS values, NOT descriptions.
+  2. `skills/design/component-patterns/SKILL.md` MUST exist with anatomy per component type: primitive (Button, Badge, Icon, Avatar, Separator, Skeleton, Spinner) and composite (Card, DataTable, Form, Dropdown, Modal, Toast, CommandPalette).
+  3. `skills/design/design-tokens/SKILL.md` MUST exist specifying: palette (5 functional layers + 2 accent + semantic), typography (2 families, scale xs–4xl), spacing (4pt base), radius philosophy, shadow tiers, motion durations.
+  4. `skills/design/visual-hierarchy/SKILL.md` MUST exist with rules for: visual weight, contrast ratios (WCAG AA minimum), density modes, responsive patterns.
+  5. All skills MUST have English frontmatter with bilingual trigger keywords (PT appendix per #73).
+  6. Skills MUST be registered in `opencode.json` under `permission.skill`.
+  7. Skills MUST NOT contain code — pattern references consumed by agents as system prompt context.
+- Acceptance criteria:
+  1. All 4 SKILL.md files exist under `skills/design/*/` with correct frontmatter.
+  2. Each skill contains concrete, testable values (not philosophy or opinions).
+  3. `opencode.json` registers all 4 skills.
+  4. Skills follow `standards/cv-analysis.md` §2 structure rules.
+- Tests:
+  1. `ls skills/design/reference-library/SKILL.md skills/design/component-patterns/SKILL.md skills/design/design-tokens/SKILL.md skills/design/visual-hierarchy/SKILL.md` → all exist.
+  2. `grep -c "MUST\|MUST NOT" skills/design/*/SKILL.md` → each skill has ≥10 MUST statements.
+  3. `grep -c "background.*#\|border.*#\|radius.*px\|padding.*px" skills/design/reference-library/SKILL.md` → ≥10 concrete CSS values.
+  4. `jq '.permission.skill' opencode.json` → all 4 skills registered.
+  5. `grep -c "^#" skills/design/*/SKILL.md` → each skill has ≥3 H2 sections.
+- Suggested fix: Create the 4 skills under `skills/design/` with concrete patterns (not philosophy), English frontmatter, bilingual trigger keywords, and register in opencode.json. Reference vendor taste-skill/minimalist-ui for pattern examples but create original content.
+
+### 79. Greenfield pipeline agents (art-director, ui-architect, ui-implementer, ui-critic)
+- Status: backlog
+- Type: feat
+- Severity: high
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (design, frontend)
+- Remote: -
+- PR: -
+- Location: agents/design/art-director.md, agents/design/ui-architect.md, agents/design/ui-implementer.md, agents/design/ui-critic.md
+- Description: Create the core 4-pass Adorable pipeline: art-director (brief → design_spec.json), ui-architect (design_spec → component_tree.json), ui-implementer (JSONs → production code), ui-critic (quality gate). Each agent has a single responsibility and consumes/produces structured JSON.
+- Impact: Replaces the single-pass `designer.md` with a pipeline that separates layout, architecture, implementation, and quality concerns — the key differentiator from generic AI UI.
+- Business rules:
+  1. `agents/design/art-director.md` — mode=subagent, edit=deny, bash=deny, temp=0.7. Process: deconstruct brief → audit defaults → 3 design directions → critique → design_spec.json.
+  2. `agents/design/ui-architect.md` — mode=subagent, edit=deny, bash=deny, temp=0.2. Process: parse design_spec → layout regions → component tree → contracts → interaction map → build order.
+  3. `agents/design/ui-implementer.md` — mode=subagent, edit=allow, bash=allow, temp=0.1. Process: parse JSONs → verify env → implement by build_order → verify checklist.
+  4. `agents/design/ui-critic.md` — mode=subagent, edit=deny, bash=deny, temp=0.3. Process: receive code → evaluate checklist → pass/iterate.
+  5. NO `model:` in frontmatter — user's default model. Prompt documents preference textually.
+  6. All agents consume/produce structured JSON — no ambiguous text between agents.
+  7. All agents include locale rule per #73.
+  8. art-director rejects AI anti-patterns (cream+terracotta, Inter for everything, generic purple gradient, etc.).
+  9. art-director generates 3 directions before selecting; defines signature element.
+  10. ui-architect maps all 6 data states per async component; structural accessibility.
+  11. ui-implementer implements every defined state — no skipping.
+  12. ui-critic blocks delivery on any checklist failure — no partial approvals.
+  13. Agents registered in `opencode.json` with correct permissions.
+- Acceptance criteria:
+  1. All 4 agent .md files exist under `agents/design/` with correct frontmatter.
+  2. art-director produces valid JSON with brief_analysis, rejected_defaults, directions_considered, selected_direction, design_spec.
+  3. ui-architect produces valid JSON with layout_regions, component_tree, components, interaction_map, build_order.
+  4. ui-implementer reads JSONs and writes code files (not JSON).
+  5. ui-critic returns APPROVED or ISSUES_FOUND with component-specific feedback.
+  6. `opencode.json` registers all 4 agents with correct permissions.
+- Tests:
+  1. `ls agents/design/art-director.md agents/design/ui-architect.md agents/design/ui-implementer.md agents/design/ui-critic.md` → all exist.
+  2. `grep "mode: subagent" agents/design/*.md` → all 4 agents are subagents.
+  3. `grep "model:" agents/design/*.md` → 0 occurrences (no hardcoded model).
+  4. `grep "edit: deny" agents/design/art-director.md agents/design/ui-architect.md agents/design/ui-critic.md` → all deny.
+  5. `grep "edit: allow" agents/design/ui-implementer.md` → allow.
+  6. `jq '.agents' opencode.json` → all 4 agents registered.
+- Suggested fix: Create the 4 agents under `agents/design/` based on the drafts in `.opencode/adorable-proposal/` but rewritten in English, with no hardcoded model, and registered in opencode.json. Depends on #80 (skills) for pattern references.
+
+### 80. Audit/Refactor agents (ui-auditor, ui-refactor-planner)
+- Status: backlog
+- Type: feat
+- Severity: high
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (devops, frontend)
+- Remote: -
+- PR: -
+- Location: agents/design/ui-auditor.md, agents/design/ui-refactor-planner.md
+- Description: Create 2 agents for existing codebase refactoring: ui-auditor (stack-agnostic diagnostic → audit_report.json) and ui-refactor-planner (diagnostic + design_spec → phased refactor_plan.json). Enables the pipeline to work on existing projects, not just greenfield.
+- Impact: Extends the Adorable pipeline from new-project-only to any existing codebase. The auditor produces machine-readable diagnostics; the planner produces a migration plan that never breaks working functionality.
+- Business rules:
+  1. `agents/design/ui-auditor.md` — mode=subagent, edit=deny, bash=allow, temp=0.1. Detects stack via bash (REACT_VITE, NEXTJS_APP, VUE_VITE, PHP_BLADE, PHP_HTML, HTML_VANILLA, etc.).
+  2. Auditor uses bash for detection only — never destructive (no rm, mv, write).
+  3. Auditor assigns severity scores (1–5) per dimension: visual_consistency, component_structure, state_completeness, accessibility, responsiveness, performance_visual, maintainability.
+  4. Auditor cites file and line for every issue; preserves what's good in `preserved_patterns`.
+  5. `agents/design/ui-refactor-planner.md` — mode=subagent, edit=deny, bash=deny, temp=0.2. Consumes audit + design_spec → refactor_plan.json.
+  6. Planner classifies: Group A (blockers), Group B (inline), Group C (opportunities).
+  7. Planner never plans big bang; never deletes before replacing; adapts strategy to stack.
+  8. Both output pure JSON; both include locale rule; both registered in opencode.json.
+- Acceptance criteria:
+  1. Both agent .md files exist under `agents/design/` with correct frontmatter.
+  2. ui-auditor detects stack via bash and produces audit_report.json with scores, critical_issues, preserved_patterns.
+  3. ui-refactor-planner produces refactor_plan.json with phases, component_decisions, token_mapping, dependency_map.
+  4. `opencode.json` registers both agents.
+- Tests:
+  1. `ls agents/design/ui-auditor.md agents/design/ui-refactor-planner.md` → both exist.
+  2. `grep "bash: allow" agents/design/ui-auditor.md` → allow.
+  3. `grep "bash: deny" agents/design/ui-refactor-planner.md` → deny.
+  4. `jq '.agents' opencode.json` → both agents registered.
+- Suggested fix: Create the 2 agents under `agents/design/` based on the drafts in `.opencode/adorable-proposal/` but rewritten in English, with no hardcoded model. Depends on #80 (skills) for token/component references that the planner consumes.
+
+### 81. /ocf:build-ui orchestration command + output file conventions
+- Status: backlog
+- Type: feat
+- Severity: high
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (design, docs)
+- Remote: -
+- PR: -
+- Location: commands/ocf:build-ui.md, commands/ocf:audit-ui.md, standards/design-pipeline.md
+- Description: Create 2 orchestration commands and define output file conventions. `/ocf:build-ui` orchestrates the 4-pass greenfield pipeline; `/ocf:audit-ui` orchestrates audit+refactor. Output conventions define deterministic file paths for pipeline artifacts, enabling resumption and multi-model flows.
+- Impact: The entry point that makes the Adorable pipeline usable. Without commands, users must manually invoke each agent. Without conventions, output files are unnamed and undiscoverable.
+- Business rules:
+  1. `commands/ocf:build-ui.md` orchestrates: art-director → ui-architect → ui-implementer → ui-critic.
+  2. `commands/ocf:audit-ui.md` orchestrates: ui-auditor → ui-refactor-planner (optional: → build pipeline).
+  3. Commands pass JSON outputs between agents — each receives previous agent's output file path.
+  4. Commands handle failure at any stage — log + Telegram notification, no continuation.
+  5. Output directory: `.opencode/design-outputs/<session-id>/` (timestamp-based, e.g., `2026-08-17T14-30-00`).
+  6. Output file names: `design_spec.json`, `component_tree.json`, `refactor_plan.json`, `audit_report.json`, `quality_report.json`.
+  7. Commands registered in `opencode.json`.
+  8. Commands accept brief (build-ui) or project path (audit-ui).
+  9. Commands support resumption — re-run with same session-id skips completed stages.
+  10. No hardcoded model in command template — user's default.
+  11. Response-language rule: respond in user's input language.
+  12. `standards/design-pipeline.md` documents output conventions, session management, pipeline stages.
+- Acceptance criteria:
+  1. `commands/ocf:build-ui.md` and `commands/ocf:audit-ui.md` exist.
+  2. Commands pass JSON file paths between agents as context.
+  3. `standards/design-pipeline.md` documents output file names, directory structure, session protocol.
+  4. `opencode.json` registers both commands.
+  5. `workflow.md` documents the design pipeline as an entry point.
+- Tests:
+  1. `ls commands/ocf:build-ui.md commands/ocf:audit-ui.md` → both exist.
+  2. `grep -c "art-director\|ui-architect\|ui-implementer\|ui-critic" commands/ocf:build-ui.md` → ≥4 references.
+  3. `grep -c "ui-auditor\|ui-refactor-planner" commands/ocf:audit-ui.md` → ≥2 references.
+  4. `ls standards/design-pipeline.md` → exists.
+  5. `grep "design-outputs" standards/design-pipeline.md` → output convention documented.
+  6. `jq '.commands' opencode.json` → both commands registered.
+- Suggested fix: Create the 2 commands and `standards/design-pipeline.md`. Register in opencode.json. Update workflow.md. Depends on #81 and #82 (agents must exist before commands can invoke them).
+
+### 82. Model fallback mechanism for design agents
+- Status: backlog
+- Type: feat
+- Severity: medium
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 1 (runtime)
+- Remote: -
+- PR: -
+- Location: agents/design/*.md, opencode.json
+- Description: Implement model fallback in the design pipeline. Instead of hardcoding `model: anthropic/claude-opus-4-5` in agent frontmatter, agents use the user's default model. Prompt text documents preference without enforcing it. Prevents silent failures when preferred model is unavailable.
+- Impact: Prevents pipeline failures when the preferred model is unavailable. The art-director benefits from high-capability models for creativity, but the pipeline must work with any model.
+- Business rules:
+  1. Design agents MUST NOT have `model:` in frontmatter — user's default model.
+  2. Agent prompts document model preference textually: "benefits from high-capability models but works with any model."
+  3. `/ocf:build-ui` command MAY include preferred `model` field — fallback to user's default if unavailable.
+  4. art-director documents: "temperature: 0.7 recommended for creative output."
+  5. ui-implementer documents: "temperature: 0.1 recommended for precise implementation."
+  6. Model preference is documentation, not requirement — pipeline works with any model.
+- Acceptance criteria:
+  1. `grep -c "model:" agents/design/*.md` → 0 occurrences.
+  2. All agent prompts contain model preference documentation.
+  3. `opencode.json` command template for build-ui may have optional `model` field.
+- Tests:
+  1. `grep "model:" agents/design/art-director.md agents/design/ui-architect.md agents/design/ui-implementer.md agents/design/ui-critic.md agents/design/ui-auditor.md agents/design/ui-refactor-planner.md` → 0 matches.
+  2. `grep -i "high-capability\|works with any model" agents/design/*.md` → ≥4 matches.
+- Suggested fix: Remove any `model:` from agent frontmatter (should be done during #81 creation). Add model preference documentation to prompts. Independent of other issues but best done as part of #81.
+
+### 83. Design sector documentation (READMEs, agent-skill mapping, standards)
+- Status: backlog
+- Type: doc
+- Severity: medium
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 1 (docs)
+- Remote: -
+- PR: -
+- Location: agents/design/README.md, agents/README.md, skills/README.md, standards/design-pipeline.md, workflow.md, opencode.json
+- Description: Create design sector documentation: README listing all 6 agents with pipeline flow and skill mapping, update parent READMEs, create output conventions standard, update workflow.md with design pipeline entry point, register agents/commands in opencode.json.
+- Impact: Makes the design sector discoverable and maintainable. Without documentation, new users cannot find the pipeline or understand agent-skill relationships.
+- Business rules:
+  1. `agents/design/README.md` lists all 6 agents with one-line description, skills consumed, pipeline position.
+  2. `agents/design/README.md` includes flow diagram (Greenfield: brief → art-director → ui-architect → ui-implementer → ui-critic; Audit: codebase → ui-auditor → ui-refactor-planner → ... → UI).
+  3. `agents/README.md` updated to include design sector.
+  4. `skills/README.md` updated to include design sector.
+  5. `standards/design-pipeline.md` documents output file names, directory structure, session protocol, model preference.
+  6. `workflow.md` documents design pipeline as entry point: `ocf:build-ui` and `ocf:audit-ui`.
+  7. `opencode.json` updated to register new commands and agents.
+  8. All documentation in English (per #73).
+- Acceptance criteria:
+  1. `agents/design/README.md` exists with all 6 agents listed.
+  2. `agents/README.md` includes design sector.
+  3. `skills/README.md` includes design sector.
+  4. `standards/design-pipeline.md` exists with output conventions.
+  5. `workflow.md` documents design pipeline entry points.
+  6. `opencode.json` registers all design agents and commands.
+- Tests:
+  1. `ls agents/design/README.md` → exists.
+  2. `grep -c "art-director\|ui-architect\|ui-implementer\|ui-critic\|ui-auditor\|ui-refactor-planner" agents/design/README.md` → ≥6.
+  3. `grep "design" agents/README.md` → design sector listed.
+  4. `grep "design" skills/README.md` → design sector listed.
+  5. `ls standards/design-pipeline.md` → exists.
+  6. `grep "build-ui\|audit-ui" workflow.md` → design pipeline documented.
+  7. `jq '.agents | keys | map(select(startswith("design/")))' opencode.json | wc -l` → ≥6 agents registered.
+- Suggested fix: Create documentation files after #81, #82, and #83 are implemented (agents and commands must exist to be documented). Update parent READMEs and workflow.md. Register everything in opencode.json.

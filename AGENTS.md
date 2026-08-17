@@ -57,6 +57,30 @@ Two-tier issue tracking:
 
 Status lifecycle: `backlog -> ready -> open -> in-progress -> in-review -> in-qa -> in-publish -> resolved`
 
+### Resolving `known_issues.md` (critical for all agents)
+
+The agent's system context only loads the **global** `~/.config/opencode/known_issues.md`
+via the `instructions` array. The **project's** `.opencode/known_issues.md` is NOT
+loaded automatically. When any agent needs to read an issue entry, it MUST resolve
+the correct file first via bash:
+
+```bash
+if [ -f .opencode/known_issues.md ]; then ISSUES_FILE=".opencode/known_issues.md"
+elif [ -f ~/.config/opencode/known_issues.md ]; then ISSUES_FILE="$HOME/.config/opencode/known_issues.md"
+else echo "No known_issues.md found"; exit 1; fi
+```
+
+Then extract the issue with:
+```bash
+awk -v id="$ID" '$0 ~ "^### " id "\\." {found=1} found { if ($0 ~ /^### [0-9]+\./ && $0 !~ "^### " id "\\.") exit; print }' "$ISSUES_FILE"
+```
+
+**Always prefer the project file** (`.opencode/known_issues.md`) over the global one.
+The project file contains project-specific issues; the global file contains
+opencode config-level issues only. Scripts (`promote.sh`, `create_issue.sh`,
+`close_issue.sh`) already resolve this via `config.sh` — the agent must do the
+same when reading issue entries directly.
+
 ## Mandatory Pipeline Rule
 
 **Every implementation request — regardless of how it's asked — MUST follow the

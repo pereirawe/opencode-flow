@@ -142,7 +142,7 @@ Quer que eu crie o ui-critic.md agora? Ele é o segundo agente mais crítico —
 
 Art director
 Documento · MD
-Agora cria o ui architec
+Agora cria o ui architect
 
 Visualizou um arquivo
 Visualizou um arquivo
@@ -239,10 +239,10 @@ UI Implementer agent — consumes architect JSON + design_spec JSON + refactor_p
 
 ## REFERENCE FILES
 
-- .opencode/adoravel-proposal/art-director.md
-- .opencode/adoravel-proposal/ui-architect.md
-- .opencode/adoravel-proposal/ui-auditor.md
-- .opencode/adoravel-proposal/ui-implementer.md
-- .opencode/adoravel-proposal/ui-refactor-planner.md
+- .opencode/adorable-proposal/art-director.md
+- .opencode/adorable-proposal/ui-architect.md
+- .opencode/adorable-proposal/ui-auditor.md
+- .opencode/adorable-proposal/ui-implementer.md
+- .opencode/adorable-proposal/ui-refactor-planner.md
 
 ---
