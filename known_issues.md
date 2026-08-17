@@ -67,20 +67,6 @@ See `standards/issues.md` for the full contract.
 - Business rules: all 12 implemented
 - Suggested fix: Implemented
 
-### 23. Instruções contraditórias para contagem de revisores entre command doc e opencode.json
-- Status: in-publish
-- Type: bug
-- Severity: high
-- Report: opencode
-- Base branch: main
-- Reviewers: 1
-- Remote: #22
-- PR: #23
-- Location: commands/ocf:review-branch.md vs opencode.json:28
-- Description: commands/ocf:review-branch.md diz "Ask user for reviewer count (default 1)", enquanto opencode.json (fonte da verdade) diz "Read from `- Reviewers:` field; if absent or empty, default to 1 — do NOT ask the user."
-- Impact: Agentes recebem instruções conflitantes. Pode resultar em perguntas indesejadas ao usuário ou revisores não atribuídos.
-- Suggested fix: Alinhar commands/ocf:review-branch.md com opencode.json — remover "Ask user" e usar leitura do campo na issue.
-
 ### 24. `pre_commit.sh` não sincroniza trailers de status com `known_issues.md`
 - Status: backlog
 - Type: bug
@@ -251,20 +237,6 @@ See `standards/issues.md` for the full contract.
 - Impact: Issues GitLab em status resolved nunca são fechadas automaticamente pelo sync. Detecção quebra com mudanças de versão do glab.
 - Suggested fix: Usar `glab issue view --json state --jq '.state'` se suportado. Adicionar lógica de close para GitLab resolved.
 
-### 36. `scan_issues.sh` usa globs hardcoded que não cobrem diretórios do projeto
-- Status: in-publish
-- Type: chore
-- Severity: low
-- Report: opencode
-- Base branch: main
-- Reviewers: 1
-- Remote: -
-- PR: #49
-- Location: scripts/scan_issues.sh:10-11
-- Description: O script escaneia apenas `./src ./cmd ./internal ./*.go ./*.py ./*.js ./*.ts ./*.rs`. Projetos com layouts diferentes (monorepo, app/, lib/, scripts/) são ignorados.
-- Impact: scan-issues pode reportar "no issues" quando há issues em diretórios não listados. Scripts shell em scripts/ nunca são escaneados.
-- Suggested fix: Incluir scripts/ nos targets. Adicionar suporte a config `.opencode/scan-patterns` ou escanear a raiz com .gitignore-aware tool.
-
 ### 37. Delegar `ocf:develop` para router e agentes Go/Python
 - Status: in-progress
 - Type: feat
@@ -370,46 +342,6 @@ See `standards/issues.md` for the full contract.
   8. **Testes**: `scripts/tests/test_run_ci_workflow.sh` (bash puro, sem BATS) cobre as gates do `run-ci-workflow.sh` (autor/token/allowlist/tracker/status/headless argv) com mocks de `opencode`/`gh` via PATH; `bash -n` em todos os scripts; `actionlint` ausente na máquina — validação do YAML feita com parser do Ruby/`docker` fallback (AC 3 verificado estaticamente; exige runner para validação real do GitHub Actions). `docker build` executado (AC 1) se o daemon estiver disponível.
   9. **GitLab CI (AC 15)**: este repo é GitHub-only (origin github.com). O `.github/workflows/aibot-develop.yml` cobre GitHub Actions; o mesmo `scripts/run-ci-workflow.sh` é provider-agnostic (detecta github/gitlab do remote) e pode ser invocado de um `.gitlab-ci.yml` equivalente — documentado no `scripts/README.md` (seção "GitLab CI"). Matriz de provider coberta no script; o workflow YAML GitLab não foi criado por ausência de repo GitLab no allowlist (flag incompleto se o PO quiser).
  - Suggested fix (alternativo): Se o spike do modo headless falhar, avaliar self-hosted GitHub runner na mesma VM do opencode web, com `--attach http://127.0.0.1:4096` — mantém paralelismo sem exigir suporte headless do opencode. SPIKE PASSED — alternativa NÃO necessária.
-
-### 71. Keyword density and match percentage in gap analysis
-- Status: in-publish
-- Opened: 2026-08-15
-- Ready: 2026-08-15
-- Started: 2026-08-15
-- Type: feat
-- Severity: medium
-- Report: william_pereira
-- Base branch: main
-- Reviewers: 1 (qa)
-- Remote: #87
-- PR: #88
-- Location: skills/career/cv-tailor/SKILL.md, agents/career/cv-tailor.md, commands/ocf:cv-tailor.md, standards/cv-analysis.md
-- Description: Enhance the cv-tailor gap analysis to include: (1) match percentage (requirements met / total requirements × 100), (2) keyword density map showing each job keyword and its count in the resume, (3) a coverage summary by section showing which resume sections contain the most job keywords. These metrics complement the ATS score (#69) and give the candidate actionable insight at the gap analysis stage.
-- Impact: A qualitative atendido/parcial/not_met classification is useful but not actionable enough. Quantifying the match gives the candidate a clear metric to optimize and compare across jobs.
-- Business rules:
-  1. The gap analysis in cv-tailor MUST include a match percentage (met / total × 100).
-  2. The gap analysis MUST include a keyword density map: each job keyword → count in the generated resume.
-  3. The gap analysis MUST include a coverage summary by section (which resume sections contain the most job keywords).
-  4. The match percentage MUST use weighted scoring: mandatory requirements weigh 2x, desirable 1x.
-  5. The keyword density MUST be computed on the final resume text (extracted from index.html or the PDF).
-  6. The gap analysis report MUST follow standards/cv-analysis.md (#65) table format.
-  7. The metrics MUST be computed in the cv-tailor skill/agent, not as a separate command (enhance existing, not new agent).
-  8. No new agent or command — this is an enhancement to cv-tailor.
-  9. In the match percentage computation, `parcial` matches count as half (0.5) toward the met total; `not_met` counts zero.
-- Acceptance criteria:
-  1. Gap analysis includes match percentage (weighted: mandatory 2x, desirable 1x).
-  2. Gap analysis includes keyword density map (keyword → count in resume).
-  3. Gap analysis includes coverage summary by section.
-  4. Metrics computed on the final resume text (index.html or PDF).
-  5. Gap analysis report follows standards/cv-analysis.md table format.
-  6. No new agent or command created.
-  7. `make test-scripts` passes with new test cases.
-- Tests:
-  1. Job with 4 mandatory + 2 desirable requirements, 3 mandatory + 1 desirable met → match percentage = (3×2 + 1×1) / (4×2 + 2×1) × 100 = 70 → gap-analysis.md shows 70%.
-  2. Job keyword "Kubernetes" appears 3× in the generated index.html text → keyword density map shows `Kubernetes → 3`.
-  3. Job keywords found mostly in the Skills and Experience sections → coverage summary lists Skills and Experience at the top.
-  4. Job with 1 mandatory requirement classified `parcial` → match percentage counts it as 0.5 met → weighted total reflects 0.5 (Met 0.5, Weighted 1/2, Match: 50%).
-- Suggested fix: Enhance cv-tailor skill/agent with keyword density and match percentage logic; update gap-analysis.md format in standards/cv-analysis.md. Execute after #64 and #65. Origem: Proposal 2026-08-14-10 em prioritization.md.
 
 ### 73. Standardize project language to English (prompts, skills, docs, scripts) with locale-aware responses
 - Status: ready

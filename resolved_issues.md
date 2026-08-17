@@ -2,6 +2,36 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 71. Keyword density and match percentage in gap analysis
+- Resolved: 2026-08-17
+- Durations: backlog=0d waiting=0d dev=2d total=2d
+- Severity: medium
+- Type: feat
+- Report: william_pereira
+- Reviewers: 1
+- Remote: #87
+- Summary: Enhance the cv-tailor gap analysis to include — Enhance cv-tailor skill/agent with keyword density and match percentage logic; update gap-analysis.md format in standards/cv-analysis.md. Execute after #64 and #65. Origem
+
+### 36. `scan_issues.sh` usa globs hardcoded que não cobrem diretórios do projeto
+- Resolved: 2026-08-17
+- Durations: -
+- Severity: low
+- Type: chore
+- Report: opencode
+- Reviewers: 1
+- Remote: -
+- Summary: O script escaneia apenas `./src ./cmd ./internal ./*.go ./*.py ./*.js ./*.ts ./*.rs`. Projetos com layouts diferentes (monorepo, app/, lib/, scripts/) são ignorados. — Incluir scripts/ nos targets. Adicionar suporte a config `.opencode/scan-patterns` ou escanear a raiz com .gitignore-aware tool.
+
+### 23. Instruções contraditórias para contagem de revisores entre command doc e opencode.json
+- Resolved: 2026-08-17
+- Durations: -
+- Severity: high
+- Type: bug
+- Report: opencode
+- Reviewers: 1
+- Remote: #22
+- Summary: commands/ocf:review-branch.md diz "Ask user for reviewer count (default 1)", enquanto opencode.json (fonte da verdade) diz "Read from `- Reviewers:` field; if absent or empty, default to 1 — do NOT ask the user." — Alinhar commands/ocf:review-branch.md com opencode.json — remover "Ask user" e usar leitura do campo na issue.
+
 ### 72. Technical corrections — validate.py, schema.json, agents/README, templates, curl security
 - Resolved: 2026-08-16
 - Durations: backlog=0d waiting=0d dev=1d total=1d
