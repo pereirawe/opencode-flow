@@ -23,6 +23,9 @@ ARG GH_VERSION
 ARG GLAB_VERSION
 ARG TARGETARCH=amd64
 
+# --- non-root user (DevOps B1 / Security F1: container must not run as root) ---
+RUN groupadd -r opencode && useradd -r -g opencode -m -s /bin/bash opencode
+
 # --- OS deps: git (pipeline), jq (scripts), curl (install + health), bash ---
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -75,13 +78,15 @@ RUN case "$TARGETARCH" in \
 
 # --- copy the opencode config (agents, skills, commands, scripts, standards,
 # --- opencode.json deny rules, aibot-repos.json) into the image ---
-COPY . /root/.config/opencode/
+COPY --chown=opencode:opencode . /home/opencode/.config/opencode/
 
 # Git identity for pipeline commits inside the container (overridable by the
 # workflow via git config in the mounted workspace — safe defaults here).
 RUN git config --global user.name "opencode-flow[bot]" \
  && git config --global user.email "opencode-flow[bot]@users.noreply.github.com"
 
+# --- switch to non-root user (DevOps B1 / Security F1) ---
+USER opencode
 WORKDIR /workspace
 
 # Healthcheck / smoke test: opencode must answer --version (AC 1/AC 17).

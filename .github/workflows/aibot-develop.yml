@@ -25,11 +25,6 @@ on:
   issue_comment:
     types: [created]
 
-permissions:
-  contents: write
-  issues: write
-  pull-requests: write
-
 concurrency:
   # One develop at a time per issue (BR 8); a queued trigger re-checks status
   # in the engine and posts already-in-progress / already-resolved (BR 5).
@@ -41,6 +36,11 @@ jobs:
     # Only issue comments trigger — PR comments have issue.pull_request set (AC 11).
     if: github.event.issue.pull_request == null
     runs-on: ubuntu-latest
+    # Security F4: permissions scoped to job level, only what's needed
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
     steps:
       - name: Checkout target repo (full history for branch operations)
         uses: actions/checkout@v4
@@ -55,23 +55,38 @@ jobs:
           AIBOT_MODEL: ${{ vars.AIBOT_MODEL }}
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           GH_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
-          # passed into the container via -e
           COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
           COMMENT_BODY: ${{ github.event.comment.body }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
+          # Security F3: write secrets to a temp env-file to reduce process-list exposure.
+          # Security F5: COMMENT_BODY is NOT passed as a CLI arg; the script reads it
+          # from the COMMENT_BODY env var via --env-file (line 67 of run-ci-workflow.sh).
+          ENV_FILE=$(mktemp /tmp/aibot-env.XXXXXX)
+          trap 'rm -f "$ENV_FILE"' EXIT
+
+          # Use printf to avoid heredoc expansion issues with special characters.
+          printf '%s\n' \
+            "AIBOT_ALLOWLIST=${AIBOT_ALLOWLIST}" \
+            "AIBOT_MODEL=${AIBOT_MODEL}" \
+            "OPENCODE_API_KEY=${OPENCODE_API_KEY}" \
+            "GH_TOKEN=${GH_TOKEN}" \
+            "COMMENT_AUTHOR=${COMMENT_AUTHOR}" \
+            "COMMENT_BODY=${COMMENT_BODY}" \
+            "ISSUE_NUMBER=${ISSUE_NUMBER}" \
+            > "$ENV_FILE"
+
+          # DevOps B1: container runs as non-root `opencode` user; config lives at
+          # /home/opencode/.config/opencode/. Security F2: --read-only rootfs,
+          # --tmpfs for /tmp, all Linux capabilities dropped.
           docker run --rm \
+            --read-only \
+            --tmpfs /tmp:size=100M \
+            --cap-drop ALL \
             -v "${{ github.workspace }}":/workspace \
-            -e AIBOT_ALLOWLIST \
-            -e AIBOT_MODEL \
-            -e OPENCODE_API_KEY \
-            -e GH_TOKEN \
-            -e COMMENT_AUTHOR \
-            -e COMMENT_BODY \
-            -e ISSUE_NUMBER \
+            --env-file "$ENV_FILE" \
             "$AIBOT_IMAGE" \
-            /root/.config/opencode/scripts/run-ci-workflow.sh \
+            /home/opencode/.config/opencode/scripts/run-ci-workflow.sh \
             --workspace /workspace \
             --issue "$ISSUE_NUMBER" \
-            --author "$COMMENT_AUTHOR" \
-            --body "$COMMENT_BODY"
+            --author "$COMMENT_AUTHOR"

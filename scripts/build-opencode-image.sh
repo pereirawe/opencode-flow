@@ -84,7 +84,7 @@ if [[ "$PUSH" == true ]]; then
   docker push "$LATEST_TAG"
   log "push: $VERSION_TAG"
   docker push "$VERSION_TAG"
-  log "publicado: $LATEST_TAG e $VERSION_TAG"
+  log "pushed: $LATEST_TAG and $VERSION_TAG"
 else
   log "build complete (no push). Use --push to publish to registry."
 fi

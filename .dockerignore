@@ -14,3 +14,8 @@ node_modules
 **/__pycache__/**
 **/*.pyc
 package-lock.json
+known_issues.md
+resolved_issues.md
+prioritization.md
+scripts/tests/
+VERSION
