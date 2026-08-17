@@ -1,0 +1,77 @@
+# aibot-develop.yml — CI-native entry point for `@aibot:develop` (issue #40)
+#
+# Trigger: a comment on an ISSUE (never a PR — AC 11) containing the standalone
+# token `@aibot:develop`. Runs the full development pipeline HEADLESS inside the
+# pre-built opencode-flow image (BR 4/BR 13 — SPIKE passed: opencode run works
+# without --attach), creates the MR and posts the standardized aibot message
+# (BR 5/6/7). The engine is scripts/run-ci-workflow.sh inside the image.
+#
+# Gates (engine): author exclusion (BR 15), token (BR 1), allowlist (BR 2),
+# locally-tracked issue (BR 3), status re-check (BR 5). Lock: GitHub Actions
+# `concurrency` per issue serializes runs (BR 8); parallel repos run on
+# separate runners (BR 9). No merge/PR polling — close-requester stays the
+# only actor after merge (BR 10 / AC 14).
+#
+# Secrets/vars:
+#   OPENCODE_API_KEY   secret — model API key for the opencode-go provider
+#   GH_TOKEN           secret — GitHub token (PAT) for gh + git push
+#   AIBOT_ALLOWLIST    variable — space/comma separated allowlisted repos
+#   AIBOT_MODEL        variable — model id (default opencode-go/deepseek-v4-flash)
+#   AIBOT_IMAGE        variable — image to run (default ghcr.io/pereirawe/opencode-flow:latest)
+
+name: aibot-develop
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  # One develop at a time per issue (BR 8); a queued trigger re-checks status
+  # in the engine and posts already-in-progress / already-resolved (BR 5).
+  group: aibot-develop-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  develop:
+    # Only issue comments trigger — PR comments have issue.pull_request set (AC 11).
+    if: github.event.issue.pull_request == null
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout target repo (full history for branch operations)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_TOKEN || github.token }}
+
+      - name: Run aibot CI engine in the opencode-flow image
+        env:
+          AIBOT_IMAGE: ${{ vars.AIBOT_IMAGE || 'ghcr.io/pereirawe/opencode-flow:latest' }}
+          AIBOT_ALLOWLIST: ${{ vars.AIBOT_ALLOWLIST }}
+          AIBOT_MODEL: ${{ vars.AIBOT_MODEL }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
+          # passed into the container via -e
+          COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}":/workspace \
+            -e AIBOT_ALLOWLIST \
+            -e AIBOT_MODEL \
+            -e OPENCODE_API_KEY \
+            -e GH_TOKEN \
+            -e COMMENT_AUTHOR \
+            -e COMMENT_BODY \
+            -e ISSUE_NUMBER \
+            "$AIBOT_IMAGE" \
+            /root/.config/opencode/scripts/run-ci-workflow.sh \
+            --workspace /workspace \
+            --issue "$ISSUE_NUMBER" \
+            --author "$COMMENT_AUTHOR" \
+            --body "$COMMENT_BODY"

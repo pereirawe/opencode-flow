@@ -232,7 +232,7 @@ See `standards/issues.md` for the full contract.
 - Suggested fix: Adicionar o router, registrar os agentes especializados e atualizar o comando/config para usar o novo fluxo.
 
 ### 40. AIBot nativo em GitHub Actions / GitLab CI com imagem Docker do opencode config
-- Status: in-progress
+- Status: in-review
 - Type: feat
 - Severity: critical
 - Report: PO
