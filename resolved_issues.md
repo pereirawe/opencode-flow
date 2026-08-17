@@ -1,5 +1,16 @@
 # Resolved Issues
 
+### 40. AIBot nativo em GitHub Actions / GitLab CI com imagem Docker do opencode config
+- Resolved: 2026-08-17
+- Durations: -
+- Severity: critical
+- Type: feat
+- Report: PO
+- Reviewers: 2
+- Remote: #32
+- Summary: Executar o pipeline de desenvolvimento completo em CI remoto (GitHub Actions / GitLab CI) ao detectar `@aibot:develop` em comentário de issue. O workflow usa uma **imagem Docker pre-built** do opencode config (`ghcr.io/pereirawe/opencode-flow:latest` + tag semver) que inclui opencode binary + config completa (agents, skills, commands, scripts, deny rules). O workflow roda `opencode run --command "ocf:develop" <id> --auto` em **modo headless** (sem `--attach`) no runner CI, cria a MR e o aibot comenta o link. Paralelismo massivo — Criar `Dockerfile` + `scripts/build-opencode-image.sh` (build GHCR + tag semver), `.github/workflows/aibot-develop.yml` (trigger issue_comment → filter `@aibot:develop` → allowlist/tracker gates → `opencode run` headless → MR + notify), validar modo headless em spike, documentar em `workflow.md` e `scripts/README.md`. O watcher local (issue 39) permanece como fallback.
+
+
 ### 27. `opencode.json` referencia `/temp/*` em vez de `/tmp/*`
 - Resolved: 2026-08-17
 - Durations: backlog=0d waiting=0d dev=0d total=0d
