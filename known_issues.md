@@ -88,7 +88,7 @@ See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 1
 - Remote: -
-- PR: #93
+- PR: #94
 - Location: opencode.json:89
 - Description: Linha 89 tem `"/temp/*": "allow"` — o diretório temporário padrão no Linux é `/tmp/`, não `/temp/`. Provável typo.
 - Impact: Se um agente precisar escrever em `/tmp/`, a permissão será negada.
