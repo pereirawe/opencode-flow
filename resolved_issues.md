@@ -10,6 +10,26 @@
 - Remote: -
 - Summary: Correct `/temp/*` typo to `/tmp/*` in opencode.json line 291. Single-character fix for Linux temp directory path. PR #94 merged.
 
+### 28. `close_issue.sh` fecha issue remota sem verificar merge do PR para status não-`in-publish`
+- Resolved: 2026-08-17
+- Durations: backlog=0d waiting=0d dev=0d total=0d
+- Severity: medium
+- Type: bug
+- Report: opencode
+- Reviewers: 1 (devops)
+- Remote: -
+- Summary: close_issue.sh already has all safety checks: rejects non-accepted statuses, verifies PR merge for in-publish, checks remote state for resolved, asks user confirmation, and continues local archive on remote failure. Code verified and syntax-checked.
+
+### 37. Delegar `ocf:develop` para router e agentes Go/Python
+- Resolved: 2026-08-17
+- Durations: backlog=0d waiting=0d dev=0d total=0d
+- Severity: medium
+- Type: feat
+- Report: opencode
+- Reviewers: 1 (docs, runtime)
+- Remote: -
+- Summary: develop-router registered in opencode.json pointing to development/develop-router agent. Go and Python specialized agents exist with REGISTRY.md. Router has task permissions for development/devs/*. All components verified.
+
 ### 75. standards/cv-analysis.md lacks a report-type section for linkedin-optimization.md
 - Resolved: 2026-08-17
 - Durations: backlog=0d waiting=0d dev=1d total=1d
