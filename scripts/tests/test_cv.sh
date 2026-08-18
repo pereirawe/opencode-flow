@@ -1416,4 +1416,125 @@ else
   t_fail "opencode.json missing at $OP_CONFIG"
 fi
 
+# --- issue #203: long sections may break across pages (blank-gap fix) ---
+# Static print-CSS assertions on the reference template (BR 2/3/5/6, AC 2/3)
+if [[ -f "$CV_TEMPLATE" ]]; then
+  assert_contains "$CV_TEMPLATE" "break-inside: auto" \
+    "cv-pdf template allows long sections to break (break-inside: auto)"
+  assert_contains "$CV_TEMPLATE" "orphans: 3" \
+    "cv-pdf template protects against stranded lines (orphans: 3)"
+  assert_contains "$CV_TEMPLATE" "widows: 3" \
+    "cv-pdf template protects against stranded lines (widows: 3)"
+  assert_not_contains "$CV_TEMPLATE" "section { break-inside: avoid" \
+    "cv-pdf template no longer applies break-inside: avoid to all sections"
+  assert_contains "$CV_TEMPLATE" ".entry { break-inside: avoid; }" \
+    "cv-pdf template keeps break-inside: avoid on .entry entries"
+  assert_contains "$CV_TEMPLATE" ".header { break-after: avoid; }" \
+    "cv-pdf template keeps break-after: avoid on .header"
+  assert_contains "$CV_TEMPLATE" "h2 { break-after: avoid; }" \
+    "cv-pdf template keeps break-after: avoid on h2"
+else
+  t_fail "cv-pdf template missing at $CV_TEMPLATE"
+fi
+
+# Standards alignment (BR 8/11, AC 5): cv-design.md §2.4/§5 distinguish short
+# vs long sections; cv-analysis.md §6 references the refined rule.
+if [[ -f "$CV_DESIGN" ]]; then
+  assert_contains "$CV_DESIGN" "SHORT sections and individual entries" \
+    "cv-design §2.4 distinguishes short sections (keep break-inside: avoid)"
+  assert_contains "$CV_DESIGN" "LONG" \
+    "cv-design §2.4 distinguishes long content sections (may break)"
+  assert_contains "$CV_DESIGN" "orphans: 3" \
+    "cv-design §2.4 documents orphans/widows protection"
+  assert_contains "$CV_DESIGN" 'Short sections and `.entry` entries keep `break-inside: avoid`' \
+    "cv-design §5 checklist covers the refined short/long rule"
+  assert_contains "$CV_DESIGN" "Long content sections may break across pages" \
+    "cv-design §5 checklist covers long-section breaking"
+  assert_contains "$CV_DESIGN" '`h2`/`.header` keep `break-after: avoid`' \
+    "cv-design §5 checklist covers orphaned-heading prevention"
+else
+  t_fail "cv-design standard missing at $CV_DESIGN"
+fi
+
+if [[ -f "$CV_ANALYSIS_STD" ]]; then
+  assert_contains "$CV_ANALYSIS_STD" "standards/cv-design.md" \
+    "cv-analysis §6 references the refined rule from cv-design.md"
+  assert_contains "$CV_ANALYSIS_STD" "long content sections may break" \
+    "cv-analysis §6 documents long-section breaking per cv-design §2.4"
+else
+  t_fail "cv-analysis standard missing at $CV_ANALYSIS_STD"
+fi
+
+# BR 9 / Test 1 — render a representative resume with a LONG Experiência
+# section and verify page 1 contains BOTH the RESUMO text and the first
+# Experiência entry (content flows onto page 1 — no blank gap after RESUMO).
+if [[ -n "$CHROME" ]] && command -v pdftotext >/dev/null 2>&1 && command -v pdfinfo >/dev/null 2>&1; then
+  LONG_HTML="$TMP/long-experience.html"
+  LONG_PDF="$TMP/long-experience.pdf"
+  TMP_ENV="$TMP" TPL="$CV_TEMPLATE" python3 - <<'PYEOF'
+import os, re
+tpl = open(os.environ["TPL"], encoding="utf-8").read()
+entries = []
+for i in range(1, 15):
+    entries.append(
+        f'    <div class="entry">\n'
+        f'      <h3>Senior Software Engineer {i} - Company Alpha {i}</h3>\n'
+        f'      <p class="meta">Jan 20{i:02d} - Dec 20{i+2:02d} - Remote</p>\n'
+        f'      <ul>\n'
+        f'        <li>Led a team of 8 engineers delivering the core platform.</li>\n'
+        f'        <li>Reduced infrastructure costs by 30% through optimization.</li>\n'
+        f'        <li>Mentored 5 junior engineers across two squads.</li>\n'
+        f'      </ul>\n'
+        f'    </div>\n'
+    )
+long_section = (
+    '  <section>\n'
+    '    <h2>Experiencia</h2>\n'
+    + "".join(entries)
+    + '  </section>\n'
+)
+# Replace the template's experience section (any heading spelling) with the long one
+pattern = re.compile(r'  <section>\n    <h2>Experi[êe]ncia</h2>.*?</section>\n', re.DOTALL)
+out, n = pattern.subn(long_section, tpl)
+assert n == 1, f"expected 1 experience section in template, found {n}"
+open(os.path.join(os.environ["TMP_ENV"], "long-experience.html"), "w", encoding="utf-8").write(out)
+PYEOF
+  set +e
+  bash "$PDF_SH" "$LONG_HTML" "$LONG_PDF" chrome >/dev/null 2>&1
+  rc_long=$?
+  set -e
+  assert_eq "0" "$rc_long" "pdf.sh renders the long-experience resume (BR 9)"
+  if [[ -s "$LONG_PDF" ]]; then
+    PAGES="$(pdfinfo "$LONG_PDF" 2>/dev/null | awk '/^Pages:/ {print $2}')" || PAGES="0"
+    assert_eq "1" "$(test "${PAGES:-0}" -ge 2 && echo 1 || echo 0)" \
+      "long-experience resume spans 2+ pages (content flows across pages)"
+    PAGE1="$(pdftotext -f 1 -l 1 "$LONG_PDF" - 2>/dev/null || true)"
+    if [[ "$PAGE1" == *"Resumo"* || "$PAGE1" == *"RESUMO"* ]]; then
+      t_ok "page 1 contains the RESUMO section text (no blank gap after it)"
+    else
+      t_fail "page 1 missing the RESUMO section text (blank-gap regression)"
+    fi
+    if [[ "$PAGE1" == *"Company Alpha 1"* ]]; then
+      t_ok "page 1 contains the first Experiencia entry (content flows onto page 1)"
+    else
+      t_fail "page 1 missing the first Experiencia entry (section pushed to page 2)"
+    fi
+    # no orphaned heading at the page boundary: the last non-empty line of
+    # page 1 must not be a bare section heading (break-after: avoid holds)
+    LAST_LINE="$(printf '%s\n' "$PAGE1" | sed '/^[[:space:]]*$/d' | tail -n 1)"
+    case "$LAST_LINE" in
+      RESUMO|EXPERIENCIA|EDUCACAO|SKILLS|CERTIFICACOES|PROJETOS|IDIOMAS|EDUCAÇÃO|EXPERIÊNCIA|CERTIFICAÇÕES)
+        t_fail "page 1 ends with an orphaned section heading: '$LAST_LINE'"
+        ;;
+      *)
+        t_ok "page 1 does not end with an orphaned section heading"
+        ;;
+    esac
+  else
+    echo "skip - long-experience PDF not produced; page-1 content assertions skipped"
+  fi
+else
+  echo "skip - chrome/pdftotext/pdfinfo not available; BR 9 PDF assertions skipped"
+fi
+
 t_finish
