@@ -2,6 +2,26 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 34. `known_issues.md` global carregado como instrução para todos os projetos
+- Resolved: 2026-08-19
+- Durations: -
+- Severity: low
+- Type: chore
+- Report: opencode
+- Reviewers: 1
+- Remote: -
+- Summary: `opencode.json` inclui `~/.config/opencode/known_issues.md` no array `instructions`. Como a config é herdada por todos os projetos, as issues do opencode são injetadas no contexto de qualquer projeto que use esta config global. — Mover known_issues.md para fora de instructions, usando AGENTS.md para referenciá-lo apenas quando trabalhando no próprio opencode.
+
+### 206. `prioritization.md` e `known_issues.md` no array `instructions` — carregamento por demanda em vez de injeção (~44,8K tokens/sessão)
+- Resolved: 2026-08-19
+- Durations: backlog=0d waiting=0d dev=0d review=- qa=0d publish=0d total=0d
+- Severity: high
+- Type: chore
+- Report: cto
+- Reviewers: 1
+- Remote: #101
+- Summary: O array `instructions` injeta `~/.config/opencode/known_issues.md` (~65 KB ≈ 17,1K tokens) e `~/.config/opencode/prioritization.md` (~105 KB ≈ 27,7K tokens) em TODA sessão, somando ~45% do contexto fixo. São artefatos de tracking/discovery lidos por demanda (padrão awk já usado nos comandos ocf:promote/develop/commit) — não precisam estar no contexto permanente. Resolve o problema já documentado na issue #34 (backlog). — Editar opencode.json:7,10 removendo os dois globs; manter instrução de leitura por demanda no AGENTS.md; fechar issue #34 como resolved. Origem
+
 ### 205. `instructions` array em opencode.json injeta glob `agents/*/*.md` — duplicação de agentes auto-registrados (~33,6K tokens/sessão)
 - Resolved: 2026-08-19
 - Durations: backlog=0d waiting=0d dev=0d review=- qa=- publish=0d total=0d

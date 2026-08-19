@@ -185,21 +185,6 @@ issues only. See `standards/issues.md` for the full contract.
 - Impact: Desenvolvedores podem trabalhar em branch stale sem saber que o remote está inacessível. Possíveis conflitos de merge depois.
 - Suggested fix: Logar warning quando fetch falhar. Substituir `2>/dev/null` por `2>&1` para visibilidade.
 
-### 34. `known_issues.md` global carregado como instrução para todos os projetos
-- Status: resolved
-- Type: chore
-- Severity: low
-- Report: opencode
-- Base branch: main
-- Reviewers: 1
-- Remote: -
-- PR: #93
-- Resolved: 2026-08-19
-- Location: opencode.json:6
-- Description: `opencode.json` inclui `~/.config/opencode/known_issues.md` no array `instructions`. Como a config é herdada por todos os projetos, as issues do opencode são injetadas no contexto de qualquer projeto que use esta config global.
-- Impact: Poluição de contexto do agente — issues do opencode (como "Agente Anderson") aparecem em sessões de outros projetos.
-- Suggested fix: Mover known_issues.md para fora de instructions, usando AGENTS.md para referenciá-lo apenas quando trabalhando no próprio opencode.
-
 ### 35. `sync_github_issues.sh`: detecção de estado de issue GitLab frágil e sem fechamento automático
 - Status: backlog
 - Type: bug
@@ -705,42 +690,6 @@ issues only. See `standards/issues.md` for the full contract.
   3. `grep "h2 { break-after: avoid" profile-analysis.html` → present (no orphaned headings).
   4. `make test-scripts` → exit 0 with the new/extended regression test.
 - Suggested fix: Apply the same treatment as issue #203 to `skills/career/cv-optimizer/templates/profile-analysis.html`: replace the blanket `section { break-inside: avoid; }` with `section { break-inside: auto; orphans: 3; widows: 3; }`, keep `table tr { break-inside: avoid; }` and `h2 { break-after: avoid; }`, add a regression assertion in scripts/tests/test_cv.sh, and run `make test-scripts`. Effort ~1-2h. Origem: senior review do #203 (docs profile, finding 1 — incomplete-spec).
-
-### 206. `prioritization.md` e `known_issues.md` no array `instructions` — carregamento por demanda em vez de injeção (~44,8K tokens/sessão)
-- Status: in-publish
-- Opened: 2026-08-19
-- Ready: 2026-08-19
-- Started: 2026-08-19
-- In QA: 2026-08-19
-- In publish: 2026-08-19
-- Type: chore
-- Severity: high
-- Report: cto
-- Base branch: main
-- Reviewers: 1 (runtime)
-- Remote: #101
-- Jira: -
-- PR: #102
-- Location: opencode.json:7,10
-- Description: O array `instructions` injeta `~/.config/opencode/known_issues.md` (~65 KB ≈ 17,1K tokens) e `~/.config/opencode/prioritization.md` (~105 KB ≈ 27,7K tokens) em TODA sessão, somando ~45% do contexto fixo. São artefatos de tracking/discovery lidos por demanda (padrão awk já usado nos comandos ocf:promote/develop/commit) — não precisam estar no contexto permanente. Resolve o problema já documentado na issue #34 (backlog).
-- Impact: ~44,8K tokens/sessão desperdiçados em todas as sessões, mesmo quando nenhuma issue/proposta é acessada. Poluição de contexto (problema #34).
-- Business rules:
-  1. Remover `~/.config/opencode/known_issues.md` e `~/.config/opencode/prioritization.md` do array `instructions` em opencode.json.
-  2. AGENTS.md DEVE manter a instrução de resolução por demanda (awk) para ler known_issues.md — o padrão já documentado.
-  3. Comandos e agentes que precisam de issues/propostas DEVEM ler o arquivo via bash (padrão existente), não depender de injeção.
-  4. A mudança NÃO DEVE alterar o comportamento de rastreamento (create/promote/close continuam funcionando).
-  5. A issue #34 DEVE ser marcada `resolved` quando esta mudança for concluída — ela documenta exatamente este problema.
-- Acceptance criteria:
-  1. `jq '.instructions' opencode.json` não contém `known_issues.md` nem `prioritization.md`.
-  2. Issue #34 marcada `resolved` (problema de poluição de contexto eliminado).
-  3. `make test-scripts` passa com teste de config validando o array.
-  4. `ocf:promote`/`ocf:develop`/`ocf:commit` continuam lendo known_issues.md por demanda.
-- Tests:
-  1. `jq '.instructions' opencode.json` → sem entradas `known_issues.md`/`prioritization.md`.
-  2. Sessão nova → contexto fixo reduzido em ~44,8K tokens (total < ~65K após #205).
-  3. `ocf:promote <id>` com known_issues.md populado → lê via awk e promove normalmente (smoke test).
-  4. `make test-scripts` → exit 0.
-- Suggested fix: Editar opencode.json:7,10 removendo os dois globs; manter instrução de leitura por demanda no AGENTS.md; fechar issue #34 como resolved. Origem: auditoria CTO 2026-08-19 (P0-2).
 
 ### 207. Standards (en/pt/es) fora do array `instructions` — loading via locale-loader (~22K tokens/sessão)
 - Status: backlog
