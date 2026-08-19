@@ -70,12 +70,18 @@ if [[ -n "$REMOTE_ID" && "$REMOTE_ID" != "-" ]]; then
     fi
   fi
 
-  # Confirm with user before closing remote
+  # Auto-close the remote issue. The delivery pipeline runs non-interactively
+  # (no prompts allowed), so the remote close is performed automatically once
+  # the safety gates above pass (resolved + already-closed check, or
+  # in-publish + PR merged). Interactive confirmation is opt-in via
+  # OCF_CLOSE_REMOTE_ASK=1 for manual use.
   if $SHOULD_CLOSE_REMOTE; then
-    read -r -p "Fechar issue #$REMOTE_ID no remote? (s/N) " CONFIRM || true
-    if [[ "$CONFIRM" != "s" && "$CONFIRM" != "S" ]]; then
-      echo "[remote] User cancelled — skipping remote close"
-      SHOULD_CLOSE_REMOTE=false
+    if [[ "${OCF_CLOSE_REMOTE_ASK:-0}" == "1" ]]; then
+      read -r -p "Fechar issue #$REMOTE_ID no remote? (s/N) " CONFIRM || true
+      if [[ "$CONFIRM" != "s" && "$CONFIRM" != "S" ]]; then
+        echo "[remote] User cancelled — skipping remote close"
+        SHOULD_CLOSE_REMOTE=false
+      fi
     fi
   fi
 
