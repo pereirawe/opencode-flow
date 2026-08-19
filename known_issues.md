@@ -706,18 +706,19 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: Apply the same treatment as issue #203 to `skills/career/cv-optimizer/templates/profile-analysis.html`: replace the blanket `section { break-inside: avoid; }` with `section { break-inside: auto; orphans: 3; widows: 3; }`, keep `table tr { break-inside: avoid; }` and `h2 { break-after: avoid; }`, add a regression assertion in scripts/tests/test_cv.sh, and run `make test-scripts`. Effort ~1-2h. Origem: senior review do #203 (docs profile, finding 1 — incomplete-spec).
 
 ### 205. `instructions` array em opencode.json injeta glob `agents/*/*.md` — duplicação de agentes auto-registrados (~33,6K tokens/sessão)
-- Status: backlog
+- Status: in-publish
 - Opened: 2026-08-19
-- Ready: -
-- Started: -
+- Ready: 2026-08-19
+- Started: 2026-08-19
+- In publish: 2026-08-19
 - Type: chore
 - Severity: high
 - Report: cto
 - Base branch: main
 - Reviewers: 1 (runtime)
-- Remote: -
+- Remote: #99
 - Jira: -
-- PR: -
+- PR: #100
 - Location: opencode.json:8
 - Description: O array `instructions` em opencode.json (linha 8) inclui `~/.config/opencode/agents/*/*.md`, injetando os prompts completos de ~89 agentes (~127 KB ≈ 33,6K tokens) no contexto de TODA sessão. A documentação oficial do opencode confirma que arquivos em `~/.config/opencode/agents/` já são auto-registrados como subagentes (invocáveis via Task tool) — o glob é duplicação pura: cada prompt é carregado uma vez como definição e outra como instrução de contexto.
 - Impact: ~31% do contexto fixo (~108K tokens/sessão) é desperdiçado em toda sessão, independentemente da tarefa.
