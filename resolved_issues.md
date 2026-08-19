@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 207. Standards (en/pt/es) fora do array `instructions` — loading via locale-loader (~22K tokens/sessão)
+- Resolved: 2026-08-19
+- Durations: backlog=0d waiting=0d dev=0d review=0d qa=0d publish=0d total=0d
+- Severity: high
+- Type: chore
+- Report: cto
+- Reviewers: 1
+- Remote: #103
+- Summary: O array `instructions` injeta `standards/*.md` (13 arquivos en ≈ 14K tokens) + `standards/pt/*` (~4K) + `standards/es/*` (~4K) em TODA sessão, totalizando ~22K tokens. O locale ativo é `pt`, mas en+es são carregados igualmente. O `locale-loader` skill já existe para carregar standards por demanda no idioma certo — o array `instructions` anula esse propósito e injeta traduções incompletas (pt/es sem seções `Tests:`/timestamps vs en completo). — Editar opencode.json:11-13 removendo os três globs de standards; garantir que AGENTS.md referencia locale-loader; validar com teste de config. Origem
+
 ### 34. `known_issues.md` global carregado como instrução para todos os projetos
 - Resolved: 2026-08-19
 - Durations: -
