@@ -5,7 +5,6 @@
         "~/.config/opencode/AGENTS.md",
         "~/.config/opencode/workflow.md",
         "~/.config/opencode/known_issues.md",
-        "~/.config/opencode/agents/*/*.md",
         "~/.config/opencode/agents/*/devs/REGISTRY.md",
         "~/.config/opencode/prioritization.md",
         "~/.config/opencode/standards/*.md",
