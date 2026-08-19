@@ -42,4 +42,11 @@ else
   t_ok "instructions has no agents/*/*.md glob"
 fi
 
+# --- Issue #206: known_issues.md and prioritization.md not injected ---
+if instructions | grep -qE "known_issues\.md|prioritization\.md"; then
+  t_fail "instructions injects known_issues.md or prioritization.md"
+else
+  t_ok "instructions has no known_issues.md / prioritization.md globs"
+fi
+
 t_finish
