@@ -52,7 +52,11 @@ Entrypoints:
   - `locale-loader` — loads locale-appropriate standards based on `.opencode/locale`
 - `.opencode/locale` — active language setting (`pt`, `es`, `en`) — **not** in `opencode.json`
 - `scripts/` — shell helpers
-- `standards/` — development patterns
+- `standards/` — development patterns (loaded ON DEMAND via the
+  `locale-loader` skill — NOT injected into session context). Agents MUST
+  load a standard via locale-loader when they need it, in the resolved locale;
+  the English originals in `standards/` are the source of truth, pt/es are
+  lazy translations.
 - `architecture.md` — technical vision and structural decisions
 - `conventions.md` — development conventions and best practices
 - `decisions.md` — architecture decision records

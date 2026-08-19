@@ -55,4 +55,11 @@ else
   t_ok "instructions has no prioritization.md glob"
 fi
 
+# --- Issue #207: standards globs not injected (loaded via locale-loader) ---
+if instructions | grep -qE "~/.config/opencode/standards(/pt|/es)?/.*\.md"; then
+  t_fail "instructions injects standards globs"
+else
+  t_ok "instructions has no standards globs"
+fi
+
 t_finish

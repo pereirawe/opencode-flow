@@ -692,18 +692,21 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: Apply the same treatment as issue #203 to `skills/career/cv-optimizer/templates/profile-analysis.html`: replace the blanket `section { break-inside: avoid; }` with `section { break-inside: auto; orphans: 3; widows: 3; }`, keep `table tr { break-inside: avoid; }` and `h2 { break-after: avoid; }`, add a regression assertion in scripts/tests/test_cv.sh, and run `make test-scripts`. Effort ~1-2h. Origem: senior review do #203 (docs profile, finding 1 — incomplete-spec).
 
 ### 207. Standards (en/pt/es) fora do array `instructions` — loading via locale-loader (~22K tokens/sessão)
-- Status: backlog
+- Status: in-publish
 - Opened: 2026-08-19
-- Ready: -
-- Started: -
+- Ready: 2026-08-19
+- Started: 2026-08-19
+- In review: 2026-08-19
+- In QA: 2026-08-19
+- In publish: 2026-08-19
 - Type: chore
 - Severity: high
 - Report: cto
 - Base branch: main
 - Reviewers: 1 (runtime)
-- Remote: -
+- Remote: #103
 - Jira: -
-- PR: -
+- PR: #104
 - Location: opencode.json:11-13
 - Description: O array `instructions` injeta `standards/*.md` (13 arquivos en ≈ 14K tokens) + `standards/pt/*` (~4K) + `standards/es/*` (~4K) em TODA sessão, totalizando ~22K tokens. O locale ativo é `pt`, mas en+es são carregados igualmente. O `locale-loader` skill já existe para carregar standards por demanda no idioma certo — o array `instructions` anula esse propósito e injeta traduções incompletas (pt/es sem seções `Tests:`/timestamps vs en completo).
 - Impact: ~20% do contexto fixo desperdiçado; traduções incompletas e potencialmente divergentes carregadas desnecessariamente.
