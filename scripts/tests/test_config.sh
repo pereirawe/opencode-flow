@@ -22,7 +22,7 @@ CONFIG="$HERE/../../opencode.json"
 if ! command -v jq >/dev/null 2>&1; then
   t_fail "jq is required for test_config"
   t_finish
-  exit 0
+  exit 1
 fi
 
 instructions() {
