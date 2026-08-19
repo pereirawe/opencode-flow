@@ -361,16 +361,28 @@ assert_contains "$fix/.opencode/resolved_issues.md" "### 5. Old issue" "t19: pre
 assert_contains "$fix/.opencode/resolved_issues.md" "old summary preserved verbatim" "t19: pre-existing body preserved"
 
 # ===========================================================================
-# t20 — prompt-bypass: non-interactive run (answer "n") skips remote close but
-#       still archives locally — no TTY, no hang
+# t20 — auto-close default vs opt-in prompt: non-interactive runs never hang
+#       (no TTY). Default (OCF_CLOSE_REMOTE_ASK unset/0) closes the remote
+#       automatically once the safety gates pass; OCF_CLOSE_REMOTE_ASK=1
+#       restores the interactive confirmation (answer "n" skips remote close)
+#       but still archives locally.
 # ===========================================================================
 fix="$TMP/t20"; make_fixture "$fix" in-publish "#42" "#9" 2026-08-01 2026-08-03 2026-08-05
 GH_LOG="$TMP/t20.ghlog"; export GH_LOG; : > "$GH_LOG"
 rc=$(pipe_confirm "$fix" "n")
 assert_eq "0" "$rc" "t20: non-interactive close completes without TTY"
 assert_contains "$GH_LOG" "pr view" "t20: PR merge still checked"
-assert_not_contains "$GH_LOG" "issue close" "t20: remote close skipped on 'n'"
+assert_contains "$GH_LOG" "issue close 42" "t20: default auto-closes remote (no prompt)"
 assert_contains "$fix/.opencode/resolved_issues.md" "- Resolved:" "t20: local archive still written"
+
+fix="$TMP/t20b"; make_fixture "$fix" in-publish "#42" "#9" 2026-08-01 2026-08-03 2026-08-05
+GH_LOG="$TMP/t20b.ghlog"; export GH_LOG; : > "$GH_LOG"
+rc=0
+( cd "$fix" && PATH="$MOCK_NET:$PATH" OCF_CLOSE_REMOTE_ASK=1 bash "$CLOSE" 1 ) <<< "n" >"$RUN_OUT" 2>&1 || rc=$?
+assert_eq "0" "$rc" "t20b: opt-in prompt (n) completes without hang"
+assert_contains "$GH_LOG" "pr view" "t20b: PR merge still checked"
+assert_not_contains "$GH_LOG" "issue close" "t20b: remote close skipped on 'n'"
+assert_contains "$fix/.opencode/resolved_issues.md" "- Resolved:" "t20b: local archive still written"
 
 # ===========================================================================
 # t21 — DST spring-forward: UTC-anchored parse is DST-robust (BR 4 / AC 10)
