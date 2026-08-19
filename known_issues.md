@@ -691,3 +691,213 @@ issues only. See `standards/issues.md` for the full contract.
   4. `make test-scripts` → exit 0 with the new/extended regression test.
 - Suggested fix: Apply the same treatment as issue #203 to `skills/career/cv-optimizer/templates/profile-analysis.html`: replace the blanket `section { break-inside: avoid; }` with `section { break-inside: auto; orphans: 3; widows: 3; }`, keep `table tr { break-inside: avoid; }` and `h2 { break-after: avoid; }`, add a regression assertion in scripts/tests/test_cv.sh, and run `make test-scripts`. Effort ~1-2h. Origem: senior review do #203 (docs profile, finding 1 — incomplete-spec).
 
+### 208. Differentiated bug discovery flow — fast, prioritized, token-efficient (still refined)
+- Status: ready
+- Opened: 2026-08-19
+- In review: -
+- In QA: -
+- In publish: -
+- Type: feat
+- Severity: high
+- Priority: high
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 3 (docs, qa, runtime)
+- Remote: #105
+- Jira: -
+- PR: -
+- Location: workflow.md (canonical — branch Discovery Pipeline by type), agents/development/discovery.md (orchestrator routes lean vs full), agents/development/product-owner.md (lean bug triage mode), agents/development/quality-analyst.md (lean validation), agents/development/project-manager.md (minimal rewrite — non-interactive promotion), standards/issues.md (new `- Priority:` field + `- Business rules: none` contract at L42-43 + optional `- Flow:` field), opencode.json (ocf:discovery template — 1-line adjustment), skills/development/bug-triage/SKILL.md (NEW — single source of the score matrix)
+- Description: As a Product Owner, I want a differentiated discovery flow for `bug` issues — a lean triage track (PO triage → QA pre-development → PM promotion, ≤3 agent invocations) with a documented prioritization score and a clear escalation path to the full 6-phase flow — so that bug issues reach development faster, are prioritized by business impact instead of insertion order, and consume at least 50% fewer discovery tokens than the full flow while remaining refined.
+- Impact: Every `bug` issue discovered through the pipeline (global `~/.config/opencode` config and any project using the template). Reduces discovery latency and token cost for the highest-volume issue type; improves prioritization correctness (critical/high bugs outrank non-critical feats — BR 8); keeps quality gates intact for bugs (business rules when applicable + `Tests:` severity floors). Non-blocking coordination note: issues #25 and #74 also touch `workflow.md` but neither is in-progress — merge-order coordination required, not a blocker.
+- Business rules:
+  1. Bug discovery MUST be differentiated from feat discovery: `bug` → lean track (≤3 phases); `feat` keeps the full 6-phase flow unchanged (BR from user, Phase 1).
+  2. The lean track MUST run exactly three phases in order: PO triage → QA pre-development → PM promotion. CTO and Tech Lead are OPTIONAL and invoked ONLY on escalation.
+  3. Bug prioritization MUST be derived from a documented score: Score = Severity + Impact + Frequency + Risk (4–15). Severity: critical=5, high=4, medium=3, low=2; Impact: blocking=4, financial=3, broad=2, isolated=1; Frequency: always=4, frequent=3, occasional=2, rare=1; Risk (regression/security): yes=+2, no=0. Buckets: 12–15→critical; 9–11→high; 6–8→medium; 4–5→low. Guard rule: severity=critical OR impact=blocking → `- Priority:` NEVER below high. The matrix lives in a single source (the `bug-triage` skill) — see BR 11.
+  4. Token efficiency: the lean track MUST consume ≥50% fewer discovery tokens than the full flow, proxied by ≤3 agent invocations (PO, QA, PM) vs 6 for the full flow.
+  5. Quality is mandatory for bugs too: business rules (when applicable) and `Tests:` (severity floor: critical/high ≥3, medium ≥2, low ≥1) MUST be present. Bugs with no business rule MUST declare the literal `- Business rules: none` — QA accepts this literal and REJECTS `-` (placeholder) as `incomplete-spec`.
+  6. Escalation to the full 6-phase discovery MUST happen when: no root cause / no reproduction, fix is multi-layer or cross-cutting, business-rule ambiguity, security involvement, or the change touches architecture/standards. Escalated bugs MUST restart from the CTO (CTO → Tech Lead → PO#2 → QA → PM) and MUST set `- Flow: escalated`. Primary escalation decider: PO (triage); secondary: QA (lean phase 2); Developer signals gaps as new issues (existing flow).
+  7. `- Base branch:` and `- Reviewers:` MUST be defined during bug discovery; PM promotion MUST be non-interactive (reads the entry fields, never asks).
+  8. Progressive prioritization: critical/high bugs MUST rank above non-critical feats; a medium-severity bug persisting N days (N=7, default, configurable — documented policy, applied by the PO during triage/backlog review using existing `- Ready:`/`- Opened:` timestamps) MUST be raised to high. This is a PROCESS rule — no new scripts; future mechanization is explicitly out of scope.
+  9. `standards/issues.md` MUST document the new `- Priority:` field (positioned immediately after `- Severity:`), the literal `- Business rules: none` contract for rule-less bugs (note at L42-43), and the optional `- Flow: lean | escalated` field for bugs. Feats MUST NOT carry `- Flow:` (full flow is the default). Scripts ignore extra fields (`Jira:` precedent).
+  10. The `- Flow:` field MUST be set to `lean` when a bug enters via the lean track and MUST be updated to `escalated` when escalation restarts the flow at the CTO. It is informative for PM promotion — never a blocking gate.
+  11. The score matrix (weights, buckets, guard rule, and two worked examples including a guard-rule case) MUST live ONLY in `skills/development/bug-triage/SKILL.md`, loaded on-demand via the skill tool by the PO during triage. Duplicating the matrix in any other file is forbidden (single source of truth).
+  12. `agents/development/discovery.md` MUST read `- Type:` and route: `bug` → lean track (PO triage → QA → PM); `feat` → unchanged 6-phase flow. Escalation MUST restart from the CTO. The aging policy MUST be reflected as a triage checklist item.
+  13. The `ocf:discovery` template in `opencode.json` MUST reflect the type-based routing (1-line adjustment): bugs run the lean track, feats run the full 6 phases.
+  14. PM promotion for bugs MUST be non-interactive: reads `- Base branch:` and `- Reviewers:` from the entry; `- Flow:` and `- Priority:` are informative and MUST NOT block or require confirmation.
+- Acceptance criteria:
+  1. `workflow.md` Discovery Pipeline branches by `- Type:`: `bug` → lean track (PO triage → QA pre-development → PM promotion, ≤3 phases); `feat` → the 6-phase flow preserved verbatim (BR 1, 2, 4).
+  2. `skills/development/bug-triage/SKILL.md` exists and is the single source of the score matrix (weights, buckets, guard rule, ≥2 worked examples) — the PO loads it on-demand during triage (BR 3, 11).
+  3. `standards/issues.md` documents `- Priority:` (after `- Severity:`), the literal `- Business rules: none` contract (L42-43), and the optional `- Flow: lean | escalated` field for bugs; feats carry no `- Flow:` (BR 5, 9).
+  4. `agents/development/discovery.md` routes lean vs full by type, documents the five escalation triggers with restart from CTO, and includes the aging checklist item (BR 6, 8, 12).
+  5. `agents/development/product-owner.md` documents lean bug triage: matrix via skill, escalation decision (primary decider), aging re-triage, and `- Flow:`/`- Priority:` registration (BR 3, 6, 8).
+  6. `agents/development/quality-analyst.md` validates lean bugs: `Tests:` severity floor, accepts literal `- Business rules: none`, rejects `-` as `incomplete-spec`, validates derived `- Priority:` against the matrix, and can escalate as secondary decider (BR 5, 6).
+  7. `agents/development/project-manager.md` promotion is non-interactive: reads `- Base branch:` and `- Reviewers:`; `- Flow:`/`- Priority:` never prompt (BR 7, 14).
+  8. The `ocf:discovery` template in `opencode.json` reflects the type-based routing (1-line change) (BR 13).
+  9. The aging policy (N=7 default, configurable, timestamps-based, no new scripts) is documented in `workflow.md` and referenced by the discovery checklist (BR 8).
+  10. A bug-issue fixture in final format (derived `- Priority:`, literal `- Business rules: none`, `- Tests:` scenarios, `- Flow: lean`) exists as the Developer reference for T9; `make test-scripts` passes (regression) (BR 5).
+  11. The #25/#74 coordination note (shared `workflow.md`, non-blocking) is recorded in `workflow.md` (Impact).
+- Tests:
+  1. Bug with clear root cause + reproduction and no business rule → lean discovery runs exactly 3 phases (PO triage → QA → PM), zero CTO/TL invocations, entry carries `- Flow: lean`, `- Business rules: none`, `- Priority:` derived from the matrix, `- Tests:` meeting the severity floor → lands in `known_issues.md` with status ready.
+  2. Bug with no root cause/repro, or multi-layer/cross-cutting fix, or rule ambiguity, or security, or touching architecture/standards → PO triage escalates → full discovery restarts from CTO (CTO → TL → PO#2 → QA → PM) and `- Flow:` is set to `escalated`.
+  3. Bug with severity critical (5) but isolated impact (1), rare frequency (1), no risk (0) → raw score 7 (medium bucket) → guard rule overrides → `- Priority: high` (never below high).
+  4. Bug with severity medium (3) and blocking impact (4) → raw score 8 (medium bucket) → guard rule overrides → `- Priority: high`.
+  5. Bug entry with `- Business rules: -` (placeholder) → QA rejects as `incomplete-spec` and returns to PO refinement; the literal `- Business rules: none` is accepted.
+  6. Bug with `- Priority:` absent or not matching the matrix → QA pre-development review flags it and returns to PO for re-triage.
+  7. Medium-severity bug persisting ≥7 days in ready (from `- Ready:`/`- Opened:` timestamps) → PO re-triage raises `- Priority:` to high (aging rule, N=7, no new scripts).
+  8. Feat issue → full 6-phase discovery preserved unchanged (PO → CTO → TL → PO → QA → PM), no lean routing.
+  9. Lean bug track → agent invocation count ≤3 vs 6 for the full flow (BR 4 proxy) verified by reading the orchestration instructions in `workflow.md`/`discovery.md`, and confirmed on the first real bug after merge.
+  10. Score matrix single source → grep for `blocking=4` and bucket ranges across the config → matches exist ONLY in `skills/development/bug-triage/SKILL.md` (0 matches in workflow.md, discovery.md, product-owner.md, standards/issues.md).
+- Suggested fix: Effort ~9–10h across 9 tasks (T1–T9), branch `issue-208-bug-discovery-lean` off `main`:
+  - T1 `standards/issues.md`: add `- Priority:` after `- Severity:`; document the literal `- Business rules: none` contract for rule-less bugs (note at L42-43); add the optional `- Flow: lean | escalated` field for bugs (feats omit it; scripts ignore extra fields — `Jira:` precedent).
+  - T2 NEW `skills/development/bug-triage/SKILL.md`: single source of the score matrix (S critical=5/high=4/medium=3/low=2; I blocking=4/financial=3/broad=2/isolated=1; F always=4/frequent=3/occasional=2/rare=1; R regression/security yes=+2/no=0; Score=S+I+F+R, 4–15; buckets 12–15→critical, 9–11→high, 6–8→medium, 4–5→low; guard: S=critical OR I=blocking → never below high) + ≥2 worked examples (one guard-rule case) + escalation triggers + aging rule (N=7 default, configurable).
+  - T3 `workflow.md` (canonical): branch the Discovery Pipeline by `- Type:` — `bug` → lean track (PO triage → QA pre-development → PM promotion), `feat` → unchanged 6 phases; document the aging policy (timestamps-based, no new scripts) and the #25/#74 coordination note.
+  - T4 `agents/development/discovery.md`: orchestrator reads `- Type:` and routes lean vs full; escalation restarts from CTO; aging checklist item.
+  - T5 `agents/development/product-owner.md`: lean bug triage mode — matrix via skill, escalation decision (primary), aging re-triage, `- Flow:`/`- Priority:` registration.
+  - T6 `agents/development/quality-analyst.md`: lean validation — `Tests:` severity floor, accept literal `- Business rules: none` / reject `-`, validate derived `- Priority:`, secondary escalation.
+  - T7 `agents/development/project-manager.md`: minimal rewrite — non-interactive promotion reading `- Base branch:`/`- Reviewers:`; `- Flow:`/`- Priority:` informative, never blocking.
+  - T8 `opencode.json`: 1-line adjustment to the `ocf:discovery` template to reflect the type-based routing.
+  - T9 Bug-issue fixture in final format (derived `- Priority:`, `- Business rules: none`, `- Tests:` scenarios, `- Flow: lean`) as Developer reference + `make test-scripts` regression pass.
+  Origem: Proposal 2026-08-19-1 em prioritization.md (global).
+- Review note: the `docs` reviewer profile is resolved at delivery Phase 8 via `development/technical-writer` (precedent: issues #37, #203).
+
+### 209. Caché de credenciales git por proyecto (git creds cache)
+- Status: ready
+- Opened: 2026-08-19
+- Ready: 2026-08-19
+- Started: -
+- Type: feat
+- Severity: high
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 3 (security, runtime, qa)
+- Remote: #106
+- Jira: -
+- PR: -
+- Location: scripts/git-cred-cache.sh (NUEVO), scripts/config.sh, scripts/tests/test_git_cred_cache.sh (NUEVO), opencode.json, agents/development/developer.md, agents/development/committer.md, agents/development/publish-requester.md, .opencode/.gitignore, scripts/test-runner.sh (EXCLUDE_RE), standards/decisions.md, scripts/README.md
+- Description: Como agente del pipeline de opencode, quiero un caché de credenciales git por proyecto (`.opencode/cache/git/`) gestionado por un único script seguro, para autenticarme y crear commits en operaciones automáticas (`--auto`) sin prompts interactivos ni exposición de secretos en salidas, logs o fingerprints.
+- Impact: Todos los agentes y comandos que ejecutan git en modo automático (`--auto`, pipeline de delivery, aibot-watcher); seguridad del repositorio (secretos en texto plano con 0600); coordinación con snapshot/sync-back del issue #74; fingerprints del test-runner (nunca deben contener credenciales).
+- Business rules:
+  1. El caché DEBE ser por proyecto en `.opencode/cache/git/` y DEBE estar gitignored: se añade `cache/` a `.opencode/.gitignore`.
+  2. Contenido SPLIT: `.opencode/cache/git/credentials` (formato git credential store) y `.opencode/cache/git/identity` (`name=`/`email=`). Las credenciales NUNCA DEBEN servirse para identidad ni viceversa.
+  3. Seguridad MÁXIMA: directorio 0700 y archivos 0600 aplicados en CADA escritura (independiente del umask); redacción centralizada vía helper `redact_secret()` en scripts/config.sh; DENY de read y edit sobre `.opencode/cache/**` en los permisos (acceso SOLO vía script); gate de test `assert_not_contains`; lista global de denegación bash intacta; reglas de denegación con orden findLast para `--auto`.
+  4. Integración git: `git config --local credential.helper 'store --file=<ABS>/.opencode/cache/git/credentials'` (store nativo de git, ruta ABSOLUTA) + `git config --local credential.interactive never`, de modo que `--auto` falle en vez de emitir un prompt.
+  5. Auto-import AUTOMÁTICO: cuando un agente recibe credenciales en sesión (chat del usuario, env vars como GITLAB_TOKEN/GH_TOKEN, config de repo), DEBE escribirlas vía script sin re-preguntar; la escritura DEBE ser idempotente (salta si la entrada es válida) y `--force` sobrescribe; env var vacía se trata como ausente.
+  6. Entrypoint único: `scripts/git-cred-cache.sh` con subcomandos `--init`, `--set`, `--get` (enmascarado), `--erase`, `--identity` y `--status` (100% redactado — también enmascara el email de identidad como `<set>`).
+  7. Identidad de commit: se aplica vía `-c user.name/-c user.email` desde el caché cuando la config del repo no la tiene; NUNCA se muta `.git/config` para identidad ni secretos (el único campo que `--init` escribe en `.git/config` es `credential.helper`/`credential.interactive`).
+  8. Fail-silent: caché ausente o ilegible → sin prompts (incluido stdin cerrado) y sin secretos en mensajes de error; `--status` es la ruta de diagnóstico.
+  9. Permisos por agente: developer.md con bash granular (deny catch-all + `git *` allow + `*scripts/git-cred-cache.sh *` allow + denies destructivos AL FINAL); committer.md y publish-requester.md degradados de `bash: allow` a scoped (preservando `gh *`/`glab *`).
+  10. Perfil de revisión: `3 (security, runtime, qa)`; el reviewer `security` es el gate OWASP (delegado a development/security-owasp), que DEBE rechazar la aprobación si hay vulnerabilidades critical/high sin resolver; `qa` cubre la regla 12 (superficie de test-runner).
+  11. Coordinación con #74 (existe, status ready): el caché es SOLO host-side y DEBE excluirse de snapshot/sync-back; los contenedores continúan con env-injection.
+  12. `EXCLUDE_RE` de test-runner.sh DEBE excluir `.opencode/cache` — las credenciales NUNCA entran en fingerprints (cross-dep con #210, misma superficie de archivo).
+  13. ADR en standards/decisions.md: texto plano 0600 = modelo estándar de git; sin cifrado en reposo (límite declarado).
+- Acceptance criteria:
+  1. `--init`/`--set` crean `.opencode/cache/git/` con directorio 0700 y archivos 0600 (verificable con `stat`, incluso bajo umask 000/022).
+  2. `--set` repetido con la misma entrada es idempotente (no duplica); `--force` sobrescribe la entrada válida; escrituras concurrentes dejan el store íntegro (flock/escritura atómica).
+  3. `--get` devuelve valores enmascarados; `--status` no muestra ningún secreto ni el email de identidad (aparece como `<set>`).
+  4. Credenciales e identidad se almacenan en archivos separados y nunca se sirven de forma intercambiada (`--get` nunca emite `name=`/`email=`; `--identity` nunca emite el token).
+  5. opencode.json deniega read/edit de `.opencode/cache/**` (regla findLast) para agentes en `--auto`; el acceso ocurre solo vía script; los archivos de agentes (developer/committer/publish-requester) contienen las configuraciones de permisos granulares.
+  6. El auto-import escribe automáticamente credenciales provenientes de GITLAB_TOKEN/GH_TOKEN, env vars o chat, sin re-preguntar; env var vacía no crea entrada.
+  7. Con caché ausente/ilegible (chmod 000) y stdin cerrado, los comandos no emiten prompt y no exponen secretos en errores; `--status` sigue funcionando como diagnóstico.
+  8. `--init` configura `credential.helper` (store apuntando al archivo del caché, ruta absoluta) y `credential.interactive never` en la config git local.
+  9. La identidad se aplica vía `-c user.name/-c user.email` sin modificar `.git/config` para identidad/secretos cuando el repo no la define.
+  10. El gate `assert_not_contains` pasa: sin secretos en salidas, logs o fingerprints (EXCLUDE_RE excluye `.opencode/cache`).
+- Tests:
+  1. `--set` con GITLAB_TOKEN en sesión bajo umask 000 y 022 → `.opencode/cache/git/credentials` con 0600 y directorio 0700; `--status` muestra todo enmascarado (email como `<set>`)
+  2. `--get` con caché ausente e ilegible (chmod 000) y stdin cerrado (`</dev/null`) → sin prompt, sin secretos en el error, sin bloqueo; `--status` disponible como diagnóstico
+  3. `--set` concurrente (2 invocaciones paralelas) → store íntegro y válido, una sola entrada; symlink en `.opencode/cache` → el script no escribe siguiendo el symlink fuera del proyecto (`pwd -P`)
+  4. `GITLAB_TOKEN=""` (vacío) → tratado como ausente, sin entrada en el store; `--erase` posterior → `--get` fail-silent, `--status` muestra sin set
+  5. grep de secretos y del email de identidad en la salida de `--status`, en errores y en logs → `assert_not_contains` pasa (0 coincidencias); cruce bidireccional: `--get` nunca emite identidad, `--identity` nunca emite el token
+  6. Aserciones de configuración: opencode.json con read/edit-deny sobre `.opencode/cache/**` (orden findLast) + archivos de agentes con bash granular (deny catch-all, allows scoped, denies destructivos al final) → agentes denegados en `--auto`; acceso solo vía `git-cred-cache.sh`
+  7. `--init` en un repo → `credential.helper` apunta al store del caché (ruta absoluta) y `credential.interactive=never`; `--set` repetido no duplica entradas y `--force` sobrescribe; EXCLUDE_RE de test-runner excluye `.opencode/cache` (tocar el caché no invalida fingerprint)
+- Suggested fix: implementar `scripts/git-cred-cache.sh` como punto único de acceso (subcomandos `--init`/`--set`/`--get`/`--erase`/`--identity`/`--status`) con permisos 0700/0600 en cada escritura, redacción centralizada vía `redact_secret()` en `config.sh`, deny de read/edit sobre `.opencode/cache/**` con orden findLast para `--auto`, auto-import idempotente e integración git vía `credential.helper store` + `credential.interactive never`; ajustar permisos por agente (developer/committer/publish-requester), EXCLUDE_RE del test-runner y ADR en `standards/decisions.md`. Esfuerzo ~9-11h. Origem: Proposal 2026-08-19-2 em prioritization.md (global).
+
+### 210. Versionado del entorno de tests (test env)
+- Status: ready
+- Opened: 2026-08-19
+- Ready: 2026-08-19
+- Started: -
+- Type: feat
+- Severity: medium
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (qa, runtime)
+- Remote: #107
+- Jira: -
+- PR: -
+- Location: scripts/test-runner.sh, .nvmrc (NUEVO), .node-version (NUEVO), .opencode/env-manifest.md (NUEVO), standards/test-env.md (NUEVO), skills/development/test-runner/SKILL.md, scripts/init.sh, scripts/tests/test_test_runner.sh
+- Description: Como desarrollador y QA del pipeline de opencode, quiero un entorno de pruebas versionado y verificado (`.nvmrc`, `.node-version` y `.opencode/env-manifest.md`), para ejecutar la suite siempre contra versiones conocidas de Node/Python/test-runner y recibir advertencias no bloqueantes cuando haya discrepancias.
+- Impact: Desarrolladores, senior reviewers y QA que ejecutan `test-runner.sh`; reutilización de la caché de resultados (fingerprints); fidelidad del entorno entre etapas del pipeline; proyectos Node/Python inicializados por init.sh. Nota: en este host `node` no está en PATH — la BR de "node ausente → warning informativo" se ejercitará en la práctica.
+- Business rules:
+  1. `.nvmrc` y `.node-version` DEBEN existir en la raíz con versión PINNED (p. ej. 22); el RANGO DEBE vivir en el manifest (compatibilidad nvm); sync guard verifica pin ⊆ rango.
+  2. `.opencode/env-manifest.md` (instancia de proyecto, committeado) DEBE contener una sección STRICTA machine-parseable (`node: >=20 <23`, `python: >=3.10 <4`, `test-runner: >=1.0`) además de la prosa con el procedimiento de bootstrap.
+  3. `standards/test-env.md` (esquema/protocolo, localizado pt/es/en vía locale-loader) DEBE definir: formato del manifest, política de rangos, sync guard y contrato de warnings.
+  4. test-runner.sh DEBE extenderse con: constante TEST_RUNNER_VERSION, detección de versiones (`node --version`, `python3 --version`), parser estricto del manifest, comparación de rangos, warning accionable a stderr en `--status` Y `--run` (NUNCA en `--check`), metadatos de versión en el cache `.result` (`node_version=`/`python_version=`/`runner_version=`) y exclusión de `.nvmrc`, `.node-version` y `.opencode/env-manifest.md` del fingerprint.
+  5. Política warning-only: NUNCA bloquea el pipeline; el contrato de exit codes 0/1/2/3 permanece intacto; `--status` SIEMPRE sale 0.
+  6. Sync guard: discrepancia entre `.nvmrc` ↔ `.node-version` ↔ manifest DEBE emitir warning de consistencia.
+  7. init.sh DEBE crear los placeholders SOLO cuando se detecte Node/Python al init; nunca forzar Node en proyectos sin Node.
+  8. `skills/development/test-runner/SKILL.md` DEBE documentar el protocolo de entorno.
+  9. Los agentes (developer, senior reviewers, QA) DEBEN registrar la versión realmente usada en los reportes de test — campo `Version:` obligatorio (fuente: `--status` o metadatos de `.result`) — para que etapas posteriores no re-pregunten.
+  10. La detección de Python y Node es opcional: `python3`/`node` ausente → warning informativo, nunca error.
+  11. Manifest ausente o sección malformada → warning + skip de validación, exit intacto, nunca crash; drift de entorno vs `.result` cacheado (versiones registradas ≠ versión actual) → warning en `--status`, no bloqueante.
+- Acceptance criteria:
+  1. `.nvmrc`, `.node-version` y `.opencode/env-manifest.md` existen en la raíz con versión pinned (22) y sección machine-parseable.
+  2. `test-runner.sh` detecta las versiones de node/python3 y las compara contra los rangos del manifest.
+  3. Versión fuera de rango → warning accionable a stderr en `--status` y `--run`; nunca en `--check` (stderr vacío incluso con entorno desincronizado).
+  4. Exit codes 0/1/2/3 sin cambios; `--status` sale 0 siempre, incluso fuera de rango.
+  5. El cache `.result` incluye `node_version=`, `python_version=` y `runner_version=`.
+  6. El fingerprint no cambia al modificar `.nvmrc`, `.node-version` o `.opencode/env-manifest.md` (cache reutilizado).
+  7. `.nvmrc`/`.node-version`/manifest desincronizados → el sync guard emite warning de consistencia.
+  8. init.sh crea placeholders solo cuando Node/Python están presentes; sin Node → sin `.nvmrc`/`.node-version`.
+  9. Los reportes de test registran la versión realmente usada (campo `Version:`).
+  10. Manifest ausente/malformado → warning + skip, exit intacto; node/python ausentes → warning informativo, exit 0.
+- Tests:
+  1. `--run` con node v19 fuera de rango (manifest `>=20 <23`) → warning accionable a stderr (versión actual + rango esperado + hint de instalación); ejecución NO bloqueada; exit code preservado; `.result` registra `node_version=v19.x`
+  2. `--status` con versiones dentro de rango → sin warning; sale 0; muestra los metadatos `node_version`/`python_version`/`runner_version`
+  3. desincronización `.nvmrc` (22) vs `.node-version` (18) vs manifest → el sync guard emite warning de consistencia en `--status`/`--run`; `--check` emite stderr vacío incluso desincronizado (pureza de contrato)
+  4. modificar `.nvmrc`/`.node-version`/`.opencode/env-manifest.md` sin tocar código → fingerprint sin cambios; el cache `.result` se reutiliza; drift de entorno (cache escrito bajo node 22, ahora node 19) → warning de drift en `--status`, no bloqueante
+  5. manifest ausente (checkout fresco) → warning + skip de validación, exit intacto, sin crash; rango malformado (`node: >=20 <`) → parser degrada con mensaje accionable, sin crash
+  6. `node`/`python3` ausentes en PATH → warning informativo, exit 0, nunca error; ambas violaciones (node out + python out) → dos warnings, sin bloqueo
+- Suggested fix: extender test-runner.sh con TEST_RUNNER_VERSION, detección de versiones, parser estricto del manifest y comparación de rangos, emitiendo advertencias accionables en `--status`/`--run` (nunca `--check`), metadatos de versión en `.result` y exclusión de `.nvmrc`/`.node-version`/env-manifest del fingerprint; crear `.nvmrc`, `.node-version` y `.opencode/env-manifest.md`, documentar el protocolo en `standards/test-env.md` (localizado pt/es/en) y en el SKILL del test-runner, y crear placeholders condicionales en init.sh. Esfuerzo ~8-9h. Origem: Proposal 2026-08-19-3 em prioritization.md (global).
+
+### 211. Dividir ocf:develop en dos comandos: ocf:develop (hasta MR, merge manual) y ocf:develop-full (auto-merge)
+- Status: ready
+- Opened: 2026-08-19
+- Ready: 2026-08-19
+- Started: -
+- Type: feat
+- Severity: high
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 3 (runtime, devops, qa)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: opencode.json (template ocf:develop + nuevo ocf:develop-full), commands/ocf:develop.md, commands/ocf:develop-full.md (NUEVO), workflow.md, scripts/aibot-watcher.sh, scripts/run-ci-workflow.sh, scripts/tests/test_watcher_e2e.sh, scripts/tests/test_run_ci_workflow.sh, README.md, commands/README.md, agents/development/delivery.md, agents/development/develop-router.md, Dockerfile (comentario), skills/development/delivery-session-planner/SKILL.md
+- Description: Como usuario del pipeline de opencode, quiero dividir el comando `ocf:develop` en dos variantes — `ocf:develop` que ejecuta el flujo completo hasta la CREACIÓN del MR y luego espera el merge manual, y `ocf:develop-full` que además auto-mergea las tareas recibidas (comportamiento actual de `ocf:develop`) — para poder elegir entre un punto de control humano antes del merge o una entrega totalmente automatizada.
+- Impact: Todos los agentes y comandos que invocan el pipeline end-to-end: usuario, aibot-watcher (trigger `@aibot:develop`), CI headless (run-ci-workflow.sh), delivery-session-planner. El watcher y el CI dependen HOY del auto-merge de `ocf:develop` — tras la división DEBEN apuntar a `ocf:develop-full` para no perder la automatización. Los tests e2e (test_watcher_e2e.sh, test_run_ci_workflow.sh) asertan el comando `ocf:develop` y deben ajustarse por vía de trigger.
+- Business rules:
+  1. `ocf:develop` DEBE ejecutar el flujo completo hasta el paso 5 (promote → develop → senior review → QA → correcciones → committer gate → Publish Requester crea el MR) y DETENERSE. NO mergea, NO vuelve a la base, NO cierra/archiva. La issue queda en `in-publish` con `PR: #<n>` y el MR abierto.
+  2. `ocf:develop` DEBE reportar el link del MR y el estado "esperando merge manual" en la notificación final (Telegram + resumen en sesión). El cierre/archivo se delega a `ocf:check-pr` / Close Requester tras el merge manual.
+  3. `ocf:develop-full` DEBE mantener el comportamiento END-TO-END actual de `ocf:develop`: auto-merge autorizado (gh/glab), checkout local de la base actualizada, cierre de la issue remota + archivo local vía close_issue.sh. Después de la creación del MR, continúa sin pausa.
+  4. Ambos comandos DEBEN aceptar el mismo formato de argumentos (lista de IDs, espacios/comas/guiones/#), deduplicar preservando orden, procesar secuencialmente y detenerse en el primer fallo (una única notificación de error).
+  5. Ambos DEBEN enviar EXACTAMENTE una notificación Telegram al final (éxito o fallo), nunca intermedias; subagentes del pipeline (delivery, develop-router, implementación) siguen sin notificar.
+  6. `aibot-watcher.sh` DEBE cambiar su trigger de `ocf:develop` a `ocf:develop-full` para preservar la semántica de auto-merge del `@aibot:develop` (BR 3 del watcher, issue #39).
+  7. `run-ci-workflow.sh` (paso headless) DEBE usar `ocf:develop-full` en lugar de `ocf:develop` para mantener el auto-merge en CI.
+  8. Los tests de scripts (`test_watcher_e2e.sh` línea 69/193-194, `test_run_ci_workflow.sh` línea 427) DEBEN asertar el comando correcto según la vía de trigger (watcher/CI → `ocf:develop-full`).
+  9. `workflow.md` DEBE documentar la división: la sección "Exception — /ocf:develop full flow" pasa a describir `ocf:develop-full`; `ocf:develop` termina en MR con merge manual; la regla de no-polling del watcher se mantiene (el merge manual es del usuario, `ocf:check-pr` cierra).
+  10. La documentación (README.md, commands/README.md, commands/ocf:develop.md, commands/ocf:develop-full.md nuevo, descripción en develop-router.md y delivery.md) DEBE reflejar la división; delivery.md ya cubre el "Post-merge pause" para `ocf:develop` (Phase 12 solo tras notificación de merge).
+  11. Sin cambios de comportamiento en delivery/develop-router: ambos comandos invocan `development/delivery` saltando Phase 6 (ya promovido) y arrancando en Phase 7 (Developer).
+- Acceptance criteria:
+  1. `/ocf:develop <id>` sobre una issue `ready`/`in-progress` → issue llega a `in-publish` con `PR: #<n>`; el MR queda OPEN (no se ejecuta gh/glab merge); la issue no se archiva ni cierra; la notificación final reporta el MR y "esperando merge manual".
+  2. `/ocf:develop-full <id>` sobre la misma clase de issue → mismo flujo PERO el MR se auto-mergea (gh pr merge / glab mr merge), la base local se actualiza, la issue remota se cierra y la entrada se archiva en resolved_issues.md con `Status: resolved`.
+  3. Trigger `@aibot:develop` en una issue rastreada → el watcher invoca `--command ocf:develop-full <id>` (verificable en el log del watcher) y el MR se auto-mergea.
+  4. CI headless (run-ci-workflow.sh) → invoca `ocf:develop-full <id>` (verificable en log) y el MR se auto-mergea.
+  5. `ocf:develop 1 2` → procesa 1 hasta MR, NO lo mergea, deja la issue en `in-publish`, pasa a 2 desde la base actualizada; UNA sola notificación al final con ambos resúmenes.
+- Tests:
+  1. `ocf:develop <id>` en issue `ready` → `in-publish` + MR abierto; `gh pr view <n> --json state --jq .state` = OPEN; issue sin archivar; notificación final con link + "merge manual pendiente"
+  2. `ocf:develop-full <id>` en issue `ready` → MR auto-mergeado (state MERGED); base local actualizada; issue cerrada + archivada con `Status: resolved`
+  3. watcher con `@aibot:develop` → log del watcher contiene `--command ocf:develop-full <local_id>` (test_watcher_e2e.sh actualizado) y el MR termina MERGED
+  4. CI headless → log contiene `--command ocf:develop-full <id>` (test_run_ci_workflow.sh actualizado) y MR MERGED
+  5. `ocf:develop` con lista de 2 issues → secuencial: 1ª termina en `in-publish` sin merge, 2ª procesada desde la base; exactamente UNA notificación Telegram final
+- Suggested fix: dividir el template de `ocf:develop` en opencode.json — `ocf:develop` conserva los pasos 1-5 + reporte "esperando merge manual" (sin pasos 6-8), y nuevo `ocf:develop-full` con el template completo actual (auto-merge + base + close/archive); crear `commands/ocf:develop-full.md` y actualizar `commands/ocf:develop.md`; cambiar watcher y CI a `ocf:develop-full`; actualizar tests e2e, workflow.md, READMEs y comentarios Dockerfile. Esfuerzo ~4-6h.
+
