@@ -860,16 +860,17 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: extender test-runner.sh con TEST_RUNNER_VERSION, detección de versiones, parser estricto del manifest y comparación de rangos, emitiendo advertencias accionables en `--status`/`--run` (nunca `--check`), metadatos de versión en `.result` y exclusión de `.nvmrc`/`.node-version`/env-manifest del fingerprint; crear `.nvmrc`, `.node-version` y `.opencode/env-manifest.md`, documentar el protocolo en `standards/test-env.md` (localizado pt/es/en) y en el SKILL del test-runner, y crear placeholders condicionales en init.sh. Esfuerzo ~8-9h. Origem: Proposal 2026-08-19-3 em prioritization.md (global).
 
 ### 211. Dividir ocf:develop en dos comandos: ocf:develop (hasta MR, merge manual) y ocf:develop-full (auto-merge)
-- Status: ready
+- Status: in-publish
 - Opened: 2026-08-19
 - Ready: 2026-08-19
-- Started: -
+- Started: 2026-08-19
+- In publish: 2026-08-19
 - Type: feat
 - Severity: high
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 3 (runtime, devops, qa)
-- Remote: -
+- Remote: #108
 - Jira: -
 - PR: -
 - Location: opencode.json (template ocf:develop + nuevo ocf:develop-full), commands/ocf:develop.md, commands/ocf:develop-full.md (NUEVO), workflow.md, scripts/aibot-watcher.sh, scripts/run-ci-workflow.sh, scripts/tests/test_watcher_e2e.sh, scripts/tests/test_run_ci_workflow.sh, README.md, commands/README.md, agents/development/delivery.md, agents/development/develop-router.md, Dockerfile (comentario), skills/development/delivery-session-planner/SKILL.md
