@@ -720,7 +720,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 1 (runtime)
 - Remote: #101
 - Jira: -
-- PR: -
+- PR: #102
 - Location: opencode.json:7,10
 - Description: O array `instructions` injeta `~/.config/opencode/known_issues.md` (~65 KB ≈ 17,1K tokens) e `~/.config/opencode/prioritization.md` (~105 KB ≈ 27,7K tokens) em TODA sessão, somando ~45% do contexto fixo. São artefatos de tracking/discovery lidos por demanda (padrão awk já usado nos comandos ocf:promote/develop/commit) — não precisam estar no contexto permanente. Resolve o problema já documentado na issue #34 (backlog).
 - Impact: ~44,8K tokens/sessão desperdiçados em todas as sessões, mesmo quando nenhuma issue/proposta é acessada. Poluição de contexto (problema #34).
