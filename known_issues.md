@@ -706,7 +706,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 1 (runtime)
 - Remote: #103
 - Jira: -
-- PR: -
+- PR: #104
 - Location: opencode.json:11-13
 - Description: O array `instructions` injeta `standards/*.md` (13 arquivos en ≈ 14K tokens) + `standards/pt/*` (~4K) + `standards/es/*` (~4K) em TODA sessão, totalizando ~22K tokens. O locale ativo é `pt`, mas en+es são carregados igualmente. O `locale-loader` skill já existe para carregar standards por demanda no idioma certo — o array `instructions` anula esse propósito e injeta traduções incompletas (pt/es sem seções `Tests:`/timestamps vs en completo).
 - Impact: ~20% do contexto fixo desperdiçado; traduções incompletas e potencialmente divergentes carregadas desnecessariamente.
