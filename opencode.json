@@ -4,10 +4,7 @@
     "instructions": [
         "~/.config/opencode/AGENTS.md",
         "~/.config/opencode/workflow.md",
-        "~/.config/opencode/agents/*/devs/REGISTRY.md",
-        "~/.config/opencode/standards/*.md",
-        "~/.config/opencode/standards/pt/*.md",
-        "~/.config/opencode/standards/es/*.md"
+        "~/.config/opencode/agents/*/devs/REGISTRY.md"
     ],
     "command": {
         "init": {
