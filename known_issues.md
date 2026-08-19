@@ -186,7 +186,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: Logar warning quando fetch falhar. Substituir `2>/dev/null` por `2>&1` para visibilidade.
 
 ### 34. `known_issues.md` global carregado como instrução para todos os projetos
-- Status: backlog
+- Status: resolved
 - Type: chore
 - Severity: low
 - Report: opencode
@@ -194,6 +194,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 1
 - Remote: -
 - PR: #93
+- Resolved: 2026-08-19
 - Location: opencode.json:6
 - Description: `opencode.json` inclui `~/.config/opencode/known_issues.md` no array `instructions`. Como a config é herdada por todos os projetos, as issues do opencode são injetadas no contexto de qualquer projeto que use esta config global.
 - Impact: Poluição de contexto do agente — issues do opencode (como "Agente Anderson") aparecem em sessões de outros projetos.
@@ -706,18 +707,20 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: Apply the same treatment as issue #203 to `skills/career/cv-optimizer/templates/profile-analysis.html`: replace the blanket `section { break-inside: avoid; }` with `section { break-inside: auto; orphans: 3; widows: 3; }`, keep `table tr { break-inside: avoid; }` and `h2 { break-after: avoid; }`, add a regression assertion in scripts/tests/test_cv.sh, and run `make test-scripts`. Effort ~1-2h. Origem: senior review do #203 (docs profile, finding 1 — incomplete-spec).
 
 ### 206. `prioritization.md` e `known_issues.md` no array `instructions` — carregamento por demanda em vez de injeção (~44,8K tokens/sessão)
-- Status: backlog
+- Status: in-publish
 - Opened: 2026-08-19
-- Ready: -
-- Started: -
+- Ready: 2026-08-19
+- Started: 2026-08-19
+- In QA: 2026-08-19
+- In publish: 2026-08-19
 - Type: chore
 - Severity: high
 - Report: cto
 - Base branch: main
 - Reviewers: 1 (runtime)
-- Remote: -
+- Remote: #101
 - Jira: -
-- PR: -
+- PR: #102
 - Location: opencode.json:7,10
 - Description: O array `instructions` injeta `~/.config/opencode/known_issues.md` (~65 KB ≈ 17,1K tokens) e `~/.config/opencode/prioritization.md` (~105 KB ≈ 27,7K tokens) em TODA sessão, somando ~45% do contexto fixo. São artefatos de tracking/discovery lidos por demanda (padrão awk já usado nos comandos ocf:promote/develop/commit) — não precisam estar no contexto permanente. Resolve o problema já documentado na issue #34 (backlog).
 - Impact: ~44,8K tokens/sessão desperdiçados em todas as sessões, mesmo quando nenhuma issue/proposta é acessada. Poluição de contexto (problema #34).

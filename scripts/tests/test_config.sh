@@ -42,4 +42,17 @@ else
   t_ok "instructions has no agents/*/*.md glob"
 fi
 
+# --- Issue #206: known_issues.md and prioritization.md not injected ---
+if instructions | grep -qF "~/.config/opencode/known_issues.md"; then
+  t_fail "instructions injects known_issues.md glob"
+else
+  t_ok "instructions has no known_issues.md glob"
+fi
+
+if instructions | grep -qF "~/.config/opencode/prioritization.md"; then
+  t_fail "instructions injects prioritization.md glob"
+else
+  t_ok "instructions has no prioritization.md glob"
+fi
+
 t_finish

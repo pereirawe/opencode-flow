@@ -68,9 +68,9 @@ Status lifecycle: `backlog -> ready -> open -> in-progress -> in-review -> in-qa
 
 ### Resolving `known_issues.md` (critical for all agents)
 
-The agent's system context only loads the **global** `~/.config/opencode/known_issues.md`
-via the `instructions` array. The **project's** `.opencode/known_issues.md` is NOT
-loaded automatically. When any agent needs to read an issue entry, it MUST resolve
+The agent's system context does NOT load `known_issues.md` (global or project)
+automatically — issue tracking is loaded ON DEMAND to avoid polluting every
+session's context. When any agent needs to read an issue entry, it MUST resolve
 the correct file first via bash:
 
 ```bash
