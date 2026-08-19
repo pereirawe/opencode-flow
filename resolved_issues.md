@@ -1,5 +1,17 @@
 # Resolved Issues
 
+Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
+
+### 205. `instructions` array em opencode.json injeta glob `agents/*/*.md` — duplicação de agentes auto-registrados (~33,6K tokens/sessão)
+- Resolved: 2026-08-19
+- Durations: backlog=0d waiting=0d dev=0d review=- qa=- publish=0d total=0d
+- Severity: high
+- Type: chore
+- Report: cto
+- Reviewers: 1
+- Remote: #99
+- Summary: O array `instructions` em opencode.json (linha 8) inclui `~/.config/opencode/agents/*/*.md`, injetando os prompts completos de ~89 agentes (~127 KB ≈ 33,6K tokens) no contexto de TODA sessão. A documentação oficial do opencode confirma que arquivos em `~/.config/opencode/agents/` já são auto-registrados como subagentes (invocáveis via Task tool) — o glob é duplicação pura — Editar opencode.json:8 removendo o glob `~/.config/opencode/agents/*/*.md`; adicionar teste em scripts/tests/ que valide o array `instructions`. Origem
+
 ### 40. AIBot nativo em GitHub Actions / GitLab CI com imagem Docker do opencode config
 - Resolved: 2026-08-17
 - Durations: -
