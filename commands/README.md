@@ -9,7 +9,7 @@ These commands are available in the assistant.
 | `ocf:review-branch` | Full PR/MR-style code review |
 | `ocf:plan-feature` | Feature breakdown with risk assessment |
 | `ocf:promote <id>` | Promote backlog item to open + create remote issue |
-| `ocf:develop [id]` | Start or resume development on a promoted issue |
+| `ocf:develop [id...]` | Run the full task lifecycle end-to-end for one or more issues (promote → develop → review → QA → MR → auto-merge → archive) |
 | `ocf:commit` | Create structured commit with `Status:` trailers |
 | `ocf:sync-issues` | Sync known_issues with remote issue tracker |
 | `ocf:archive-issue <id>` | Archive resolved issue to compact format |

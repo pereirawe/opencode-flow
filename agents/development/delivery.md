@@ -47,6 +47,10 @@ Execute these phases **in sequence**, invoking each agent automatically:
 - Runs `scripts/promote.sh <id>` to checkout base branch and create feature branch
 - Update status to `in-progress`
 - Output: feature branch ready for development
+- **Skip this phase when the issue is already promoted** — when invoked from
+  `/ocf:develop` (which promotes before delegating), the issue is already
+  `Status: in-progress` with the feature branch `issue-<id>-<slug>` checked out.
+  Detect this and start directly at Phase 7.
 
 ### Phase 7: Developer
 - Invoke `development/develop-router` subagent via task tool with full issue context
@@ -110,6 +114,7 @@ Execute these phases **in sequence**, invoking each agent automatically:
 3. **Exception — incomplete spec**: If business rules are missing or ambiguous, flag the gap in `known_issues.md` and proceed with what is defined. Do NOT block the pipeline.
 4. **Exception — blocking error**: If issue has no `Base branch:`, no `Remote:` (for `feat`), or no reviewer profiles, these are structural gaps that prevent promotion. Resolve during discovery before invoking Delivery.
 5. **Post-merge pause**: After Phase 11 (MR creation), the pipeline pauses. Phase 12 (Close Requester) only triggers when explicitly notified that the MR was merged. It does NOT poll or check automatically.
+6. **Telegram notifications**: This agent is a pipeline subagent — it MUST NOT send its own completion notification. The top-level command session that invoked delivery (e.g. `/ocf:develop`) sends exactly ONE final notification when the whole flow completes or fails. Notify only when the user's input is genuinely needed or on a blocking error that stops the flow.
 
 ## When to Use
 

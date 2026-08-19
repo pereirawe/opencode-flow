@@ -120,6 +120,15 @@ the user.
 poll or check — it only acts when explicitly triggered by a merge notification.
 The user merges the MR manually.
 
+**Exception — `/ocf:develop` full flow**: `/ocf:develop` is the end-to-end
+command. It runs the entire task lifecycle automatically — promotion →
+development → senior review → QA → corrections → committer gate → MR creation →
+**auto-merge** (authorized once review and QA approve) → local checkout of the
+updated base branch → remote issue close + archive → a single final Telegram
+notification. No confirmation, no permission prompts at any step. The Close
+Requester (Phase 12) is only used when the flow runs through `ocf:delivery`
+(which pauses after MR creation) or when triggered by `ocf:check-pr`.
+
 ### Remote Entry Point: `aibot-watcher` (issue #39)
 
 The `aibot-watcher` systemd timer (`aibot-watcher.timer`, `OnCalendar=*:0/2`)
@@ -129,7 +138,8 @@ feeds the continuous pipeline from remote issue comments:
    in the workspace `known_issues.md`) in an **allowlisted** repo
    (`~/.config/opencode/aibot-repos.json`) triggers the equivalent of
    `/ocf:develop <id>`: promote → develop → senior review → QA → corrections →
-   committer gate → MR.
+   committer gate → MR → **auto-merge** → local checkout of the updated base
+   branch → remote issue close + archive → final notification.
 2. The trigger runs via `opencode run --attach <web-url> --auto --dir <workspace>
 --command "ocf:develop"` on the existing web server, serialized per repo
    with `flock -n` (parallel across repos).
@@ -150,9 +160,13 @@ feeds the continuous pipeline from remote issue comments:
       matching rule (findLast) and therefore wins under `--auto`; `aibot` also
       denies reads of `~/.ssh/**` and `state/**`.
 
-**No-merge-polling boundary**: the watcher polls ONLY issue comments. It
-never polls merge/PR status — closing remote issues after merge remains
-exclusive to `ocf:check-pr` and the Close Requester (step 12).
+**No-merge-polling boundary**: the watcher itself polls ONLY issue comments.
+It never polls merge/PR status. `/ocf:develop` (the command the watcher
+triggers) performs the merge once review and QA approve, then closes the
+remote issue and archives locally as part of its own end-to-end flow —
+bounded polling for the merge it initiated is confined to that command, never
+to the watcher. The Close Requester and `ocf:check-pr` remain the paths for
+closing issues merged through `ocf:delivery` (step 12).
 
 ### Agent Pipeline
 

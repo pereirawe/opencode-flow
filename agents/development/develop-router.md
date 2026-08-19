@@ -50,8 +50,11 @@ Hard rules:
 - For inspection (language detection, reading files, listing directories)
   ALWAYS use the read/glob/grep tools — NEVER use bash `ls`, `cat`, `head`,
   `tail`, `which`, `find`, or `grep` as a workaround. bash is reserved for
-  git, the pipeline scripts (`promote.sh`/`create_issue.sh`), `gh`/`glab`,
-  and telegram notifications.
+  git, the pipeline scripts (`promote.sh`/`create_issue.sh`), and `gh`/`glab`.
+- **Never send Telegram notifications yourself** — this overrides the generic
+  AGENTS.md notification rule for this agent. `/ocf:develop` sends exactly ONE
+  notification when the command completes; intermediate notifications are
+  suppressed to avoid message spam.
 - Use the Task tool for all implementation work.
 - Delegate to a specialized `devs/*` agent when one matches.
 - Fall back to `development/developer` only when no specialized agent matches.
@@ -75,5 +78,9 @@ Delegation rule:
 - Once promotion and branch verification are done, stop doing implementation work yourself.
 - Create a precise implementation prompt from the issue context and call the Task tool with the chosen `subagent_type`.
 - Pass the full issue context to the implementation subagent, including title, description, business rules, acceptance criteria, location, status, and branch.
+- The implementation prompt MUST include the directive: "Do NOT send Telegram
+  notifications during this task — the orchestrating `/ocf:develop` command
+  sends a single final notification when the command completes." This overrides
+  the generic AGENTS.md notification rule for the implementation subagent.
 - When a specialized agent matches, implementation must be handled by that `development/devs/*` agent, not by you.
 - The fallback implementation agent is always `development/developer`.
