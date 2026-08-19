@@ -25,8 +25,9 @@ Responsibilities:
 - Verify the feature branch is based on the correct base branch before starting;
   if needed, rebase on the base branch
 - **Do NOT ask the user for confirmation or pause at any point during the pipeline.**
-  After implementing, run tests, self-review, update status to `in-review`, and
-  automatically proceed — the pipeline is continuous without user interaction.
+  After implementing, run tests, self-review, update status to `in-review` via
+  `scripts/transition.sh <id> in-review`, and automatically proceed — the
+  pipeline is continuous without user interaction.
 
 ### Test results (run via test-runner)
 

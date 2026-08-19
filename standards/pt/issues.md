@@ -12,6 +12,9 @@ Rastreamento em dois níveis:
 - Opened: <YYYY-MM-DD> | -
 - Ready: <YYYY-MM-DD> | -
 - Started: <YYYY-MM-DD> | -
+- In review: <YYYY-MM-DD> | -
+- In QA: <YYYY-MM-DD> | -
+- In publish: <YYYY-MM-DD> | -
 - Type: bug | feat | doc | chore
 - Severity: critical | high | medium | low
 - Report: <nome-usuário> | <nome-modelo>
@@ -37,28 +40,38 @@ hooks em `create_issue.sh`/`promote.sh`/`close_issue.sh` ou o comando
 `ocf:sync-jira`); o sync é não-bloqueante e o `Status:` local sempre vence o
 Jira.
 
-### Timestamps (Opened / Ready / Started / Resolved + Durations)
+### Timestamps (Opened / Ready / Started / In review / In QA / In publish / Resolved + Durations)
 
 Timestamps de ciclo de vida por issue são armazenados como campos da entrada
-em `known_issues.md` (`- Opened:`, `- Ready:`, `- Started:`, nessa ordem após
-`- Status:`) e calculados/armazenados no arquivo de resolvidas no fechamento
-(`- Resolved:` e `- Durations:`). São gravados diretamente pelos scripts do
-pipeline — nunca via parsing de trailers de commit (issue #24).
+em `known_issues.md` (`- Opened:`, `- Ready:`, `- Started:`, `- In review:`,
+`- In QA:`, `- In publish:`, nessa ordem canônica após `- Status:`) e
+calculados/armazenados no arquivo de resolvidas no fechamento (`- Resolved:` e
+`- Durations:`). São gravados diretamente pelos scripts do pipeline — nunca via
+parsing de trailers de commit (issue #24).
 
 | Campo | Gravado por | Quando |
 |-------|-------------|--------|
 | `- Opened:` | `scripts/create_issue.sh` | ao criar a issue remota com sucesso (set-if-absent). `scripts/promote.sh` faz backfill set-if-absent no modo 2 (ready → in-progress) com a data atual — aproximação documentada quando a issue remota foi criada antes do recurso de timestamps (BR 3). |
 | `- Ready:` | `scripts/promote.sh` | ao transicionar backlog → ready (set-if-absent) |
-| `- Started:` | `scripts/promote.sh` | ao transicionar ready → in-progress (set-if-absent) |
+| `- Started:` | `scripts/promote.sh` | ao transicionar ready → in-progress (set-if-absent). Também gravado por `scripts/transition.sh` na mesma transição quando usado como entrypoint do delivery. |
+| `- In review:` | `scripts/transition.sh` | ao transicionar in-progress → in-review (set-if-absent) — marca quando o desenvolvimento terminou e a revisão começou |
+| `- In QA:` | `scripts/transition.sh` | ao transicionar in-review → in-qa (set-if-absent) — marca quando a revisão terminou e o QA começou |
+| `- In publish:` | `scripts/transition.sh` | ao transicionar in-qa → in-publish (set-if-absent) — marca quando o QA passou e o committer aprovou o MR |
 | `- Resolved:` | `scripts/close_issue.sh` | no fechamento (= data do fechamento / hoje) |
 | `- Durations:` | `scripts/close_issue.sh` | no fechamento, na entrada do arquivo de resolvidas — diferença em dias entre os timestamps, com parse ancorado em UTC (`TZ=UTC date -d "$d" +%s`, robusto a DST) |
 
 Componentes de `Durations`: `backlog` (Opened→Ready), `waiting`
-(Ready→Started), `dev` (Started→Resolved), `total` (Opened→Resolved, relativo
-à data de fechamento). Guards: um componente renderiza `-` quando uma data
-está ausente ou start > end (guardado ANTES da divisão); `0d` quando a
-diferença é zero; valores são limitados a 0 (não-negativos); quando TODAS as
-datas estão ausentes, o campo inteiro renderiza o literal `- Durations: -`.
+(Ready→Started), `dev` (Started→In review — o tempo REAL de desenvolvimento),
+`review` (In review→In QA), `qa` (In QA→In publish), `publish`
+(In publish→Resolved), `total` (Opened→Resolved, relativo à data de
+fechamento). Guards: um componente renderiza `-` quando uma data está ausente
+ou start > end (guardado ANTES da divisão); `0d` quando a diferença é zero;
+valores são limitados a 0 (não-negativos); quando TODAS as datas estão
+ausentes, o campo inteiro renderiza o literal `- Durations: -`.
+
+Compatibilidade retroativa: entradas criadas antes do tracking por etapa não
+têm os campos `In review:`/`In QA:`/`In publish:`. Para essas, `dev` volta ao
+significado legado (Started→Resolved) e `review`/`qa`/`publish` renderizam `-`.
 
 A gravação é idempotente (set-if-absent): re-executar um script nunca duplica
 nem sobrescreve timestamps existentes, e `close_issue.sh` nunca adiciona

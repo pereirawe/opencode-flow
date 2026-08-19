@@ -7,7 +7,7 @@ Resolved issues are removed from `known_issues.md` and moved here in compact for
 ```markdown
 ### <id>. <title>
 - Resolved: <YYYY-MM-DD>
-- Durations: backlog=Nd waiting=Nd dev=Nd total=Nd | -
+- Durations: backlog=Nd waiting=Nd dev=Nd review=Nd qa=Nd publish=Nd total=Nd | -
 - Severity: critical | high | medium | low
 - Type: bug | feat | doc | chore
 - Report: <user-name> | <model-name>
@@ -24,10 +24,14 @@ Resolved issues are removed from `known_issues.md` and moved here in compact for
 - `Resolved` is the date the issue was closed locally
 - `Durations` holds per-stage day counts computed by `scripts/close_issue.sh`
   at close time from the issue's timestamps (`backlog` Opened→Ready, `waiting`
-  Ready→Started, `dev` Started→Resolved, `total` Opened→Resolved) using the
-  UTC-anchored parse (`TZ=UTC date -d "$d" +%s`, DST-robust). A component
-  renders `-` when a date is missing or start > end; `0d` when the difference
-  is zero; the whole field renders the literal `-` when all dates are missing.
+  Ready→Started, `dev` Started→In review — the actual development time,
+  `review` In review→In QA, `qa` In QA→In publish, `publish` In publish→Resolved,
+  `total` Opened→Resolved) using the UTC-anchored parse
+  (`TZ=UTC date -d "$d" +%s`, DST-robust). A component renders `-` when a
+  date is missing or start > end; `0d` when the difference is zero; the whole
+  field renders the literal `-` when all dates are missing. Entries created
+  before per-stage tracking (no In review/In QA/In publish fields) fall back
+  `dev` to Started→Resolved and render `review`/`qa`/`publish` as `-`.
 - Entries are never edited after creation
 - If an issue is reopened, it moves back to `known_issues.md` and the archive entry stays as-is
 

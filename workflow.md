@@ -312,13 +312,19 @@ Backed by `agents/career/*`, `skills/career/*`, and `scripts/cv/*`.
 > **Steps 6–11 run automatically without user confirmation after promotion.**
 > Step 12 only triggers on merge notification — no polling.
 
-> **Lifecycle timestamps (issue #57):** `- Opened:`, `- Ready:` and
+> **Lifecycle timestamps (issue #57/#81):** `- Opened:`, `- Ready:` and
 > `- Started:` are stamped directly by the pipeline scripts on the status
 > transitions above (`create_issue.sh` stamps `Opened` on remote creation
 > success; `promote.sh` stamps `Ready` on backlog→ready and `Started` on
 > ready→in-progress, backfilling `Opened` set-if-absent during promotion mode
-> 2). At close time `close_issue.sh` stamps `- Resolved:` (= close date) and
-> computes `- Durations:` into the archive (UTC-anchored parse, DST-robust).
+> 2). `scripts/transition.sh` stamps `- In review:`, `- In QA:` and
+> `- In publish:` on the delivery stage transitions (in-progress→in-review→
+> in-qa→in-publish) — it is the single status-transition entrypoint the
+> delivery agents must call instead of editing `known_issues.md` directly. At
+> close time `close_issue.sh` stamps `- Resolved:` (= close date) and computes
+> `- Durations:` into the archive (per-stage: backlog/waiting/dev/review/qa/
+> publish/total, UTC-anchored parse, DST-robust; `dev` = Started→In review,
+> falling back to Started→Resolved for legacy entries without per-stage fields).
 > All stamping is set-if-absent and idempotent; it is done by the scripts, NOT
 > via commit-trailer parsing (issue #24). See `standards/issues.md` for the
 > full field contract.

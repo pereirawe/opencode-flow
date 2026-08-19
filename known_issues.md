@@ -10,6 +10,9 @@ Single source of truth for tracked work in this project.
 - Opened: <YYYY-MM-DD> | -
 - Ready: <YYYY-MM-DD> | -
 - Started: <YYYY-MM-DD> | -
+- In review: <YYYY-MM-DD> | -
+- In QA: <YYYY-MM-DD> | -
+- In publish: <YYYY-MM-DD> | -
 - Type: bug | feat | doc | chore
 - Severity: critical | high | medium | low
 - Report: <user-name> | <model-name>
@@ -46,11 +49,13 @@ mirrored from this issue when the Jira sync is enabled (issue #48), separate
 from `Remote:`. Populated by `scripts/sync-jira.sh` (hooks in
 create_issue.sh/promote.sh/close_issue.sh or the `ocf:sync-jira` command);
 non-blocking, local `Status:` always wins.
-`Opened:`/`Ready:`/`Started:` lifecycle timestamps are stamped by the pipeline
-scripts (create_issue.sh on remote creation success; promote.sh on backlog→ready
-and ready→in-progress; close_issue.sh stamps `Resolved:` and computes
-`Durations:` into the archive). Set-if-absent, idempotent, new issues only.
-See `standards/issues.md` for the full contract.
+`Opened:`/`Ready:`/`Started:`/`In review:`/`In QA:`/`In publish:` lifecycle
+timestamps are stamped by the pipeline scripts (create_issue.sh on remote
+creation success; promote.sh on backlog→ready and ready→in-progress;
+transition.sh on in-progress→in-review→in-qa→in-publish; close_issue.sh stamps
+`Resolved:` and computes `Durations:` into the archive — per-stage components
+backlog/waiting/dev/review/qa/publish/total). Set-if-absent, idempotent, new
+issues only. See `standards/issues.md` for the full contract.
 
 ### 24. `pre_commit.sh` não sincroniza trailers de status com `known_issues.md`
 - Status: backlog
@@ -699,3 +704,103 @@ See `standards/issues.md` for the full contract.
   3. `grep "h2 { break-after: avoid" profile-analysis.html` → present (no orphaned headings).
   4. `make test-scripts` → exit 0 with the new/extended regression test.
 - Suggested fix: Apply the same treatment as issue #203 to `skills/career/cv-optimizer/templates/profile-analysis.html`: replace the blanket `section { break-inside: avoid; }` with `section { break-inside: auto; orphans: 3; widows: 3; }`, keep `table tr { break-inside: avoid; }` and `h2 { break-after: avoid; }`, add a regression assertion in scripts/tests/test_cv.sh, and run `make test-scripts`. Effort ~1-2h. Origem: senior review do #203 (docs profile, finding 1 — incomplete-spec).
+
+### 205. `instructions` array em opencode.json injeta glob `agents/*/*.md` — duplicação de agentes auto-registrados (~33,6K tokens/sessão)
+- Status: backlog
+- Opened: 2026-08-19
+- Ready: -
+- Started: -
+- Type: chore
+- Severity: high
+- Report: cto
+- Base branch: main
+- Reviewers: 1 (runtime)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: opencode.json:8
+- Description: O array `instructions` em opencode.json (linha 8) inclui `~/.config/opencode/agents/*/*.md`, injetando os prompts completos de ~89 agentes (~127 KB ≈ 33,6K tokens) no contexto de TODA sessão. A documentação oficial do opencode confirma que arquivos em `~/.config/opencode/agents/` já são auto-registrados como subagentes (invocáveis via Task tool) — o glob é duplicação pura: cada prompt é carregado uma vez como definição e outra como instrução de contexto.
+- Impact: ~31% do contexto fixo (~108K tokens/sessão) é desperdiçado em toda sessão, independentemente da tarefa.
+- Business rules:
+  1. Remover `~/.config/opencode/agents/*/*.md` do array `instructions` em opencode.json.
+  2. Manter o glob `~/.config/opencode/agents/*/devs/REGISTRY.md` (linha 9) — pequeno e funcional.
+  3. Os agentes DEVEM continuar invocáveis via Task tool (auto-registro pelo diretório `agents/`).
+  4. Nenhum agente, skill ou comando DEVE depender do glob de instruções para funcionar.
+  5. A mudança DEVE ser coberta por um teste de config que garanta que o array `instructions` não contém o glob de agentes.
+- Acceptance criteria:
+  1. `jq '.instructions' opencode.json` não contém `agents/*/*.md`.
+  2. `jq '.instructions' opencode.json` ainda contém `agents/*/devs/REGISTRY.md`.
+  3. Todos os subagentes continuam registrados e invocáveis (Task tool).
+  4. `make test-scripts` passa com o novo teste de config.
+- Tests:
+  1. `jq '.instructions' opencode.json` → sem entrada `agents/*/*.md`; `agents/*/devs/REGISTRY.md` presente.
+  2. Sessão nova (opencode run) → contexto fixo medido abaixo de ~80K tokens (redução ~31%).
+  3. `make test-scripts` → exit 0 com teste de config validando o array instructions.
+- Suggested fix: Editar opencode.json:8 removendo o glob `~/.config/opencode/agents/*/*.md`; adicionar teste em scripts/tests/ que valide o array `instructions`. Origem: auditoria CTO 2026-08-19 (P0-1).
+
+### 206. `prioritization.md` e `known_issues.md` no array `instructions` — carregamento por demanda em vez de injeção (~44,8K tokens/sessão)
+- Status: backlog
+- Opened: 2026-08-19
+- Ready: -
+- Started: -
+- Type: chore
+- Severity: high
+- Report: cto
+- Base branch: main
+- Reviewers: 1 (runtime)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: opencode.json:7,10
+- Description: O array `instructions` injeta `~/.config/opencode/known_issues.md` (~65 KB ≈ 17,1K tokens) e `~/.config/opencode/prioritization.md` (~105 KB ≈ 27,7K tokens) em TODA sessão, somando ~45% do contexto fixo. São artefatos de tracking/discovery lidos por demanda (padrão awk já usado nos comandos ocf:promote/develop/commit) — não precisam estar no contexto permanente. Resolve o problema já documentado na issue #34 (backlog).
+- Impact: ~44,8K tokens/sessão desperdiçados em todas as sessões, mesmo quando nenhuma issue/proposta é acessada. Poluição de contexto (problema #34).
+- Business rules:
+  1. Remover `~/.config/opencode/known_issues.md` e `~/.config/opencode/prioritization.md` do array `instructions` em opencode.json.
+  2. AGENTS.md DEVE manter a instrução de resolução por demanda (awk) para ler known_issues.md — o padrão já documentado.
+  3. Comandos e agentes que precisam de issues/propostas DEVEM ler o arquivo via bash (padrão existente), não depender de injeção.
+  4. A mudança NÃO DEVE alterar o comportamento de rastreamento (create/promote/close continuam funcionando).
+  5. A issue #34 DEVE ser marcada `resolved` quando esta mudança for concluída — ela documenta exatamente este problema.
+- Acceptance criteria:
+  1. `jq '.instructions' opencode.json` não contém `known_issues.md` nem `prioritization.md`.
+  2. Issue #34 marcada `resolved` (problema de poluição de contexto eliminado).
+  3. `make test-scripts` passa com teste de config validando o array.
+  4. `ocf:promote`/`ocf:develop`/`ocf:commit` continuam lendo known_issues.md por demanda.
+- Tests:
+  1. `jq '.instructions' opencode.json` → sem entradas `known_issues.md`/`prioritization.md`.
+  2. Sessão nova → contexto fixo reduzido em ~44,8K tokens (total < ~65K após #205).
+  3. `ocf:promote <id>` com known_issues.md populado → lê via awk e promove normalmente (smoke test).
+  4. `make test-scripts` → exit 0.
+- Suggested fix: Editar opencode.json:7,10 removendo os dois globs; manter instrução de leitura por demanda no AGENTS.md; fechar issue #34 como resolved. Origem: auditoria CTO 2026-08-19 (P0-2).
+
+### 207. Standards (en/pt/es) fora do array `instructions` — loading via locale-loader (~22K tokens/sessão)
+- Status: backlog
+- Opened: 2026-08-19
+- Ready: -
+- Started: -
+- Type: chore
+- Severity: high
+- Report: cto
+- Base branch: main
+- Reviewers: 1 (runtime)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: opencode.json:11-13
+- Description: O array `instructions` injeta `standards/*.md` (13 arquivos en ≈ 14K tokens) + `standards/pt/*` (~4K) + `standards/es/*` (~4K) em TODA sessão, totalizando ~22K tokens. O locale ativo é `pt`, mas en+es são carregados igualmente. O `locale-loader` skill já existe para carregar standards por demanda no idioma certo — o array `instructions` anula esse propósito e injeta traduções incompletas (pt/es sem seções `Tests:`/timestamps vs en completo).
+- Impact: ~20% do contexto fixo desperdiçado; traduções incompletas e potencialmente divergentes carregadas desnecessariamente.
+- Business rules:
+  1. Remover `standards/*.md`, `standards/pt/*.md` e `standards/es/*.md` do array `instructions` em opencode.json.
+  2. Os standards DEVEM continuar acessíveis via skill `locale-loader` (resolve idioma e carrega por demanda) — 34 arquivos já referenciam.
+  3. AGENTS.md DEVE instruir os agentes a carregar standards via locale-loader quando precisarem.
+  4. Os standards en em `standards/` continuam sendo a fonte de verdade; pt/es são traduções lazy.
+  5. Nenhum comando/agente DEVE assumir standards no contexto — carregar via skill quando necessário.
+- Acceptance criteria:
+  1. `jq '.instructions' opencode.json` não contém entradas `standards`.
+  2. locale-loader continua resolvendo standards/pt/ e standards/es/ corretamente.
+  3. `make test-scripts` passa com teste de config validando o array.
+- Tests:
+  1. `jq '.instructions' opencode.json` → sem entradas `standards`.
+  2. Skill locale-loader (load de standards com locale pt) → resolve standards/pt/*.md corretamente.
+  3. Sessão nova → contexto fixo reduzido em ~22K tokens.
+  4. `make test-scripts` → exit 0.
+- Suggested fix: Editar opencode.json:11-13 removendo os três globs de standards; garantir que AGENTS.md referencia locale-loader; validar com teste de config. Origem: auditoria CTO 2026-08-19 (P0-3).

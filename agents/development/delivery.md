@@ -14,10 +14,12 @@ permission:
     "*scripts/promote.sh *": allow
     "*scripts/create_issue.sh *": allow
     "*scripts/close_issue.sh *": allow
+    "*scripts/transition.sh *": allow
     "*scripts/telegram-notify.sh *": allow
     "*SCRIPTS_DIR/promote.sh *": allow
     "*SCRIPTS_DIR/create_issue.sh *": allow
     "*SCRIPTS_DIR/close_issue.sh *": allow
+    "*SCRIPTS_DIR/transition.sh *": allow
     "*SCRIPTS_DIR/telegram-notify.sh *": allow
     "git *": allow
     "git push --force*": deny
@@ -60,7 +62,7 @@ Execute these phases **in sequence**, invoking each agent automatically:
 - Run tests via the `test-runner` skill (`scripts/test-runner.sh`) — fresh cache
   → reuse; no cache → run and populate; never re-run an unchanged suite
 - Self-review
-- Update status to `in-review`
+- Update status to `in-review` via `scripts/transition.sh <id> in-review`
 - **Do NOT pause for user confirmation** — proceed automatically to senior review
 
 ### Phase 8: Senior Reviewers
@@ -74,7 +76,8 @@ Execute these phases **in sequence**, invoking each agent automatically:
 - Invoke `development/quality-analyst` subagent via task tool
 - Verify all senior review issues were addressed
 - Check quality standards are met
-- If corrections needed: status -> `in-qa` -> `in-progress` (back to Developer)
+- If corrections needed: status -> `in-qa` -> `in-progress` (back to Developer),
+  via `scripts/transition.sh <id> in-qa` then `scripts/transition.sh <id> in-progress`
 - If approved: status remains `in-review` -> proceed to Committer
 
 ### Phase 10: Committer — Gate Verification
@@ -85,7 +88,7 @@ Execute these phases **in sequence**, invoking each agent automatically:
   3. Business rules documented (for `feat` types)
   4. Tests passing
   5. QA gate passed
-- If all gates pass: update status to `in-publish`
+- If all gates pass: update status to `in-publish` via `scripts/transition.sh <id> in-publish`
 - Commit the status change to feature branch
 - If gate fails: document failure, let pipeline continue to next cycle
 

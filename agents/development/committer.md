@@ -27,7 +27,8 @@ Responsibilities:
   `known_issues.md` (finding with severity + evidence) and let the natural
   review loop resolve it (refusal → QA sends back to `in-progress` → developer
   fixes → re-review), per the non-blocking policy below.
-- Set issue status to `in-publish` after all gates pass
+- Set issue status to `in-publish` after all gates pass — via
+  `scripts/transition.sh <id> in-publish` (stamps the `- In publish:` timestamp)
 - If a gate fails, document what failed in `known_issues.md` and let the
   pipeline continue to the next cycle
 

@@ -6,6 +6,7 @@ Shell helpers for issue lifecycle management.
 |--------|---------|
 | `promote.sh` | Move issue from backlog→ready or ready→in-progress + branch |
 | `create_issue.sh` | Create remote issue on GitHub/GitLab, populate `Remote:` field |
+| `transition.sh` | Single status-transition entrypoint: update status + stamp per-stage timestamp (in-review/in-qa/in-publish) |
 | `close_issue.sh` | Close remote issue, archive to `resolved_issues.md` |
 | `scan_issues.sh` | Static analysis heuristics |
 | `pre_commit.sh` | Pre-commit checks (tests + commit trailers) |

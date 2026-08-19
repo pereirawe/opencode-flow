@@ -36,6 +36,8 @@ Responsibilities:
 - Collaborate with Developer and Test Automation agents
 - After senior review, verify that all identified issues were addressed
   before confirming quality gate
+- When QA approves and the issue moves to `in-qa`, stamp the transition via
+  `scripts/transition.sh <id> in-qa` (records the `- In QA:` timestamp)
 - Confirm tests via `scripts/test-runner.sh --check` (the `test-runner` skill):
   a fresh cache proves the suite passed for the current code — do not re-run an
   unchanged suite. Only run (`--run`) when the cache is stale or you need your

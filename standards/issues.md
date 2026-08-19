@@ -12,6 +12,9 @@ Two-tier issue tracking:
 - Opened: <YYYY-MM-DD> | -
 - Ready: <YYYY-MM-DD> | -
 - Started: <YYYY-MM-DD> | -
+- In review: <YYYY-MM-DD> | -
+- In QA: <YYYY-MM-DD> | -
+- In publish: <YYYY-MM-DD> | -
 - Type: bug | feat | doc | chore
 - Severity: critical | high | medium | low
 - Report: <user-name> | <model-name>
@@ -42,28 +45,37 @@ business logic, domain constraints, and rules that must be implemented.
 during senior review and MR creation.
 `Acceptance criteria:` is recommended for all types.
 
-### Timestamps (Opened / Ready / Started / Resolved + Durations)
+### Timestamps (Opened / Ready / Started / In review / In QA / In publish / Resolved + Durations)
 
 Per-issue lifecycle timestamps are stored as entry fields in `known_issues.md`
-(`- Opened:`, `- Ready:`, `- Started:`, in that order after `- Status:`) and
-computed/stored in the resolved archive at close time (`- Resolved:` and
-`- Durations:`). They are stamped directly by the pipeline scripts — never via
-commit-trailer parsing (issue #24).
+(`- Opened:`, `- Ready:`, `- Started:`, `- In review:`, `- In QA:`,
+`- In publish:`, in that canonical order after `- Status:`) and computed/stored
+in the resolved archive at close time (`- Resolved:` and `- Durations:`). They
+are stamped directly by the pipeline scripts — never via commit-trailer
+parsing (issue #24).
 
 | Field | Stamped by | When |
 |-------|-----------|------|
 | `- Opened:` | `scripts/create_issue.sh` | on remote issue creation success (set-if-absent). `scripts/promote.sh` backfills it set-if-absent during mode 2 (ready → in-progress) with the current date — a documented approximation when the remote was created before timestamping (BR 3). |
 | `- Ready:` | `scripts/promote.sh` | on backlog → ready (set-if-absent) |
-| `- Started:` | `scripts/promote.sh` | on ready → in-progress (set-if-absent) |
+| `- Started:` | `scripts/promote.sh` | on ready → in-progress (set-if-absent). Also stamped by `scripts/transition.sh` on the same transition when used as the delivery entrypoint. |
+| `- In review:` | `scripts/transition.sh` | on in-progress → in-review (set-if-absent) — marks when development finished and review started |
+| `- In QA:` | `scripts/transition.sh` | on in-review → in-qa (set-if-absent) — marks when review finished and QA started |
+| `- In publish:` | `scripts/transition.sh` | on in-qa → in-publish (set-if-absent) — marks when QA passed and the committer gate approved the MR |
 | `- Resolved:` | `scripts/close_issue.sh` | at close time (= close date / today) |
 | `- Durations:` | `scripts/close_issue.sh` | at close time, in the archive entry — day differences between the timestamps, UTC-anchored parse (`TZ=UTC date -d "$d" +%s`, DST-robust) |
 
 `Durations` components: `backlog` (Opened→Ready), `waiting` (Ready→Started),
-`dev` (Started→Resolved), `total` (Opened→Resolved, relative to the close
-date). Guards: a component renders `-` when a date is missing or start > end
-(guarded BEFORE division); `0d` when the difference is zero; values are floored
-at 0 (non-negative); when ALL dates are missing the whole field renders the
-literal `- Durations: -`.
+`dev` (Started→In review — the ACTUAL development time), `review`
+(In review→In QA), `qa` (In QA→In publish), `publish` (In publish→Resolved),
+`total` (Opened→Resolved, relative to the close date). Guards: a component
+renders `-` when a date is missing or start > end (guarded BEFORE division);
+`0d` when the difference is zero; values are floored at 0 (non-negative); when
+ALL dates are missing the whole field renders the literal `- Durations: -`.
+
+Backward compatibility: entries created before per-stage tracking have no
+`In review:`/`In QA:`/`In publish:` fields. For those, `dev` falls back to
+Started→Resolved (the legacy meaning) and `review`/`qa`/`publish` render `-`.
 
 Stamping is idempotent (set-if-absent): re-running a script never duplicates
 or overwrites existing timestamps, and `close_issue.sh` never appends a

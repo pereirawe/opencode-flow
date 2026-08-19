@@ -115,10 +115,13 @@ REVIEWERS=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Reviewers:/ {print $2; ex
 REVIEWER_COUNT=$(printf '%s\n' "$REVIEWERS" | grep -o '^[0-9]*' || echo "1")
 DESC=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Description:/ {print $2; exit}')
 SUGGESTED=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Suggested fix:/ {print $2; exit}')
-# Lifecycle timestamps (issue #57). Missing fields are tolerated (`-` allowed).
+# Lifecycle timestamps (issue #57/#81). Missing fields are tolerated (`-` allowed).
 OPENED_DATE=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Opened:/ {print $2; exit}')
 READY_DATE=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Ready:/ {print $2; exit}')
 STARTED_DATE=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Started:/ {print $2; exit}')
+IN_REVIEW_DATE=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- In review:/ {print $2; exit}')
+IN_QA_DATE=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- In QA:/ {print $2; exit}')
+IN_PUBLISH_DATE=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- In publish:/ {print $2; exit}')
 RESOLVED_DATE=$(date +%Y-%m-%d)
 SUMMARY="${DESC:-no description}${SUGGESTED:+ — ${SUGGESTED}}"
 
@@ -147,18 +150,29 @@ days_between() {
   echo "${diff}d"
 }
 
-# Compute per-stage durations (BR 12): backlog (Opened→Ready), waiting
-# (Ready→Started), dev (Started→Resolved), total (Opened→Resolved, relative to
-# the close date — BR 6). When ALL dates are missing, output the literal
-# `- Durations: -` (BR 5).
+# Compute per-stage durations (BR 12 / issue #81): backlog (Opened→Ready),
+# waiting (Ready→Started), dev (Started→In review — the actual development
+# time), review (In review→In QA), qa (In QA→In publish), publish
+# (In publish→Resolved), total (Opened→Resolved, relative to the close date —
+# BR 6). When ALL dates are missing, output the literal `- Durations: -` (BR 5).
+# Backward compatibility: entries created before per-stage tracking have no
+# In review/In QA/In publish fields — for those, dev falls back to
+# Started→Resolved (the legacy meaning) and review/qa/publish render `-`.
 BACKLOG_D=$(days_between "$OPENED_DATE" "$READY_DATE")
 WAITING_D=$(days_between "$READY_DATE" "$STARTED_DATE")
-DEV_D=$(days_between "$STARTED_DATE" "$RESOLVED_DATE")
+if [[ "$IN_REVIEW_DATE" != "-" && -n "$IN_REVIEW_DATE" ]]; then
+  DEV_D=$(days_between "$STARTED_DATE" "$IN_REVIEW_DATE")
+else
+  DEV_D=$(days_between "$STARTED_DATE" "$RESOLVED_DATE")
+fi
+REVIEW_D=$(days_between "$IN_REVIEW_DATE" "$IN_QA_DATE")
+QA_D=$(days_between "$IN_QA_DATE" "$IN_PUBLISH_DATE")
+PUBLISH_D=$(days_between "$IN_PUBLISH_DATE" "$RESOLVED_DATE")
 TOTAL_D=$(days_between "$OPENED_DATE" "$RESOLVED_DATE")
-if [[ "$BACKLOG_D$WAITING_D$DEV_D$TOTAL_D" == "----" ]]; then
+if [[ "$BACKLOG_D$WAITING_D$DEV_D$REVIEW_D$QA_D$PUBLISH_D$TOTAL_D" == "-------" ]]; then
   DURATIONS_VAL="-"
 else
-  DURATIONS_VAL="backlog=$BACKLOG_D waiting=$WAITING_D dev=$DEV_D total=$TOTAL_D"
+  DURATIONS_VAL="backlog=$BACKLOG_D waiting=$WAITING_D dev=$DEV_D review=$REVIEW_D qa=$QA_D publish=$PUBLISH_D total=$TOTAL_D"
 fi
 
 # Ensure resolved archive exists (rewrite block below always writes the header)

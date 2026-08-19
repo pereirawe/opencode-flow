@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
-# test_timestamps.sh — issue #57: lifecycle timestamps
-# (Opened/Ready/Started/Resolved + Durations).
+# test_timestamps.sh — issues #57/#81: lifecycle timestamps
+# (Opened/Ready/Started/In review/In QA/In publish/Resolved + per-stage Durations).
 #
-# Covers t01–t25: promote.sh stamping (Ready on backlog→ready, Started on
+# Covers t01–t29: promote.sh stamping (Ready on backlog→ready, Started on
 # ready→in-progress, Opened backfill set-if-absent), create_issue.sh Opened
 # stamping on remote success, close_issue.sh Resolved + Durations with the
 # guard/floor rules (t16/t17/t18), DST spring-forward (t21), double-run
 # idempotency (t19), prompt-bypass without TTY (t20), field order
-# Status < Opened < Ready < Started (t23), standards parity (t24), and a full
-# end-to-end lifecycle (t25).
+# Status < Opened < Ready < Started < In review < In QA < In publish (t23),
+# standards parity (t24), a full end-to-end lifecycle (t25), transition.sh
+# per-stage stamping + idempotency (t26/t27), per-stage duration isolation
+# (t28), and invalid-status rejection (t29).
 #
 # Deterministic/self-contained: `date`, `gh`/`glab`, and `git` are mocked via
 # PATH; no network, no TTY. Duration math delegates to the real `date`
@@ -24,6 +26,7 @@ trap 'rm -rf "$TMP"' EXIT
 PROMOTE="$HERE/../promote.sh"
 CREATE="$HERE/../create_issue.sh"
 CLOSE="$HERE/../close_issue.sh"
+TRANSITION="$HERE/../transition.sh"
 RUN_OUT="$TMP/run.out"
 
 FAKE_TODAY="2026-08-14"
@@ -307,7 +310,7 @@ assert_not_contains "$fix/.opencode/known_issues.md" "### 1." "t14: entry remove
 fix="$TMP/t15"; make_fixture "$fix" in-publish "#42" "#9" 2026-08-01 2026-08-03 2026-08-05
 pipe_confirm "$fix" "s" >/dev/null
 assert_contains "$fix/.opencode/resolved_issues.md" \
-  "- Durations: backlog=2d waiting=2d dev=9d total=13d" \
+  "- Durations: backlog=2d waiting=2d dev=9d review=- qa=- publish=- total=13d" \
   "t15: exact per-stage durations (Opened 08-01 → Resolved 08-14)"
 
 # ===========================================================================
@@ -316,7 +319,7 @@ assert_contains "$fix/.opencode/resolved_issues.md" \
 fix="$TMP/t16"; make_fixture "$fix" in-publish "#42" "#9" 2026-08-10 2026-08-01 2026-08-05
 pipe_confirm "$fix" "s" >/dev/null
 assert_contains "$fix/.opencode/resolved_issues.md" \
-  "- Durations: backlog=- waiting=4d dev=9d total=4d" \
+  "- Durations: backlog=- waiting=4d dev=9d review=- qa=- publish=- total=4d" \
   "t16: start>end component renders '-' (backlog), others computed"
 
 # ===========================================================================
@@ -325,7 +328,7 @@ assert_contains "$fix/.opencode/resolved_issues.md" \
 fix="$TMP/t17"; make_fixture "$fix" in-publish "#42" "#9" 2026-08-14 2026-08-14 2026-08-14
 pipe_confirm "$fix" "s" >/dev/null
 assert_contains "$fix/.opencode/resolved_issues.md" \
-  "- Durations: backlog=0d waiting=0d dev=0d total=0d" \
+  "- Durations: backlog=0d waiting=0d dev=0d review=- qa=- publish=- total=0d" \
   "t17: zero-day differences render 0d"
 
 # ===========================================================================
@@ -395,7 +398,7 @@ rc=0
     bash "$CLOSE" 1 ) <<< "s" >"$RUN_OUT" 2>&1 || rc=$?
 assert_eq "0" "$rc" "t21: close exit 0 under DST timezone"
 assert_contains "$fix/.opencode/resolved_issues.md" \
-  "- Durations: backlog=1d waiting=1d dev=1d total=3d" \
+  "- Durations: backlog=1d waiting=1d dev=1d review=- qa=- publish=- total=3d" \
   "t21: spring-forward DST passes with UTC-anchored parse (naive local would give 0d)"
 
 # ===========================================================================
@@ -404,7 +407,7 @@ assert_contains "$fix/.opencode/resolved_issues.md" \
 fix="$TMP/t22"; make_fixture "$fix" in-publish "#42" "#9" 2026-08-09
 pipe_confirm "$fix" "s" >/dev/null
 assert_contains "$fix/.opencode/resolved_issues.md" \
-  "- Durations: backlog=- waiting=- dev=- total=5d" \
+  "- Durations: backlog=- waiting=- dev=- review=- qa=- publish=- total=5d" \
   "t22: missing dates render '-'; total computed from available timestamps"
 
 # ===========================================================================
@@ -474,9 +477,65 @@ sed -i 's/^- PR: -/- PR: #9/' "$f"
 rc=$(pipe_confirm "$fix" "s")
 assert_eq "0" "$rc" "t25: close exit 0"
 assert_contains "$fix/.opencode/resolved_issues.md" "- Resolved: $FAKE_TODAY" "t25: Resolved in archive"
-assert_contains "$fix/.opencode/resolved_issues.md" "- Durations: backlog=0d waiting=0d dev=0d total=0d" "t25: durations computed (same-day lifecycle)"
+assert_contains "$fix/.opencode/resolved_issues.md" "- Durations: backlog=0d waiting=0d dev=0d review=- qa=- publish=- total=0d" "t25: durations computed (same-day lifecycle)"
 assert_contains "$GH_LOG" "issue close 42" "t25: remote closed exactly once"
 assert_eq "1" "$(grep -cE '^### 1\.' "$fix/.opencode/resolved_issues.md")" "t25: exactly one archive entry"
 assert_not_contains "$fix/.opencode/known_issues.md" "### 1." "t25: tracker entry removed"
+
+# ===========================================================================
+# t26 — transition.sh stamps per-stage timestamps (issue #81): in-progress ->
+#       Started, in-review -> In review, in-qa -> In QA, in-publish -> In publish
+# ===========================================================================
+fix="$TMP/t26"; make_fixture "$fix" ready "#42" -
+run "$fix" "$MOCK_DATE" "$TRANSITION" 1 in-progress >/dev/null
+f="$fix/.opencode/known_issues.md"
+assert_eq "in-progress" "$(field "$f" Status)" "t26: status in-progress after transition"
+assert_eq "$FAKE_TODAY" "$(field "$f" Started)" "t26: Started stamped on in-progress"
+run "$fix" "$MOCK_DATE" "$TRANSITION" 1 in-review >/dev/null
+assert_eq "in-review" "$(field "$f" Status)" "t26: status in-review after transition"
+assert_eq "$FAKE_TODAY" "$(field "$f" "In review")" "t26: In review stamped on in-review"
+run "$fix" "$MOCK_DATE" "$TRANSITION" 1 in-qa >/dev/null
+assert_eq "$FAKE_TODAY" "$(field "$f" "In QA")" "t26: In QA stamped on in-qa"
+run "$fix" "$MOCK_DATE" "$TRANSITION" 1 in-publish >/dev/null
+assert_eq "in-publish" "$(field "$f" Status)" "t26: status in-publish after transition"
+assert_eq "$FAKE_TODAY" "$(field "$f" "In publish")" "t26: In publish stamped on in-publish"
+
+# ===========================================================================
+# t27 — transition.sh idempotency: re-running a transition never overwrites or
+#       duplicates existing per-stage timestamps (set-if-absent)
+# ===========================================================================
+fix="$TMP/t27"; make_fixture "$fix" ready "#42" -
+run "$fix" "$MOCK_DATE" "$TRANSITION" 1 in-review >/dev/null
+f="$fix/.opencode/known_issues.md"
+sed -i 's/^- In review: .*/&/' "$f"   # no-op; keep line
+run "$fix" "$MOCK_DATE" "$TRANSITION" 1 in-review >/dev/null
+assert_eq "1" "$(grep -c '^- In review:' "$f")" "t27: single In review (no duplicate)"
+assert_eq "$FAKE_TODAY" "$(field "$f" "In review")" "t27: In review preserved on re-run"
+run "$fix" "$MOCK_DATE" "$TRANSITION" 1 in-qa >/dev/null
+run "$fix" "$MOCK_DATE" "$TRANSITION" 1 in-qa >/dev/null
+assert_eq "1" "$(grep -c '^- In QA:' "$f")" "t27: single In QA (no duplicate)"
+
+# ===========================================================================
+# t28 — dev duration isolates development (Started → In review); review/qa/
+#       publish computed from per-stage timestamps at close time
+# ===========================================================================
+fix="$TMP/t28"; make_fixture "$fix" in-publish "#42" "#9" 2026-08-01 2026-08-03 2026-08-05
+f="$fix/.opencode/known_issues.md"
+sed -i 's/^- Status: in-publish/- Status: in-publish/' "$f"
+# Append per-stage timestamps after Started (Started 08-05, review 08-07, qa 08-09, publish 08-11)
+awk '/^- Started:/ { print; print "- In review: 2026-08-07"; print "- In QA: 2026-08-09"; print "- In publish: 2026-08-11"; next } { print }' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+rc=$(pipe_confirm "$fix" "s")
+assert_eq "0" "$rc" "t28: close exit 0"
+assert_contains "$fix/.opencode/resolved_issues.md" \
+  "- Durations: backlog=2d waiting=2d dev=2d review=2d qa=2d publish=3d total=13d" \
+  "t28: per-stage durations (dev 08-05→08-07, review 08-07→08-09, qa 08-09→08-11, publish 08-11→08-14)"
+
+# ===========================================================================
+# t29 — transition.sh rejects invalid statuses
+# ===========================================================================
+fix="$TMP/t29"; make_fixture "$fix" ready "#42" -
+rc=$(run "$fix" "$MOCK_DATE" "$TRANSITION" 1 bogus)
+assert_eq "1" "$rc" "t29: invalid status rejected"
+assert_eq "ready" "$(field "$fix/.opencode/known_issues.md" Status)" "t29: status unchanged on invalid transition"
 
 t_finish
