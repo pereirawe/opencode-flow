@@ -1,6 +1,6 @@
 {
     "$schema": "https://opencode.ai/config.json",
-    "subagent_depth": 2,
+    "subagent_depth": 4,
     "instructions": [
         "~/.config/opencode/AGENTS.md",
         "~/.config/opencode/workflow.md",
