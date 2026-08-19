@@ -3,7 +3,7 @@
 # Usage: ocf-telegram.sh <command...>
 #
 # Example:
-#   ocf-telegram.sh opencode run --command "ocf:develop 42" --auto
+#   ocf-telegram.sh opencode run --command "ocf:develop-full 42" --auto
 
 set -euo pipefail
 

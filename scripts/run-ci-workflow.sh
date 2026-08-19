@@ -12,8 +12,11 @@ set -euo pipefail
 #   3. allowlist    — repo must be in AIBOT_ALLOWLIST or aibot-repos.json (BR 2)
 #   4. tracker gate — issue must be tracked locally with Remote: #id (BR 3/AC 5)
 #   5. status gate  — in-progress → already-in-progress; resolved → already-resolved (BR 5/AC 6)
-#   6. develop      — `opencode run --command "ocf:develop" <id> --auto` HEADLESS
-#                     (BR 4/BR 13 — SPIKE passed: no --attach needed)
+#   6. develop      — `opencode run --command "ocf:develop-full" <id> --auto`
+#                     HEADLESS (BR 4/BR 13 — SPIKE passed: no --attach needed).
+#                     `ocf:develop-full` is used so the auto-merge semantics of
+#                     `@aibot:develop` are preserved (issue #211: `ocf:develop`
+#                     now stops at MR creation with a manual merge).
 #   7. result       — in-publish + PR → success w/ MR link; else cannot-develop (BR 5/6/7)
 #
 # Exactly ONE standardized message per trigger (BR 7), via gh/glab using the
@@ -215,17 +218,19 @@ post_message() {
   esac
 }
 
-# run_develop <local-id> — headless full pipeline (BR 4/BR 13).
+# run_develop <local-id> — headless full pipeline (BR 4/BR 13) via
+# `ocf:develop-full` (issue #211 — the full variant auto-merges, which the CI
+# `@aibot:develop` trigger depends on).
 # NO `--` separator before the args (issue 39 R-B1: breaks on opencode 1.18.7).
 run_develop() {
   local local_id="$1"
-  log "disparando headless: $OPENCODE_BIN run --auto --dir $WORKSPACE --model $AIBOT_MODEL --command ocf:develop $local_id"
+  log "disparando headless: $OPENCODE_BIN run --auto --dir $WORKSPACE --model $AIBOT_MODEL --command ocf:develop-full $local_id"
   if [[ "$DRY_RUN" == "1" ]]; then
-    log "[dry-run] opencode run --auto --dir $WORKSPACE --model $AIBOT_MODEL --command \"ocf:develop\" $local_id"
+    log "[dry-run] opencode run --auto --dir $WORKSPACE --model $AIBOT_MODEL --command \"ocf:develop-full\" $local_id"
     return 0
   fi
   "$OPENCODE_BIN" run --auto --dir "$WORKSPACE" --model "$AIBOT_MODEL" \
-    --command "ocf:develop" "$local_id" < /dev/null
+    --command "ocf:develop-full" "$local_id" < /dev/null
 }
 
 # ---------------------------------------------------------------------------
@@ -283,7 +288,7 @@ esac
 
 # 6. develop headless (BR 4/BR 13)
 if ! run_develop "$LOCAL_ID"; then
-  log "ocf:develop #$LOCAL_ID failed — posting cannot-develop (no MR)"
+  log "ocf:develop-full #$LOCAL_ID failed — posting cannot-develop (no MR)"
   post_message "$ISSUE" "cannot-develop"
   exit 0
 fi

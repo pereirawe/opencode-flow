@@ -424,7 +424,7 @@ DRY_RUN="0"  # Not dry run — actually invoke mock opencode
 
 run_develop "7"
 MOCK_ARGS="$(cat /tmp/opencode_mock_args.txt 2>/dev/null || echo "")"
-assert_eq "ARGS: run --auto --dir $TMP/ws_dev --model test-model-123 --command ocf:develop 7" \
+assert_eq "ARGS: run --auto --dir $TMP/ws_dev --model test-model-123 --command ocf:develop-full 7" \
   "$MOCK_ARGS" \
   "run_develop: correct headless argv construction"
 

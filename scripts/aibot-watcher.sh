@@ -14,9 +14,11 @@ set -euo pipefail
 #       * find the matching locally-tracked issue (`Remote: #<id>` in the
 #         workspace tracker) — BR 4
 #       * re-check the issue status inside the per-repo flock — BR 5
-#       * trigger `opencode run --attach ... --command "ocf:develop" <id>`
+#       * trigger `opencode run --attach ... --command "ocf:develop-full" <id>`
 #         (BR 7 — NO `--` separator; see opencode_run) capped per tick
-#         (MAX_TRIGGERS_PER_TICK — Security M3)
+#         (MAX_TRIGGERS_PER_TICK — Security M3). `ocf:develop-full` is used so
+#         the auto-merge semantics of `@aibot:develop` are preserved (issue
+#         #211: `ocf:develop` now stops at MR creation with a manual merge).
 #       * post the standardized result message via `ocf:aibot-notify` (BR 8-10)
 #
 # Run via systemd timer (aibot-watcher.timer, OnCalendar=*:0/2) under the
@@ -341,7 +343,9 @@ opencode_run() {
 }
 
 # run_develop <workspace> <local_id> — run the full continuous pipeline
-# (promote → develop → senior review → QA → committer → MR) on the web server.
+# (promote → develop → senior review → QA → committer → MR → auto-merge →
+# close/archive) on the web server via `ocf:develop-full` (issue #211 — the
+# full variant keeps the auto-merge the watcher's `@aibot:develop` depends on).
 # Output streams to a per-run log file (never buffered in memory — Runtime m3);
 # on failure the tail of the log is emitted to stderr. Returns the opencode
 # run exit code (BR 7).
@@ -351,13 +355,13 @@ run_develop() {
   logdir="$AIBOT_STATE_DIR/logs"
   mkdir -p -m 700 "$logdir" 2>/dev/null || true
   logf="$logdir/develop-$(date +%Y%m%d-%H%M%S)-#$local_id.log"
-  log "triggering: opencode run --attach $AIBOT_WEB_URL --auto --dir $workspace --model $AIBOT_MODEL --command ocf:develop $local_id (log: $logf)"
+  log "triggering: opencode run --attach $AIBOT_WEB_URL --auto --dir $workspace --model $AIBOT_MODEL --command ocf:develop-full $local_id (log: $logf)"
   # < /dev/null: never let the develop run consume the comment stream that the
   # calling while/read loop feeds from (process substitution stdin inheritance).
-  opencode_run "$workspace" --command "ocf:develop" "$local_id" \
+  opencode_run "$workspace" --command "ocf:develop-full" "$local_id" \
     < /dev/null >"$logf" 2>&1 || rc=$?
   rc="${rc:-0}"
-  log "ocf:develop #$local_id exit=$rc"
+  log "ocf:develop-full #$local_id exit=$rc"
   if [[ "$rc" -ne 0 ]]; then
     tail -n 15 "$logf" >&2
   fi
