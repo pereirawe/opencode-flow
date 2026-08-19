@@ -116,7 +116,8 @@ make init target=<path> # init project with repo context
 | `/ocf:review-external` | External branch/MR review with structured report |
 | `/ocf:plan-feature` | Feature breakdown with risk assessment |
 | `/ocf:promote <id>` | Promote backlog item + create remote issue |
-| `/ocf:develop [id...]` | Run the full task lifecycle end-to-end for one or more issues (promote → develop → review → QA → MR → auto-merge → archive) |
+| `/ocf:develop [id...]` | Run the full task lifecycle up to MR creation for one or more issues (promote → develop → review → QA → MR → wait for manual merge) |
+| `/ocf:develop-full [id...]` | Run the full task lifecycle end-to-end for one or more issues (promote → develop → review → QA → MR → auto-merge → archive) |
 | `/ocf:commit` | Create structured commit with status trailers |
 | `/ocf:sync-issues` | Sync known_issues with remote tracker |
 | `/ocf:archive-issue <id>` | Archive resolved issue to compact format |

@@ -1,32 +1,31 @@
-## /ocf:develop [id...]
+## /ocf:develop-full [id...]
 
 ---
-description: Run the full task lifecycle up to MR creation for one or more issues: promote, develop, review, QA, MR — then wait for a manual merge (no auto-merge, no archive)
+description: Run the full task lifecycle end-to-end for one or more issues: promote, develop, review, QA, MR, auto-merge, return-to-base, close + archive
 ---
 
-Run the task flow for one or more tracked issues, from promotion to **MR
-creation**. Everything happens automatically — no confirmation, no permission
-prompts, no pausing between pipeline phases. The command **stops after the MR
-is created**: it does NOT merge, does NOT close/archive the issue, and the
-local checkout returns to the base branch without the change. The MR is left
-OPEN for a human review/merge.
+Run the ENTIRE task flow for one or more tracked issues, from promotion to
+archived merge. Everything happens automatically — no confirmation, no
+permission prompts, no pausing between pipeline phases. After the MR is
+created, the pipeline **auto-merges** it (authorized by review + QA), checks
+out the updated base branch locally, and closes/archives the issue.
 
-Closing and archiving after the manual merge are delegated to `ocf:check-pr`
-(or the Close Requester) — see `/ocf:develop-full` for the fully automated
-end-to-end variant (auto-merge + close + archive).
+This is the full end-to-end variant of `/ocf:develop` — use `/ocf:develop`
+when you want to stop at MR creation and merge manually (the MR is left OPEN
+and closing/archiving is delegated to `ocf:check-pr` / Close Requester).
 
 At least ONE issue ID is required. Multiple IDs may be passed separated by
-spaces, commas, or dashes. Each issue runs the flow sequentially, and a
+spaces, commas, or dashes. Each issue runs the full flow sequentially, and a
 single Telegram notification is sent after the LAST issue.
 
 ### Arguments
 
 ```
-/ocf:develop 4
-/ocf:develop 4 5 6
-/ocf:develop 4,5,6
-/ocf:develop 4-5-6
-/ocf:develop #4 #5 #6
+/ocf:develop-full 4
+/ocf:develop-full 4 5 6
+/ocf:develop-full 4,5,6
+/ocf:develop-full 4-5-6
+/ocf:develop-full #4 #5 #6
 ```
 
 IDs are deduplicated (preserving order) and processed one at a time, in order.
@@ -46,7 +45,7 @@ The promote flow runs silently. Missing data is handled gracefully:
 | `in-progress` | Proceed directly |
 | `in-review` / `in-qa` / `in-publish` / `resolved` | Refuse — issue is past development |
 
-### Task Flow (per issue, up to MR creation)
+### Full Task Flow (per issue)
 
 1. **Resolve `known_issues.md`** (project `.opencode/` first, global fallback)
 2. **Check & fill gaps**: detect `Base branch:` from git if empty, default
@@ -60,36 +59,31 @@ The promote flow runs silently. Missing data is handled gracefully:
 6. **Read the MR**: re-extract the issue entry and read the `- PR: #<n>` field.
    If it is missing or `-`, the MR was not created — record the failure and
    STOP the list
-7. **Report "esperando merge manual" (awaiting manual merge)**: do NOT merge
-   the MR, do NOT close the remote issue, do NOT archive the entry. The issue
-   stays `in-publish` with `PR: #<n>`; the MR stays OPEN for a human
-   review/merge (optionally verified via `gh pr view` / `glab mr view`)
+7. **Auto-merge**: once review and QA approve, merge the MR on the remote
+   (GitHub `gh pr merge` / GitLab `glab mr merge`) — no permission prompt
 8. **Return to base**: `git checkout <base-branch>` + `git pull origin <base-branch>`
-   so the next issue starts clean — the base does NOT contain this issue's
-   changes (the MR is still open), which is expected
-9. **Repeat** for the next issue in the list — each one starts from the base
-
-Closing/archiving after the merge: run `/ocf:check-pr <id>` (or wait for the
-Close Requester) once the MR has been merged manually.
+   so the local checkout ends on the updated main/master
+9. **Close & archive**: `close_issue.sh <id>` closes the remote issue and
+   archives the entry; the tracker update is committed to the base branch
+10. **Repeat** for the next issue in the list — each one starts clean from the
+    updated base branch
 
 ### Telegram Notifications
 
 Only ONE Telegram notification is sent for this command — after the LAST issue
 completes, summarizing the final outcome (success or failure) with a per-issue
-summary (id, PR/MR link, "esperando merge manual" — MR left OPEN). No
-intermediate notifications during promotion, development, review, QA, or
-between issues. Pipeline subagents (delivery, develop-router, implementation
-agents) are instructed to defer — the final message is sent exclusively by
-this command session.
+summary (id, PR/MR link, merged status). No intermediate notifications during
+promotion, development, review, QA, merge, or between issues. Pipeline
+subagents (delivery, develop-router, implementation agents) are instructed to
+defer — the final message is sent exclusively by this command session.
 
 ### Failure Handling
 
 If ANY issue in the list fails (not found, refused status, development blocked,
-review/QA not approved, committer gate fails, MR creation fails), STOP the
-entire list immediately — do not continue to the next issue and do not ask.
-Send exactly ONE failure notification. Issues already delivered stay in
-`known_issues.md` with `Status: in-publish` and their MR open; the failed
-issue stays with its current status.
+review/QA not approved, committer gate fails, MR creation fails, merge fails),
+STOP the entire list immediately — do not continue to the next issue and do not
+ask. Send exactly ONE failure notification. Already-merged issues stay resolved;
+the failed issue stays in `known_issues.md` with its current status.
 
 ### Validation Notes
 
