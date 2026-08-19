@@ -718,7 +718,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 1 (runtime)
 - Remote: #99
 - Jira: -
-- PR: -
+- PR: #100
 - Location: opencode.json:8
 - Description: O array `instructions` em opencode.json (linha 8) inclui `~/.config/opencode/agents/*/*.md`, injetando os prompts completos de ~89 agentes (~127 KB ≈ 33,6K tokens) no contexto de TODA sessão. A documentação oficial do opencode confirma que arquivos em `~/.config/opencode/agents/` já são auto-registrados como subagentes (invocáveis via Task tool) — o glob é duplicação pura: cada prompt é carregado uma vez como definição e outra como instrução de contexto.
 - Impact: ~31% do contexto fixo (~108K tokens/sessão) é desperdiçado em toda sessão, independentemente da tarefa.
