@@ -4,7 +4,7 @@ hidden: true
 
 # Dev Agent Registry
 
-Source of truth for `/ocf:develop` language routing.
+Source of truth for `/ocf:develop` / `/ocf:develop-full` language routing.
 
 `develop-router` reads this file to decide which specialized `development/devs/*` agent
 should implement an issue. If no entry matches, it must fall back to

@@ -18,7 +18,7 @@ Agents are loaded via OpenCode's subagent mechanism. Each agent has a specific f
 | `project-manager` | Coordination and task assignment |
 | `quality-analyst` | Quality standards and testability |
 | `developer` | Feature implementation (auto-proceeds to senior review without pausing) |
-| `develop-router` | Routes `/ocf:develop` to language-specific subagents |
+| `develop-router` | Routes `/ocf:develop` / `/ocf:develop-full` to language-specific subagents |
 | `committer` | Pre-MR gatekeeper (verifies senior review done) |
 | `publish-requester` | Merge/pull request creation |
 | `close-requester` | Closes remote issues after MR merge and archives to resolved_issues.md |

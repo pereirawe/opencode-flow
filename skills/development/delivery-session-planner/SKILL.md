@@ -92,7 +92,9 @@ The prompt MUST contain:
 1. **Role**: "You run the delivery pipeline (promote → develop →
    senior review → QA → committer gate → MR) for issue(s) X".
 2. **Command**: `/ocf:delivery <id>` or `ocf:develop <id>` — continuous
-   pipeline, no pause between phases.
+   pipeline, no pause between phases. `ocf:develop` stops at MR creation
+   (manual merge, issue stays `in-publish`); use `ocf:develop-full <id>` only
+   when the session should auto-merge and close/archive the issue.
 3. **Embedded record**: copy the issue block from `known_issues.md`
    (Location, Business rules, AC, Tests, Reviewers, Base branch) so the
    session is self-contained.

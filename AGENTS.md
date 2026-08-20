@@ -8,12 +8,12 @@
 
 **Notification scoping for multi-agent pipelines** — when a subagent is invoked
 via the Task tool as part of a larger command (e.g. `/ocf:develop`,
-`/ocf:delivery`), it MUST NOT send its own completion notification. The
-top-level command session that orchestrated the pipeline sends exactly ONE
-final notification when the whole flow completes (or fails). Pipeline subagents
-only notify when the user's input is genuinely needed or on a blocking error
-that stops the flow. This keeps message spam low: one notification per
-top-level command, not one per pipeline phase.
+`/ocf:develop-full`, `/ocf:delivery`), it MUST NOT send its own completion
+notification. The top-level command session that orchestrated the pipeline
+sends exactly ONE final notification when the whole flow completes (or fails).
+Pipeline subagents only notify when the user's input is genuinely needed or on
+a blocking error that stops the flow. This keeps message spam low: one
+notification per top-level command, not one per pipeline phase.
 
 Use the `telegram-notifier` skill or run the script directly:
 

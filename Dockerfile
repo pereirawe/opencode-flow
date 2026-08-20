@@ -7,8 +7,10 @@
 #
 # Used by the CI-native aibot entry point (.github/workflows/aibot-develop.yml):
 # the workflow mounts the target repo at /workspace and runs the pipeline
-# headless with `opencode run --command "ocf:develop" <id> --auto` (BR 13 —
-# headless SPIKE passed on opencode 1.18.7: no `--attach`/web server needed).
+# headless with `opencode run --command "ocf:develop-full" <id> --auto`
+# (BR 13 — headless SPIKE passed on opencode 1.18.7: no `--attach`/web server
+# needed). `ocf:develop-full` preserves the auto-merge the CI trigger depends
+# on (issue #211 — `ocf:develop` now stops at MR creation with a manual merge).
 #
 # Build with scripts/build-opencode-image.sh (tags: latest + v<semver>).
 

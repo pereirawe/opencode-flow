@@ -66,7 +66,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 case "$cmd" in
-  ocf:develop)
+  ocf:develop-full)
     echo "DEVELOP:$args" >> "${MOCK_OPENCODE_LOG:-/dev/null}"
     # MOCK_DEVELOP_EXIT: simulate a blocked develop (non-zero exit, no MR).
     if [[ -n "${MOCK_DEVELOP_EXIT:-}" ]]; then
@@ -190,8 +190,8 @@ assert_eq "#107" "$(get_field_ "$ws/known_issues.md" 7 PR)" "S1: PR populated in
 # F3 (runtime): BR 7 exact command form — attach+auto, qualified model, NO `--`
 assert_contains "$TMP/opencode.log" "run --attach http://up.local --auto" "S1: forma BR 7 (--attach --auto)"
 assert_contains "$TMP/opencode.log" "--model opencode-go/deepseek-v4-flash" "S1: modelo qualificado"
-assert_contains "$TMP/opencode.log" "--command ocf:develop 7" "S1: args follow --command without a separator"
-assert_not_contains "$TMP/opencode.log" "--command ocf:develop -- " "S1: formulário com -- proibido"
+assert_contains "$TMP/opencode.log" "--command ocf:develop-full 7" "S1: args follow --command without a separator"
+assert_not_contains "$TMP/opencode.log" "--command ocf:develop-full -- " "S1: formulário com -- proibido"
 
 # ============================================================================
 # S2 — BR 4/AC 3: untracked issue → not-tracked, no develop
