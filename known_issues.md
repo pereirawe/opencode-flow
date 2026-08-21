@@ -365,7 +365,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 2 (design, docs)
 - Remote: #119
-- PR: -
+- PR: #120
 - Location: commands/ocf:build-ui.md, commands/ocf:audit-ui.md, standards/design-pipeline.md
 - Description: Create 2 orchestration commands and define output file conventions. `/ocf:build-ui` orchestrates the 4-pass greenfield pipeline; `/ocf:audit-ui` orchestrates audit+refactor. Output conventions define deterministic file paths for pipeline artifacts, enabling resumption and multi-model flows.
 - Impact: The entry point that makes the Adorable pipeline usable. Without commands, users must manually invoke each agent. Without conventions, output files are unnamed and undiscoverable.
