@@ -58,7 +58,10 @@ refactor.
    root, and writes production code; `design/ui-critic` receives the
    implemented code plus `<dir>/design_spec.json` and
    `<dir>/component_tree.json`, producing `<dir>/quality_report.json`
-   (`APPROVED` or `ISSUES_FOUND`; iterate, max 3 rounds).
+   (`APPROVED` or `ISSUES_FOUND`; iterate, max 3 rounds). If still
+   `ISSUES_FOUND` after 3 rounds, stop, log the failure, send a Telegram
+   notification, and deliver with the remaining findings listed in the
+   summary.
 
 ### Session and output conventions
 
