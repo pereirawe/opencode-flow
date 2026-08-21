@@ -758,6 +758,7 @@ issues only. See `standards/issues.md` for the full contract.
   - T9 Bug-issue fixture in final format (derived `- Priority:`, `- Business rules: none`, `- Tests:` scenarios, `- Flow: lean`) as Developer reference + `make test-scripts` regression pass.
   Origem: Proposal 2026-08-19-1 em prioritization.md (global).
 - Review note: the `docs` reviewer profile is resolved at delivery Phase 8 via `development/technical-writer` (precedent: issues #37, #203).
+- Review note (delivery): senior review found and fixed the worked-example-2 arithmetic error in the bug-triage skill (b2f88e6) and removed an out-of-scope `doc`/`chore` routing bullet from discovery.md (1587c46). Follow-up gaps dispositioned at delivery (not blockers): (1) `bug-triage` skill NOT yet registered in `permission.skill` of opencode.json — out of T8 scope (1-line template only); needs a follow-up issue + service restart for the PO to load it on-demand per BR 11; (2) stale `ocf:discovery` description text (inherent to the 1-line template constraint) — follow-up chore; (3) post-merge `ocf:restart-web` required for the new skill file to load in the running web service.
 
 ### 209. Caché de credenciales git por proyecto (git creds cache)
 - Status: ready
