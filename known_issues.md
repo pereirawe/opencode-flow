@@ -353,13 +353,16 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: Aplicar o mesmo tratamento do #72 D5 ao cv-cover-letter: remover permissão/instruções/template `curl -L` e exigir texto colado. Follow-up registrado na senior review do #72 (L1, não-bloqueante para o #72).
 
 ### 83. Design sector documentation (READMEs, agent-skill mapping, standards)
-- Status: backlog
+- Status: in-progress
+- Opened: 2026-08-21
+- Ready: 2026-08-21
+- Started: 2026-08-21
 - Type: doc
 - Severity: medium
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 1 (docs)
-- Remote: -
+- Remote: #123
 - PR: -
 - Location: agents/design/README.md, agents/README.md, skills/README.md, standards/design-pipeline.md, workflow.md, opencode.json
 - Description: Create design sector documentation: README listing all 6 agents with pipeline flow and skill mapping, update parent READMEs, create output conventions standard, update workflow.md with design pipeline entry point, register agents/commands in opencode.json.

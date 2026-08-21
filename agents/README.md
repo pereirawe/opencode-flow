@@ -46,17 +46,23 @@ The `ceo` agent orchestrates cross-sector execution.
 ## Design
 | Agent | Function |
 |-------|----------|
+| `ui-auditor` | Entry pass for existing codebases — reads the codebase, produces `audit_report.json`: stack detection, dimension scores, file:line citations, preserved patterns. Never writes |
+| `ui-refactor-planner` | Consumes `audit_report.json` + `design_spec.json`, produces `refactor_plan.json`: Group A/B/C triage, component decisions, phased plan with rollback |
 | `art-director` | Receives a brief and produces `design_spec.json` — palette, typography, spacing, layout, signature element (4-pass pipeline pass 1) |
 | `ui-architect` | Consumes `design_spec.json` and produces `component_tree.json` — regions, component contracts, states, accessibility, build order (pass 2) |
 | `ui-implementer` | Consumes both JSONs and writes production code files per the contracts, with the structured hand-off to the critic (pass 3) |
 | `ui-critic` | Quality gate — evaluates the code against the spec/contract checklists and returns APPROVED or ISSUES_FOUND (pass 4) |
 
-The 4-pass pipeline
+The design sector runs two entry points. For existing codebases, the audit
+entry (`codebase → ui-auditor → audit_report.json → ui-refactor-planner →
+refactor_plan.json`) chains into the greenfield flow to implement the plan.
+For greenfield work, the 4-pass pipeline
 (`brief → art-director → design_spec.json → ui-architect → component_tree.json
-→ ui-implementer → code → ui-critic → APPROVED/ISSUES_FOUND`) replaces the
-single-pass approach: the one-shot `designer` agent above remains available
-for direct, single-pass product work, while the pipeline separates layout,
-architecture, implementation, and quality into dedicated agents.
+→ ui-implementer → code → ui-critic → APPROVED/ISSUES_FOUND`) applies. Both
+replace the single-pass approach: the one-shot `designer` agent above remains
+available for direct, single-pass product work, while the pipeline separates
+layout, architecture, implementation, and quality into dedicated agents. See
+`agents/design/README.md` for the full flow diagram and agent-skill mapping.
 
 ## Marketing
 | Agent | Function |
