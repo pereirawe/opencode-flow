@@ -353,13 +353,16 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: Aplicar o mesmo tratamento do #72 D5 ao cv-cover-letter: remover permissão/instruções/template `curl -L` e exigir texto colado. Follow-up registrado na senior review do #72 (L1, não-bloqueante para o #72).
 
 ### 82. Model fallback mechanism for design agents
-- Status: backlog
+- Status: in-progress
+- Opened: 2026-08-21
+- Ready: 2026-08-21
+- Started: 2026-08-21
 - Type: feat
 - Severity: medium
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 1 (runtime)
-- Remote: -
+- Remote: #121
 - PR: -
 - Location: agents/design/*.md, opencode.json
 - Description: Implement model fallback in the design pipeline. Instead of hardcoding `model: anthropic/claude-opus-4-5` in agent frontmatter, agents use the user's default model. Prompt text documents preference without enforcing it. Prevents silent failures when preferred model is unavailable.
