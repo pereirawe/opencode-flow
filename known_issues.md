@@ -353,13 +353,17 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: Aplicar o mesmo tratamento do #72 D5 ao cv-cover-letter: remover permissão/instruções/template `curl -L` e exigir texto colado. Follow-up registrado na senior review do #72 (L1, não-bloqueante para o #72).
 
 ### 78. Design sector skills (foundation for Adorable pipeline)
-- Status: backlog
+- Status: in-review
+- Opened: 2026-08-21
+- Ready: 2026-08-21
+- Started: 2026-08-21
+- In review: 2026-08-21
 - Type: feat
 - Severity: high
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 2 (design, frontend)
-- Remote: -
+- Remote: #113
 - PR: -
 - Location: skills/design/reference-library/SKILL.md, skills/design/component-patterns/SKILL.md, skills/design/design-tokens/SKILL.md, skills/design/visual-hierarchy/SKILL.md
 - Description: Create 4 skills under `skills/design/` that encode concrete, testable UI patterns for the Adorable pipeline. These skills are the foundation consumed by all 6 design agents — without them, agents produce generic UI.
