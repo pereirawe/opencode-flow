@@ -40,9 +40,9 @@ Data tables render row data in scannable columns. They are the densest pattern i
 Canonical values:
 
 - Wrapper: `background: #ffffff`, `border: 1px solid #e2e8f0`, `border-radius: 12px`, `overflow: hidden`.
-- Header cell: `background: #f8fafc`, `padding: 10px 16px`, `font-size: 12px` weight 600.
-- Body cell: `padding: 10px 16px`, `font-size: 14px`, minimum row height 40px.
-- Row divider: `border-bottom: 1px solid #f1f5f9`; the last row MUST NOT carry a divider.
+- Header cell: `background: #f8fafc`, `padding: 12px 16px`, `font-size: 12px` weight 600.
+- Body cell: `padding: 12px 16px`, `font-size: 14px`, minimum row height 40px.
+- Row divider: `border-bottom: 1px solid #f1f5f9` (layer-hover); the last row MUST NOT carry a divider.
 - Numeric column: right-aligned, mono family (see `design-tokens`), `font-variant-numeric: tabular-nums`.
 
 Rules:
@@ -63,15 +63,15 @@ Canonical values:
 - Rail: `background: #f8fafc`, `width: 240px` (collapsed 64px), `border-right: 1px solid #e2e8f0`.
 - Item: `border-radius: 8px`, `padding: 8px 12px`, `font-size: 14px`, 4px gap between icon and label.
 - Active item: `background: #eef2ff`, text `#4338ca` (accent strong), weight 600.
-- Hover item: `background: #f1f5f9`.
-- Section label: `font-size: 11px`, uppercase, `letter-spacing: 0.08em`, `color: #64748b`, `padding: 16px 12px 8px`.
+- Hover item: `background: #f1f5f9` (layer-hover).
+- Section label: `font-size: 12px`, uppercase, `letter-spacing: 0.08em`, `color: #64748b`, `padding: 16px 12px 8px`.
 
 Rules:
 
 1. The rail MUST be 240px expanded and 64px collapsed; the collapse toggle MUST animate `width` over `150ms`.
 2. Exactly one item MUST be active at a time, and the active item MUST use the active background.
 3. Every icon MUST be 16x16px and MUST NOT change size across states.
-4. Section labels MUST be 11px uppercase with 0.08em tracking; a label MUST NOT be interactive.
+4. Section labels MUST be 12px (xs) uppercase with 0.08em tracking; a label MUST NOT be interactive.
 5. At 768px and below the rail MUST collapse to an overlay drawer with `background: #ffffff` and `box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12)`.
 
 ## Metric Display
@@ -80,8 +80,8 @@ The Metric Display shows a single KPI: value, label, and optional delta.
 
 Canonical values:
 
-- Value: `font-size: 28px`, weight 700, `line-height: 1.2`, `font-variant-numeric: tabular-nums`.
-- Label: `font-size: 13px`, `color: #64748b`, weight 500.
+- Value: `font-size: 30px`, weight 700, `line-height: 1.2`, `font-variant-numeric: tabular-nums`.
+- Label: `font-size: 12px`, `color: #64748b`, weight 500.
 - Delta: `font-size: 12px`, weight 600; positive `color: #15803d`, negative `color: #b91c1c`.
 - Layout: label above value with 4px gaps; container `padding: 16px`.
 
@@ -100,7 +100,7 @@ The Empty State communicates "no data yet" and tells the user how to populate th
 Canonical values:
 
 - Wrapper: `padding: 48px 24px`, centered, `text-align: center`, `background: #ffffff`.
-- Illustration slot: 64x64px, `border-radius: 16px`, `background: #f1f5f9`, `margin-bottom: 16px`.
+- Illustration slot: 64x64px, `border-radius: 12px`, `background: #f1f5f9` (layer-hover), `margin-bottom: 16px`.
 - Title: `font-size: 16px`, weight 600, `color: #0f172a`.
 - Body: `font-size: 14px`, `color: #64748b`, `max-width: 320px`, 8px auto margins.
 - Action button: follows the Button primitive, `margin-top: 16px`.
@@ -110,7 +110,7 @@ Rules:
 1. Every empty state MUST contain a title and a body; an icon-only empty state is forbidden.
 2. The body MUST state what the user can do to populate the surface — never a bare "no data".
 3. At most one primary action MUST be present; secondary actions are optional.
-4. The illustration slot MUST keep `border-radius: 16px` and MUST NOT exceed 96px.
+4. The illustration slot MUST keep `border-radius: 12px` and MUST NOT exceed 96px.
 
 ## Command Palette
 
@@ -121,8 +121,8 @@ Canonical values:
 - Backdrop: `background: rgba(15, 23, 42, 0.5)` over the full viewport, `backdrop-filter: blur(4px)`.
 - Panel: `background: #ffffff`, `border: 1px solid #e2e8f0`, `border-radius: 12px`, `box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12)`, `max-width: 560px`, `width: calc(100% - 32px)`.
 - Input: `padding: 16px`, `font-size: 16px`, `border-bottom: 1px solid #e2e8f0`.
-- Group label: `font-size: 11px`, uppercase, `letter-spacing: 0.08em`, `color: #64748b`, `padding: 8px 16px`.
-- Item: `padding: 10px 16px`, `font-size: 14px`, `border-radius: 8px`, 4px margins.
+- Group label: `font-size: 12px`, uppercase, `letter-spacing: 0.08em`, `color: #64748b`, `padding: 8px 16px`.
+- Item: `padding: 12px 16px`, `font-size: 14px`, `border-radius: 8px`, 4px margins.
 - Selected item: `background: #eef2ff`, text `#4338ca`.
 
 Rules:

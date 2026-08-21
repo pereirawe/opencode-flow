@@ -1,25 +1,26 @@
 ---
 name: design-tokens
-description: Design token system for the Adorable pipeline — palette (5 functional layers + 2 accents + semantic), typography (2 families, scale xs-4xl), spacing (4pt base), radius tiers, shadow tiers, and motion durations. Use when defining or consuming tokens so every value resolves to the canonical system. Use quando precisar dos tokens de design — "design tokens", "paleta de cores", "tipografia", "espaçamento", "sombras", "radius", "motion", "cores" also trigger this skill.
+description: Design token system for the Adorable pipeline — palette (6 functional layers + 2 accents + semantic), typography (2 families, scale xs-4xl), spacing (4pt base), radius tiers, shadow tiers, and motion durations. Use when defining or consuming tokens so every value resolves to the canonical system. Use quando precisar dos tokens de design — "design tokens", "paleta de cores", "tipografia", "espaçamento", "sombras", "radius", "motion", "cores" also trigger this skill.
 ---
 
 # Design Tokens
 
 ## Palette
 
-The palette has 5 functional layers, 2 accents, and a semantic set. Every color in a surface MUST resolve to one of these tokens.
+The palette has 6 functional layers, 2 accents, and a semantic set. Every color in a surface MUST resolve to one of these tokens.
 
-5 functional layers:
+6 functional layers:
 
 - Layer 1 - canvas (page background): `#f8fafc`; dark mode `#0f172a`.
 - Layer 2 - surface (cards, panels): `#ffffff`; dark mode `#1e293b`.
+- Layer 2.5 - hover / subtle fill (row hover, skeleton blocks, neutral badge, table dividers): `#f1f5f9`; dark mode `#334155`.
 - Layer 3 - raised (headers, sticky rows): `#f8fafc`; dark mode `#334155`.
 - Layer 4 - border (dividers, outlines): `#e2e8f0`; dark mode `#334155`.
-- Layer 5 - text: primary `#0f172a`, muted `#64748b`, inverse `#ffffff`; dark mode primary `#f8fafc`, muted `#94a3b8`.
+- Layer 5 - text: primary `#0f172a`, muted `#64748b`, neutral `#334155`, inverse `#ffffff`; dark mode primary `#f8fafc`, muted `#94a3b8`, neutral `#94a3b8`.
 
 2 accents:
 
-- Accent primary: base `#4f46e5`, strong `#4338ca`, soft `#eef2ff`; dark mode strong `#818cf8`.
+- Accent primary: base `#4f46e5`, strong `#4338ca`, soft `#eef2ff`, fallback `#6366f1` (avatar initials); dark mode strong `#818cf8`.
 - Accent secondary: base `#0ea5e9`, strong `#0284c7`, soft `#e0f2fe`; dark mode strong `#38bdf8`.
 
 Semantic:
@@ -27,7 +28,7 @@ Semantic:
 - Success: base `#16a34a`, strong `#15803d`, soft `#dcfce7`.
 - Warning: base `#d97706`, strong `#b45309`, soft `#fef3c7`.
 - Danger: base `#dc2626`, strong `#b91c1c`, soft `#fee2e2`.
-- Info: base `#0284c7`, strong `#0369a1`, soft `#e0f2fe`.
+- Info: base maps to accent-secondary strong (`#0284c7`), strong `#0369a1`, soft maps to accent-secondary soft (`#e0f2fe`).
 
 Rules:
 
@@ -35,7 +36,7 @@ Rules:
 2. Text on canvas and surface MUST use the text tokens; muted text MUST be reserved for secondary information.
 3. Accents MUST be used sparingly - one accent per surface except where semantic colors are required.
 4. Semantic colors MUST NOT be used decoratively; they carry meaning (success, warning, danger, info).
-5. Contrast MUST be verified: body text 4.5:1 minimum, large text 3:1 minimum against its background (WCAG AA).
+5. Contrast MUST be verified: body text 4.5:1 minimum, large text 3:1 minimum against its background (WCAG AA); large text is ≥24px regular or ≥18.66px bold (WCAG 1.4.3).
 
 ## Typography
 
@@ -100,8 +101,8 @@ Rules:
 Three shadow tiers exist; elevation MUST be expressed only through these.
 
 - Tier 1 (sm): `0 1px 2px rgba(15, 23, 42, 0.06)` - subtle, resting elements.
-- Tier 2 (md): `0 2px 8px rgba(15, 23, 42, 0.08)` - hovered interactive elements, dropdowns.
-- Tier 3 (lg): `0 8px 24px rgba(15, 23, 42, 0.12)` - overlays, modals, command palette.
+- Tier 2 (md): `0 2px 8px rgba(15, 23, 42, 0.08)` - hovered interactive elements.
+- Tier 3 (lg): `0 8px 24px rgba(15, 23, 42, 0.12)` - overlays, modals, command palette, dropdown menus, toasts.
 
 Rules:
 
@@ -126,6 +127,7 @@ Rules:
 2. Motion MUST honor `prefers-reduced-motion`: transitions collapse to instant, loops stop.
 3. Animatable properties MUST be limited to `transform` and `opacity`; layout properties MUST NOT animate.
 4. A spinner MUST rotate `360deg` over `800ms` linear.
+5. Loop durations are an explicit carve-out from the four-step scale: `800ms` (spinner) and `1000ms` (skeleton pulse) are the only permitted loop durations; a loop MUST collapse to static under `prefers-reduced-motion`.
 
 ## Token governance
 

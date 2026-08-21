@@ -39,8 +39,8 @@ Rules:
 
 Parts: container, label, optional dot.
 
-- Size: `padding: 2px 8px`, `font-size: 12px`, `border-radius: 999px`.
-- Variants: neutral `background: #f1f5f9` text `#334155`; accent `background: #eef2ff` text `#4338ca`; success `background: #dcfce7` text `#15803d`; warning `background: #fef3c7` text `#b45309`; danger `background: #fee2e2` text `#b91c1c`.
+- Size: `padding: 4px 8px`, `font-size: 12px`, `border-radius: 999px`.
+- Variants: neutral `background: #f1f5f9` (layer-hover) text `#334155` (text-neutral); accent `background: #eef2ff` text `#4338ca`; success `background: #dcfce7` text `#15803d`; warning `background: #fef3c7` text `#b45309`; danger `background: #fee2e2` text `#b91c1c`.
 - Dot: 6x6px circle, same fill as the label color.
 
 Rules:
@@ -70,7 +70,7 @@ Parts: image or initials, optional status dot.
 
 - Sizes: 24px (inline), 32px (list), 40px (header), 56px (detail).
 - Shape: `border-radius: 999px`; `border: 2px solid #ffffff` when placed over a colored surface.
-- Initials: 12px (24/32px), 14px (40px), 18px (56px), weight 600, `color: #ffffff`, fallback `background: #6366f1`.
+- Initials: 12px (24/32px), 14px (40px), 18px (56px), weight 600, `color: #ffffff`, fallback `background: #6366f1` (accent-primary-fallback).
 
 Rules:
 
@@ -94,7 +94,7 @@ Rules:
 
 Parts: block placeholders.
 
-- Base: `background: #f1f5f9`, `border-radius: 8px` (text lines) or `12px` (blocks).
+- Base: `background: #f1f5f9` (layer-hover), `border-radius: 8px` (text lines) or `12px` (blocks).
 - Pulse: opacity from 1 to 0.5 over `1000ms` infinite; MUST collapse to static 0.6 opacity under `prefers-reduced-motion`.
 
 Rules:
@@ -138,8 +138,8 @@ Rules:
 Parts: wrapper, header row, body rows, optional footer.
 
 - Wrapper: `background: #ffffff`, `border: 1px solid #e2e8f0`, `border-radius: 12px`.
-- Header row: `background: #f8fafc`, `padding: 10px 16px`, `font-size: 12px` weight 600.
-- Body rows: `padding: 10px 16px`, `font-size: 14px`, `border-bottom: 1px solid #f1f5f9`.
+- Header row: `background: #f8fafc`, `padding: 12px 16px`, `font-size: 12px` weight 600.
+- Body rows: `padding: 12px 16px`, `font-size: 14px`, `border-bottom: 1px solid #f1f5f9` (layer-hover).
 
 Rules:
 
@@ -152,7 +152,7 @@ Rules:
 Parts: field, label, control, hint, error.
 
 - Field: `margin-bottom: 16px` (4pt scale x 4).
-- Label: `font-size: 13px`, weight 500, `color: #0f172a`, `margin-bottom: 6px`.
+- Label: `font-size: 14px`, weight 500, `color: #0f172a`, `margin-bottom: 4px`.
 - Control: `height: 40px`, `border: 1px solid #e2e8f0`, `border-radius: 8px`, `padding: 0 12px`, `font-size: 14px`.
 - Hint: `font-size: 12px`, `color: #64748b`, `margin-top: 4px`.
 - Error: `font-size: 12px`, `color: #b91c1c`, `margin-top: 4px`; the control border becomes `#dc2626`.
@@ -170,7 +170,7 @@ Parts: trigger, menu, items, optional groups.
 
 - Trigger: secondary Button with a 16x16px chevron.
 - Menu: `background: #ffffff`, `border: 1px solid #e2e8f0`, `border-radius: 8px`, `box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12)`, `padding: 4px`, `min-width: 180px`.
-- Item: `padding: 8px 12px`, `border-radius: 6px`, `font-size: 14px`; selected `background: #eef2ff`.
+- Item: `padding: 8px 12px`, `border-radius: 8px`, `font-size: 14px`; selected `background: #eef2ff`.
 
 Rules:
 
@@ -183,7 +183,7 @@ Rules:
 Parts: backdrop, panel, header, body, footer, close button.
 
 - Backdrop: `background: rgba(15, 23, 42, 0.5)`, full viewport.
-- Panel: `background: #ffffff`, `border-radius: 12px`, `max-width: 480px`, `width: calc(100% - 32px)`, `padding: 24px`.
+- Panel: `background: #ffffff`, `border-radius: 12px`, `box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12)` (shadow Tier 3), `max-width: 480px`, `width: calc(100% - 32px)`, `padding: 24px`.
 - Header: `font-size: 18px` weight 600, `margin-bottom: 8px`.
 - Footer: `padding-top: 16px`, `border-top: 1px solid #e2e8f0`, actions right-aligned with 8px gaps.
 
@@ -198,7 +198,7 @@ Rules:
 Parts: container, message, optional action, close button.
 
 - Container: fixed bottom-right, 8px gaps, z-index above the modal layer.
-- Toast: `background: #0f172a` with text `#ffffff`, `border-radius: 8px`, `padding: 12px 16px`, `max-width: 360px`, `box-shadow: 0 8px 24px rgba(15, 23, 42, 0.2)`.
+- Toast: `background: #0f172a` with text `#ffffff`, `border-radius: 8px`, `padding: 12px 16px`, `max-width: 360px`, `box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12)` (shadow Tier 3).
 - Motion: enter `translateY(8px)` plus opacity over `250ms`; auto-dismiss after `4000ms`.
 
 Rules:
@@ -213,7 +213,7 @@ Parts: backdrop, panel, input, groups, items.
 
 - Panel: `background: #ffffff`, `border: 1px solid #e2e8f0`, `border-radius: 12px`, `box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12)`, `max-width: 560px`.
 - Input: `padding: 16px`, `font-size: 16px`, `border-bottom: 1px solid #e2e8f0`.
-- Item: `padding: 10px 16px`, `font-size: 14px`, `border-radius: 8px`; selected `background: #eef2ff`.
+- Item: `padding: 12px 16px`, `font-size: 14px`, `border-radius: 8px`; selected `background: #eef2ff`.
 
 Rules:
 
