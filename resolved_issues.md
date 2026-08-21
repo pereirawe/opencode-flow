@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 210. Versionado del entorno de tests (test env)
+- Resolved: 2026-08-21
+- Durations: backlog=0d waiting=2d dev=0d review=- qa=- publish=0d total=2d
+- Severity: medium
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #107
+- Summary: Como desarrollador y QA del pipeline de opencode, quiero un entorno de pruebas versionado y verificado (`.nvmrc`, `.node-version` y `.opencode/env-manifest.md`), para ejecutar la suite siempre contra versiones conocidas de Node/Python/test-runner y recibir advertencias no bloqueantes cuando haya discrepancias. — extender test-runner.sh con TEST_RUNNER_VERSION, detección de versiones, parser estricto del manifest y comparación de rangos, emitiendo advertencias accionables en `--status`/`--run` (nunca `--check`), metadatos de versión en `.result` y exclusión de `.nvmrc`/`.node-version`/env-manifest del fingerprint; crear `.nvmrc`, `.node-version` y `.opencode/env-manifest.md`, documentar el protocolo en `standards/test-env.md` (localizado pt/es/en) y en el SKILL del test-runner, y crear placeholders condicionales en init.sh. Esfuerzo ~8-9h. Origem
+
 ### 207. Standards (en/pt/es) fora do array `instructions` — loading via locale-loader (~22K tokens/sessão)
 - Resolved: 2026-08-19
 - Durations: backlog=0d waiting=0d dev=0d review=0d qa=0d publish=0d total=0d
