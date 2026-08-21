@@ -365,7 +365,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 1 (runtime)
 - Remote: #121
-- PR: -
+- PR: #122
 - Location: agents/design/*.md, opencode.json
 - Description: Implement model fallback in the design pipeline. Instead of hardcoding `model: anthropic/claude-opus-4-5` in agent frontmatter, agents use the user's default model. Prompt text documents preference without enforcing it. Prevents silent failures when preferred model is unavailable.
 - Impact: Prevents pipeline failures when the preferred model is unavailable. The art-director benefits from high-capability models for creativity, but the pipeline must work with any model.
