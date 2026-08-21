@@ -812,10 +812,12 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: implementar `scripts/git-cred-cache.sh` como punto único de acceso (subcomandos `--init`/`--set`/`--get`/`--erase`/`--identity`/`--status`) con permisos 0700/0600 en cada escritura, redacción centralizada vía `redact_secret()` en `config.sh`, deny de read/edit sobre `.opencode/cache/**` con orden findLast para `--auto`, auto-import idempotente e integración git vía `credential.helper store` + `credential.interactive never`; ajustar permisos por agente (developer/committer/publish-requester), EXCLUDE_RE del test-runner y ADR en `standards/decisions.md`. Esfuerzo ~9-11h. Origem: Proposal 2026-08-19-2 em prioritization.md (global).
 
 ### 210. Versionado del entorno de tests (test env)
-- Status: in-progress
+- Status: in-publish
 - Opened: 2026-08-19
 - Ready: 2026-08-19
 - Started: 2026-08-21
+- In review: 2026-08-21
+- In publish: 2026-08-21
 - Type: feat
 - Severity: medium
 - Report: william_pereira
@@ -824,7 +826,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Remote: #107
 - Jira: -
 - PR: -
-- Location: scripts/test-runner.sh, .nvmrc (NUEVO), .node-version (NUEVO), .opencode/env-manifest.md (NUEVO), standards/test-env.md (NUEVO), skills/development/test-runner/SKILL.md, scripts/init.sh, scripts/tests/test_test_runner.sh
+- Location: scripts/test-runner.sh, .nvmrc (NUEVO), .node-version (NUEVO), .opencode/env-manifest.md (NUEVO), standards/test-env.md (NUEVO), skills/development/test-runner/SKILL.md, scripts/init.sh, scripts/tests/test_test_env.sh (NUEVO)
 - Description: Como desarrollador y QA del pipeline de opencode, quiero un entorno de pruebas versionado y verificado (`.nvmrc`, `.node-version` y `.opencode/env-manifest.md`), para ejecutar la suite siempre contra versiones conocidas de Node/Python/test-runner y recibir advertencias no bloqueantes cuando haya discrepancias.
 - Impact: Desarrolladores, senior reviewers y QA que ejecutan `test-runner.sh`; reutilización de la caché de resultados (fingerprints); fidelidad del entorno entre etapas del pipeline; proyectos Node/Python inicializados por init.sh. Nota: en este host `node` no está en PATH — la BR de "node ausente → warning informativo" se ejercitará en la práctica.
 - Business rules:
