@@ -352,39 +352,6 @@ issues only. See `standards/issues.md` for the full contract.
   4. `make test-scripts` com cv-cover-letter limpo → exit 0 (assert_not_contains curl em todos os artefatos).
 - Suggested fix: Aplicar o mesmo tratamento do #72 D5 ao cv-cover-letter: remover permissão/instruções/template `curl -L` e exigir texto colado. Follow-up registrado na senior review do #72 (L1, não-bloqueante para o #72).
 
-### 82. Model fallback mechanism for design agents
-- Status: in-publish
-- Opened: 2026-08-21
-- Ready: 2026-08-21
-- Started: 2026-08-21
-- In review: 2026-08-21
-- In publish: 2026-08-21
-- Type: feat
-- Severity: medium
-- Report: william_pereira
-- Base branch: main
-- Reviewers: 1 (runtime)
-- Remote: #121
-- PR: #122
-- Location: agents/design/*.md, opencode.json
-- Description: Implement model fallback in the design pipeline. Instead of hardcoding `model: anthropic/claude-opus-4-5` in agent frontmatter, agents use the user's default model. Prompt text documents preference without enforcing it. Prevents silent failures when preferred model is unavailable.
-- Impact: Prevents pipeline failures when the preferred model is unavailable. The art-director benefits from high-capability models for creativity, but the pipeline must work with any model.
-- Business rules:
-  1. Design agents MUST NOT have `model:` in frontmatter — user's default model.
-  2. Agent prompts document model preference textually: "benefits from high-capability models but works with any model."
-  3. `/ocf:build-ui` command MAY include preferred `model` field — fallback to user's default if unavailable.
-  4. art-director documents: "temperature: 0.7 recommended for creative output."
-  5. ui-implementer documents: "temperature: 0.1 recommended for precise implementation."
-  6. Model preference is documentation, not requirement — pipeline works with any model.
-- Acceptance criteria:
-  1. `grep -c "model:" agents/design/*.md` → 0 occurrences.
-  2. All agent prompts contain model preference documentation.
-  3. `opencode.json` command template for build-ui may have optional `model` field.
-- Tests:
-  1. `grep "model:" agents/design/art-director.md agents/design/ui-architect.md agents/design/ui-implementer.md agents/design/ui-critic.md agents/design/ui-auditor.md agents/design/ui-refactor-planner.md` → 0 matches.
-  2. `grep -i "high-capability\|works with any model" agents/design/*.md` → ≥4 matches.
-- Suggested fix: Remove any `model:` from agent frontmatter (should be done during #81 creation). Add model preference documentation to prompts. Independent of other issues but best done as part of #81.
-
 ### 83. Design sector documentation (READMEs, agent-skill mapping, standards)
 - Status: backlog
 - Type: doc

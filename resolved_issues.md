@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 82. Model fallback mechanism for design agents
+- Resolved: 2026-08-21
+- Durations: backlog=0d waiting=0d dev=0d review=- qa=- publish=0d total=0d
+- Severity: medium
+- Type: feat
+- Report: william_pereira
+- Reviewers: 1
+- Remote: #121
+- Summary: Implement model fallback in the design pipeline. Instead of hardcoding `model — Remove any `model:` from agent frontmatter (should be done during #81 creation). Add model preference documentation to prompts. Independent of other issues but best done as part of #81.
+
 ### 81. /ocf:build-ui orchestration command + output file conventions
 - Resolved: 2026-08-21
 - Durations: backlog=0d waiting=0d dev=0d review=- qa=- publish=0d total=0d
