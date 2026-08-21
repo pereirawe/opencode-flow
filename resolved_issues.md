@@ -1,6 +1,12 @@
-# Resolved Issues
 
-Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
+### 83. Design sector documentation (READMEs, agent-skill mapping, standards)
+- Resolved: 2026-08-21
+- Type: doc
+- Report: william_pereira
+- Reviewers: 1
+- Remote: #123
+- Severity: medium
+- Summary: Create design sector documentation — Create documentation files after #81, #82, and #83 are implemented (agents and commands must exist to be documented). Update parent READMEs and workflow.md. Register everything in opencode.json.
 
 ### 82. Model fallback mechanism for design agents
 - Resolved: 2026-08-21
