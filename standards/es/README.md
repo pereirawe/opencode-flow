@@ -9,3 +9,4 @@ Convenciones y patrones de todo el proyecto.
 | `issues.md` | Seguimiento y ciclo de vida de issues |
 | `pr-template.md` | Plantilla de pull request |
 | `code-review.md` | Guías de revisión de código |
+| `test-env.md` | Entorno de pruebas — pines de versión, rangos del manifest, sync guard, contrato de warnings |

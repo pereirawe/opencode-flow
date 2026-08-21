@@ -41,12 +41,52 @@ Additional args after `--` are passed to the test command
    The full report is in `.opencode/test-cache/<branch>-<runner>.log`.
 7. **`--check`** exits 0 only when there is a fresh cache AND the last run
    passed (`exit_code=0`). A fresh cache from a failed suite → exit 3.
+8. **Report the environment version.** Every test report MUST include a
+   `Version:` field sourced from `--status` (or the `.result` metadata), so
+   later pipeline stages never re-ask which version ran the suite.
+
+## Versioned test environment (issue #210)
+
+The runner verifies the runtime against `.opencode/env-manifest.md`:
+
+- **Pins**: `.nvmrc` / `.node-version` pin Node (e.g. `22`); the supported
+  **ranges** live in the manifest strict section (`node: >=20 <23`,
+  `python: >=3.10 <4`, `test-runner: >=1.0`).
+- **Warnings** (`[test-env] WARNING:` on stderr) are emitted in `--status`
+  and `--run` — **never in `--check`** (`--check` stderr stays empty even
+  desynced). They are actionable: current version + expected range + install
+  hint.
+- **Warning-only**: environment checks never change exit codes `0/1/2/3`;
+  `--status` always exits 0. A missing `node`/`python3` or a missing/malformed
+  manifest produces an informative warning, never a failure.
+- **Sync guard**: `.nvmrc` ↔ `.node-version` ↔ manifest pin mismatches emit a
+  consistency warning (pin must satisfy `pin ⊆ range`).
+- **Drift**: cached `.result` versions ≠ current environment → drift warning
+  in `--status`, non-blocking.
+- `.nvmrc`, `.node-version` and `.opencode/env-manifest.md` are **excluded
+  from the fingerprint** — environment metadata edits never invalidate the
+  cache.
+
+See `standards/test-env.md` (localized `standards/{pt,es}/test-env.md`) for the
+full protocol.
 
 ## Where the cache lives
 
 ```
-.opencode/test-cache/<branch>-<runner>.result   # fingerprint + exit_code + timestamp
+.opencode/test-cache/<branch>-<runner>.result   # fingerprint + exit_code + timestamp + version metadata
 .opencode/test-cache/<branch>-<runner>.log      # full output of the last run
+```
+
+The `.result` file records the versions actually used:
+
+```text
+fingerprint=...
+exit_code=...
+timestamp=...
+output=...
+node_version=v22.3.1
+python_version=3.12.0
+runner_version=1.0.0
 ```
 
 The `.opencode/test-cache/` directory is gitignored. The fingerprint is derived
