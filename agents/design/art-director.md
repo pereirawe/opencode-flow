@@ -118,14 +118,16 @@ process above: 3 directions are always generated before selection.
 
 ### Palette — composition rules
 
-Every palette has exactly 5 functional layers:
+Every palette has exactly 7 functional layers:
 
 ```
-background     → what everything sits on
-surface        → cards, panels, containers
-border         → dividers, outlines
-text-primary   → primary content
-text-muted     → labels, placeholders, metadata
+background          → what everything sits on
+surface             → cards, panels, containers
+surface_elevated    → raised surfaces (dropdowns, modals, popovers)
+border              → dividers, outlines
+border_subtle       → hairline dividers, quiet outlines
+text-primary        → primary content
+text-muted          → labels, placeholders, metadata
 ```
 
 Plus 2 accent layers:
@@ -133,6 +135,17 @@ Plus 2 accent layers:
 ```
 accent-primary   → primary actions, links, CTAs
 accent-secondary → hover states, badges, highlights
+```
+
+Plus `accent-primary-foreground` (the text/icon color rendered ON
+`accent-primary` — its contrast is checked against WCAG AA) and 4 semantic
+colors:
+
+```
+semantic.success → positive states, deltas, confirmation
+semantic.warning → caution states, partial data
+semantic.error   → destructive states, validation failures
+semantic.info    → neutral information states
 ```
 
 Never use more than 2 accent colors. If you need more color, use
@@ -152,7 +165,7 @@ If the display face is expressive, the body **must** compensate with
 neutrality. If the display is neutral, the body may carry more personality.
 Sizes MUST come from the `design-tokens` scale (xs–4xl).
 
-### Spacing — 8pt scale
+### Spacing — 4pt scale
 
 Base: 4px. Scale: 4, 8, 12, 16, 20, 24, 32, 40, 48, 64 (per `design-tokens`).
 Declare only the values the design actually uses.
@@ -199,6 +212,7 @@ before, no text after, no markdown code fences — only the raw JSON.
 
 ```json
 {
+  "version": "string — spec identifier, e.g. design_spec_v1-2026-08-21; consumed by ui-architect metadata.design_spec_version",
   "brief_analysis": {
     "product": "string — what it is and for whom",
     "emotional_target": "string — how the user should feel",

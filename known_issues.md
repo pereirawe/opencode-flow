@@ -353,13 +353,17 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: Aplicar o mesmo tratamento do #72 D5 ao cv-cover-letter: remover permissão/instruções/template `curl -L` e exigir texto colado. Follow-up registrado na senior review do #72 (L1, não-bloqueante para o #72).
 
 ### 79. Greenfield pipeline agents (art-director, ui-architect, ui-implementer, ui-critic)
-- Status: backlog
+- Status: in-review
+- Opened: 2026-08-21
+- Ready: 2026-08-21
+- Started: 2026-08-21
+- In review: 2026-08-21
 - Type: feat
 - Severity: high
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 2 (design, frontend)
-- Remote: -
+- Remote: #115
 - PR: -
 - Location: agents/design/art-director.md, agents/design/ui-architect.md, agents/design/ui-implementer.md, agents/design/ui-critic.md
 - Description: Create the core 4-pass Adorable pipeline: art-director (brief → design_spec.json), ui-architect (design_spec → component_tree.json), ui-implementer (JSONs → production code), ui-critic (quality gate). Each agent has a single responsibility and consumes/produces structured JSON.
@@ -377,22 +381,22 @@ issues only. See `standards/issues.md` for the full contract.
   10. ui-architect maps all 6 data states per async component; structural accessibility.
   11. ui-implementer implements every defined state — no skipping.
   12. ui-critic blocks delivery on any checklist failure — no partial approvals.
-  13. Agents registered in `opencode.json` with correct permissions.
+  13. Agents registered via markdown files under `agents/design/` (opencode auto-discovers them; no `agent`/`agents` key in opencode.json by repo convention).
 - Acceptance criteria:
   1. All 4 agent .md files exist under `agents/design/` with correct frontmatter.
   2. art-director produces valid JSON with brief_analysis, rejected_defaults, directions_considered, selected_direction, design_spec.
   3. ui-architect produces valid JSON with layout_regions, component_tree, components, interaction_map, build_order.
   4. ui-implementer reads JSONs and writes code files (not JSON).
   5. ui-critic returns APPROVED or ISSUES_FOUND with component-specific feedback.
-  6. `opencode.json` registers all 4 agents with correct permissions.
+  6. `ls agents/design/*.md` → the 4 agent files exist (art-director.md, ui-architect.md, ui-implementer.md, ui-critic.md) with correct frontmatter permissions (registration is file-based discovery; no `agent`/`agents` key in opencode.json by repo convention).
 - Tests:
   1. `ls agents/design/art-director.md agents/design/ui-architect.md agents/design/ui-implementer.md agents/design/ui-critic.md` → all exist.
   2. `grep "mode: subagent" agents/design/*.md` → all 4 agents are subagents.
   3. `grep "model:" agents/design/*.md` → 0 occurrences (no hardcoded model).
   4. `grep "edit: deny" agents/design/art-director.md agents/design/ui-architect.md agents/design/ui-critic.md` → all deny.
   5. `grep "edit: allow" agents/design/ui-implementer.md` → allow.
-  6. `jq '.agents' opencode.json` → all 4 agents registered.
-- Suggested fix: Create the 4 agents under `agents/design/` based on the drafts in `.opencode/adorable-proposal/` but rewritten in English, with no hardcoded model, and registered in opencode.json. Depends on #80 (skills) for pattern references.
+  6. `ls agents/design/*.md` → all 4 agent files exist (auto-discovered by opencode from markdown under `agents/design/`; opencode.json has no `agent`/`agents` key by repo convention).
+- Suggested fix: Create the 4 agents under `agents/design/` based on the drafts in `.opencode/adorable-proposal/` but rewritten in English, with no hardcoded model. Registration is file-based: opencode auto-discovers agents from markdown files under `agents/design/` (no `agent`/`agents` key in opencode.json by repo convention). Depends on #80 (skills) for pattern references.
 
 ### 80. Audit/Refactor agents (ui-auditor, ui-refactor-planner)
 - Status: backlog

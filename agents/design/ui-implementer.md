@@ -166,6 +166,12 @@ Create `src/styles/tokens.css` (React/Next/Vue) or `public/css/tokens.css`
   --duration-slow:     /* design_spec.motion.duration_slow */;
   --easing-enter:      /* design_spec.motion.easing_enter */;
   --easing-exit:       /* design_spec.motion.easing_exit */;
+
+  /* Breakpoints — derived from design_spec.layout_spec.breakpoints, never
+     hardcoded elsewhere; media queries reference these values */
+  --breakpoint-mobile:  /* design_spec.layout_spec.breakpoints.mobile, e.g. 640px (max-width) */;
+  --breakpoint-tablet:  /* design_spec.layout_spec.breakpoints.tablet lower bound, e.g. 640px */;
+  --breakpoint-desktop: /* design_spec.layout_spec.breakpoints.desktop lower bound, e.g. 1024px */;
 }
 
 /* Reduced motion — always present */
@@ -196,6 +202,12 @@ const config: Config = {
     './components/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
+    screens: {
+      // derived from design_spec.layout_spec.breakpoints (mobile-first:
+      // mobile is the base below the first key, so no 'mobile' key is needed)
+      tablet:  '640px',   // design_spec.layout_spec.breakpoints.tablet lower bound
+      desktop: '1024px',  // design_spec.layout_spec.breakpoints.desktop lower bound
+    },
     colors: {
       background: 'var(--color-background)',
       surface: 'var(--color-surface)',
@@ -457,6 +469,24 @@ const id = useId()
 
 Never implement async data without all 6 states. No exceptions.
 
+**Guard-ordering rule (mandatory):** the guard chain MUST be ordered
+`offline → error → empty → loading → partial → success`. The offline check
+MUST come BEFORE the error branch: when the device is offline the fetch
+rejects and `isError` is true, so an error-first ordering makes
+`<OfflineState>` dead code. Empty is checked before loading so a fresh
+`isLoading` with zero cached data still resolves to the skeleton, and partial
+is checked before the final success render so incomplete data is never
+presented as complete.
+
+**`navigator.onLine` is best-effort** — it reflects the browser's
+online/offline flag, not actual reachability. For full coverage, combine it
+with network-error classification: an `isError` whose failure reason is a
+network failure (`TypeError: Failed to fetch`, HTTP status 0, aborted
+request) is treated as offline and rendered through `<OfflineState>`; all
+other errors render through `<ErrorState>`. The offline branch renders first
+either way, so the classification only affects which state a rejected fetch
+lands in.
+
 **React with React Query (preferred pattern):**
 
 ```tsx
@@ -465,6 +495,23 @@ function ComponentWithData({ id }: { id: string }) {
     queryKey: ['resource', id],
     queryFn: () => fetchResource(id),
   })
+
+  // offline — checked FIRST: a rejected fetch has isError=true, so the
+  // offline branch must precede the error branch or it is dead code
+  if (!navigator.onLine) {
+    return <OfflineState onRetry={() => refetch()} cachedData={cachedData} />
+  }
+
+  // error — request failed (persistent until resolved, with retry)
+  if (isError) {
+    return (
+      <ErrorState
+        message={error.message}
+        onRetry={() => refetch()}
+        // message per design_spec.copywriting_principles.error_pattern
+      />
+    )
+  }
 
   // empty — request succeeded with zero results
   if (data && data.length === 0) {
@@ -479,22 +526,6 @@ function ComponentWithData({ id }: { id: string }) {
   // loading — request in flight (skeleton from design_spec, never a generic spinner)
   if (isLoading) {
     return <ComponentSkeleton />
-  }
-
-  // error — request failed (persistent until resolved, with retry)
-  if (isError) {
-    return (
-      <ErrorState
-        message={error.message}
-        onRetry={() => refetch()}
-        // message per design_spec.copywriting_principles.error_pattern
-      />
-    )
-  }
-
-  // offline — no connectivity (retry + reconnect affordance, cached data when available)
-  if (!navigator.onLine) {
-    return <OfflineState onRetry={() => refetch()} cachedData={cachedData} />
   }
 
   // partial — incomplete data with explicit indicators, no layout shift
@@ -523,10 +554,14 @@ const { data, isLoading, isError, error, refetch } = useQuery(...)
 </script>
 
 <template>
-  <EmptyState v-if="data && !data.length" @action="handleEmptyAction" />
-  <ComponentSkeleton v-else-if="isLoading" />
+  <!-- guard order: offline → error → empty → loading → partial → success -->
+  <OfflineState v-if="!navigator.onLine" @retry="refetch" />
   <ErrorState v-else-if="isError" :message="error.message" @retry="refetch" />
-  <OfflineState v-else-if="!navigator.onLine" @retry="refetch" />
+  <EmptyState v-else-if="data && !data.length" @action="handleEmptyAction" />
+  <ComponentSkeleton v-else-if="isLoading" />
+  <div v-else-if="hasPartialData" aria-busy="true">
+    <!-- available data rendered with partial indicators, no layout shift -->
+  </div>
   <div v-else :class="{ 'opacity-75': isFetching }">
     <!-- content -->
   </div>
@@ -634,11 +669,13 @@ When a component opens something (modal, dropdown, drawer):
 
 ```tsx
 // React — focus trap in modal
-import { useEffect, useRef } from 'react'
+import { useEffect, useId, useRef } from 'react'
 
 function Modal({ isOpen, onClose, children }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLElement | null>(null)
+  // IDs generated with useId(), never hardcoded
+  const titleId = useId()
 
   useEffect(() => {
     if (isOpen) {
@@ -682,9 +719,10 @@ function Modal({ isOpen, onClose, children }: ModalProps) {
       ref={modalRef}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="modal-title"
+      aria-labelledby={titleId}
       onKeyDown={handleKeyDown}
     >
+      {/* the modal title carries id={titleId} — generated, never hardcoded */}
       {children}
     </div>
   )
@@ -738,6 +776,19 @@ function ScreenReaderAnnouncer() {
 </a>
 ```
 
+### Locale rule for microcopy (BR 7)
+
+sr-only text, skip-link copy, labels, and empty/error copy follow the locale
+rule — respond in the user's input language (fallback → `.opencode/locale` →
+EN) — and derive their wording from
+`design_spec.copywriting_principles` patterns (`voice`, `cta_pattern`,
+`error_pattern`, `empty_state_pattern`). The example strings in this file
+("Loading...", "Skip to main content", "label-from-contract") are
+**placeholders to render in the target language** — they are NEVER shipped as
+hardcoded English. If the design_spec defines the copy, use it verbatim (in
+the user's language); if it does not, translate the placeholder per the
+locale rule and the copywriting voice.
+
 ## Signature element implementation
 
 The `signature_element` from the design_spec gets special attention. It is not
@@ -751,28 +802,36 @@ in your output.
 ## Responsive implementation
 
 For each component, implement the breakpoints from
-`design_spec.layout_spec`:
+`design_spec.layout_spec.breakpoints`, using the screens configured in Phase 1
+(the Tailwind `screens` key / `--breakpoint-*` custom properties). NEVER
+hardcode breakpoint prefixes or px values in component code — the configured
+screens are the only source of breakpoint behavior:
 
 ```tsx
-// Tailwind — mobile first
+// Tailwind — mobile first, prefixes come from the Phase 1 screens config
+// (design_spec.layout_spec.breakpoints), never invented on the spot
 className={cn(
-  // mobile (base)
+  // mobile (base — below the mobile breakpoint)
   'flex flex-col gap-3 p-4',
-  // tablet
-  'sm:flex-row sm:gap-4 sm:p-6',
-  // desktop
-  'lg:gap-6 lg:p-8',
+  // tablet (screens.tablet from design_spec.layout_spec.breakpoints)
+  'tablet:flex-row tablet:gap-4 tablet:p-6',
+  // desktop (screens.desktop from design_spec.layout_spec.breakpoints)
+  'desktop:gap-6 desktop:p-8',
 )}
 ```
 
 **Special behaviors declared in the architect's contract:**
 
-- `collapse` (sidebar → drawer): use `hidden lg:flex` + mobile drawer with
-  overlay
-- `stack` (row → column): `flex-col sm:flex-row`
-- `hide` (hidden on mobile): `hidden sm:block`
+- `collapse` (sidebar → drawer): use `hidden desktop:flex` + mobile drawer
+  with overlay
+- `stack` (row → column): `flex-col tablet:flex-row`
+- `hide` (hidden on mobile): `hidden tablet:block`
 - `truncate` (truncated text): `truncate` + `title={fullText}` on the element
 - `scroll` (horizontal overflow on mobile): `overflow-x-auto` on the container
+
+If the design_spec's breakpoint values differ from the defaults shown here,
+the Phase 1 `screens` config is regenerated from the spec — component code
+never changes for a breakpoint change.
 
 ## Pre-delivery verification protocol
 
@@ -812,24 +871,51 @@ Before declaring a component complete, verify every item:
 
 ### Responsive checklist
 ```
-[ ] Mobile verified (< 640px) — no horizontal overflow
+[ ] Mobile verified (below the mobile breakpoint from design_spec.layout_spec.breakpoints) — no horizontal overflow
 [ ] Tablet verified if the design_spec has specific behavior
 [ ] Desktop verified as the base state
 [ ] Fixed px widths replaced by max-w or % where possible
+[ ] Breakpoint prefixes/values come from the Phase 1 configured screens, never hardcoded
 ```
 
 ## Output format
 
-For each implemented component, declare:
+Your working output is production code files. In addition, produce ONE
+structured JSON hand-off object for the `ui-critic`, covering every component
+implemented in this execution — this is the ONLY JSON you produce:
 
+```json
+{
+  "handoff": {
+    "stack": "string — e.g. NEXTJS_APP + TAILWIND",
+    "mode": "GREENFIELD",
+    "components": [
+      {
+        "component": "string — component name from the component_tree",
+        "file": "string — path of the written file(s)",
+        "status": "IMPLEMENTED | PARTIAL | BLOCKED",
+        "phase": "number — build_order phase this component was built in",
+        "deviations": [
+          "string — each deviation from the architect's contract + justification"
+        ],
+        "pending": "string — what remains for the next iteration (when status = PARTIAL or BLOCKED)",
+        "checklist_self_check": {
+          "visual": "PASSED | FAILED (with reason) — design_spec.quality_checklist items",
+          "structural": "PASSED | FAILED (with reason) — states, props, events",
+          "accessibility": "PASSED | FAILED (with reason) — semantics, keyboard, focus",
+          "responsive": "PASSED | FAILED (with reason) — contract behavior per breakpoint"
+        }
+      }
+    ]
+  }
+}
 ```
-COMPONENT: NameOfComponent
-FILE:      path/to/file.tsx
-STATUS:    IMPLEMENTED | PARTIAL (with reason) | BLOCKED (with reason)
-PHASE:     build_order phase number
-DEVIATIONS: any deviation from the architect's contract + justification
-PENDING:   what remains for the next iteration (if STATUS = PARTIAL)
-```
+
+`status` semantics: `IMPLEMENTED` = complete per contract and self-checked;
+`PARTIAL` = implemented but with `pending` items; `BLOCKED` = could not be
+implemented (missing dependency, spec gap) with the reason in `deviations`.
+The ui-critic reads `checklist_self_check` only as the implementer's own
+claim — the critic always verifies against the code.
 
 At the end of each complete phase:
 
@@ -859,8 +945,9 @@ Next phase: [name and components]
 7. **Always declare deviations** — any difference between the contract and the
    implementation is documented in the output, with justification.
 8. **Always write code files** — your output is production code, never JSON.
-   The only JSON you produce is consumed by the ui-critic as structured
-   hand-off context.
+   The ONLY JSON you produce is the structured hand-off for the ui-critic
+   (the `handoff` schema in "Output format") — code goes to files, hand-off
+   context goes to JSON.
 
 ## Success criteria
 

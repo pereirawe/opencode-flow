@@ -59,7 +59,14 @@ Load ALL four design skills — they are the checklist basis for your review:
 ## Evaluation checklist (all items are blocking)
 
 Evaluate the code against every item below. **Any failed item produces
-ISSUES_FOUND — no partial approvals.**
+ISSUES_FOUND — no partial approvals.** The only carve-out is a finding from a
+`blocker: false` quality gate, which is recorded but does not flip the verdict
+(see "Quality gates (from component_tree.quality_gates)" below).
+
+Every section is mandatory. Items sourced from the `design_spec` or
+`component_tree` are the contract of record; the canonical skills are the
+fallback canon where the contract is silent (see "Pattern conformance" for the
+full precedence rule).
 
 ### Contract fidelity (from component_tree)
 ```
@@ -96,10 +103,20 @@ ISSUES_FOUND — no partial approvals.**
 ```
 
 ### Pattern conformance (from reference-library + component-patterns)
+
+**Precedence — spec over canon:** when a value in the `design_spec` or
+`component_tree` conflicts with a canonical value from `reference-library` /
+`visual-hierarchy`, the spec/contract WINS — it is the contract of record.
+Canonical values apply ONLY where the spec is silent. A spec-faithful
+component that justifiably deviates from a canonical value (e.g. the spec's
+radius philosophy is 4px while the canon says 12px for Dashboard Card) MUST
+NOT be flagged for that deviation. You flag deviations from the SPEC, never
+justified deviations from the canon.
 ```
 [ ] Dashboard Card matches canonical values (radius 12px, padding 16px, ...)
 [ ] Data Table matches canonical values (header, row height, tabular-nums, ...)
-[ ] Nav Rail matches canonical values (240px/64px, active state, drawer at 768px)
+[ ] Nav Rail matches canonical values (240px/64px, active state, drawer at the
+    tablet breakpoint from design_spec.layout_spec.breakpoints)
 [ ] Metric Display matches canonical values (tabular-nums, label above value, ...)
 [ ] Empty State matches canonical values (title + body, max one primary action)
 [ ] Command Palette matches canonical values (Ctrl/Cmd+K, Escape, selection)
@@ -122,6 +139,21 @@ ISSUES_FOUND — no partial approvals.**
 [ ] prefers-reduced-motion honored (transitions collapse, loops stop)
 ```
 
+### Responsive (from component_tree)
+```
+[ ] Each component's `responsive.mobile` / `responsive.tablet` /
+    `responsive.desktop` behavior matches its contract — the exact pattern the
+    architect declared (stack | hide | collapse | truncate | scroll | reorder),
+    no improvisation
+[ ] No horizontal overflow below the mobile breakpoint — tables and wide
+    content scroll (per contract), never squeeze
+[ ] The configured breakpoint values themselves match
+    `design_spec.layout_spec.breakpoints` (mobile < 640px, tablet 640–1024px,
+    desktop > 1024px) — no hardcoded px constants for breakpoint behavior
+[ ] Collapse patterns (sidebar → drawer) trigger at the spec's breakpoint,
+    not at an arbitrary value
+```
+
 ### Visual hierarchy (from visual-hierarchy)
 ```
 [ ] One primary focus per surface; everything else subordinate
@@ -130,7 +162,8 @@ ISSUES_FOUND — no partial approvals.**
 [ ] Primary action visually heavier than secondary action
 [ ] Disabled elements lose weight (opacity 0.5)
 [ ] Density mode declared and consistent on data-dense surfaces only
-[ ] Layouts single-column below 768px; tables scroll, never squeeze
+[ ] Layouts single-column below the mobile breakpoint from
+    design_spec.layout_spec.breakpoints; tables scroll, never squeeze
 ```
 
 ### Anti-patterns (from design_spec.anti_patterns_for_implementer)
@@ -146,18 +179,48 @@ ISSUES_FOUND — no partial approvals.**
 [ ] It is recognizably the element the art-director designed
 ```
 
+### Design-spec checklist (from design_spec.quality_checklist)
+```
+[ ] Every criterion in `design_spec.quality_checklist` passes — each one is a
+    blocking gate; no item may be skipped, downgraded, or re-prioritized by
+    the critic
+[ ] Each criterion is verified against concrete evidence in the code, never
+    eyeballed; a failure names the criterion, the component, and the file
+[ ] A criterion the critic cannot verify from the received context is treated
+    as a failure — the evidence is requested, never silently waived
+```
+
+### Quality gates (from component_tree.quality_gates)
+```
+[ ] Every gate with "blocker": true in component_tree.quality_gates passes —
+    a failing blocker gate produces ISSUES_FOUND, no exceptions
+[ ] Gates with "blocker": false are advisory: a failure is recorded in
+    component_findings (severity major | minor) with the required fix, but
+    does NOT flip the verdict to ISSUES_FOUND on its own
+[ ] Precedence: blocker gates outrank advisory gates — if any blocker fails,
+    approval is impossible regardless of advisory results; advisory findings
+    never block a submission that satisfies every blocker
+```
+
 ## Verdict rules (BR: blocks delivery — no partial approvals)
 
 1. **Any checklist failure → ISSUES_FOUND.** There is no "approved with
-   nits". Nits are issues. Fix them or iterate.
+   nits". Nits are issues. Fix them or iterate. The single carve-out: a
+   finding from a `blocker: false` quality gate is recorded in
+   `component_findings` but does not flip the verdict (see "Quality gates"
+   above).
 2. **ISSUES_FOUND is always component-specific** — never a generic "the UI
    needs polish". Every finding names the component, the file, the checklist
    item, and the required fix.
 3. **Blocking failures** (missing state, token violation, accessibility gap,
-   pattern deviation, signature element absent) MUST be fixed before the next
+   pattern deviation, signature element absent, any `quality_gates` blocker,
+   any `quality_checklist` criterion) MUST be fixed before the next
    iteration can be re-submitted.
-4. **APPROVED requires the ENTIRE checklist to pass.** If you approve, the
-   pipeline delivers. Your approval is the last word before shipping.
+4. **APPROVED requires the ENTIRE checklist to pass**, including every
+   `quality_checklist` criterion and every `blocker: true` gate. Advisory
+   (`blocker: false`) findings may accompany an APPROVED verdict — they are
+   listed as follow-ups, never hidden. If you approve, the pipeline delivers.
+   Your approval is the last word before shipping.
 
 ## Output format
 
