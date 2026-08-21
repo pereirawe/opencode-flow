@@ -812,10 +812,10 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: implementar `scripts/git-cred-cache.sh` como punto único de acceso (subcomandos `--init`/`--set`/`--get`/`--erase`/`--identity`/`--status`) con permisos 0700/0600 en cada escritura, redacción centralizada vía `redact_secret()` en `config.sh`, deny de read/edit sobre `.opencode/cache/**` con orden findLast para `--auto`, auto-import idempotente e integración git vía `credential.helper store` + `credential.interactive never`; ajustar permisos por agente (developer/committer/publish-requester), EXCLUDE_RE del test-runner y ADR en `standards/decisions.md`. Esfuerzo ~9-11h. Origem: Proposal 2026-08-19-2 em prioritization.md (global).
 
 ### 210. Versionado del entorno de tests (test env)
-- Status: ready
+- Status: in-progress
 - Opened: 2026-08-19
 - Ready: 2026-08-19
-- Started: -
+- Started: 2026-08-21
 - Type: feat
 - Severity: medium
 - Report: william_pereira
