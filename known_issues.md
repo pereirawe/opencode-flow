@@ -692,10 +692,12 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: Apply the same treatment as issue #203 to `skills/career/cv-optimizer/templates/profile-analysis.html`: replace the blanket `section { break-inside: avoid; }` with `section { break-inside: auto; orphans: 3; widows: 3; }`, keep `table tr { break-inside: avoid; }` and `h2 { break-after: avoid; }`, add a regression assertion in scripts/tests/test_cv.sh, and run `make test-scripts`. Effort ~1-2h. Origem: senior review do #203 (docs profile, finding 1 — incomplete-spec).
 
 ### 209. Caché de credenciales git por proyecto (git creds cache)
-- Status: ready
+- Status: in-publish
 - Opened: 2026-08-19
 - Ready: 2026-08-19
-- Started: -
+- Started: 2026-08-21
+- In review: 2026-08-21
+- In publish: 2026-08-21
 - Type: feat
 - Severity: high
 - Report: william_pereira
@@ -703,7 +705,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 3 (security, runtime, qa)
 - Remote: #106
 - Jira: -
-- PR: -
+- PR: #112
 - Location: scripts/git-cred-cache.sh (NUEVO), scripts/config.sh, scripts/tests/test_git_cred_cache.sh (NUEVO), opencode.json, agents/development/developer.md, agents/development/committer.md, agents/development/publish-requester.md, .opencode/.gitignore, scripts/test-runner.sh (EXCLUDE_RE), standards/decisions.md, scripts/README.md
 - Description: Como agente del pipeline de opencode, quiero un caché de credenciales git por proyecto (`.opencode/cache/git/`) gestionado por un único script seguro, para autenticarme y crear commits en operaciones automáticas (`--auto`) sin prompts interactivos ni exposición de secretos en salidas, logs o fingerprints.
 - Impact: Todos los agentes y comandos que ejecutan git en modo automático (`--auto`, pipeline de delivery, aibot-watcher); seguridad del repositorio (secretos en texto plano con 0600); coordinación con snapshot/sync-back del issue #74; fingerprints del test-runner (nunca deben contener credenciales).
