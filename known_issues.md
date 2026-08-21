@@ -353,10 +353,11 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: Aplicar o mesmo tratamento do #72 D5 ao cv-cover-letter: remover permissão/instruções/template `curl -L` e exigir texto colado. Follow-up registrado na senior review do #72 (L1, não-bloqueante para o #72).
 
 ### 81. /ocf:build-ui orchestration command + output file conventions
-- Status: in-progress
+- Status: in-review
 - Opened: 2026-08-21
 - Ready: 2026-08-21
 - Started: 2026-08-21
+- In review: 2026-08-21
 - Type: feat
 - Severity: high
 - Report: william_pereira
