@@ -155,7 +155,11 @@
             "~/.config/opencode/aibot-repos.json": "deny",
             "~/.config/opencode/scripts/aibot-watcher.sh": "deny",
             "~/.config/opencode/state/**": "deny",
-            "~/.ssh/**": "deny"
+            "~/.ssh/**": "deny",
+            "~/.config/opencode/.opencode/cache/**": "deny"
+        },
+        "read": {
+            "~/.config/opencode/.opencode/cache/**": "deny"
         },
         "bash": {
             "rm -rf /": "deny",
