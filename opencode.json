@@ -283,7 +283,11 @@
             "owasp-wstg": "allow",
             "owasp-samm": "allow",
             "threat-modeling": "allow",
-            "secure-code-review": "allow"
+            "secure-code-review": "allow",
+            "reference-library": "allow",
+            "component-patterns": "allow",
+            "design-tokens": "allow",
+            "visual-hierarchy": "allow"
         },
         "external_directory": {
             "~/.config/opencode/**": "allow",
