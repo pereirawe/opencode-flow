@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 209. Caché de credenciales git por proyecto (git creds cache)
+- Resolved: 2026-08-21
+- Durations: backlog=0d waiting=2d dev=0d review=- qa=- publish=0d total=2d
+- Severity: high
+- Type: feat
+- Report: william_pereira
+- Reviewers: 3
+- Remote: #106
+- Summary: Como agente del pipeline de opencode, quiero un caché de credenciales git por proyecto (`.opencode/cache/git/`) gestionado por un único script seguro, para autenticarme y crear commits en operaciones automáticas (`--auto`) sin prompts interactivos ni exposición de secretos en salidas, logs o fingerprints. — implementar `scripts/git-cred-cache.sh` como punto único de acceso (subcomandos `--init`/`--set`/`--get`/`--erase`/`--identity`/`--status`) con permisos 0700/0600 en cada escritura, redacción centralizada vía `redact_secret()` en `config.sh`, deny de read/edit sobre `.opencode/cache/**` con orden findLast para `--auto`, auto-import idempotente e integración git vía `credential.helper store` + `credential.interactive never`; ajustar permisos por agente (developer/committer/publish-requester), EXCLUDE_RE del test-runner y ADR en `standards/decisions.md`. Esfuerzo ~9-11h. Origem
+
 ### 208. Differentiated bug discovery flow — fast, prioritized, token-efficient (still refined)
 - Resolved: 2026-08-21
 - Durations: backlog=- waiting=- dev=0d review=- qa=- publish=0d total=2d
