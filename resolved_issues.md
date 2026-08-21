@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 78. Design sector skills (foundation for Adorable pipeline)
+- Resolved: 2026-08-21
+- Durations: backlog=0d waiting=0d dev=0d review=- qa=- publish=0d total=0d
+- Severity: high
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #113
+- Summary: Create 4 skills under `skills/design/` that encode concrete, testable UI patterns for the Adorable pipeline. These skills are the foundation consumed by all 6 design agents — without them, agents produce generic UI. — Create the 4 skills under `skills/design/` with concrete patterns (not philosophy), English frontmatter, bilingual trigger keywords, and register in opencode.json. Reference vendor taste-skill/minimalist-ui for pattern examples but create original content.
+
 ### 209. Caché de credenciales git por proyecto (git creds cache)
 - Resolved: 2026-08-21
 - Durations: backlog=0d waiting=2d dev=0d review=- qa=- publish=0d total=2d
