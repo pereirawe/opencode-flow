@@ -17,6 +17,8 @@ Two-tier issue tracking:
 - In publish: <YYYY-MM-DD> | -
 - Type: bug | feat | doc | chore
 - Severity: critical | high | medium | low
+- Priority: low | medium | high | critical (bugs: derived from the bug-triage score matrix; feats: set by PO)
+- Flow: lean | escalated (bugs only — optional, informative; feats MUST NOT carry it)
 - Report: <user-name> | <model-name>
 - Base branch: <default-branch> | <branch-name>
 - Reviewers: <number> (<profile1>, <profile2>)
@@ -41,6 +43,25 @@ GitHub/GitLab). Populated by `scripts/sync-jira.sh` (via hooks in
 the sync is non-blocking and the local `Status:` always wins over Jira.
 `Business rules:` is required for `feat` type issues — document the specific
 business logic, domain constraints, and rules that must be implemented.
+For `bug` type issues, business rules are documented WHEN APPLICABLE: a bug
+with no business rule MUST declare the literal `- Business rules: none`.
+QA pre-development accepts this literal and REJECTS `-` (placeholder) as
+`incomplete-spec` — a rule-less bug must state so explicitly, never with a
+placeholder.
+`Priority:` is the issue priority. For `feat` issues the PO sets it directly
+(`high | medium | low`). For `bug` issues it is DERIVED from the bug-triage
+score matrix during PO triage — the matrix (weights, buckets, guard rule,
+worked examples) lives in a single source, the `bug-triage` skill
+(`skills/development/bug-triage/SKILL.md`), loaded on-demand by the PO. The
+derived `- Priority:` value is validated by QA pre-development against that
+matrix before promotion; a missing or inconsistent value returns the bug to
+PO re-triage.
+`Flow:` is optional and BUG-ONLY — `lean | escalated`. It records which
+discovery track produced the issue: `lean` when the bug entered via the lean
+triage track (PO triage → QA → PM), `escalated` when escalation restarted the
+full 6-phase discovery at the CTO. `feat` issues MUST NOT carry `- Flow:`
+(the full flow is the default). Informative for PM promotion only — pipeline
+scripts ignore extra fields (`Jira:` precedent).
 `Reviewers:` is set during discovery (Tech Lead defines profiles) and consumed
 during senior review and MR creation.
 `Acceptance criteria:` is recommended for all types.
