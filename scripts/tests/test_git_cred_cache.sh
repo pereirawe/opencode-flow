@@ -76,15 +76,19 @@ d="$TMP/unreadable"
 make_project "$d"
 mkdir -p "$d/.opencode/cache/git"
 printf 'https://oauth2:glpat-unread@gitlab.com\n' > "$d/.opencode/cache/git/credentials"
-chmod 600 "$d/.opencode/cache/git/credentials"
-chmod 000 "$d/.opencode/cache/git/credentials"
-out_unread="$(cd "$d" && bash "$SCRIPT" --get </dev/null 2>&1)"
-assert_eq "" "$out_unread" "--get with unreadable cache is fail-silent (empty output)"
-rc_unread="$(cd "$d" && bash "$SCRIPT" --get </dev/null >/dev/null 2>&1; echo $?)"
-assert_eq "0" "$rc_unread" "--get with unreadable cache exits 0 (no prompt)"
-( cd "$d" && bash "$SCRIPT" --status </dev/null ) > "$TMP/status-unread.txt" 2>&1
-assert_contains "$TMP/status-unread.txt" "unreadable" "--status still works as diagnosis for unreadable cache"
-assert_not_contains "$TMP/status-unread.txt" "glpat-unread" "--status does not expose the unreadable token"
+if [[ $EUID -eq 0 ]]; then
+  t_ok "unreadable-cache assertions skipped (running as root: -r is always true)"
+else
+  chmod 600 "$d/.opencode/cache/git/credentials"
+  chmod 000 "$d/.opencode/cache/git/credentials"
+  out_unread="$(cd "$d" && bash "$SCRIPT" --get </dev/null 2>&1)"
+  assert_eq "" "$out_unread" "--get with unreadable cache is fail-silent (empty output)"
+  rc_unread="$(cd "$d" && bash "$SCRIPT" --get </dev/null >/dev/null 2>&1; echo $?)"
+  assert_eq "0" "$rc_unread" "--get with unreadable cache exits 0 (no prompt)"
+  ( cd "$d" && bash "$SCRIPT" --status </dev/null ) > "$TMP/status-unread.txt" 2>&1
+  assert_contains "$TMP/status-unread.txt" "unreadable" "--status still works as diagnosis for unreadable cache"
+  assert_not_contains "$TMP/status-unread.txt" "glpat-unread" "--status does not expose the unreadable token"
+fi
 
 # ===========================================================================
 # Scenario 3 — concurrent --set integrity + symlink safety
@@ -104,18 +108,29 @@ assert_eq "600" "$(stat -c %a "$d/.opencode/cache/git/credentials")" \
 assert_eq "1" "$(grep -cE '^https://oauth2:[^@]+@gitlab\.com$' "$d/.opencode/cache/git/credentials" 2>/dev/null || true)" \
   "concurrent --set store is a valid git credential line"
 
-d="$TMP/symlink"
-VICTIM="$TMP/victim"
-mkdir -p "$d/.opencode/cache" "$VICTIM"
-ln -s "$VICTIM" "$d/.opencode/cache/git"
-(
-  cd "$d" || exit 1
-  GITLAB_TOKEN="glpat-leak" bash "$SCRIPT" --set
-)
-assert_eq "0" "$(ls -A "$VICTIM" | wc -l)" \
-  "symlink: --set does not write through .opencode/cache/git symlink"
-assert_eq "1" "$([[ -L "$d/.opencode/cache/git" ]] && echo 1 || echo 0)" \
-  "symlink: cache dir remains a symlink (script refused)"
+# Symlink refusal at EVERY guard level: .opencode/cache/git (cache dir),
+# .opencode/cache (cache root) and .opencode (project dir) — --set must
+# fail-silent at each level and the victim must stay untouched.
+symlink_refusal() {
+  local name="$1" link_path="$2"
+  local d="$TMP/symlink-$name" victim="$TMP/victim-$name"
+  mkdir -p "$d/.opencode" "$victim"
+  git -C "$d" init -q
+  git -C "$d" -c user.name=t -c user.email=t@t commit -qm init --allow-empty
+  rm -rf "$d/$link_path" 2>/dev/null || true
+  ln -s "$victim" "$d/$link_path"
+  (
+    cd "$d" || exit 1
+    GITLAB_TOKEN="glpat-leak-$name" bash "$SCRIPT" --set
+  )
+  assert_eq "0" "$(ls -A "$victim" | wc -l)" \
+    "symlink($name): --set does not write through $link_path symlink"
+  assert_eq "1" "$([[ -L "$d/$link_path" ]] && echo 1 || echo 0)" \
+    "symlink($name): $link_path remains a symlink (script refused)"
+}
+symlink_refusal "dir" ".opencode/cache/git"
+symlink_refusal "root" ".opencode/cache"
+symlink_refusal "proj" ".opencode"
 
 # ===========================================================================
 # Scenario 4 — empty env var treated as absent; --erase fail-silent
@@ -132,16 +147,20 @@ assert_eq "0" "$([[ -f "$d/.opencode/cache/git/credentials" ]] && echo 1 || echo
 (
   cd "$d" || exit 1
   GITLAB_TOKEN="glpat-erase" bash "$SCRIPT" --set
+  bash "$SCRIPT" --identity --set --name "Erase User" --email "erase@example.com"
   bash "$SCRIPT" --erase
 )
 assert_eq "0" "$([[ -f "$d/.opencode/cache/git/credentials" ]] && echo 1 || echo 0)" \
   "--erase removes the credentials file"
+assert_eq "0" "$([[ -f "$d/.opencode/cache/git/identity" ]] && echo 1 || echo 0)" \
+  "--erase removes the identity file"
 out_after_erase="$(cd "$d" && bash "$SCRIPT" --get </dev/null 2>&1)"
 assert_eq "" "$out_after_erase" "--get after --erase is fail-silent"
 ( cd "$d" && bash "$SCRIPT" --status ) > "$TMP/status-erase.txt" 2>&1
 assert_contains "$TMP/status-erase.txt" "credentials: absent" "--status after --erase shows no credentials"
-assert_contains "$TMP/status-erase.txt" "identity:    not set" "--status after --erase shows no identity"
+assert_contains "$TMP/status-erase.txt" "identity:    not set" "--status after --erase shows identity not set"
 assert_not_contains "$TMP/status-erase.txt" "glpat-erase" "--status after --erase exposes no token"
+assert_not_contains "$TMP/status-erase.txt" "erase@example.com" "--status after --erase exposes no identity email"
 
 # ===========================================================================
 # Scenario 5 — redaction gate + cross-serving (--get vs --identity)
@@ -188,8 +207,12 @@ else
   assert_eq "deny" "$deny_read" "opencode.json: read deny on .opencode/cache/**"
 fi
 
+assert_contains "$HERE/../../.opencode/.gitignore" "cache/" \
+  ".opencode/.gitignore ignores the per-project cache (BR 1)"
+
 DEV="$HERE/../../agents/development/developer.md"
 for pat in '"*": deny' '"git *": allow' '"*scripts/git-cred-cache.sh *": allow' \
+           '"*scripts/test-runner.sh *": allow' '"*scripts/transition.sh *": allow' \
            '"git push --force*": deny' '"git reset --hard*": deny' '"git clean -f*": deny' '"git branch -D *": deny'; do
   if grep -qF -- "$pat" "$DEV"; then
     t_ok "developer.md: has $pat"
@@ -216,9 +239,37 @@ for AG in committer publish-requester; do
     t_ok "$AG.md: bash: allow removed (scoped)"
   fi
   grep -qF '"*": deny' "$F" && t_ok "$AG.md: catch-all bash deny" || t_fail "$AG.md: missing catch-all bash deny"
+  grep -qF '"git *": allow' "$F" && t_ok "$AG.md: git allow kept" || t_fail "$AG.md: missing git allow"
   grep -qF '"gh *": allow' "$F" && t_ok "$AG.md: gh allow kept" || t_fail "$AG.md: missing gh allow"
   grep -qF '"glab *": allow' "$F" && t_ok "$AG.md: glab allow kept" || t_fail "$AG.md: missing glab allow"
-  grep -qF 'edit: allow' "$F" && t_ok "$AG.md: edit: allow kept" || t_fail "$AG.md: edit: allow missing"
+  grep -qF '"*scripts/test-runner.sh *": allow' "$F" \
+    && t_ok "$AG.md: test-runner allow kept" || t_fail "$AG.md: missing test-runner allow"
+  grep -qF '"*scripts/transition.sh *": allow' "$F" \
+    && t_ok "$AG.md: transition allow kept" || t_fail "$AG.md: missing transition allow"
+  if grep -qF 'edit: allow' "$F"; then
+    t_fail "$AG.md: flat 'edit: allow' must be an explicit object (cache deny last)"
+  else
+    t_ok "$AG.md: flat 'edit: allow' replaced by explicit edit object"
+  fi
+  grep -qF '"*": "allow"' "$F" && t_ok "$AG.md: edit object keeps broad edit allow" \
+    || t_fail "$AG.md: edit object missing \"*\": allow"
+done
+
+# Every pipeline agent file must have the cache deny as the LAST rule of its
+# edit block (agent-level denies win over the global opencode.json allow under
+# findLast). Line-number check: the cache deny sits inside the edit block and
+# is immediately followed by the next permission key (or the frontmatter end).
+for AG in developer committer publish-requester; do
+  F="$HERE/../../agents/development/$AG.md"
+  ln_cache_deny="$(grep -nF '"~/.config/opencode/.opencode/cache/**": deny' "$F" | head -1 | cut -d: -f1)"
+  ln_edit_key="$(grep -nF '  edit:' "$F" | head -1 | cut -d: -f1)"
+  ln_next="$(awk -v k="$ln_edit_key" 'NR > k && (/^  [a-z]+:/ || /^---/) { print NR; exit }' "$F")"
+  if [[ -n "$ln_cache_deny" && -n "$ln_edit_key" && -n "$ln_next" ]] \
+     && [[ "$ln_cache_deny" -gt "$ln_edit_key" && "$((ln_cache_deny + 1))" -eq "$ln_next" ]]; then
+    t_ok "$AG.md: cache deny is the LAST edit rule (edit=$ln_edit_key cache=$ln_cache_deny)"
+  else
+    t_fail "$AG.md: cache deny must be the last edit rule (edit=$ln_edit_key cache=$ln_cache_deny next=$ln_next)"
+  fi
 done
 
 # ===========================================================================
