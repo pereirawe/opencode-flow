@@ -3,7 +3,15 @@ description: Gatekeeper that verifies pipeline gates before MR creation
 mode: subagent
 temperature: 0.1
 permission:
-  bash: allow
+  bash:
+    "*": deny
+    "gh *": allow
+    "glab *": allow
+    "git push --force*": deny
+    "git push -f*": deny
+    "git reset --hard*": deny
+    "git clean -f*": deny
+    "git branch -D *": deny
   edit: allow
 ---
 Verify that the pipeline gates are satisfied before MR creation.

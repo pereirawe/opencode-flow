@@ -3,7 +3,15 @@ description: Creates merge/pull requests for publishing changes
 mode: subagent
 temperature: 0.1
 permission:
-  bash: allow
+  bash:
+    "*": deny
+    "gh *": allow
+    "glab *": allow
+    "git push --force*": deny
+    "git push -f*": deny
+    "git reset --hard*": deny
+    "git clean -f*": deny
+    "git branch -D *": deny
   edit: allow
 ---
 Create and manage merge/pull requests.
