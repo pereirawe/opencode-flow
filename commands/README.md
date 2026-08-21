@@ -17,6 +17,8 @@ These commands are available in the assistant.
 | `ocf:check-pr [id]` | Check PR merge status and auto-archive merged |
 | `ocf:maintain` | Full maintenance of known_issues.md |
 | `ocf:backup` | Create intelligent timestamped backup excluding junk |
+| `ocf:build-ui` | Orchestrate the 4-pass greenfield design pipeline (art-director → ui-architect → ui-implementer → ui-critic) with deterministic output files |
+| `ocf:audit-ui` | Orchestrate the audit/refactor pipeline for existing codebases (ui-auditor → ui-refactor-planner, optionally → build pipeline) |
 | `ocf:bump-version` | Calculate version bump, update changelog, commit, tag, and publish to main |
 
 ## Command Definition Rule
