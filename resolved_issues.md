@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 79. Greenfield pipeline agents (art-director, ui-architect, ui-implementer, ui-critic)
+- Resolved: 2026-08-21
+- Durations: backlog=0d waiting=0d dev=0d review=- qa=- publish=0d total=0d
+- Severity: high
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #115
+- Summary: Create the core 4-pass Adorable pipeline — Create the 4 agents under `agents/design/` based on the drafts in `.opencode/adorable-proposal/` but rewritten in English, with no hardcoded model. Registration is file-based
+
 ### 78. Design sector skills (foundation for Adorable pipeline)
 - Resolved: 2026-08-21
 - Durations: backlog=0d waiting=0d dev=0d review=- qa=- publish=0d total=0d
