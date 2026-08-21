@@ -365,7 +365,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 2 (design, frontend)
 - Remote: #115
-- PR: -
+- PR: #116
 - Location: agents/design/art-director.md, agents/design/ui-architect.md, agents/design/ui-implementer.md, agents/design/ui-critic.md
 - Description: Create the core 4-pass Adorable pipeline: art-director (brief → design_spec.json), ui-architect (design_spec → component_tree.json), ui-implementer (JSONs → production code), ui-critic (quality gate). Each agent has a single responsibility and consumes/produces structured JSON.
 - Impact: Replaces the single-pass `designer.md` with a pipeline that separates layout, architecture, implementation, and quality concerns — the key differentiator from generic AI UI.
