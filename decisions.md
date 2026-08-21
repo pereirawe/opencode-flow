@@ -26,3 +26,21 @@
   conventions.md, the `skill-importer` skill, the `ocf:import-skill` command,
   and `scripts/skill-vendor.sh`. Native/curated skills continue to live in
   `skills/<sector>/`. Tracked as issue #43.
+
+- ADR 2026-08-21: Per-project git credential cache — plaintext 0600 = git's
+  standard store model; no encryption at rest (declared limit, issue #209).
+  Credentials and commit identity live in `<project>/.opencode/cache/git/`
+  (`credentials` in git credential-store format, `identity` as `name=`/`email=`),
+  gitignored via `.opencode/.gitignore` (`cache/`), with the cache directory
+  `0700` and files `0600` applied on every write regardless of umask. Access is
+  ONLY through `scripts/git-cred-cache.sh` (single entrypoint with `--init` /
+  `--set` / `--get` / `--erase` / `--identity` / `--status`); opencode.json
+  denies read/edit of `.opencode/cache/**` (findLast rule) so agents under
+  `--auto` cannot touch the files directly. Secrets are redacted centrally via
+  `redact_secret()` in `scripts/config.sh` and are excluded from test-runner
+  fingerprints (`EXCLUDE_RE`). Rationale: plaintext-at-0600 matches git's own
+  `credential.helper store` model and keeps the cache host-side only (no
+  container sync — see issue #74 coordination). Declared limit: no encryption
+  at rest; protection relies on filesystem permissions (0700/0600), the
+  gitignore, the read/edit-deny, and fail-silent behavior — secrets are never
+  echoed, logged, or fingerprinted. Tracked as issue #209.
