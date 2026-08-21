@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 208. Differentiated bug discovery flow — fast, prioritized, token-efficient (still refined)
+- Resolved: 2026-08-21
+- Durations: backlog=- waiting=- dev=0d review=- qa=- publish=0d total=2d
+- Severity: high
+- Type: feat
+- Report: william_pereira
+- Reviewers: 3
+- Remote: #105
+- Summary: As a Product Owner, I want a differentiated discovery flow for `bug` issues — a lean triage track (PO triage → QA pre-development → PM promotion, ≤3 agent invocations) with a documented prioritization score and a clear escalation path to the full 6-phase flow — so that bug issues reach development faster, are prioritized by business impact instead of insertion order, and consume at least 50% fewer discovery tokens than the full flow while remaining refined. — Effort ~9–10h across 9 tasks (T1–T9), branch `issue-208-bug-discovery-lean` off `main`:
+
 ### 210. Versionado del entorno de tests (test env)
 - Resolved: 2026-08-21
 - Durations: backlog=0d waiting=2d dev=0d review=- qa=- publish=0d total=2d
