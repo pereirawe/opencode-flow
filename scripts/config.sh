@@ -152,8 +152,12 @@ redact_secret() {
   # Accepts `:` or `=` separators (the generic rule rewrites
   # `x-access-token:ghp_123@github.com` to `x-access-token=****@github.com`
   # first; this rule normalizes it back to `x-access-token:****@github.com`).
-  # The token charset allows `/` (e.g. https://user:tok/en@host.com) and the
-  # host is captured separately so it is never dropped.
-  s="$(printf '%s' "$s" | sed -E 's#(://[^:/@[:space:]]+)[=:][^@[:space:]]+@([^/@[:space:]]+)#\1:****@\2#g')"
+  # The token class is a greedy non-whitespace run that may itself contain `/`
+  # (e.g. https://user:tok/en@host.com) AND `@` — it anchors to the LAST `@`
+  # before the host, so `https://user:tok@en@host.com` masks the whole token
+  # (`tok@en`) instead of leaking `en@` as part of the "host" (security F4).
+  # The host is captured separately (`[^/[:space:]]+`) so a path after the
+  # host (`/repo.git`) is preserved, never swallowed.
+  s="$(printf '%s' "$s" | sed -E 's#(://[^:/@[:space:]]+)[=:][^[:space:]]*@([^/[:space:]]+)#\1:****@\2#g')"
   printf '%s' "$s"
 }

@@ -90,6 +90,16 @@ ensure_cache_dir() {
   return 0
 }
 
+# cache_is_symlinked — true when any cache path component is a symlink
+# (security F3, residual): `.opencode`, `.opencode/cache` or `.opencode/cache/
+# git`. `-f`/`-r`/`-d` FOLLOW a symlinked dir component, so the leaf `-L`
+# guards on the files are not enough — reads (cmd_get/cmd_identity/cmd_status)
+# and deletes (cmd_erase) must treat a symlinked component as "cache absent"
+# and never resolve through it outside the project.
+cache_is_symlinked() {
+  [[ -L "$PROJECT_ROOT/.opencode" || -L "$CACHE_ROOT" || -L "$CACHE_DIR" ]]
+}
+
 # cache_lock / cache_unlock — exclusive flock on the cache dir. No-op when
 # flock is unavailable (the atomic tmp+mv still guarantees a never-torn store).
 cache_lock() {
@@ -227,9 +237,11 @@ cmd_set() {
 
 # --get: print stored credentials with tokens masked. Never emits identity
 # fields (BR 2 / test 5). Fail-silent when absent/unreadable, or when the
-# store path is a symlink (security F3 — never read through a symlink).
+# store path is a symlink (security F3 — never read through a symlink,
+# including a symlinked dir component via cache_is_symlinked).
 cmd_get() {
-  if [[ ! -f "$CREDENTIALS_FILE" || ! -r "$CREDENTIALS_FILE" || -L "$CREDENTIALS_FILE" ]]; then
+  if cache_is_symlinked \
+     || [[ ! -f "$CREDENTIALS_FILE" || ! -r "$CREDENTIALS_FILE" || -L "$CREDENTIALS_FILE" ]]; then
     exit 0
   fi
   local line
@@ -242,7 +254,13 @@ cmd_get() {
 }
 
 # --erase: remove cached credentials + identity (no rm -rf, no symlink follow).
+# When any cache path component is a symlink, skip deletion entirely — rm -f
+# would otherwise resolve through the symlinked dir and delete files inside
+# the target (security F3, residual).
 cmd_erase() {
+  if cache_is_symlinked; then
+    exit 0
+  fi
   rm -f "$CREDENTIALS_FILE" "$IDENTITY_FILE" "$LOCK_FILE" 2>/dev/null || true
   rmdir "$CACHE_DIR" 2>/dev/null || true
   rmdir "$CACHE_ROOT" 2>/dev/null || true
@@ -271,7 +289,8 @@ cmd_identity() {
     exit 0
   fi
 
-  if [[ ! -f "$IDENTITY_FILE" || ! -r "$IDENTITY_FILE" || -L "$IDENTITY_FILE" ]]; then
+  if cache_is_symlinked \
+     || [[ ! -f "$IDENTITY_FILE" || ! -r "$IDENTITY_FILE" || -L "$IDENTITY_FILE" ]]; then
     exit 0
   fi
   local line
@@ -285,10 +304,15 @@ cmd_identity() {
 # --status: fully redacted diagnostic (BR 6 / AC 3 — email shows as <set>).
 cmd_status() {
   local dir_perm="" cred_state="absent" cred_perm="" ident_state="not set" helper="" interactive=""
-  if [[ -d "$CACHE_DIR" ]]; then
+  # A symlinked cache component is treated as ABSENT — stat/-f/-r/-d and the
+  # identity grep would otherwise resolve through the symlink and reveal the
+  # target's state/content (security F3, residual).
+  local symlinked=0
+  cache_is_symlinked && symlinked=1
+  if [[ "$symlinked" -eq 0 && -d "$CACHE_DIR" ]]; then
     dir_perm="$(stat -c %a "$CACHE_DIR" 2>/dev/null || true)"
   fi
-  if [[ -f "$CREDENTIALS_FILE" ]]; then
+  if [[ "$symlinked" -eq 0 && -f "$CREDENTIALS_FILE" ]]; then
     if [[ -r "$CREDENTIALS_FILE" ]]; then
       cred_state="present"
       cred_perm="$(stat -c %a "$CREDENTIALS_FILE" 2>/dev/null || true)"
@@ -296,7 +320,7 @@ cmd_status() {
       cred_state="unreadable"
     fi
   fi
-  if [[ -f "$IDENTITY_FILE" ]]; then
+  if [[ "$symlinked" -eq 0 && -f "$IDENTITY_FILE" ]]; then
     if [[ -r "$IDENTITY_FILE" ]]; then
       if grep -q '^email=' "$IDENTITY_FILE" 2>/dev/null; then
         ident_state="set (email <set>)"
