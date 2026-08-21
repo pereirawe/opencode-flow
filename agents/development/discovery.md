@@ -25,7 +25,6 @@ Read `- Type:` from the proposal/issue FIRST and route accordingly:
   pre-development → PM promotion. CTO and Tech Lead are OPTIONAL — invoked
   ONLY on escalation. Run the phases under "Lean Track (bug)" below.
 - **`feat`** → the full 6-phase flow under "Pipeline Phases" below, unchanged.
-- `doc`/`chore` → QA pre-development + PM promotion (no lean triage needed).
 
 Escalation (any bug trigger) restarts the flow from the CTO — see
 "Escalation" below.
