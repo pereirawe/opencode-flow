@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 80. Audit/Refactor agents (ui-auditor, ui-refactor-planner)
+- Resolved: 2026-08-21
+- Durations: backlog=0d waiting=0d dev=0d review=- qa=- publish=0d total=0d
+- Severity: high
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #117
+- Summary: Create 2 agents for existing codebase refactoring — Create the 2 agents under `agents/design/` based on the drafts in `.opencode/adorable-proposal/` but rewritten in English, with no hardcoded model. Depends on #80 (skills) for token/component references that the planner consumes.
+
 ### 79. Greenfield pipeline agents (art-director, ui-architect, ui-implementer, ui-critic)
 - Resolved: 2026-08-21
 - Durations: backlog=0d waiting=0d dev=0d review=- qa=- publish=0d total=0d
