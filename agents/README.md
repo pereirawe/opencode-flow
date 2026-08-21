@@ -43,6 +43,21 @@ The `ceo` agent orchestrates cross-sector execution.
 | `devs/*` | Language-specific implementation agents |
 | `designer` | Frontend product agent — brief → explore → plan → build → review, powered by the taste-skill design skills from the vendor clone (`vendor/taste-skill`) |
 
+## Design
+| Agent | Function |
+|-------|----------|
+| `art-director` | Receives a brief and produces `design_spec.json` — palette, typography, spacing, layout, signature element (4-pass pipeline pass 1) |
+| `ui-architect` | Consumes `design_spec.json` and produces `component_tree.json` — regions, component contracts, states, accessibility, build order (pass 2) |
+| `ui-implementer` | Consumes both JSONs and writes production code files per the contracts, with the structured hand-off to the critic (pass 3) |
+| `ui-critic` | Quality gate — evaluates the code against the spec/contract checklists and returns APPROVED or ISSUES_FOUND (pass 4) |
+
+The 4-pass pipeline
+(`brief → art-director → design_spec.json → ui-architect → component_tree.json
+→ ui-implementer → code → ui-critic → APPROVED/ISSUES_FOUND`) replaces the
+single-pass approach: the one-shot `designer` agent above remains available
+for direct, single-pass product work, while the pipeline separates layout,
+architecture, implementation, and quality into dedicated agents.
+
 ## Marketing
 | Agent | Function |
 |-------|----------|
