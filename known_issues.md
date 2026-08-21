@@ -825,7 +825,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 2 (qa, runtime)
 - Remote: #107
 - Jira: -
-- PR: -
+- PR: #110
 - Location: scripts/test-runner.sh, .nvmrc (NUEVO), .node-version (NUEVO), .opencode/env-manifest.md (NUEVO), standards/test-env.md (NUEVO), skills/development/test-runner/SKILL.md, scripts/init.sh, scripts/tests/test_test_env.sh (NUEVO)
 - Description: Como desarrollador y QA del pipeline de opencode, quiero un entorno de pruebas versionado y verificado (`.nvmrc`, `.node-version` y `.opencode/env-manifest.md`), para ejecutar la suite siempre contra versiones conocidas de Node/Python/test-runner y recibir advertencias no bloqueantes cuando haya discrepancias.
 - Impact: Desarrolladores, senior reviewers y QA que ejecutan `test-runner.sh`; reutilización de la caché de resultados (fingerprints); fidelidad del entorno entre etapas del pipeline; proyectos Node/Python inicializados por init.sh. Nota: en este host `node` no está en PATH — la BR de "node ausente → warning informativo" se ejercitará en la práctica.
