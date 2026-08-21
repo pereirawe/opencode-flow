@@ -23,6 +23,7 @@ Shell helpers for issue lifecycle management.
 | `skill-vendor.sh` | Manage external skills as git clones in `~/.config/opencode/vendor/` (add/update/list/remove) — loaded via `skills.paths`, never copied |
 | `import_claude_skill.sh` | Deprecated shim — delegates to `skill-vendor.sh add` |
 | `config.sh` | Shared configuration sourced by other scripts |
+| `git-cred-cache.sh` | Per-project git credential cache — single secure entrypoint for `--init`/`--set`/`--get`/`--erase`/`--identity`/`--status` (issue #209) |
 | `sync-jira.sh` | Jira Cloud sync (REST v3): create-card, transition, add-comment, full reconcile — hooks in create/promote/close_issue, non-blocking |
 | `setup-web.sh` | Install/update opencode web systemd service for headless operation |
 | `setup-nginx.sh` | Install nginx reverse proxy with mkcert HTTPS for opencode web |
@@ -224,6 +225,54 @@ sudo iptables -A INPUT -p tcp --dport 443 -j ACCEPT
 sudo ./scripts/setup-nginx.sh --hostname opencode.local
 sudo ./scripts/setup-nginx.sh --hostname opencode.local --non-interactive  # skip firewall prompt
 ```
+
+## Git credential cache (issue #209)
+
+`git-cred-cache.sh` is the **single access point** for the per-project git
+credential cache in `.opencode/cache/git/` (gitignored). Pipeline agents use it
+to authenticate and commit under `--auto` without interactive prompts and
+without exposing secrets in outputs, logs, or fingerprints.
+
+**Layout (split, never cross-served):**
+
+- `.opencode/cache/git/credentials` — git credential-store format
+  (`https://<user>:<token>@<host>`), managed by `--set`/`--get`/`--erase`
+- `.opencode/cache/git/identity` — `name=`/`email=` lines, managed by
+  `--identity`
+
+**Subcommands** (run from the project root):
+
+```bash
+scripts/git-cred-cache.sh --init                     # local git store (absolute path) + interactive never
+scripts/git-cred-cache.sh --set [--host H] [--user U] [--token T] [--force]
+scripts/git-cred-cache.sh --get                      # masked output
+scripts/git-cred-cache.sh --identity [--set [--name N] [--email E]]
+scripts/git-cred-cache.sh --erase
+scripts/git-cred-cache.sh --status                   # fully redacted diagnosis
+```
+
+`--set` imports credentials from `GITLAB_TOKEN` / `GH_TOKEN` / `GITHUB_TOKEN`
+(empty is treated as absent) or from explicit `--token`/`--host`/`--user`
+flags. Writes are idempotent — an existing valid entry is skipped unless
+`--force` is given — and are flock-protected + atomic (tmp + `mv`).
+
+**Security model:**
+
+- Cache dir `0700` and files `0600` applied on **every** write (umask-independent).
+- Redaction centralized in `redact_secret()` (`scripts/config.sh`); `--get`
+  masks tokens and `--status` never prints secrets (identity email shows as
+  `<set>`).
+- `opencode.json` denies read/edit of `.opencode/cache/**` (findLast rule) —
+  agents under `--auto` can only reach the cache through this script.
+- Fail-silent: missing/unreadable cache + closed stdin → no prompts, no
+  secrets in errors; `--status` is the diagnostic path.
+- Symlink-safe: the project root is resolved with `pwd -P` and writes are
+  refused when `.opencode`/`.opencode/cache`/the cache dir is a symlink.
+- `--init` writes only `credential.helper` (absolute path to the cache store)
+  and `credential.interactive=never` to `.git/config` — never identity or
+  secrets.
+- `.opencode/cache` is excluded from test-runner fingerprints (`EXCLUDE_RE`),
+  so touching the cache never invalidates the test-result cache.
 
 ## Aibot Watcher (issue #39)
 
