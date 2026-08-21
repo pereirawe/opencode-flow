@@ -365,7 +365,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 2 (design, frontend)
 - Remote: #113
-- PR: -
+- PR: #114
 - Location: skills/design/reference-library/SKILL.md, skills/design/component-patterns/SKILL.md, skills/design/design-tokens/SKILL.md, skills/design/visual-hierarchy/SKILL.md
 - Description: Create 4 skills under `skills/design/` that encode concrete, testable UI patterns for the Adorable pipeline. These skills are the foundation consumed by all 6 design agents — without them, agents produce generic UI.
 - Impact: All 6 design agents (art-director, ui-architect, ui-implementer, ui-critic, ui-auditor, ui-refactor-planner) depend on these skills for pattern references, token systems, component anatomy, and visual hierarchy rules.
