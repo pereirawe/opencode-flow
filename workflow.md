@@ -337,6 +337,14 @@ resume-optimization flow (issue #60):
 
 Backed by `agents/career/*`, `skills/career/*`, and `scripts/cv/*`.
 
+### Design Pipeline (UI)
+
+Outside the issue pipeline, the `design` sector provides the Adorable
+pipeline: `/ocf:build-ui` (greenfield 4-pass: art-director → ui-architect →
+ui-implementer → ui-critic) and `/ocf:audit-ui` (audit/refactor:
+ui-auditor → ui-refactor-planner, optional build chain). See
+`standards/design-pipeline.md` and `agents/design/README.md`.
+
 > **Documentation** and **Test Automation** are ongoing activities that run in
 > parallel across all pipeline phases, not sequential gates.
 > `known_issues.md` is the single source of truth — every agent must keep it in sync.

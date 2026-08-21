@@ -14,6 +14,7 @@ Project-wide conventions and patterns shared across all sectors.
 | `locale.md` | Locale system — how to set project language |
 | `resolved-issue.md` | Resolved issue archive format |
 | `test-env.md` | Test environment — version pins, manifest ranges, sync guard, warning contract |
+| `design-pipeline.md` | Design pipeline output conventions, session management, and pipeline stages (build-ui/audit-ui) |
 
 ## Sector Agents
 

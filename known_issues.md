@@ -353,13 +353,16 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: Aplicar o mesmo tratamento do #72 D5 ao cv-cover-letter: remover permissão/instruções/template `curl -L` e exigir texto colado. Follow-up registrado na senior review do #72 (L1, não-bloqueante para o #72).
 
 ### 81. /ocf:build-ui orchestration command + output file conventions
-- Status: backlog
+- Status: in-progress
+- Opened: 2026-08-21
+- Ready: 2026-08-21
+- Started: 2026-08-21
 - Type: feat
 - Severity: high
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 2 (design, docs)
-- Remote: -
+- Remote: #119
 - PR: -
 - Location: commands/ocf:build-ui.md, commands/ocf:audit-ui.md, standards/design-pipeline.md
 - Description: Create 2 orchestration commands and define output file conventions. `/ocf:build-ui` orchestrates the 4-pass greenfield pipeline; `/ocf:audit-ui` orchestrates audit+refactor. Output conventions define deterministic file paths for pipeline artifacts, enabling resumption and multi-model flows.
