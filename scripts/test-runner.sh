@@ -26,7 +26,10 @@ SCRIPT_DIR="$(cd "${SCRIPT_SRC%/*}" && pwd)"
 PROJECT_ROOT="$(pwd -P)"
 
 CACHE_DIR=".opencode/test-cache"
-EXCLUDE_RE='(^|/)(node_modules|\.venv|venv|vendor|dist|build|target|\.pytest_cache|__pycache__|\.next|coverage|\.opencode/test-cache|\.git)(/|$)'
+# `.opencode/cache` (issue #209, cross-dep with #210): the per-project git
+# credential cache must NEVER enter fingerprints — touching it (e.g. --set
+# during a pipeline run) must not invalidate the test-result cache.
+EXCLUDE_RE='(^|/)(node_modules|\.venv|venv|vendor|dist|build|target|\.pytest_cache|__pycache__|\.next|coverage|\.opencode/test-cache|\.opencode/cache|\.git)(/|$)'
 
 # --- versioned test environment (issue #210) ---
 # The runtime versions are advisory: they are detected and compared against the
