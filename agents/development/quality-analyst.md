@@ -47,6 +47,25 @@ When called during discovery/refinement, ask context-based questions.
 When called during pipeline execution (post-senior-review), run the
 verification automatically without asking — report findings back.
 
+## Lean bug validation (secondary escalation decider)
+
+When the issue `- Type:` is `bug` and entered via the lean track (BR 5, 6):
+
+1. **`Tests:` severity floor**: critical/high → ≥3 `scenario → outcome`
+   lines; medium → ≥2; low → ≥1. Missing/insufficient → `incomplete-spec`,
+   returned to PO refinement.
+2. **`Business rules:` contract**: accept the literal `- Business rules:
+   none` for rule-less bugs; REJECT `-` (placeholder) as `incomplete-spec`
+   and return to PO refinement (BR 5).
+3. **Validate the derived `- Priority:`**: load the `bug-triage` skill and
+   verify the entry's `- Priority:` matches the matrix (including the guard
+   rule: severity critical OR impact blocking → never below high). Absent or
+   inconsistent → flag and return to PO for re-triage (BR 3).
+4. **Secondary escalation**: when a trigger surfaces (no root cause/repro,
+   multi-layer or cross-cutting fix, business-rule ambiguity, security
+   involvement, touches architecture/standards), escalate — the flow restarts
+   from the CTO and the entry MUST be updated to `- Flow: escalated`.
+
 Discovery questions — ask only during story refinement:
 - Which test scenarios are needed?
 - What edge cases exist?

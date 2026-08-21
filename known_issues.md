@@ -692,11 +692,11 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: Apply the same treatment as issue #203 to `skills/career/cv-optimizer/templates/profile-analysis.html`: replace the blanket `section { break-inside: avoid; }` with `section { break-inside: auto; orphans: 3; widows: 3; }`, keep `table tr { break-inside: avoid; }` and `h2 { break-after: avoid; }`, add a regression assertion in scripts/tests/test_cv.sh, and run `make test-scripts`. Effort ~1-2h. Origem: senior review do #203 (docs profile, finding 1 — incomplete-spec).
 
 ### 208. Differentiated bug discovery flow — fast, prioritized, token-efficient (still refined)
-- Status: ready
+- Status: in-publish
 - Opened: 2026-08-19
-- In review: -
-- In QA: -
-- In publish: -
+- Started: 2026-08-21
+- In review: 2026-08-21
+- In publish: 2026-08-21
 - Type: feat
 - Severity: high
 - Priority: high
@@ -705,7 +705,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 3 (docs, qa, runtime)
 - Remote: #105
 - Jira: -
-- PR: -
+- PR: #111
 - Location: workflow.md (canonical — branch Discovery Pipeline by type), agents/development/discovery.md (orchestrator routes lean vs full), agents/development/product-owner.md (lean bug triage mode), agents/development/quality-analyst.md (lean validation), agents/development/project-manager.md (minimal rewrite — non-interactive promotion), standards/issues.md (new `- Priority:` field + `- Business rules: none` contract at L42-43 + optional `- Flow:` field), opencode.json (ocf:discovery template — 1-line adjustment), skills/development/bug-triage/SKILL.md (NEW — single source of the score matrix)
 - Description: As a Product Owner, I want a differentiated discovery flow for `bug` issues — a lean triage track (PO triage → QA pre-development → PM promotion, ≤3 agent invocations) with a documented prioritization score and a clear escalation path to the full 6-phase flow — so that bug issues reach development faster, are prioritized by business impact instead of insertion order, and consume at least 50% fewer discovery tokens than the full flow while remaining refined.
 - Impact: Every `bug` issue discovered through the pipeline (global `~/.config/opencode` config and any project using the template). Reduces discovery latency and token cost for the highest-volume issue type; improves prioritization correctness (critical/high bugs outrank non-critical feats — BR 8); keeps quality gates intact for bugs (business rules when applicable + `Tests:` severity floors). Non-blocking coordination note: issues #25 and #74 also touch `workflow.md` but neither is in-progress — merge-order coordination required, not a blocker.
@@ -759,6 +759,7 @@ issues only. See `standards/issues.md` for the full contract.
   - T9 Bug-issue fixture in final format (derived `- Priority:`, `- Business rules: none`, `- Tests:` scenarios, `- Flow: lean`) as Developer reference + `make test-scripts` regression pass.
   Origem: Proposal 2026-08-19-1 em prioritization.md (global).
 - Review note: the `docs` reviewer profile is resolved at delivery Phase 8 via `development/technical-writer` (precedent: issues #37, #203).
+- Review note (delivery): senior review found and fixed the worked-example-2 arithmetic error in the bug-triage skill (b2f88e6) and removed an out-of-scope `doc`/`chore` routing bullet from discovery.md (1587c46). Follow-up gaps dispositioned at delivery (not blockers): (1) `bug-triage` skill NOT yet registered in `permission.skill` of opencode.json — out of T8 scope (1-line template only); needs a follow-up issue + service restart for the PO to load it on-demand per BR 11; (2) stale `ocf:discovery` description text (inherent to the 1-line template constraint) — follow-up chore; (3) post-merge `ocf:restart-web` required for the new skill file to load in the running web service.
 
 ### 209. Caché de credenciales git por proyecto (git creds cache)
 - Status: ready

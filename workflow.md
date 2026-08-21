@@ -39,6 +39,13 @@ code is written.
 
 ### Discovery Pipeline
 
+The discovery pipeline branches by `- Type:` (BR 1, 12, 13):
+
+- **`bug`** → **lean track** (≤3 phases): PO triage → QA pre-development → PM
+  promotion. CTO and Tech Lead are OPTIONAL and invoked ONLY on escalation.
+  See "Bug Discovery Pipeline (lean track)" below.
+- **`feat`** → the full 6-phase flow below, preserved unchanged.
+
 1. **PO** registers a prioritization proposal in the **project's**
    `.opencode/prioritization.md`. If the project doesn't have this
    file yet, create it. The global `~/.config/opencode/prioritization.md`
@@ -67,6 +74,48 @@ code is written.
    and promotes to `known_issues.md` with status `backlog` or `ready`. If the
    user declines remote creation, the field stays as `-` — it will be
    auto-created during promotion to `in-progress`.
+
+### Bug Discovery Pipeline (lean track)
+
+Bugs are triaged through a lean, token-efficient track (≤3 agent invocations
+vs 6 for the full flow — BR 4) that still enforces the quality gates:
+
+1. **PO triage** (primary escalation decider): loads the `bug-triage` skill
+   on-demand, scores the bug (Severity + Impact + Frequency + Risk), derives
+   `- Priority:` from the score matrix (guard rule applies; the matrix and
+   worked examples live ONLY in `skills/development/bug-triage/SKILL.md` —
+   single source of truth, BR 11), decides escalation (five triggers: no root
+   cause / no reproduction, multi-layer or cross-cutting fix, business-rule
+   ambiguity, security involvement, touches architecture/standards — BR 6),
+   registers `- Flow: lean`, defines `- Base branch:` and `- Reviewers:`
+   (BR 7), and documents business rules when applicable — the literal
+   `- Business rules: none` when the bug has none (BR 5).
+2. **QA pre-development** (secondary escalation decider): validates the
+   `Tests:` severity floor (critical/high ≥3, medium ≥2, low ≥1), accepts the
+   literal `- Business rules: none`, REJECTS `-` (placeholder) as
+   `incomplete-spec`, validates the derived `- Priority:` against the matrix,
+   and may escalate (restart from the CTO) when a trigger surfaces.
+3. **PM promotion** (non-interactive): reads `- Base branch:` and
+   `- Reviewers:` from the entry; `- Flow:`/`- Priority:` are informative and
+   NEVER prompt or block (BR 14).
+
+Escalated bugs MUST restart from the CTO (CTO → Tech Lead → PO#2 → QA → PM)
+and MUST set `- Flow: escalated` (BR 6, 10).
+
+### Aging policy (progressive prioritization)
+
+A medium-priority bug persisting N days in `ready` (N = 7 by default,
+configurable — a documented policy value, not a script) MUST be raised to
+`- Priority: high` by the PO during triage/backlog review, computed from the
+existing `- Ready:`/`- Opened:` timestamps (BR 8). This is a PROCESS rule —
+no new scripts; future mechanization is explicitly out of scope. Critical/high
+bugs rank above non-critical feats in the backlog.
+
+### Coordination note (#25/#74)
+
+Issues #25 and #74 also touch this shared `workflow.md`. Neither is
+in-progress at the time of the differentiated bug-discovery change (#208);
+merge-order coordination is required but non-blocking.
 
 ### Agent Discovery Questions
 

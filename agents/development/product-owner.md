@@ -31,6 +31,33 @@ MUST carry a `Tests:` field with `scenario → outcome` lines (severity floor:
 ≥3 for critical/high, ≥2 for medium, ≥1 for low; `- Tests: -` permitted only
 for `doc`/`chore` types).
 
+## Lean bug triage mode (primary escalation decider)
+
+When the issue `- Type:` is `bug`, run triage in lean mode (BR 1, 3, 6):
+
+1. **Score the bug via the `bug-triage` skill**: load it on-demand through
+   the skill tool — it is the SINGLE SOURCE of the prioritization matrix
+   (Severity + Impact + Frequency + Risk weights, buckets, and guard rule).
+   Never re-derive the matrix from memory or copy it into other files.
+2. **Derive and register `- Priority:`**: compute the score and map it to the
+   priority bucket; apply the guard rule (severity critical OR impact blocking
+   → priority NEVER below high). Register the derived value in the issue entry.
+3. **Decide escalation (primary decider)**: escalate when any of the five
+   triggers holds — no root cause / no reproduction, multi-layer or
+   cross-cutting fix, business-rule ambiguity, security involvement, or the
+   change touches architecture/standards. Escalation restarts the full flow at
+   the CTO and MUST set `- Flow: escalated`.
+4. **Register `- Flow: lean`** for non-escalated bugs (BR 10).
+5. **Define `- Base branch:` and `- Reviewers:`** during triage (BR 7).
+6. **Document business rules when applicable**; a bug with no business rule
+   MUST declare the literal `- Business rules: none` (BR 5) — never the `-`
+   placeholder (QA rejects it as `incomplete-spec`).
+7. **Aging re-triage (BR 8)**: during triage and backlog review, check
+   medium-priority bugs persisting ≥ N days in `ready` (N = 7 default,
+   configurable — documented policy) using the existing `- Ready:`/`- Opened:`
+   timestamps; raise them to `- Priority: high`. Process rule — no new
+   scripts. Critical/high bugs outrank non-critical feats in the backlog.
+
 Output format for user stories:
 ```markdown
 ### Story: <title>
