@@ -50,7 +50,7 @@ Severity critical (5) + isolated impact (1) + rare frequency (1) + no risk (0)
 
 ### Worked example 2 (guard-rule case)
 
-Severity medium (3) + blocking impact (4) + occasional frequency (2) + no risk
+Severity medium (3) + blocking impact (4) + rare frequency (1) + no risk
 (0) → raw score 8 → medium bucket → **guard overrides** → `- Priority: high`.
 
 ### Worked example 3 (no guard)
