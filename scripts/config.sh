@@ -117,3 +117,29 @@ print("; ".join(out))')" 2>/dev/null || true
   JIRA_STATUS_MAP="${env_map:-$file_status_map}"
   [[ -n "$JIRA_BASE_URL" && -n "$JIRA_PROJECT_KEY" && -n "$JIRA_EMAIL" && -n "${JIRA_API_TOKEN:-}" ]]
 }
+
+# --- Secret redaction (issue #209, BR 3) -----------------------------------
+#
+# redact_secret <text> — masks credential-like patterns so secrets never reach
+# outputs, logs, or fingerprints. Centralized helper: every script that can
+# touch secrets MUST route its user-facing output through this function.
+# Idempotent — safe to apply to already-masked text.
+#
+# Masked patterns:
+#   - URL userinfo:  https://user:secret@host  →  https://user:****@host
+#   - Known token env assignments: GITLAB_TOKEN=secret → GITLAB_TOKEN=****
+#   - Generic secret-ish key=value / key:value (TOKEN/PASSWORD/SECRET/API_KEY),
+#     case-insensitive
+redact_secret() {
+  local s="$1"
+  [[ -n "$s" ]] || return 0
+  # URL userinfo (git credential store lines, basic-auth URLs, ...)
+  s="$(printf '%s' "$s" | sed -E 's#(://[^:/@[:space:]]+):[^/@[:space:]]+@#\1:****@#g')"
+  # Known token environment variables (also covers export KEY=... prefix)
+  s="$(printf '%s' "$s" | sed -E 's#((GITLAB_TOKEN|GITLAB_ACCESS_TOKEN|GH_TOKEN|GITHUB_TOKEN|CI_JOB_TOKEN|JIRA_API_TOKEN))=[^[:space:]]*#\1=****#g')"
+  # Generic secret-ish assignments, case-insensitive (bare keys like PASSWORD/
+  # TOKEN/SECRET anywhere in the text, or prefixed like DB_PASSWORD / API_KEY —
+  # the prefix must end in `_`/`-` so the keyword alternation can match itself)
+  s="$(printf '%s' "$s" | sed -E 's#\b([A-Za-z0-9_]*[_-])?(TOKEN|PASSWORD|PASSWD|SECRET|API[_-]?KEY)[=:][^[:space:]]*#\1\2=****#gi')"
+  printf '%s' "$s"
+}
