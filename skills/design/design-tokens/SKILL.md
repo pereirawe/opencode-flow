@@ -20,7 +20,7 @@ The palette has 6 functional layers, 2 accents, and a semantic set. Every color 
 
 2 accents:
 
-- Accent primary: base `#4f46e5`, strong `#4338ca`, soft `#eef2ff`, fallback `#6366f1` (avatar initials); dark mode strong `#818cf8`.
+- Accent primary: base `#4f46e5`, strong `#4338ca`, soft `#eef2ff`, fallback `#4f46e5` (avatar initials); dark mode strong `#818cf8`.
 - Accent secondary: base `#0ea5e9`, strong `#0284c7`, soft `#e0f2fe`; dark mode strong `#38bdf8`.
 
 Semantic:
@@ -85,8 +85,8 @@ Rules:
 
 Radius philosophy: fewer, consistent values. One radius family per surface.
 
-- Radius sm: `4px` - inputs, controls, small elements.
-- Radius md: `8px` - buttons, menus, list items.
+- Radius sm: `4px` - small elements.
+- Radius md: `8px` - inputs, buttons, menus, list items.
 - Radius lg: `12px` - cards, panels, tables.
 - Radius full: `999px` - badges, avatars, pills only.
 

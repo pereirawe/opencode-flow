@@ -70,7 +70,7 @@ Parts: image or initials, optional status dot.
 
 - Sizes: 24px (inline), 32px (list), 40px (header), 56px (detail).
 - Shape: `border-radius: 999px`; `border: 2px solid #ffffff` when placed over a colored surface.
-- Initials: 12px (24/32px), 14px (40px), 18px (56px), weight 600, `color: #ffffff`, fallback `background: #6366f1` (accent-primary-fallback).
+- Initials: 12px (24/32px), 14px (40px), 18px (56px), weight 600, `color: #ffffff`, fallback `background: #4f46e5` (accent-primary-fallback).
 
 Rules:
 

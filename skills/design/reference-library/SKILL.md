@@ -29,7 +29,7 @@ Rules:
 
 1. A card MUST use exactly `border-radius: 12px`; never mix radii on one card.
 2. A card that is not interactive MUST NOT change elevation on hover.
-3. Card padding MUST come from the 4pt spacing scale: 16px default, 24px for cards at least 480px wide, 12px for dense cards.
+3. Card padding MUST come from the 4pt spacing scale: 16px default, 24px for cards at least 480px wide, 12px for compact cards (density modes apply to data-dense surfaces only — see `visual-hierarchy` Density modes).
 4. A card MUST NOT contain a nested card at the same elevation; use a flat section inside instead.
 5. A card header MUST keep title and action on one row at 480px and above; the action MUST move below the title below 480px.
 
