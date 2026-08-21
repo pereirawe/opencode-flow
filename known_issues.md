@@ -353,14 +353,19 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: Aplicar o mesmo tratamento do #72 D5 ao cv-cover-letter: remover permissão/instruções/template `curl -L` e exigir texto colado. Follow-up registrado na senior review do #72 (L1, não-bloqueante para o #72).
 
 ### 80. Audit/Refactor agents (ui-auditor, ui-refactor-planner)
-- Status: backlog
+- Status: in-publish
+- Opened: 2026-08-21
+- Ready: 2026-08-21
+- Started: 2026-08-21
+- In review: 2026-08-21
+- In publish: 2026-08-21
 - Type: feat
 - Severity: high
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 2 (devops, frontend)
-- Remote: -
-- PR: -
+- Remote: #117
+- PR: #118
 - Location: agents/design/ui-auditor.md, agents/design/ui-refactor-planner.md
 - Description: Create 2 agents for existing codebase refactoring: ui-auditor (stack-agnostic diagnostic → audit_report.json) and ui-refactor-planner (diagnostic + design_spec → phased refactor_plan.json). Enables the pipeline to work on existing projects, not just greenfield.
 - Impact: Extends the Adorable pipeline from new-project-only to any existing codebase. The auditor produces machine-readable diagnostics; the planner produces a migration plan that never breaks working functionality.
