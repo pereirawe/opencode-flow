@@ -353,14 +353,19 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: Aplicar o mesmo tratamento do #72 D5 ao cv-cover-letter: remover permissão/instruções/template `curl -L` e exigir texto colado. Follow-up registrado na senior review do #72 (L1, não-bloqueante para o #72).
 
 ### 83. Design sector documentation (READMEs, agent-skill mapping, standards)
-- Status: backlog
+- Status: in-publish
+- Opened: 2026-08-21
+- Ready: 2026-08-21
+- Started: 2026-08-21
+- In review: 2026-08-21
+- In publish: 2026-08-21
 - Type: doc
 - Severity: medium
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 1 (docs)
-- Remote: -
-- PR: -
+- Remote: #123
+- PR: #124
 - Location: agents/design/README.md, agents/README.md, skills/README.md, standards/design-pipeline.md, workflow.md, opencode.json
 - Description: Create design sector documentation: README listing all 6 agents with pipeline flow and skill mapping, update parent READMEs, create output conventions standard, update workflow.md with design pipeline entry point, register agents/commands in opencode.json.
 - Impact: Makes the design sector discoverable and maintainable. Without documentation, new users cannot find the pipeline or understand agent-skill relationships.
@@ -387,7 +392,7 @@ issues only. See `standards/issues.md` for the full contract.
   4. `grep "design" skills/README.md` → design sector listed.
   5. `ls standards/design-pipeline.md` → exists.
   6. `grep "build-ui\|audit-ui" workflow.md` → design pipeline documented.
-  7. `jq '.agents | keys | map(select(startswith("design/")))' opencode.json | wc -l` → ≥6 agents registered.
+  7. `ls agents/design/*.md | wc -l` → ≥6 agent files registered (agents are file-based; `ocf:build-ui`/`ocf:audit-ui` verified in opencode.json `command` key).
 - Suggested fix: Create documentation files after #81, #82, and #83 are implemented (agents and commands must exist to be documented). Update parent READMEs and workflow.md. Register everything in opencode.json.
 
 ### 202. Remove savings badge from Vitrine plan in business pricing table

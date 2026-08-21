@@ -9,6 +9,15 @@ Reusable capabilities organized by business sector.
 
 ## Design
 
+### Native (`skills/design/` — the Adorable pipeline)
+
+| Skill | Purpose |
+|-------|---------|
+| `design-tokens` | Canonical token system — palette (6 functional layers + 2 accents + semantic), typography (2 families), 4pt spacing, radius/shadow tiers, motion durations |
+| `reference-library` | Canonical component pattern library — concrete UI patterns; every component resolves to `design-tokens` |
+| `component-patterns` | Component contract rules — props/states/events, accessibility, responsive, motion (150ms) |
+| `visual-hierarchy` | Layout/typography hierarchy rules — visual weight, contrast; 3 density modes for data-dense surfaces |
+
 External (vendor clone of `Leonxlnx/taste-skill`):
 
 | Skill | Purpose |
@@ -24,14 +33,14 @@ Other design skills from vendor: `motion-design` (LottieFiles/motion-design-skil
 `frontend-designer` (kozz36/frontend-designer-skill, sparse `versions/v3.0`),
 `poster-design-generation` (eachlabs/skills, sparse `skills/poster-design-generation`).
 
-Mapeamento de casos de uso → skill:
+Use-case → skill mapping:
 
-| Caso de uso | Skill |
+| Use case | Skill |
 |---|---|
-| Landing / portfolio novo | `design-taste-frontend` (default) |
-| Redesenhar algo existente | `redesign-existing-projects` |
-| UI tipo Notion/Linear (minimalista) | `minimalist-ui` |
-| Soft UI / glassmorphism | sem skill dedicada — seguir `design-taste-frontend` com vibe "glassy"/"soft" |
+| New landing / portfolio | `design-taste-frontend` (default) |
+| Redesign an existing site | `redesign-existing-projects` |
+| Notion/Linear-style minimal UI | `minimalist-ui` |
+| Soft UI / glassmorphism | no dedicated skill — follow `design-taste-frontend` with a "glassy"/"soft" vibe |
 
 ## External batch (issue #44)
 
