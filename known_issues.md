@@ -692,10 +692,11 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: Apply the same treatment as issue #203 to `skills/career/cv-optimizer/templates/profile-analysis.html`: replace the blanket `section { break-inside: avoid; }` with `section { break-inside: auto; orphans: 3; widows: 3; }`, keep `table tr { break-inside: avoid; }` and `h2 { break-after: avoid; }`, add a regression assertion in scripts/tests/test_cv.sh, and run `make test-scripts`. Effort ~1-2h. Origem: senior review do #203 (docs profile, finding 1 — incomplete-spec).
 
 ### 208. Differentiated bug discovery flow — fast, prioritized, token-efficient (still refined)
-- Status: in-review
+- Status: in-publish
 - Opened: 2026-08-19
 - Started: 2026-08-21
 - In review: 2026-08-21
+- In publish: 2026-08-21
 - Type: feat
 - Severity: high
 - Priority: high
