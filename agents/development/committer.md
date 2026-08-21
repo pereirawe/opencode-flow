@@ -17,7 +17,7 @@ permission:
     "git branch -D *": deny
   edit:
     "*": "allow"
-    "~/.config/opencode/.opencode/cache/**": "deny"
+    ".opencode/cache/**": "deny"
 ---
 Verify that the pipeline gates are satisfied before MR creation.
 

@@ -10,7 +10,7 @@ permission:
     "~/.config/opencode/scripts/aibot-watcher.sh": deny
     "~/.config/opencode/state/**": deny
     "~/.ssh/**": deny
-    "~/.config/opencode/.opencode/cache/**": deny
+    ".opencode/cache/**": deny
   bash:
     "*": deny
     "git *": allow

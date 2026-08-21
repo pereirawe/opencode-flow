@@ -15,7 +15,7 @@ permission:
     "git branch -D *": deny
   edit:
     "*": "allow"
-    "~/.config/opencode/.opencode/cache/**": "deny"
+    ".opencode/cache/**": "deny"
 ---
 Create and manage merge/pull requests.
 
