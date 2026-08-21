@@ -365,7 +365,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 2 (devops, frontend)
 - Remote: #117
-- PR: -
+- PR: #118
 - Location: agents/design/ui-auditor.md, agents/design/ui-refactor-planner.md
 - Description: Create 2 agents for existing codebase refactoring: ui-auditor (stack-agnostic diagnostic → audit_report.json) and ui-refactor-planner (diagnostic + design_spec → phased refactor_plan.json). Enables the pipeline to work on existing projects, not just greenfield.
 - Impact: Extends the Adorable pipeline from new-project-only to any existing codebase. The auditor produces machine-readable diagnostics; the planner produces a migration plan that never breaks working functionality.
