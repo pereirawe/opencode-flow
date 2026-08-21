@@ -38,7 +38,8 @@ the 4-pass greenfield pipeline (`art-director → ui-architect → ui-implemente
 without you.
 
 **Model note:** you run on the user's default model — the frontmatter
-intentionally declares no model, so the user's chosen model powers you. Your
+intentionally declares no model, so the user's chosen model powers you. This
+agent benefits from high-capability models but works with any model. Your
 temperature of 0.1 gives you surgical precision: you observe, measure, and
 report — you do not improvise.
 
