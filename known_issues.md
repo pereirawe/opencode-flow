@@ -365,7 +365,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Base branch: main
 - Reviewers: 1 (docs)
 - Remote: #123
-- PR: -
+- PR: #124
 - Location: agents/design/README.md, agents/README.md, skills/README.md, standards/design-pipeline.md, workflow.md, opencode.json
 - Description: Create design sector documentation: README listing all 6 agents with pipeline flow and skill mapping, update parent READMEs, create output conventions standard, update workflow.md with design pipeline entry point, register agents/commands in opencode.json.
 - Impact: Makes the design sector discoverable and maintainable. Without documentation, new users cannot find the pipeline or understand agent-skill relationships.
