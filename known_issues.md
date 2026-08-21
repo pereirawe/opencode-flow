@@ -353,11 +353,12 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: Aplicar o mesmo tratamento do #72 D5 ao cv-cover-letter: remover permissão/instruções/template `curl -L` e exigir texto colado. Follow-up registrado na senior review do #72 (L1, não-bloqueante para o #72).
 
 ### 83. Design sector documentation (READMEs, agent-skill mapping, standards)
-- Status: in-review
+- Status: in-publish
 - Opened: 2026-08-21
 - Ready: 2026-08-21
 - Started: 2026-08-21
 - In review: 2026-08-21
+- In publish: 2026-08-21
 - Type: doc
 - Severity: medium
 - Report: william_pereira
