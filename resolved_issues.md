@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 81. /ocf:build-ui orchestration command + output file conventions
+- Resolved: 2026-08-21
+- Durations: backlog=0d waiting=0d dev=0d review=- qa=- publish=0d total=0d
+- Severity: high
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #119
+- Summary: Create 2 orchestration commands and define output file conventions. `/ocf:build-ui` orchestrates the 4-pass greenfield pipeline; `/ocf:audit-ui` orchestrates audit+refactor. Output conventions define deterministic file paths for pipeline artifacts, enabling resumption and multi-model flows. — Create the 2 commands and `standards/design-pipeline.md`. Register in opencode.json. Update workflow.md. Depends on #81 and #82 (agents must exist before commands can invoke them).
+
 ### 80. Audit/Refactor agents (ui-auditor, ui-refactor-planner)
 - Resolved: 2026-08-21
 - Durations: backlog=0d waiting=0d dev=0d review=- qa=- publish=0d total=0d
