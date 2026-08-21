@@ -118,6 +118,12 @@ symlink_refusal() {
   git -C "$d" init -q
   git -C "$d" -c user.name=t -c user.email=t@t commit -qm init --allow-empty
   rm -rf "$d/$link_path" 2>/dev/null || true
+  # The parent of the link path must exist for ln -s to succeed — for the
+  # `dir` level (.opencode/cache/git) the grandparent .opencode/cache does not
+  # exist yet, so without this the symlink is never created (ln fails
+  # silently) and the deepest guard is never exercised, making the "remains a
+  # symlink" / "victim empty" assertions vacuous (runtime B1 / QA MEDIUM-1).
+  mkdir -p "$(dirname "$d/$link_path")"
   ln -s "$victim" "$d/$link_path"
   (
     cd "$d" || exit 1
@@ -127,6 +133,22 @@ symlink_refusal() {
     "symlink($name): --set does not write through $link_path symlink"
   assert_eq "1" "$([[ -L "$d/$link_path" ]] && echo 1 || echo 0)" \
     "symlink($name): $link_path remains a symlink (script refused)"
+  # FIX-B read-path guards: --get/--identity/--status/--erase must never
+  # resolve through a symlinked cache component (security F3 residual).
+  get_out="$(cd "$d" && bash "$SCRIPT" --get </dev/null 2>&1)"
+  assert_eq "" "$get_out" "symlink($name): --get does not read through $link_path"
+  ident_out="$(cd "$d" && bash "$SCRIPT" --identity </dev/null 2>&1)"
+  assert_eq "" "$ident_out" "symlink($name): --identity does not read through $link_path"
+  status_out="$(cd "$d" && bash "$SCRIPT" --status </dev/null 2>&1)"
+  assert_contains <(printf '%s' "$status_out") "credentials: absent" \
+    "symlink($name): --status treats symlinked cache as absent"
+  # --erase must refuse a symlinked cache component: plant a marker inside the
+  # target and confirm it survives (rm -f would otherwise resolve through the
+  # symlinked dir and delete it — security F3 residual).
+  printf 'keep\n' > "$victim/.erase-guard-marker"
+  ( cd "$d" && bash "$SCRIPT" --erase </dev/null 2>/dev/null )
+  assert_eq "1" "$([[ -f "$victim/.erase-guard-marker" ]] && echo 1 || echo 0)" \
+    "symlink($name): --erase does not delete inside the $link_path target"
 }
 symlink_refusal "dir" ".opencode/cache/git"
 symlink_refusal "root" ".opencode/cache"
@@ -192,18 +214,47 @@ assert_contains "$TMP/status-cross.txt" "<set>" "--status masks identity email a
 assert_not_contains "$TMP/cross-set.txt" "glpat-cross" "no token in the write-path log"
 assert_not_contains "$TMP/status-cross.txt" "name=Cross User" "--status never prints identity values"
 
+# FIX-C (security F4): URL userinfo redaction anchors to the LAST `@` before
+# the host — a token containing `@` must not leak its tail
+# (`https://user:tok@en@host.com` must become `https://user:****@host.com`,
+# not `https://user:****@en@host.com`). Previously-passing cases (x-access-
+# token, /-tokens, idempotency) must stay intact.
+# shellcheck source=config.sh
+source "$HERE/../config.sh"
+redact_case() {  # redact_case <expected> <input> <label>
+  assert_eq "$1" "$(redact_secret "$2")" "$3"
+}
+redact_case "https://user:****@host.com" "https://user:tok@en@host.com" \
+  "redact: token containing @ masks up to the LAST @ before the host (no tail leak)"
+redact_case "https://x-access-token:****@github.com" "https://x-access-token:ghp_123@github.com" \
+  "redact: x-access-token keeps the host and masks the token"
+redact_case "https://user:****@host.com" "https://user:tok/en@host.com" \
+  "redact: /-tokens are fully masked"
+redact_case "https://user:****@host.com" "$(redact_secret "https://user:tok@en@host.com")" \
+  "redact: idempotent on already-masked text"
+
 # ===========================================================================
 # Scenario 6 — opencode.json deny (findLast) + agent granular bash perms
 # ===========================================================================
 if ! command -v jq >/dev/null 2>&1; then
   t_fail "jq is required for the config assertions in test_git_cred_cache"
 else
+  # The deny uses a RELATIVE pattern (.opencode/cache/**): opencode evaluates
+  # read/edit permissions against WORKSPACE-RELATIVE paths (e.g.
+  # `.opencode/cache/git/credentials`), so an absolute pattern like
+  # `~/.config/opencode/.opencode/cache/**` can never match — an unmatched
+  # rule means `ask`, i.e. auto-allowed under --auto (security F1). The deny
+  # must be relative AND the LAST rule of each permission object (findLast —
+  # the last matching rule wins under --auto).
   last_edit="$(jq -r '.permission.edit | to_entries[-1] | .key' "$CONFIG")"
-  assert_eq "~/.config/opencode/.opencode/cache/**" "$last_edit" \
+  assert_eq ".opencode/cache/**" "$last_edit" \
     "opencode.json: cache deny is the LAST edit rule (findLast wins)"
-  deny_edit="$(jq -r '.permission.edit["~/.config/opencode/.opencode/cache/**"]' "$CONFIG")"
+  deny_edit="$(jq -r '.permission.edit[".opencode/cache/**"]' "$CONFIG")"
   assert_eq "deny" "$deny_edit" "opencode.json: edit deny on .opencode/cache/**"
-  deny_read="$(jq -r '.permission.read["~/.config/opencode/.opencode/cache/**"]' "$CONFIG")"
+  last_read="$(jq -r '.permission.read | to_entries[-1] | .key' "$CONFIG")"
+  assert_eq ".opencode/cache/**" "$last_read" \
+    "opencode.json: cache deny is the LAST read rule (findLast wins)"
+  deny_read="$(jq -r '.permission.read[".opencode/cache/**"]' "$CONFIG")"
   assert_eq "deny" "$deny_read" "opencode.json: read deny on .opencode/cache/**"
 fi
 
@@ -242,10 +293,19 @@ for AG in committer publish-requester; do
   grep -qF '"git *": allow' "$F" && t_ok "$AG.md: git allow kept" || t_fail "$AG.md: missing git allow"
   grep -qF '"gh *": allow' "$F" && t_ok "$AG.md: gh allow kept" || t_fail "$AG.md: missing gh allow"
   grep -qF '"glab *": allow' "$F" && t_ok "$AG.md: glab allow kept" || t_fail "$AG.md: missing glab allow"
-  grep -qF '"*scripts/test-runner.sh *": allow' "$F" \
-    && t_ok "$AG.md: test-runner allow kept" || t_fail "$AG.md: missing test-runner allow"
-  grep -qF '"*scripts/transition.sh *": allow' "$F" \
-    && t_ok "$AG.md: transition allow kept" || t_fail "$AG.md: missing transition allow"
+  # BR 9 / runtime B2: test-runner/transition allows are scoped to the agents
+  # whose duties require them (developer + committer). publish-requester's
+  # duties are git remote/log + gh/glab — asserting test-runner/transition
+  # there is an over-assertion (QA LOW-1).
+  ln_catch="$(grep -nF '"*": deny' "$F" | head -1 | cut -d: -f1)"
+  ln_git="$(grep -nF '"git *": allow' "$F" | head -1 | cut -d: -f1)"
+  ln_destr="$(grep -nF '"git push --force*": deny' "$F" | head -1 | cut -d: -f1)"
+  if [[ -n "$ln_catch" && -n "$ln_git" && -n "$ln_destr" ]] \
+     && [[ "$ln_catch" -lt "$ln_git" && "$ln_git" -lt "$ln_destr" ]]; then
+    t_ok "$AG.md: bash rule order catch-all → allows → destructive denies"
+  else
+    t_fail "$AG.md: bash rule order wrong (catch=$ln_catch git=$ln_git destr=$ln_destr)"
+  fi
   if grep -qF 'edit: allow' "$F"; then
     t_fail "$AG.md: flat 'edit: allow' must be an explicit object (cache deny last)"
   else
@@ -255,20 +315,34 @@ for AG in committer publish-requester; do
     || t_fail "$AG.md: edit object missing \"*\": allow"
 done
 
+# test-runner/transition allows: developer + committer only (BR 9 / runtime B2)
+for AG in developer committer; do
+  F="$HERE/../../agents/development/$AG.md"
+  grep -qF '"*scripts/test-runner.sh *": allow' "$F" \
+    && t_ok "$AG.md: test-runner allow kept" || t_fail "$AG.md: missing test-runner allow"
+  grep -qF '"*scripts/transition.sh *": allow' "$F" \
+    && t_ok "$AG.md: transition allow kept" || t_fail "$AG.md: missing transition allow"
+done
+
 # Every pipeline agent file must have the cache deny as the LAST rule of its
 # edit block (agent-level denies win over the global opencode.json allow under
 # findLast). Line-number check: the cache deny sits inside the edit block and
 # is immediately followed by the next permission key (or the frontmatter end).
 for AG in developer committer publish-requester; do
   F="$HERE/../../agents/development/$AG.md"
-  ln_cache_deny="$(grep -nF '"~/.config/opencode/.opencode/cache/**": deny' "$F" | head -1 | cut -d: -f1)"
+  # RELATIVE pattern (opencode evaluates permissions against workspace-relative
+  # paths — an absolute pattern can never match and silently degrades to `ask`,
+  # security F1). Tolerant of quoted vs unquoted `deny` values: developer.md
+  # writes `deny`, committer/publish-requester write `"deny"` (runtime B3 /
+  # QA MEDIUM-2).
+  ln_cache_deny="$(grep -nE '^[[:space:]]*"\.opencode/cache/\*\*"[[:space:]]*:[[:space:]]*"?deny"?[[:space:]]*$' "$F" | head -1 | cut -d: -f1)"
   ln_edit_key="$(grep -nF '  edit:' "$F" | head -1 | cut -d: -f1)"
   ln_next="$(awk -v k="$ln_edit_key" 'NR > k && (/^  [a-z]+:/ || /^---/) { print NR; exit }' "$F")"
   if [[ -n "$ln_cache_deny" && -n "$ln_edit_key" && -n "$ln_next" ]] \
      && [[ "$ln_cache_deny" -gt "$ln_edit_key" && "$((ln_cache_deny + 1))" -eq "$ln_next" ]]; then
-    t_ok "$AG.md: cache deny is the LAST edit rule (edit=$ln_edit_key cache=$ln_cache_deny)"
+    t_ok "$AG.md: relative cache deny is the LAST edit rule (edit=$ln_edit_key cache=$ln_cache_deny)"
   else
-    t_fail "$AG.md: cache deny must be the last edit rule (edit=$ln_edit_key cache=$ln_cache_deny next=$ln_next)"
+    t_fail "$AG.md: relative cache deny must be the last edit rule (edit=$ln_edit_key cache=$ln_cache_deny next=$ln_next)"
   fi
 done
 
