@@ -17,6 +17,7 @@ Every run creates a **session id** and a dedicated output directory:
   (e.g. `2026-08-17T14-30-00`) — hyphens replace colons so the value is safe
   for use in file and directory names.
 - The output directory is created at command start if missing.
+- Shorthand: hereafter `<dir>` = `.opencode/design-outputs/<session-id>/`.
 
 ## Output files
 
@@ -39,11 +40,26 @@ The five canonical output files:
   `refactor_plan.json` when refactoring).
 - `refactor_plan.json` — Group A/B/C issue triage, per-stack token strategy,
   component decisions, phased plan with rollback, dependency map, token
-  mapping. Consumes `audit_report.json` + `design_spec.json`.
+  mapping. Consumes `audit_report.json` + `design_spec.json`. During refactor
+  flows (`/ocf:audit-ui` optional pass 3) `ui-implementer` ALSO consumes
+  `refactor_plan.json`, alongside `design_spec.json` and
+  `component_tree.json`.
 - `audit_report.json` — detected stack, 1–5 scores per dimension, `file:line`
   citations, preserved patterns.
 - `quality_report.json` — `APPROVED` or `ISSUES_FOUND` with component-specific
   findings; blocking failures block delivery.
+
+### Implementer hand-off (`handoff.json`)
+
+Passes 1, 2 and 4 produce deterministic files (`design_spec.json`,
+`component_tree.json`, `quality_report.json`), so a resumed run can tell
+whether a stage completed. The implementer (pass 3) writes code, which a
+resumed run cannot detect — so the implementer's structured hand-off is
+persisted to a deterministic auxiliary file `<dir>/handoff.json`. **Pass 3 is
+considered complete when `<dir>/handoff.json` exists; resumption skips it
+then.** `handoff.json` is an AUXILIARY pipeline artifact, in addition to the
+five canonical output files above — it is the internal hand-off that enables
+resumption, documented as such, not a sixth canonical output.
 
 ## JSON chaining contract
 
@@ -60,7 +76,9 @@ success, offline) are the same end-to-end.
    (`.opencode/design-outputs/<session-id>/`).
 2. **Resume** — re-running the command with the same session id skips stages
    whose output files already exist and continues from the first missing
-   stage.
+   stage. Pass 3 is considered complete when the implementer's auxiliary
+   hand-off `<dir>/handoff.json` exists (see "Implementer hand-off
+   (`handoff.json`)").
 3. **Share** — `build-ui` and `audit-ui` share the session id convention, so a
    prior `/ocf:build-ui` `design_spec.json` can feed `/ocf:audit-ui`'s planner
    (and vice versa when chaining into the build pipeline).
@@ -75,7 +93,10 @@ brief → art-director → design_spec.json → ui-architect → component_tree.
 ```
 
 `ui-critic` returns `APPROVED` or `ISSUES_FOUND`; blocking findings iterate
-back to `ui-implementer` (max 3 rounds) before delivery.
+back to `ui-implementer` (max 3 rounds) before delivery. If still
+`ISSUES_FOUND` after 3 rounds, the command stops, logs the failure, sends a
+Telegram notification, and delivers with the remaining findings listed in the
+summary.
 
 ### Audit/refactor (`/ocf:audit-ui`)
 
@@ -84,9 +105,12 @@ codebase → ui-auditor → audit_report.json → ui-refactor-planner → refact
 ```
 
 The planner also consumes the art-director's `design_spec.json` when
-available. Optional pass 3 chains into the build pipeline
-(`ui-architect` → `ui-implementer` → `ui-critic`), reusing the same session id
-and output files.
+available. Optional pass 3 chains into the build pipeline, reusing the same
+session id and output files: `ui-architect` consumes `design_spec.json` (when
+available) + `refactor_plan.json` → `component_tree.json`; `ui-implementer`
+consumes `design_spec.json` + `component_tree.json` + `refactor_plan.json` +
+project root → production code; `ui-critic` consumes code + `design_spec.json`
++ `component_tree.json` → `quality_report.json`.
 
 ## Failure policy
 

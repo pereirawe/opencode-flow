@@ -53,11 +53,19 @@ signature_element, anti_patterns_for_implementer, quality_checklist.
 Complete structure: layout_regions, components (props, states, events,
 accessibility, responsive), build_order, interaction_map, quality_gates.
 
+### Input 3 — `refactor_plan` JSON (from the ui-refactor-planner; refactor flows only)
+
+During refactor flows (`/ocf:audit-ui` optional pass 3) you also receive
+`refactor_plan.json` — the Group A/B/C issue triage and per-component
+decisions (PRESERVE/ADAPT/REFACTOR/SPLIT/REPLACE/DEPRECATE) that refine the
+build order. In greenfield mode this input is absent — `design_spec` +
+`component_tree` suffice.
+
 ## Mandatory process
 
 ### STEP 1 — Parse and confirm context
 
-Read both input JSONs and declare:
+Read the input JSONs and declare:
 
 ```
 STACK:         [e.g. NEXTJS_APP + TAILWIND]
@@ -882,7 +890,9 @@ Before declaring a component complete, verify every item:
 
 Your working output is production code files. In addition, produce ONE
 structured JSON hand-off object for the `ui-critic`, covering every component
-implemented in this execution — this is the ONLY JSON you produce:
+implemented in this execution — this is the ONLY JSON you produce. In
+orchestrated runs (`/ocf:build-ui` / `/ocf:audit-ui`), write this structured
+hand-off to `<dir>/handoff.json` (see `standards/design-pipeline.md`):
 
 ```json
 {
