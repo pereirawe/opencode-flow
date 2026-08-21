@@ -130,16 +130,30 @@ print("; ".join(out))')" 2>/dev/null || true
 #   - Known token env assignments: GITLAB_TOKEN=secret → GITLAB_TOKEN=****
 #   - Generic secret-ish key=value / key:value (TOKEN/PASSWORD/SECRET/API_KEY),
 #     case-insensitive
+#
+# Rule order matters: the generic rule runs FIRST so its value terminator
+# (which stops at `@`) never swallows an already-masked `****@host` — the URL
+# userinfo rule runs LAST and restores the canonical `user:****@host` form with
+# the host preserved. The generic value also stops at whitespace so a spaced
+# value (`TOKEN: glpat-abc`) is fully consumed with no leaked remainder.
 redact_secret() {
   local s="$1"
   [[ -n "$s" ]] || return 0
-  # URL userinfo (git credential store lines, basic-auth URLs, ...)
-  s="$(printf '%s' "$s" | sed -E 's#(://[^:/@[:space:]]+):[^/@[:space:]]+@#\1:****@#g')"
-  # Known token environment variables (also covers export KEY=... prefix)
-  s="$(printf '%s' "$s" | sed -E 's#((GITLAB_TOKEN|GITLAB_ACCESS_TOKEN|GH_TOKEN|GITHUB_TOKEN|CI_JOB_TOKEN|JIRA_API_TOKEN))=[^[:space:]]*#\1=****#g')"
   # Generic secret-ish assignments, case-insensitive (bare keys like PASSWORD/
   # TOKEN/SECRET anywhere in the text, or prefixed like DB_PASSWORD / API_KEY —
-  # the prefix must end in `_`/`-` so the keyword alternation can match itself)
-  s="$(printf '%s' "$s" | sed -E 's#\b([A-Za-z0-9_]*[_-])?(TOKEN|PASSWORD|PASSWD|SECRET|API[_-]?KEY)[=:][^[:space:]]*#\1\2=****#gi')"
+  # the prefix must end in `_`/`-` so the keyword alternation can match itself).
+  # The value stops at whitespace, `=`, `:`, or `@` — so `TOKEN: glpat-abc`
+  # masks fully (no ` glpat-abc` leak) and `x-access-token:ghp_123@github.com`
+  # keeps `@github.com` for the URL rule below.
+  s="$(printf '%s' "$s" | sed -E 's#\b([A-Za-z0-9_]*[_-])?(TOKEN|PASSWORD|PASSWD|SECRET|API[_-]?KEY)[=:][[:space:]]*[^[:space:]=:@]*#\1\2=****#gi')"
+  # Known token environment variables (also covers export KEY=... prefix)
+  s="$(printf '%s' "$s" | sed -E 's#((GITLAB_TOKEN|GITLAB_ACCESS_TOKEN|GH_TOKEN|GITHUB_TOKEN|CI_JOB_TOKEN|JIRA_API_TOKEN))=[^[:space:]]*#\1=****#g')"
+  # URL userinfo LAST (git credential store lines, basic-auth URLs, ...).
+  # Accepts `:` or `=` separators (the generic rule rewrites
+  # `x-access-token:ghp_123@github.com` to `x-access-token=****@github.com`
+  # first; this rule normalizes it back to `x-access-token:****@github.com`).
+  # The token charset allows `/` (e.g. https://user:tok/en@host.com) and the
+  # host is captured separately so it is never dropped.
+  s="$(printf '%s' "$s" | sed -E 's#(://[^:/@[:space:]]+)[=:][^@[:space:]]+@([^/@[:space:]]+)#\1:****@\2#g')"
   printf '%s' "$s"
 }
