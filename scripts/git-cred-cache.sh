@@ -17,8 +17,9 @@
 #     of .opencode/cache/** for agents (access via script only).
 #   - Fail-silent: missing/unreadable cache → no prompts (stdin is never read),
 #     no secrets in error messages; --status is the diagnostic path.
-#   - Symlink-safe: the project root is resolved with `pwd -P` and writes are
-#     refused when .opencode/.opencode/cache/cache-dir is a symlink.
+#   - Symlink-safe: the project root is the git top-level worktree (resolved
+#     through `pwd -P`, falling back to CWD outside a repo) and writes are
+#     refused when .opencode/cache/cache-dir is a symlink.
 #   - Atomic writes (tmp + mv) and flock for concurrent safety.
 #
 # Subcommands (run from the project root):
@@ -40,8 +41,16 @@ SCRIPT_DIR="$(cd "${SCRIPT_SRC%/*}" && pwd)"
 # shellcheck source=config.sh
 source "$SCRIPT_DIR/config.sh"
 
-# Cache location — resolved from the CWD (symlink-safe, BR 7 / test 3).
-PROJECT_ROOT="$(pwd -P)"
+# Cache location — resolved from the project root (BR 7 / test 3). Inside a
+# git repo the root is the top-level worktree so --set/--get from any
+# subdirectory resolve to the SAME store that --init wired into
+# credential.helper. Outside a repo, falls back to the physical CWD.
+# Symlink-safe: `cd <toplevel> && pwd -P` resolves the physical path.
+if git rev-parse --show-toplevel >/dev/null 2>&1; then
+  PROJECT_ROOT="$(cd "$(git rev-parse --show-toplevel 2>/dev/null)" && pwd -P)"
+else
+  PROJECT_ROOT="$(pwd -P)"
+fi
 CACHE_ROOT="$PROJECT_ROOT/.opencode/cache"
 CACHE_DIR="$CACHE_ROOT/git"
 CREDENTIALS_FILE="$CACHE_DIR/credentials"
@@ -118,12 +127,14 @@ atomic_write_file() {
 
 # --init: configure the LOCAL git store pointing at the cache (absolute path)
 # and disable interactive credential prompts. NEVER writes identity or secrets
-# to .git/config (BR 7). Fail-silent outside a git repo.
+# to .git/config (BR 7). Fail-silent outside a git repo — the repo check runs
+# BEFORE any cache dir is created, so --init never leaves side-effect dirs
+# behind outside a repo.
 cmd_init() {
-  ensure_cache_dir || exit 0
   if ! git rev-parse --git-dir >/dev/null 2>&1; then
     exit 0
   fi
+  ensure_cache_dir || exit 0
   git config --local credential.helper "store --file=$CREDENTIALS_FILE" 2>/dev/null || true
   git config --local credential.interactive never 2>/dev/null || true
   exit 0
@@ -132,12 +143,18 @@ cmd_init() {
 # write_entry <host> <user> <token> <force> — idempotent append/overwrite.
 # An identical line → no-op; a different token for the same host+user → skip
 # unless --force; atomic and flock-protected (BR 2, test 3/7).
+# host/user/token are compared as FIXED STRINGS (parameter expansion + quoted
+# suffix glob) so token metacharacters are never interpreted as glob patterns.
+# A symlinked store file is refused fail-silent (security F3, test 3).
 write_entry() {
   local host="$1" user="$2" token="$3" force="$4"
   ensure_cache_dir || return 0
   [[ -n "$token" ]] || return 0
+  [[ -L "$CREDENTIALS_FILE" ]] && return 0  # refuse reads/writes via symlink
 
-  local line="https://${user}:${token}@${host}"
+  local prefix="https://${user}:"
+  local suffix="@${host}"
+  local line="${prefix}${token}${suffix}"
 
   cache_lock
   local existing="" has_exact=0 has_other=0 l
@@ -146,7 +163,7 @@ write_entry() {
       [[ -n "$l" ]] || continue
       existing+="$l"$'\n'
       if [[ "$l" == "$line" ]]; then has_exact=1; fi
-      if [[ "$l" == "https://${user}:"*"@${host}" && "$l" != "$line" ]]; then has_other=1; fi
+      if [[ "$l" != "$line" && "${l#"$prefix"}" != "$l" && "$l" == *"$suffix" ]]; then has_other=1; fi
     done < "$CREDENTIALS_FILE"
   fi
 
@@ -163,7 +180,7 @@ write_entry() {
   if [[ -n "$existing" ]]; then
     while IFS= read -r l; do
       [[ -n "$l" ]] || continue
-      if [[ "$l" == "https://${user}:"*"@${host}" && "$l" != "$line" ]]; then
+      if [[ "$l" != "$line" && "${l#"$prefix"}" != "$l" && "$l" == *"$suffix" ]]; then
         continue  # drop the stale entry for this host+user (force path)
       fi
       out+="$l"$'\n'
@@ -209,9 +226,10 @@ cmd_set() {
 }
 
 # --get: print stored credentials with tokens masked. Never emits identity
-# fields (BR 2 / test 5). Fail-silent when absent/unreadable (BR 8).
+# fields (BR 2 / test 5). Fail-silent when absent/unreadable, or when the
+# store path is a symlink (security F3 — never read through a symlink).
 cmd_get() {
-  if [[ ! -f "$CREDENTIALS_FILE" || ! -r "$CREDENTIALS_FILE" ]]; then
+  if [[ ! -f "$CREDENTIALS_FILE" || ! -r "$CREDENTIALS_FILE" || -L "$CREDENTIALS_FILE" ]]; then
     exit 0
   fi
   local line
@@ -253,7 +271,7 @@ cmd_identity() {
     exit 0
   fi
 
-  if [[ ! -f "$IDENTITY_FILE" || ! -r "$IDENTITY_FILE" ]]; then
+  if [[ ! -f "$IDENTITY_FILE" || ! -r "$IDENTITY_FILE" || -L "$IDENTITY_FILE" ]]; then
     exit 0
   fi
   local line
