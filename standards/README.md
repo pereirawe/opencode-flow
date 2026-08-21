@@ -13,6 +13,7 @@ Project-wide conventions and patterns shared across all sectors.
 | `code-review.md` | Code review guidelines |
 | `locale.md` | Locale system — how to set project language |
 | `resolved-issue.md` | Resolved issue archive format |
+| `test-env.md` | Test environment — version pins, manifest ranges, sync guard, warning contract |
 
 ## Sector Agents
 

@@ -9,7 +9,7 @@ shopt -s nullglob 2>/dev/null || true
 
 TARGET="${1:-$PWD}"
 LOCALE="${2:-en}"
-CONFIG_DIR="$(cd "$(dirname "$(dirname "$0")")" && pwd)"
+CONFIG_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")/.." && pwd)"
 
 mkdir -p "$TARGET/.opencode"
 
@@ -209,4 +209,22 @@ for ext in all_exts:
   fi
 else
   echo "[init] LSP catalog not found at $CATALOG; skipping editor configuration"
+fi
+
+# --- Test environment placeholders (issue #210) ---
+# Create .nvmrc / .node-version ONLY when Node is available; never force Node
+# into a project that does not have it (BR 7 / AC 8). The range policy lives in
+# .opencode/env-manifest.md (copied with the .opencode/ template).
+if command -v node >/dev/null 2>&1; then
+  if [[ ! -f "$TARGET/.nvmrc" ]]; then
+    printf '22\n' > "$TARGET/.nvmrc"
+    echo "[init] Created $TARGET/.nvmrc (Node pin 22)"
+  fi
+  if [[ ! -f "$TARGET/.node-version" ]]; then
+    printf '22\n' > "$TARGET/.node-version"
+    echo "[init] Created $TARGET/.node-version (Node pin 22)"
+  fi
+  echo "[init] Node detected — test environment pins created"
+else
+  echo "[init] Node not found in PATH — skipping .nvmrc/.node-version placeholders (no Node, no pin files)"
 fi
