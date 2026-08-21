@@ -391,7 +391,7 @@ issues only. See `standards/issues.md` for the full contract.
   4. `grep "design" skills/README.md` → design sector listed.
   5. `ls standards/design-pipeline.md` → exists.
   6. `grep "build-ui\|audit-ui" workflow.md` → design pipeline documented.
-  7. `jq '.agents | keys | map(select(startswith("design/")))' opencode.json | wc -l` → ≥6 agents registered.
+  7. `ls agents/design/*.md | wc -l` → ≥6 agent files registered (agents are file-based; `ocf:build-ui`/`ocf:audit-ui` verified in opencode.json `command` key).
 - Suggested fix: Create documentation files after #81, #82, and #83 are implemented (agents and commands must exist to be documented). Update parent READMEs and workflow.md. Register everything in opencode.json.
 
 ### 202. Remove savings badge from Vitrine plan in business pricing table
