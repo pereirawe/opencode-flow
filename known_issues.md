@@ -705,7 +705,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 3 (security, runtime, qa)
 - Remote: #106
 - Jira: -
-- PR: -
+- PR: #112
 - Location: scripts/git-cred-cache.sh (NUEVO), scripts/config.sh, scripts/tests/test_git_cred_cache.sh (NUEVO), opencode.json, agents/development/developer.md, agents/development/committer.md, agents/development/publish-requester.md, .opencode/.gitignore, scripts/test-runner.sh (EXCLUDE_RE), standards/decisions.md, scripts/README.md
 - Description: Como agente del pipeline de opencode, quiero un caché de credenciales git por proyecto (`.opencode/cache/git/`) gestionado por un único script seguro, para autenticarme y crear commits en operaciones automáticas (`--auto`) sin prompts interactivos ni exposición de secretos en salidas, logs o fingerprints.
 - Impact: Todos los agentes y comandos que ejecutan git en modo automático (`--auto`, pipeline de delivery, aibot-watcher); seguridad del repositorio (secretos en texto plano con 0600); coordinación con snapshot/sync-back del issue #74; fingerprints del test-runner (nunca deben contener credenciales).
