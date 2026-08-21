@@ -10,10 +10,13 @@ permission:
     "~/.config/opencode/scripts/aibot-watcher.sh": deny
     "~/.config/opencode/state/**": deny
     "~/.ssh/**": deny
+    "~/.config/opencode/.opencode/cache/**": deny
   bash:
     "*": deny
     "git *": allow
     "*scripts/git-cred-cache.sh *": allow
+    "*scripts/test-runner.sh *": allow
+    "*scripts/transition.sh *": allow
     "git push --force*": deny
     "git push -f*": deny
     "git reset --hard*": deny

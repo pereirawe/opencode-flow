@@ -5,6 +5,7 @@ temperature: 0.1
 permission:
   bash:
     "*": deny
+    "git *": allow
     "gh *": allow
     "glab *": allow
     "git push --force*": deny
@@ -12,7 +13,9 @@ permission:
     "git reset --hard*": deny
     "git clean -f*": deny
     "git branch -D *": deny
-  edit: allow
+  edit:
+    "*": "allow"
+    "~/.config/opencode/.opencode/cache/**": "deny"
 ---
 Create and manage merge/pull requests.
 
