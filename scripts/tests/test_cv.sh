@@ -1661,4 +1661,81 @@ if [[ -f "$CV_ANALYSIS" ]]; then
   assert_contains "$CV_ANALYSIS" "WITHOUT confirmation" "cv-analysis standard documents proceed-without-confirmation"
 fi
 
+# --- issue #213: refined single-column ATS pattern ---
+# 1. Template uses the .entry-head meta-line (title left + dates right, one flex line)
+if [[ -f "$CV_TEMPLATE" ]]; then
+  assert_contains "$CV_TEMPLATE" ".entry-head" "cv-pdf template defines the .entry-head meta-line"
+  assert_contains "$CV_TEMPLATE" "justify-content: space-between" "cv-pdf template aligns title left + dates right"
+  assert_contains "$CV_TEMPLATE" 'class="dates"' "cv-pdf template uses a .dates element for entry dates"
+  assert_contains "$CV_TEMPLATE" "flex: 1 1 auto" "cv-pdf template lets the entry title shrink on long lines"
+  assert_contains "$CV_TEMPLATE" "min-width: 0" "cv-pdf template prevents long-title overflow (min-width: 0)"
+  assert_contains "$CV_TEMPLATE" "flex-shrink: 0" "cv-pdf template keeps the dates on one line (flex-shrink: 0)"
+  assert_contains "$CV_TEMPLATE" "white-space: nowrap" "cv-pdf template protects date integrity (white-space: nowrap)"
+  assert_contains "$CV_TEMPLATE" ".entry h3, .entry-head h3" "cv-pdf template keeps the generic .entry h3 sizing (Projects)"
+  assert_contains "$CV_TEMPLATE" "<strong>" "cv-pdf template documents <strong> for quantified metrics"
+  assert_contains "$CV_TEMPLATE" "Helvetica" "cv-pdf template uses the Helvetica/Arial font stack"
+else
+  t_fail "cv-pdf template missing at $CV_TEMPLATE"
+fi
+
+# 2. The design standard documents the refined pattern
+if [[ -f "$CV_DESIGN" ]]; then
+  assert_contains "$CV_DESIGN" ".entry-head" "cv-design standard documents the .entry-head meta-line (§3)"
+  assert_contains "$CV_DESIGN" "justify-content: space-between" "cv-design standard documents the flex meta-line (§3)"
+  assert_contains "$CV_DESIGN" "<strong>" "cv-design standard documents <strong> for quantified metrics (§3/§5)"
+  assert_contains "$CV_DESIGN" "17–20pt" "cv-design standard documents the refined name hierarchy (17–20pt)"
+else
+  t_fail "cv-design standard missing at $CV_DESIGN"
+fi
+
+# 3. cv-tailor skill/agent instruct <strong> wrapping for metrics
+if [[ -f "$TAILOR_SKILL" ]]; then
+  assert_contains "$TAILOR_SKILL" "<strong>" "cv-tailor skill instructs wrapping metrics in <strong>"
+fi
+if [[ -f "$TAILOR_AGENT" ]]; then
+  assert_contains "$TAILOR_AGENT" ".entry-head" "cv-tailor agent uses the .entry-head meta-line pattern"
+  assert_contains "$TAILOR_AGENT" "<strong>" "cv-tailor agent instructs wrapping metrics in <strong>"
+fi
+
+# 4. Mechanized render (Tests: scenarios 5-6): quantified achievements keep their
+#    digits intact in the extracted text (strong never alters them) and a
+#    junior/pleno resume fits on exactly one page (§4 page count).
+if [[ -n "$CHROME" ]] && command -v pdftotext >/dev/null 2>&1 && command -v pdfinfo >/dev/null 2>&1; then
+  METRIC_HTML="$TMP/metrics-resume.html"
+  METRIC_PDF="$TMP/metrics-resume.pdf"
+  TMP_ENV="$TMP" TPL="$CV_TEMPLATE" python3 - <<'PYEOF'
+import os
+tpl = open(os.environ["TPL"], encoding="utf-8").read()
+tpl = tpl.replace(
+    '<li>Conquista mensurável e aderente à vaga, com a métrica em <strong>negrito</strong> (ex.: reduziu custos em <strong>30%</strong>).</li>',
+    '<li>Reduced infrastructure costs by <strong>30%</strong> through optimization.</li>',
+)
+tpl = tpl.replace('<li>Segunda conquista, reformulada para destacar o impacto.</li>',
+                  '<li>Automated <strong>37</strong> weekly reports and cut ticket volume by <strong>25%</strong>.</li>')
+open(os.path.join(os.environ["TMP_ENV"], "metrics-resume.html"), "w", encoding="utf-8").write(tpl)
+PYEOF
+  set +e
+  bash "$PDF_SH" "$METRIC_HTML" "$METRIC_PDF" chrome >/dev/null 2>&1
+  rc_metric=$?
+  set -e
+  assert_eq "0" "$rc_metric" "pdf.sh renders the quantified-achievements resume (Tests 5-6)"
+  if [[ -s "$METRIC_PDF" ]]; then
+    EXTRACTED="$(pdftotext "$METRIC_PDF" - 2>/dev/null || true)"
+    PAGES="$(pdfinfo "$METRIC_PDF" 2>/dev/null | awk '/^Pages:/ {print $2}')" || PAGES="0"
+    if [[ "$EXTRACTED" == *"30%"* && "$EXTRACTED" == *"37"* && "$EXTRACTED" == *"25%"* ]]; then
+      t_ok "quantified digits extracted intact from the PDF (strong does not alter text)"
+    else
+      t_fail "quantified digits missing from the extracted PDF text"
+    fi
+    if [[ "$EXTRACTED" == *"<strong>"* ]]; then
+      t_fail "raw <strong> markup leaked into the PDF text"
+    else
+      t_ok "no raw markup in the extracted PDF text (ATS-clean)"
+    fi
+    assert_eq "1" "$PAGES" "junior/pleno quantified-achievements resume fits on exactly one page (Tests 6)"
+  fi
+else
+  echo "skip - chrome/pdftotext/pdfinfo not available; Tests 5-6 render assertions skipped"
+fi
+
 t_finish

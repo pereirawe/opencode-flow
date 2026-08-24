@@ -183,8 +183,10 @@ Reorder, highlight and rephrase **only what already exists in the hub**:
 - **Skills**: reorder prioritizing the job keywords. Skills with
   `importance: primary` and a job match come first.
 - **Experience**: reorder achievements within each role — the ones with the
-  most job relevance first. Do not remove roles; you may condense the least
-  relevant ones.
+  most job relevance first; quantified achievements (with numbers/%) come
+  first and their metric is wrapped in `<strong>` so it renders bold (real
+  selectable text — the ATS reads it unchanged; never alter the digits). Do
+  not remove roles; you may condense the least relevant ones.
 - **Quantified achievements**: within each role, achievements carrying
   numbers/metrics (%, R$, counts, time, throughput) come FIRST, phrased with
   the metric prominent (e.g. "Reduced infrastructure cost by 30%") — metrics

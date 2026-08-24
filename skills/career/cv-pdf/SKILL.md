@@ -56,3 +56,9 @@ After generating, confirm the PDF:
 If Chrome fails (e.g. sandbox/container), run
 `bash $SCRIPTS_DIR/cv/pdf.sh <input.html> <output.pdf> libreoffice`. LibreOffice
 converts the HTML with lower CSS fidelity, so review the resulting PDF.
+Known limitation: LibreOffice's HTML import has incomplete flexbox support —
+the `.entry-head` meta-line of the reference template (title left, dates
+right) may collapse to block flow (dates left-aligned on a second line). The
+content and DOM order are preserved (still ATS-parsable real text), but the
+right-aligned visual is lost. Chrome is the primary engine; use LibreOffice
+only as a fallback and prefer Chrome when the visual pattern matters.
