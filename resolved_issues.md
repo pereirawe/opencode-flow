@@ -1,3 +1,36 @@
+# Resolved Issues
+
+Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
+
+### 214. Aplicar "Swiss Measure" al template del currículo — numerales tabulares, escala tipográfica tokenizada, negrita racionada, hairline endurecido y footer de página 2
+- Resolved: 2026-08-24
+- Durations: backlog=0d waiting=0d dev=0d review=0d qa=0d publish=0d total=0d
+- Severity: medium
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #129
+- Summary: Implementar la dirección de diseño "Swiss Measure" del art-director (design_spec.json) en el template del currículo — (1) en resume.html
+
+### 213. Refinar el patrón single-column ATS del currículo (jerarquía tipográfica, meta-línea con fechas alineadas, énfasis en métricas)
+- Resolved: 2026-08-24
+- Durations: backlog=0d waiting=0d dev=0d review=0d qa=0d publish=0d total=0d
+- Severity: medium
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #127
+- Summary: Refinar el template de referencia del currículo (resume.html) y el estándar cv-design.md con un patrón single-column tipográfico refinado que respeta todas las reglas ATS — (1) refinar `skills/career/cv-pdf/templates/resume.html` (header lockup, `.entry-head` flex con fechas a la derecha, ritmo de espaciado, nota de `<strong>` para métricas) preservando las reglas de impresión; (2) actualizar `standards/cv-design.md` (§3 jerarquía + `.entry-head` + `<strong>`, §5 checklist); (3) añadir la instrucción de `<strong>` para métricas en cv-tailor skill y agent; (4) extender `scripts/tests/test_cv.sh` y correr `make test-scripts`. Esfuerzo ~3-5h. Origen
+
+### 212. Gate de aplicación (umbral mínimo de match) + sección preferences en el hub + énfasis en logros cuantificados para cv-tailor y cv-cover-letter
+- Resolved: 2026-08-24
+- Durations: backlog=0d waiting=0d dev=0d review=0d qa=0d publish=0d total=0d
+- Severity: medium
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #125
+- Summary: Mejorar el sector career del pipeline con tres cambios coordinados — (1) extender `schema.json` + `validate.py` (sección `preferences` + validación 0–100 y tipos); (2) documentar la sección en `cv-hub/SKILL.md`; (3) añadir el gate de aplicación y la priorización de logros cuantificados en `cv-tailor` y `cv-cover-letter` (skills, agents, commands); (4) documentar §3.5 + protocolo del gate en `standards/cv-analysis.md`; (5) extender `scripts/tests/test_cv.sh` y correr `make test-scripts`. Esfuerzo ~4-6h. Origen
 
 ### 83. Design sector documentation (READMEs, agent-skill mapping, standards)
 - Resolved: 2026-08-21
