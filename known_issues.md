@@ -476,6 +476,7 @@ issues only. See `standards/issues.md` for the full contract.
   3. `grep "h2 { break-after: avoid" profile-analysis.html` → present (no orphaned headings).
   4. `make test-scripts` → exit 0 with the new/extended regression test.
 - Suggested fix: Apply the same treatment as issue #203 to `skills/career/cv-optimizer/templates/profile-analysis.html`: replace the blanket `section { break-inside: avoid; }` with `section { break-inside: auto; orphans: 3; widows: 3; }`, keep `table tr { break-inside: avoid; }` and `h2 { break-after: avoid; }`, add a regression assertion in scripts/tests/test_cv.sh, and run `make test-scripts`. Effort ~1-2h. Origem: senior review do #203 (docs profile, finding 1 — incomplete-spec).
+- Superseded by: #217 — the profile-analysis.html template rework (design-language alignment) includes the print-CSS fix; #204 will be archived when #217 is delivered.
 
 ### 211. Dividir ocf:develop en dos comandos: ocf:develop (hasta MR, merge manual) y ocf:develop-full (auto-merge)
 - Status: in-publish
@@ -519,6 +520,173 @@ issues only. See `standards/issues.md` for the full contract.
   4. CI headless → log contiene `--command ocf:develop-full <id>` (test_run_ci_workflow.sh actualizado) y MR MERGED
   5. `ocf:develop` con lista de 2 issues → secuencial: 1ª termina en `in-publish` sin merge, 2ª procesada desde la base; exactamente UNA notificación Telegram final
 - Suggested fix: dividir el template de `ocf:develop` en opencode.json — `ocf:develop` conserva los pasos 1-5 + reporte "esperando merge manual" (sin pasos 6-8), y nuevo `ocf:develop-full` con el template completo actual (auto-merge + base + close/archive); crear `commands/ocf:develop-full.md` y actualizar `commands/ocf:develop.md`; cambiar watcher y CI a `ocf:develop-full`; actualizar tests e2e, workflow.md, READMEs y comentarios Dockerfile. Esfuerzo ~4-6h.
+
+### 215. cv-optimizer global score (qualificação total) sometimes 0 — empty sections must be excluded from the weighted average
+- Status: in-publish
+- Opened: 2026-08-24
+- Ready: 2026-08-24
+- Started: 2026-08-24
+- In review: 2026-08-24
+- In publish: 2026-08-24
+- Type: bug
+- Severity: medium
+- Priority: medium
+- Flow: lean
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (qa, docs)
+- Remote: #131
+- Jira: -
+- PR: -
+- Location: skills/career/cv-optimizer/SKILL.md:123-133, standards/cv-analysis.md §4.2
+- Description: As a candidate, I want the optimizer's global score (qualificação total) to reflect a real weighted average, so that a strong profile is never reported as 0. Today the scoring protocol is ambiguous: "Global score = weighted average (experience and skills weigh more: 1.5x)" over ALL sections, while "Each empty section = 0". When the hub has several empty sections (projects, certifications, languages, links), the agent computes a global near 0 even with a strong experience/skills — the empty sections drag the weighted average down. The fix: the Global MUST be the weighted average over the sections PRESENT and NON-EMPTY in the hub; empty sections keep a score row of 0 (they are context gaps) but are excluded from the Global average, with explicit weights and a worked example.
+- Impact: Every candidate using `ocf:cv-optimize` with a partially empty hub — the profile-analysis report (md/html/pdf) misleads with a 0 global score, undermining the optimization flow that precedes cv-tailor.
+- Business rules:
+  1. The Global row MUST be computed as a weighted average over ONLY the hub sections that are present AND non-empty (arrays with ≥1 item; summary/links with content). Empty/missing sections keep a score row of 0 in the canonical table (they are context gaps) but MUST be excluded from the Global weighted average.
+  2. The Global MUST NEVER be 0 when at least one scored section has a score ≥ 40. A Global of 0 is valid ONLY when every hub section is empty/missing.
+  3. Explicit weights: experience 1.5x, skills 1.5x, all other present sections 1x. The weighted formula and a worked example MUST be in the skill so the computation is deterministic.
+  4. The Global row justification MUST list which sections were excluded (and why) — no silent averages.
+  5. `standards/cv-analysis.md` §4.2 MUST document the exclusion rule as the single source; the skill cross-references it.
+  6. Excluded empty sections remain listed under Context gaps (§3.1 section 5) — never silently dropped.
+  7. No change to hub.json or to the other report sections (qualifications, target profiles, salary, gaps, action plan).
+- Acceptance criteria:
+  1. profile-analysis.md score table shows all 9 section rows + Global; Global = weighted average over present/non-empty sections only.
+  2. The Global row justification lists the excluded empty sections.
+  3. A hub with strong experience+skills but empty projects/certifications/languages/links → Global ≥ 40 (never 0).
+  4. A completely empty hub → Global = 0 (documented exception).
+  5. `standards/cv-analysis.md` §4.2 documents the rule; the cv-optimizer skill references it.
+  6. `make test-scripts` passes with the new regression assertions.
+- Tests:
+  1. Hub with strong experience + skills but empty projects/certifications/languages/links → profile-analysis.md reports Global ≥ 40 and the justification lists the excluded empty sections.
+  2. Completely empty hub → Global = 0 (documented exception).
+  3. grep `skills/career/cv-optimizer/SKILL.md` → mentions "present"/"non-empty" sections in the Global computation plus the worked example weights; grep `standards/cv-analysis.md` §4.2 → documents the exclusion rule.
+  4. `make test-scripts` → exit 0 with the new/extended regression assertions.
+- Suggested fix: Refine cv-optimizer/SKILL.md §3 (Profile score) — Global = weighted average over present/non-empty sections only (experience 1.5x, skills 1.5x, others 1x), the 0-global guard (only when every section is empty), and a worked example; document the exclusion rule in standards/cv-analysis.md §4.2; add regression assertions in scripts/tests/test_cv.sh; run `make test-scripts`. Effort ~2-3h.
+
+### 216. Add "Áreas de Atuação" section with brief summary to the tailored resume (derived from the hub)
+- Status: ready
+- Opened: 2026-08-24
+- Ready: 2026-08-24
+- Started: -
+- Type: feat
+- Severity: medium
+- Priority: medium
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (frontend, docs)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: skills/career/cv-pdf/templates/resume.html, skills/career/cv-tailor/SKILL.md, agents/career/cv-tailor.md, standards/cv-design.md §1.2/§3, standards/cv-analysis.md §4.7
+- Description: As a candidate, I want a compact "Áreas de Atuação" section in my tailored resume so the recruiter immediately sees the domains I work in. The section lists 3–6 short domain areas plus a brief 1–2 line summary of the professional focus. Content is derived from the hub (experience titles, skill categories, project technologies, summary) — never invented — in the job's language, and omitted when nothing can be derived.
+- Impact: Every resume generated by `ocf:cv-tailor` gains the section; the resume template, the cv-tailor skill/agent and the cv-design/cv-analysis standards must all be updated together (the template is the mandatory base for cv-tailor).
+- Business rules:
+  1. The resume template MUST include an "Áreas de Atuação" section (title localized to the job language) placed immediately after the Summary section.
+  2. The section MUST contain: an inline list (`ul.inline-list`) of 3–6 short domain areas and one brief summary paragraph (1–2 lines) describing the professional focus, in the job's language.
+  3. Every area MUST be derived from hub content — experience titles, skill categories, project technologies, and the summary — and traceable to it. No fabrication (cv-tailor hard rule 1 applies unchanged).
+  4. The brief summary paragraph MUST be rephrased from the hub summary/experience in the job's language (translating existing content is allowed, never invented).
+  5. When no areas can be derived, the section MUST be omitted (empty sections are always omitted per cv-design.md §1.2).
+  6. The section MUST be ATS-safe: single column, inline list (no table), system fonts, no emoji, `<strong>` reserved for metrics — per cv-design.md.
+  7. `[INFERIDO]` NEVER appears in the section (check-inference.sh gate applies).
+  8. `standards/cv-design.md` §1.2 section set MUST include the new section (localized); `standards/cv-analysis.md` §4.7 coverage table MUST include it in the section list.
+- Acceptance criteria:
+  1. resume.html contains the "Áreas de Atuação" section markup (h2 + ul.inline-list + p) after the Summary section.
+  2. cv-tailor skill and agent instructions describe how to derive areas + summary from the hub without fabricating.
+  3. cv-design.md §1.2 lists the section; cv-analysis.md §4.7 coverage list includes it.
+  4. No derivable areas → section omitted.
+  5. Lint grep on the section: no `<table>`, no emoji, no Google Fonts.
+  6. `make test-scripts` passes with the new regression assertions.
+- Tests:
+  1. Resume generated for a hub with derivable areas → "Áreas de Atuação" section present after Summary, with an inline list of 3–6 areas + a brief paragraph, in the job's language.
+  2. Hub with no derivable areas → the section is omitted from the resume.
+  3. grep `skills/career/cv-pdf/templates/resume.html` → section heading + `ul.inline-list` + brief paragraph present after Summary; grep the section → no `<table>`/emoji/Google Fonts.
+  4. grep `skills/career/cv-tailor/SKILL.md` and `standards/cv-design.md` → derivation rule present and the section listed in the standard section set; grep `standards/cv-analysis.md` §4.7 → section in the coverage list.
+  5. `make test-scripts` → exit 0 with the new/extended regression assertions.
+- Suggested fix: Add the section markup to `skills/career/cv-pdf/templates/resume.html` (after Summary); extend cv-tailor SKILL.md + agent with the derivation rules; add the section to cv-design.md §1.2 and cv-analysis.md §4.7; add regression assertions in scripts/tests/test_cv.sh; run `make test-scripts`. Effort ~2-3h.
+
+### 217. Align profile-analysis.html template with the resume's design language (typographic tokens, header lockup, entry-head, tabular numerals, page-2 footer)
+- Status: ready
+- Opened: 2026-08-24
+- Ready: 2026-08-24
+- Started: -
+- Type: feat
+- Severity: low
+- Priority: low
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (frontend, docs)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: skills/career/cv-optimizer/templates/profile-analysis.html, standards/cv-analysis.md §6, skills/career/cv-optimizer/SKILL.md, agents/career/cv-optimizer.md, commands/ocf:cv-optimize.md
+- Description: As a candidate, I want the cv-optimizer report (profile-analysis.html/pdf) to share the same visual style, patterns and components as the resume generated by cv-tailor, so the sector's deliverables look coherent. Today the report template uses ad-hoc typography (no tokenized scale), no header lockup, no .entry-head meta-line, no tabular numerals and no page-2 footer. Align the template to the resume's design language (the Swiss-Measure tokens and components of cv-design.md) while keeping the canonical analysis tables (allowed for reports). This rework also supersedes the print-CSS fix of issue #204 (the blanket `section { break-inside: avoid; }` is replaced as part of the alignment).
+- Impact: Every `ocf:cv-optimize` report (md/html/pdf). The template is the mandatory base for cv-optimizer rendering; the standards (cv-analysis.md §6) and skill/agent/command docs must stay in sync.
+- Business rules:
+  1. profile-analysis.html MUST adopt the same `:root` typographic scale tokens as resume.html (`--name` 18pt, `--role` 11pt, `--h2` 10.5pt, `--body` 10pt, `--entry-body` 9.5pt, `--meta`/`--dates`/`--contact` 9.5pt, `--footer` 9pt) — no ad-hoc sizes.
+  2. The report header MUST use the header lockup pattern (h1 + role line) styled with the resume's tokens.
+  3. The template MUST keep the canonical analysis tables (score §4.2, action plan §4.3) with the resume's table styling — the single 0.4pt `#d9d9d9` hairline, no other borders.
+  4. Numeric figures (scores, dates, salary ranges) MUST use tabular numerals (`font-variant-numeric: tabular-nums` + `font-feature-settings: "tnum" 1`) per cv-design.md §3.8.
+  5. The print CSS MUST replace the blanket `section { break-inside: avoid; }` with `section { break-inside: auto; orphans: 3; widows: 3; }`, preserving `table tr { break-inside: avoid; }` and `h2 { break-after: avoid; }` — satisfying issue #204.
+  6. A page-2 running footer pattern (name · Página x de y, 2-pass) MUST be provided, consistent with resume.html — injected only when the report exceeds 1 page.
+  7. The template MUST remain the base for cv-optimizer rendering (content adapted, CSS never rewritten from scratch).
+  8. `standards/cv-analysis.md` §6 MUST document the shared design language (single source, referenced by both templates).
+  9. The canonical section order and tables of the report MUST be unchanged; tables remain allowed (reports are reading/analysis artifacts, not ATS-submitted).
+  10. `make test-scripts` passes with the new regression assertions.
+- Acceptance criteria:
+  1. grep profile-analysis.html → the `:root` token scale (`--name`/`--role`/`--h2`/`--body`/...), header lockup, `tabular-nums` on the numeric selectors, `.inline-list` — all present.
+  2. grep profile-analysis.html print CSS → `break-inside: auto` with orphans/widows; `grep "section { break-inside: avoid"` → 0 matches; `table tr { break-inside: avoid; }` and `h2 { break-after: avoid; }` present.
+  3. Canonical tables (score, action plan) still present in the template body.
+  4. `.page-footer` block present (spans, 2-pass contract).
+  5. standards/cv-analysis.md §6 references the shared token scale / template base.
+  6. `make test-scripts` passes; issue #204 is resolved by this change.
+- Tests:
+  1. grep profile-analysis.html → `--name: 18pt`, `--role: 11pt`, `--h2: 10.5pt`, `--body: 10pt`, `tabular-nums` on `.dates`/`.contact`/`strong` and `.inline-list` — all present.
+  2. grep profile-analysis.html → `break-inside: auto` present with `orphans: 3; widows: 3;`; `grep "section { break-inside: avoid"` → 0 matches; `table tr { break-inside: avoid; }` and `h2 { break-after: avoid; }` present.
+  3. Canonical tables (Seção | Score | Justificativa and ID | Ação | Impacto | ...) present in the template body.
+  4. grep standards/cv-analysis.md §6 → references the shared token scale and/or the template base.
+  5. `make test-scripts` → exit 0 with the new/extended regression assertions (supersedes #204).
+- Suggested fix: Rework the `<style>` of profile-analysis.html to mirror resume.html's tokens and components (header lockup, inline-list, tabular-nums, print rules incl. the #204 fix, page-footer); keep the canonical tables in the body; update cv-analysis.md §6, the cv-optimizer skill/agent/command references; add regression assertions in scripts/tests/test_cv.sh; run `make test-scripts`; archive issue #204. Effort ~2-3h.
+
+### 218. Profile-aware scoring criteria in cv-optimizer — per-domain section priorities (GitHub/project links not required for every profile)
+- Status: ready
+- Opened: 2026-08-24
+- Ready: 2026-08-24
+- Started: -
+- Type: feat
+- Severity: medium
+- Priority: medium
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (qa, docs)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: skills/career/cv-optimizer/SKILL.md §2-§3, standards/cv-analysis.md §4.2, agents/career/cv-optimizer.md, commands/ocf:cv-optimize.md
+- Description: As a candidate, I want the cv-optimizer to score my profile against criteria that fit MY area, so that missing a GitHub or project link never penalizes a profile for which it is not a requirement (e.g. lawyer, HR, marketing, commercial). Today the scoring criteria table (§3) is profile-agnostic — e.g. "links | at least LinkedIn + GitHub/site" and "projects | link = bonus" apply uniformly to every profile. The fix: detect the candidate's primary domain(s) from the hub (professional_title, skill categories, experience titles, summary) and apply per-domain section priorities (high/medium/low) that shape the section weights and criteria. The domain taxonomy MUST be extensible — new domains are derived by mapping the domain's nature to section relevance, not by an exhaustive closed list; a reference table covers the known domains (engineering, technology/IT, commercial/sales, human resources, legal, marketing, design).
+- Impact: Every candidate using `ocf:cv-optimize`. Without the fix, profiles outside engineering/tech are scored against tech-centric criteria (GitHub/portfolio links treated as mandatory), producing unfair scores and wrong context-gap suggestions.
+- Business rules:
+  1. The optimizer MUST detect the candidate's primary domain(s) from the hub (professional_title, skill categories, experience titles, summary) before scoring — the detection is `[INFERIDO]`-marked in the report.
+  2. Scoring criteria and section weights MUST be domain-relative: each domain defines high/medium/low section priorities; the criteria examples (e.g. `links` needing GitHub/site, `projects` needing links) apply per priority tier, never globally.
+  3. The `links` criterion MUST be relaxed: LinkedIn is near-universal; GitHub/site/portfolio is REQUIRED only for domains where a technical/portfolio presence is expected (engineering, technology/IT, design). A missing GitHub/site MUST NOT lower the score of a non-tech profile that otherwise meets its domain's expectations.
+  4. The domain taxonomy MUST be extensible: for a domain not in the reference table, the optimizer derives section priorities from the domain's nature (portfolio-driven → projects high; licensing/certification-driven → certifications high; client-facing → languages/experience high) instead of failing or defaulting to the tech template.
+  5. A reference priority table MUST live in the skill for the known domains: engineering, technology/IT, commercial/sales, human resources, legal, marketing, design — each with high/medium/low per section.
+  6. The per-section score rows and the Global computation from issue #215 MUST be preserved (empty sections excluded from the global; explicit weights), now with domain-relative weights.
+  7. The detected domain(s) and the applied priorities MUST be reported in profile-analysis.md (General qualifications) so the candidate can audit the criteria.
+  8. `standards/cv-analysis.md` §4.2 MUST document that scores are domain-relative and reference the skill's priority table.
+  9. No web search, no fabrication, no change to hub.json — the detection is offline over the hub.
+- Acceptance criteria:
+  1. cv-optimizer skill §3 contains the per-domain priority table (engineering, technology/IT, commercial, HR, legal, marketing, design) and the extensibility rule for new domains.
+  2. The `links` criterion no longer mandates GitHub/site globally — it is tiered by domain priority.
+  3. The detected domain and applied priorities appear in profile-analysis.md General qualifications.
+  4. A legal/HR/marketing hub without GitHub/site is NOT penalized in the links/projects rows (score reflects domain expectations).
+  5. `make test-scripts` passes with the new regression assertions.
+- Tests:
+  1. Hub for a legal/HR/marketing profile with LinkedIn but no GitHub/site → links/projects rows are scored against the domain's expectations and do NOT force a low score; the report states the detected domain.
+  2. Engineering/technology hub with GitHub + projects with links → links/projects rows score high (domain requires them).
+  3. Domain NOT in the reference table → the optimizer derives priorities from the domain's nature and records the derivation (no failure, no tech-default).
+  4. grep cv-optimizer/SKILL.md §3 → per-domain priority table present with the extensibility rule; grep the `links` criterion → no unconditional GitHub requirement.
+  5. `make test-scripts` → exit 0 with the new/extended regression assertions.
+- Suggested fix: Extend cv-optimizer/SKILL.md §2-§3 with domain detection + a per-domain priority reference table (engineering, technology/IT, commercial, HR, legal, marketing, design) and the extensibility rule; tier the `links`/`projects` criteria by priority; document domain-relative scoring in standards/cv-analysis.md §4.2; require the detected domain + applied priorities in profile-analysis.md; add regression assertions in scripts/tests/test_cv.sh; run `make test-scripts`. Effort ~3-4h.
 
 
 
