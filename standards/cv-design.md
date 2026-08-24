@@ -61,16 +61,31 @@ values), not opinions.
 ## 3. Sober professional style
 
 1. Typography hierarchy MUST be discrete: name > role > section title > body.
-   Recommended print sizes: name 17–20pt bold, role/headline 11pt, section
-   titles 10.5–11pt bold uppercase, body 9.5–10.5pt, line-height 1.4–1.5.
+   The print-point scale is canonical (these are the `:root` tokens of the
+   reference template — the source of truth, never ad-hoc sizes):
+
+   | Role | Size | Weight | Notes |
+   |------|------|--------|-------|
+   | Name (`--name`) | 18pt | 700 | `letter-spacing: -0.015em` |
+   | Role/headline (`--role`) | 11pt | 600 | `letter-spacing: 0.01em` |
+   | Section title (`--h2`) | 10.5pt | 700 | uppercase, `letter-spacing: 0.05em` |
+   | Body (`--body`) | 10pt | 400 | `line-height: 1.45` |
+   | Entry body (`--entry-body`) | 9.5pt | 400 | bullets/paragraphs in entries |
+   | Meta/dates/contact (`--meta`/`--dates`/`--contact`) | 9.5pt | 400 | muted `#3a3a3a` |
+   | Page footer (`--footer`) | 9pt | 400 | page-2 running footer, muted |
+
+   Exactly three weights are used: 400 (body), 600 (role), 700 (name/sections/
+   metrics).
 2. Spacing MUST be generous: ~7–10mm between sections, ~3–5mm between
    entries. No cramped blocks.
 3. At most ONE accent color is allowed, and it MUST be grayscale-safe (the
    resume must remain fully readable and understandable when printed in
    black-and-white). Default: no accent — emphasis uses the text color.
 4. Gradients, shadows, decorative borders, background tints, and emoji are
-   FORBIDDEN. A single hairline under section titles is allowed as a
-   structural divider.
+   FORBIDDEN. The ONLY border in the document is the single 0.4pt solid
+   `#d9d9d9` hairline under section titles (structural divider). No other
+   border is allowed: no rules under entries, no boxes, no double lines, no
+   footer rule.
 5. Body text MUST NOT be pure black (`#000`); use a near-black such as
    `#1a1a1a`.
 6. Entries (Experience, Education, Certifications) MUST use the **`.entry-head`
@@ -82,6 +97,25 @@ values), not opinions.
 7. Metrics/numbers of quantified achievements MUST be wrapped in `<strong>`
    (real selectable text — the ATS reads them unchanged); the visual bold
    emphasizes impact. The digits themselves are NEVER altered.
+   **Bold MUST NOT be used for any non-metric text** — `<strong>` is
+   reserved EXCLUSIVELY for quantified metrics; the name/role/section titles
+   get their weight from their own element styles, never from inline bold.
+8. **Tabular numerals (the numeric spine)** — every digit in the document
+   (right-aligned dates, the phone in the contact line, the page number in
+   the footer, and every metric in `<strong>`) MUST be set in fixed-width
+   tabular figures:
+   `font-variant-numeric: tabular-nums;` + `font-feature-settings: "tnum" 1;`
+   on `.dates`, `.contact`, `strong` and `.page-footer`. Tabular figures give
+   every digit a stable advance width, so numbers of equal length align in
+   invisible columns (dates, page numbers, and repeated metric runs) and the
+   document never "jitters" between lines. Only glyph advance widths change —
+   the text and the DOM order are byte-identical for the ATS. Digits are NEVER
+   altered.
+9. **Page-2 running footer** — multi-page (senior+) resumes MAY end with a
+   `<footer class="page-footer">` of plain text (`name · Page x of y`, 9pt,
+   muted `#3a3a3a`, right-aligned, tabular numerals for the page number). It
+   MUST appear only when the document exceeds one page (cv-tailor injects it
+   via a 2-pass render) and MUST be omitted entirely from one-page resumes.
 
 ## 4. Length by seniority
 
@@ -113,6 +147,15 @@ Before generating the PDF, the cv-tailor agent MUST verify every item:
       flex line — no table, no multicol)
 - [ ] Quantified achievements wrap their metrics in `<strong>` (real selectable
       text; the digits are never altered)
+- [ ] `<strong>` used ONLY around quantified metrics — no bold on other text
+      (rationed bold)
+- [ ] Tabular numerals present: `tabular-nums`/`tnum` on `.dates`, `.contact`
+      and `strong`
+- [ ] Type scale matches the §3.1 canonical tokens (`--name`/`--role`/`--h2`/
+      `--body`/`--meta`/`--dates`/`--contact`/`--footer`) — no ad-hoc sizes
+- [ ] Page-2 footer: present with `name · Page x of y` ONLY when the document
+      exceeds one page; absent from one-page resumes
+- [ ] Lint grep (manual, before PDF): `grep -E 'columns|multicol|<table|<img|fonts.googleapis|[🤖-🤯]' index.html` → 0 matches
 - [ ] Page count: 1 page (Junior/Pleno) or at most 2 (Senior+)
 - [ ] Word count <= ~700 words per page
 

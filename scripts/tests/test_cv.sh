@@ -1562,7 +1562,7 @@ if [[ -f "$CV_DESIGN" ]]; then
   assert_contains "$CV_DESIGN" ".entry-head" "cv-design standard documents the .entry-head meta-line (§3)"
   assert_contains "$CV_DESIGN" "justify-content: space-between" "cv-design standard documents the flex meta-line (§3)"
   assert_contains "$CV_DESIGN" "<strong>" "cv-design standard documents <strong> for quantified metrics (§3/§5)"
-  assert_contains "$CV_DESIGN" "17–20pt" "cv-design standard documents the refined name hierarchy (17–20pt)"
+  assert_contains "$CV_DESIGN" "Name (\`--name\`)" "cv-design standard documents the canonical name size token (§3.1)"
 else
   t_fail "cv-design standard missing at $CV_DESIGN"
 fi
@@ -1586,7 +1586,7 @@ if [[ -n "$CHROME" ]] && command -v pdftotext >/dev/null 2>&1 && command -v pdfi
 import os
 tpl = open(os.environ["TPL"], encoding="utf-8").read()
 tpl = tpl.replace(
-    '<li>Conquista mensurável e aderente à vaga, com a métrica em <strong>negrito</strong> (ex.: reduziu custos em <strong>30%</strong>).</li>',
+    '<li>Conquista mensurável e aderente à vaga, com a métrica em negrito (ex.: reduziu custos em <strong>30%</strong>).</li>',
     '<li>Reduced infrastructure costs by <strong>30%</strong> through optimization.</li>',
 )
 tpl = tpl.replace('<li>Segunda conquista, reformulada para destacar o impacto.</li>',
@@ -1615,6 +1615,132 @@ PYEOF
   fi
 else
   echo "skip - chrome/pdftotext/pdfinfo not available; Tests 5-6 render assertions skipped"
+fi
+
+# --- issue #214: Swiss Measure (tabular numerals, tokenized scale, page-2 footer) ---
+# 1. Template carries the numeric spine + tokenized scale + page-2 footer
+if [[ -f "$CV_TEMPLATE" ]]; then
+  assert_contains "$CV_TEMPLATE" "tabular-nums" "cv-pdf template uses tabular-nums (numeric spine)"
+  assert_contains "$CV_TEMPLATE" '"tnum" 1' "cv-pdf template enables the tnum feature"
+  assert_contains "$CV_TEMPLATE" ".dates, .contact, strong, .page-footer" "cv-pdf template applies tabular numerals to the footer page number (§3.8/§3.9)"
+  assert_not_contains "$CV_TEMPLATE" "<strong>negrito</strong>" "cv-pdf template wraps ONLY metrics in <strong> (rationed bold, §3.7)"
+  assert_contains "$CV_TEMPLATE" "--name: 18pt" "cv-pdf template tokenizes the name size (--name)"
+  assert_contains "$CV_TEMPLATE" "--role: 11pt" "cv-pdf template tokenizes the role size (--role)"
+  assert_contains "$CV_TEMPLATE" "--h2: 10.5pt" "cv-pdf template tokenizes the section size (--h2)"
+  assert_contains "$CV_TEMPLATE" "--body: 10pt" "cv-pdf template tokenizes the body size (--body)"
+  assert_contains "$CV_TEMPLATE" "--meta: 9.5pt" "cv-pdf template tokenizes the meta size (--meta)"
+  assert_contains "$CV_TEMPLATE" "var(--name)" "cv-pdf template uses the --name token"
+  assert_contains "$CV_TEMPLATE" "page-footer" "cv-pdf template defines the .page-footer block"
+  assert_contains "$CV_TEMPLATE" "footer-name" "cv-pdf template footer carries the candidate name"
+  assert_contains "$CV_TEMPLATE" "footer-page" "cv-pdf template footer carries the page marker"
+  # regression: print rules + ATS contract preserved
+  assert_contains "$CV_TEMPLATE" "break-inside: auto" "cv-pdf template keeps break-inside: auto (long sections)"
+  assert_contains "$CV_TEMPLATE" ".entry { break-inside: avoid; }" "cv-pdf template keeps break-inside: avoid on .entry"
+  assert_contains "$CV_TEMPLATE" "h2 { break-after: avoid; }" "cv-pdf template keeps break-after: avoid on h2"
+  assert_contains "$CV_TEMPLATE" "@page" "cv-pdf template keeps @page"
+  assert_contains "$CV_TEMPLATE" "Helvetica" "cv-pdf template keeps the Helvetica stack"
+  assert_not_contains "$CV_TEMPLATE" "fonts.googleapis.com" "cv-pdf template has no Google Fonts"
+else
+  t_fail "cv-pdf template missing at $CV_TEMPLATE"
+fi
+
+# 2. The standard documents the Swiss Measure rules
+if [[ -f "$CV_DESIGN" ]]; then
+  assert_contains "$CV_DESIGN" "Tabular numerals" "cv-design standard documents §3.8 tabular numerals"
+  assert_contains "$CV_DESIGN" "MUST NOT be used for any non-metric text" "cv-design standard enforces rationed bold (§3.7)"
+  assert_contains "$CV_DESIGN" "multicol|<table|<img" "cv-design standard §5 has the pre-PDF lint grep"
+else
+  t_fail "cv-design standard missing at $CV_DESIGN"
+fi
+
+# 3. cv-tailor skill/agent document the digit verification + footer 2-pass
+if [[ -f "$TAILOR_SKILL" ]]; then
+  assert_contains "$TAILOR_SKILL" "pdftotext" "cv-tailor skill documents the pdftotext digit verification"
+  assert_contains "$TAILOR_SKILL" "pdfinfo" "cv-tailor skill documents the page-2 footer 2-pass (pdfinfo)"
+fi
+if [[ -f "$TAILOR_AGENT" ]]; then
+  assert_contains "$TAILOR_AGENT" "pdftotext" "cv-tailor agent runs the pdftotext digit verification"
+  assert_contains "$TAILOR_AGENT" "pdfinfo" "cv-tailor agent checks the page count for the footer"
+fi
+
+# 4. Mechanized render: a senior 2-page resume carries the footer on page 2;
+#    a 1-page resume carries NO footer; the numeric spine keeps digits intact.
+if [[ -n "$CHROME" ]] && command -v pdftotext >/dev/null 2>&1 && command -v pdfinfo >/dev/null 2>&1; then
+  # senior: many entries -> 2+ pages, footer block present
+  SWISS_HTML="$TMP/swiss-senior.html"
+  SWISS_PDF="$TMP/swiss-senior.pdf"
+  TMP_ENV="$TMP" TPL="$CV_TEMPLATE" python3 - <<'PYEOF'
+import os, re
+tpl = open(os.environ["TPL"], encoding="utf-8").read()
+entries = ""
+for i in range(1, 18):
+    entries += (
+        '      <div class="entry">\n'
+        '        <div class="entry-head">\n'
+        '          <h3>Senior Engineer {t} — Company {c}</h3>\n'
+        '          <p class="dates">Jan 20{s:02d} — Dec 20{e:02d}</p>\n'
+        '        </div>\n'
+        '        <p class="meta">Remote</p>\n'
+        '        <ul><li>Reduced costs by <strong>30%</strong> and cut latency by <strong>42ms</strong>.</li></ul>\n'
+        '      </div>\n'
+    ).format(t=i, c=i, s=i, e=i+2)
+pattern = re.compile(r'  <section>\n    <h2>Experi[êe]ncia</h2>.*?</section>\n', re.DOTALL)
+out, n = pattern.subn('  <section>\n    <h2>Experiencia</h2>\n' + entries + '  </section>\n', tpl)
+assert n == 1, f"expected 1 experience section, found {n}"
+# cv-tailor fills the footer spans (2-pass) for a 2-page resume
+out = out.replace(
+    '<span class="footer-name"></span><span class="footer-page"></span>',
+    '<span class="footer-name">Nome do Candidato</span><span class="footer-page"> · Página 2 de 2</span>',
+)
+open(os.path.join(os.environ["TMP_ENV"], "swiss-senior.html"), "w", encoding="utf-8").write(out)
+PYEOF
+  set +e
+  bash "$PDF_SH" "$SWISS_HTML" "$SWISS_PDF" chrome >/dev/null 2>&1
+  rc_swiss=$?
+  set -e
+  assert_eq "0" "$rc_swiss" "pdf.sh renders the senior Swiss-Measure resume"
+  if [[ -s "$SWISS_PDF" ]]; then
+    PAGES="$(pdfinfo "$SWISS_PDF" 2>/dev/null | awk '/^Pages:/ {print $2}')" || PAGES="0"
+    assert_eq "1" "$(test "${PAGES:-0}" -ge 2 && echo 1 || echo 0)" "senior Swiss-Measure resume spans 2+ pages"
+    P2="$(pdftotext -f 2 -l 2 "$SWISS_PDF" - 2>/dev/null || true)"
+    if [[ "$P2" == *"Página 2 de 2"* || "$P2" == *"Page 2 of 2"* ]]; then
+      t_ok "page-2 footer text present on page 2"
+    else
+      t_fail "page-2 footer text missing on page 2"
+    fi
+    EXTRACTED="$(pdftotext "$SWISS_PDF" - 2>/dev/null || true)"
+    if [[ "$EXTRACTED" == *"30%"* && "$EXTRACTED" == *"42ms"* ]]; then
+      t_ok "numeric spine keeps the digits intact in the PDF text"
+    else
+      t_fail "numeric spine altered digits in the PDF text"
+    fi
+  fi
+  # junior: 1 page, footer removed by cv-tailor
+  JUNIOR_HTML="$TMP/swiss-junior.html"
+  JUNIOR_PDF="$TMP/swiss-junior.pdf"
+  TMP_ENV="$TMP" TPL="$CV_TEMPLATE" python3 - <<'PYEOF'
+import os, re
+tpl = open(os.environ["TPL"], encoding="utf-8").read()
+tpl = re.sub(r'  <footer class="page-footer">.*?</footer>\n', '', tpl, flags=re.DOTALL)
+open(os.path.join(os.environ["TMP_ENV"], "swiss-junior.html"), "w", encoding="utf-8").write(tpl)
+PYEOF
+  set +e
+  bash "$PDF_SH" "$JUNIOR_HTML" "$JUNIOR_PDF" chrome >/dev/null 2>&1
+  rc_junior=$?
+  set -e
+  assert_eq "0" "$rc_junior" "pdf.sh renders the junior Swiss-Measure resume"
+  if [[ -s "$JUNIOR_PDF" ]]; then
+    PAGES="$(pdfinfo "$JUNIOR_PDF" 2>/dev/null | awk '/^Pages:/ {print $2}')" || PAGES="0"
+    assert_eq "1" "$PAGES" "junior Swiss-Measure resume fits on exactly one page"
+    EXTRACTED="$(pdftotext "$JUNIOR_PDF" - 2>/dev/null || true)"
+    if [[ "$EXTRACTED" == *"Página 2 de 2"* ]]; then
+      t_fail "one-page resume must not carry the page-2 footer"
+    else
+      t_ok "one-page resume has no footer text"
+    fi
+  fi
+else
+  echo "skip - chrome/pdftotext/pdfinfo not available; Swiss-Measure render assertions skipped"
 fi
 
 t_finish

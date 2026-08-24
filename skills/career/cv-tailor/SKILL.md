@@ -210,10 +210,32 @@ Reorder, highlight and rephrase **only what already exists in the hub**:
 2. **Verify conformity with the standard** (the ATS/print/pages checklist of
    `standards/cv-design.md`) BEFORE generating the PDF: semantic headings,
    single column, no images/complex tables, no emoji/Google Fonts, `@page {
-   size: A4; margin: 12mm 15mm; }`, clean `@media print`, 1–2 pages.
+   size: A4; margin: 12mm 15mm; }`, clean `@media print`, 1–2 pages. Run the
+   manual lint grep: `grep -E 'columns|multicol|<table|<img|fonts.googleapis'
+   index.html` → 0 matches.
 3. **Run the inference gate BEFORE the PDF**:
    `bash $SCRIPTS_DIR/cv/check-inference.sh index.html` — the gate MUST pass
    (exit 0) before continuing. If it fails, remove/rephrase the markers and
    run again. This gate is mandatory and cannot be skipped.
 4. Run `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
-5. If the script fails, report the engine error — never deliver an empty PDF.
+5. **Page-2 footer (2-pass)** — check the rendered PDF page count with
+   `pdfinfo curriculo.pdf | awk '/^Pages:/ {print $2}'`:
+   - If it exceeds ONE page (senior+), fill the template's
+     `<footer class="page-footer">` spans
+     (`<span class="footer-name"><name></span>
+     <span class="footer-page"> · Página X de Y</span>` — job-language word
+     for "Page"; X = Y = the final page count) and re-run `pdf.sh`.
+   - If it is ONE page, REMOVE the `<footer class="page-footer">` block
+     entirely and re-run `pdf.sh` (a one-page resume must not carry the
+     footer).
+   - After the re-render, re-run `pdfinfo` and confirm the page count is
+     still ≤ 2 (§4 — 3+ pages are FORBIDDEN). If it tipped to 3, condense
+     content and re-render.
+   - The footer is real selectable text — it never alters digits or ATS order.
+6. **Digit verification (numeric spine)** — after the final PDF, verify the
+   tabular-numeral spine did not alter any digit: extract the PDF text with
+   `pdftotext curriculo.pdf -` and confirm every metric/date digit from
+   `index.html` appears unchanged (the digits are the sacred contract; only
+   glyph widths change). If a digit is missing or altered, fix the source and
+   re-render — never accept a PDF with altered figures.
+7. If a script fails, report the engine error — never deliver an empty PDF.
