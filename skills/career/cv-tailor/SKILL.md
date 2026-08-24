@@ -258,7 +258,12 @@ decision (proceed anyway / stop).
    `bash $SCRIPTS_DIR/cv/check-inference.sh index.html` — the gate MUST pass
    (exit 0) before continuing. If it fails, remove/rephrase the markers and
    run again. This gate is mandatory and cannot be skipped.
-4. Run `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
+4. Run `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf` — `pdf.sh`
+   validates the input encoding and REFUSES to render HTML that is not valid
+   UTF-8 or contains NUL bytes (e.g. a corrupted `·` separator rendering as
+   `�b7`). If pdf.sh is blocked, the HTML bytes are corrupted: fix the
+   encoding (checklist §5) and re-run — never deliver a PDF rendered from
+   corrupt input.
 5. **Page-2 footer (2-pass)** — check the rendered PDF page count with
    `pdfinfo curriculo.pdf | awk '/^Pages:/ {print $2}'`:
    - If it exceeds ONE page (senior+), fill the template's

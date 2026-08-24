@@ -156,6 +156,10 @@ Before generating the PDF, the cv-tailor agent MUST verify every item:
 - [ ] Page-2 footer: present with `name · Page x of y` ONLY when the document
       exceeds one page; absent from one-page resumes
 - [ ] Lint grep (manual, before PDF): `grep -E 'columns|multicol|<table|<img|fonts.googleapis|[🤖-🤯]' index.html` → 0 matches
+- [ ] Valid UTF-8 with no NUL bytes (0x00) or invalid byte sequences — a
+      corrupted separator (e.g. `·` → `\x00b7`) renders as `�b7` in the PDF;
+      `pdf.sh` refuses to render corrupt input, so a blocked run means fix the
+      HTML encoding before retrying
 - [ ] Page count: 1 page (Junior/Pleno) or at most 2 (Senior+)
 - [ ] Word count <= ~700 words per page
 

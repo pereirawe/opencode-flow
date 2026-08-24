@@ -21,6 +21,24 @@ fi
 
 INPUT_ABS="$(realpath "$INPUT")"
 
+# Gate: reject corrupted input encoding BEFORE rendering. A NUL byte or an
+# invalid UTF-8 sequence in the HTML renders as "�" (replacement char) in the
+# PDF — e.g. the "·" separator (UTF-8 C2 B7) corrupted to "\x00b7" renders as
+# "�b7". Refuse to render so the corruption can never silently ship.
+check_encoding() {
+  if ! iconv -f UTF-8 -t UTF-8 "$INPUT_ABS" >/dev/null 2>&1; then
+    echo "error: input HTML is not valid UTF-8 (corrupted byte sequences) — fix the encoding before generating the PDF" >&2
+    return 1
+  fi
+  if perl -0777 -ne 'exit 1 if /\x00/' "$INPUT_ABS"; then
+    return 0
+  fi
+  echo "error: input HTML contains NUL bytes (corrupted characters, e.g. the '·' separator) — fix before generating the PDF" >&2
+  perl -0777 -ne '$n = () = /\x00/g; print "  $n NUL byte(s) found\n"' "$INPUT_ABS" >&2
+  return 1
+}
+check_encoding || exit 1
+
 # Ensure the output directory exists before resolving it (realpath fails on
 # missing dirs, and Chrome won't create the parent).
 OUTPUT_DIR_RAW="$(dirname "$OUTPUT")"
