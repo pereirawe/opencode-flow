@@ -536,7 +536,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 2 (qa, ux-ui)
 - Remote: #127
 - Jira: -
-- PR: -
+- PR: #128
 - Location: skills/career/cv-pdf/templates/resume.html, skills/career/cv-pdf/SKILL.md, standards/cv-design.md, skills/career/cv-tailor/SKILL.md, agents/career/cv-tailor.md, scripts/tests/test_cv.sh
 - Description: Refinar el template de referencia del currículo (resume.html) y el estándar cv-design.md con un patrón single-column tipográfico refinado que respeta todas las reglas ATS: header lockup (nombre 17–20pt, cargo 11pt), nueva meta-línea `.entry-head` con título/empresa a la izquierda y fechas a la derecha en flex de una sola línea, énfasis de métricas cuantificadas vía `<strong>` (texto real, sin alterar cifras), y ritmo de espaciado refinado (~7mm entre secciones). Preserva las reglas de impresión existentes (break-inside:avoid en .entry, break-inside:auto + orphans/widows en secciones, break-after:avoid en h2/.header).
 - Impact: Todos los currículos generados por ocf:cv-tailor (el template es la base obligatoria del sector). Mejora la calidad percibida del entregable principal sin romper ATS; riesgo bajo (cambio de template + estándar + instrucción de contenido).
