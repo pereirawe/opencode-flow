@@ -171,6 +171,29 @@
         }
       }
     },
+    "preferences": {
+      "type": "object",
+      "description": "Candidate's job-application preferences. Optional — hubs without it remain valid. Used by cv-tailor and cv-cover-letter as the application gate.",
+      "additionalProperties": false,
+      "properties": {
+        "dislikes": {
+          "type": "array",
+          "description": "Things the candidate doesn't like or that don't fit them in a job offer (e.g. on-site roles, legacy stacks, on-call rotations, micromanagement).",
+          "items": { "type": "string" }
+        },
+        "excluded_roles": {
+          "type": "array",
+          "description": "Roles or functions the candidate doesn't want to assume (e.g. people management, sales, support).",
+          "items": { "type": "string" }
+        },
+        "min_match_percentage": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Minimum weighted match percentage (gap analysis) for the candidate to apply. Below this threshold cv-tailor/cv-cover-letter recommend NOT applying and produce a feedback report instead of the artifact. Default 70 when absent."
+        }
+      }
+    },
     "sources": {
       "type": "array",
       "description": "List of source files used to build the hub.",

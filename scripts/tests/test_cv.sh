@@ -1537,4 +1537,128 @@ else
   echo "skip - chrome/pdftotext/pdfinfo not available; BR 9 PDF assertions skipped"
 fi
 
+# --- issue #212: preferences section + application gate ---
+# 1. schema.json declares the optional preferences section (backward compatible)
+CV_SCHEMA="$CV_DIR/schema.json"
+if [[ -f "$CV_SCHEMA" ]]; then
+  assert_contains "$CV_SCHEMA" '"preferences"' "schema.json declares the preferences section"
+  assert_contains "$CV_SCHEMA" '"min_match_percentage"' "schema.json declares preferences.min_match_percentage"
+  assert_contains "$CV_SCHEMA" '"dislikes"' "schema.json declares preferences.dislikes"
+  assert_contains "$CV_SCHEMA" '"excluded_roles"' "schema.json declares preferences.excluded_roles"
+  assert_contains "$CV_SCHEMA" '"required": ["personal_info", "summary", "experience", "education", "skills", "certifications", "projects", "languages", "links"]' \
+    "schema.json keeps the required sections unchanged (preferences optional)"
+else
+  t_fail "schema.json missing at $CV_SCHEMA"
+fi
+
+# 2. validate.py accepts a valid preferences block and rejects invalid ones (both paths)
+TMP_ENV="$TMP" python3 - <<'EOF' > "$TMP/hub-prefs-valid.json"
+import json, os
+tmp = os.environ["TMP_ENV"]
+hub = {
+  "personal_info": {"name": "T"}, "summary": "s",
+  "experience": [], "education": [], "skills": [], "certifications": [],
+  "projects": [], "languages": [], "links": [],
+  "preferences": {"dislikes": ["on-site"], "excluded_roles": ["sales"], "min_match_percentage": 70}
+}
+json.dump(hub, open(os.path.join(tmp, "hub-prefs-valid.json"), "w"))
+EOF
+# a hub WITHOUT preferences stays valid (backward compatibility)
+run_both "0" "validate.py accepts a valid preferences block" "$TMP/hub-prefs-valid.json"
+
+TMP_ENV="$TMP" python3 - <<'EOF'
+import json, os
+tmp = os.environ["TMP_ENV"]
+base = {"personal_info": {"name": "T"}, "summary": "s",
+        "experience": [], "education": [], "skills": [], "certifications": [],
+        "projects": [], "languages": [], "links": []}
+def write(name, prefs):
+    h = dict(base); h["preferences"] = prefs
+    json.dump(h, open(os.path.join(tmp, name), "w"))
+write("hub-prefs-out-of-range.json", {"min_match_percentage": 150})
+write("hub-prefs-negative.json", {"min_match_percentage": -5})
+write("hub-prefs-nonint.json", {"min_match_percentage": "60"})
+write("hub-prefs-float.json", {"min_match_percentage": 70.5})
+write("hub-prefs-bool.json", {"min_match_percentage": True})
+write("hub-prefs-badlist.json", {"dislikes": [123]})
+write("hub-prefs-dislikes-scalar.json", {"dislikes": "on-site"})
+write("hub-prefs-null-threshold.json", {"min_match_percentage": None})
+write("hub-prefs-null-dislikes.json", {"dislikes": None})
+write("hub-prefs-threshold-zero.json", {"min_match_percentage": 0})
+write("hub-prefs-threshold-max.json", {"min_match_percentage": 100})
+write("hub-prefs-empty-lists.json", {"dislikes": [], "excluded_roles": []})
+h = dict(base); h["preferences"] = "not-an-object"
+json.dump(h, open(os.path.join(tmp, "hub-prefs-nonobject.json"), "w"))
+json.dump(base, open(os.path.join(tmp, "hub-prefs-absent.json"), "w"))
+EOF
+run_both "1" "validate.py rejects a preferences.min_match_percentage above 100" "$TMP/hub-prefs-out-of-range.json"
+run_both "1" "validate.py rejects a negative preferences.min_match_percentage" "$TMP/hub-prefs-negative.json"
+run_both "1" "validate.py rejects a non-integer preferences.min_match_percentage" "$TMP/hub-prefs-nonint.json"
+run_both "1" "validate.py rejects a float preferences.min_match_percentage" "$TMP/hub-prefs-float.json"
+run_both "1" "validate.py rejects a boolean preferences.min_match_percentage" "$TMP/hub-prefs-bool.json"
+run_both "1" "validate.py rejects non-string preferences.dislikes items" "$TMP/hub-prefs-badlist.json"
+run_both "1" "validate.py rejects a scalar preferences.dislikes" "$TMP/hub-prefs-dislikes-scalar.json"
+run_both "1" "validate.py rejects a null preferences.min_match_percentage (both paths)" "$TMP/hub-prefs-null-threshold.json"
+run_both "1" "validate.py rejects a null preferences.dislikes (both paths)" "$TMP/hub-prefs-null-dislikes.json"
+run_both "1" "validate.py rejects a non-object preferences block" "$TMP/hub-prefs-nonobject.json"
+run_both "0" "validate.py accepts min_match_percentage at the lower bound (0)" "$TMP/hub-prefs-threshold-zero.json"
+run_both "0" "validate.py accepts min_match_percentage at the max bound (100)" "$TMP/hub-prefs-threshold-max.json"
+run_both "0" "validate.py accepts empty preferences lists" "$TMP/hub-prefs-empty-lists.json"
+run_both "0" "validate.py accepts a hub without preferences (backward compatible)" "$TMP/hub-prefs-absent.json"
+
+# 3. cv-hub skill documents the preferences section
+if [[ -f "$HUB_SKILL" ]]; then
+  assert_contains "$HUB_SKILL" "preferences" "cv-hub skill documents the preferences section"
+  assert_contains "$HUB_SKILL" "min_match_percentage" "cv-hub skill documents preferences.min_match_percentage"
+  assert_contains "$HUB_SKILL" "excluded_roles" "cv-hub skill documents preferences.excluded_roles"
+  assert_contains "$HUB_SKILL" "**70**" "cv-hub skill documents the 70% default threshold"
+fi
+
+# 4. cv-tailor skill/agent/command document the application gate + quantified achievements
+if [[ -f "$TAILOR_SKILL" ]]; then
+  assert_contains "$TAILOR_SKILL" "min_match_percentage" "cv-tailor skill documents preferences.min_match_percentage"
+  assert_contains "$TAILOR_SKILL" "feedback.md" "cv-tailor skill defines the feedback.md gate output"
+  assert_contains "$TAILOR_SKILL" "without asking for confirmation" "cv-tailor skill proceeds without confirmation above the threshold"
+  assert_contains "$TAILOR_SKILL" "Quantified achievements" "cv-tailor skill prioritizes quantified achievements"
+  assert_contains "$TAILOR_SKILL" "**70**" "cv-tailor skill documents the 70% default threshold"
+fi
+if [[ -f "$TAILOR_AGENT" ]]; then
+  assert_contains "$TAILOR_AGENT" "min_match_percentage" "cv-tailor agent applies the application gate"
+  assert_contains "$TAILOR_AGENT" "feedback.md" "cv-tailor agent writes feedback.md below the threshold"
+  assert_contains "$TAILOR_AGENT" "Quantified achievements" "cv-tailor agent prioritizes quantified achievements"
+fi
+if [[ -f "$TAILOR_CMD" ]]; then
+  assert_contains "$TAILOR_CMD" "Application gate" "ocf:cv-tailor command documents the application gate"
+  assert_contains "$TAILOR_CMD" "feedback.md" "ocf:cv-tailor command documents feedback.md"
+  assert_contains "$TAILOR_CMD" "quantified achievements" "ocf:cv-tailor command prioritizes quantified achievements"
+fi
+
+# 5. cv-cover-letter skill/agent/command document the same gate
+if [[ -f "$CL_SKILL" ]]; then
+  assert_contains "$CL_SKILL" "min_match_percentage" "cv-cover-letter skill documents preferences.min_match_percentage"
+  assert_contains "$CL_SKILL" "feedback.md" "cv-cover-letter skill defines the feedback.md gate output"
+  assert_contains "$CL_SKILL" "Quantified achievements" "cv-cover-letter skill prioritizes quantified achievements"
+  assert_contains "$CL_SKILL" "reuse its gate decision" "cv-cover-letter skill reuses the cv-tailor gate decision"
+  assert_contains "$CL_SKILL" "**70**" "cv-cover-letter skill documents the 70% default threshold"
+fi
+if [[ -f "$CL_AGENT" ]]; then
+  assert_contains "$CL_AGENT" "min_match_percentage" "cv-cover-letter agent applies the application gate"
+  assert_contains "$CL_AGENT" "feedback.md" "cv-cover-letter agent writes feedback.md below the threshold"
+  assert_contains "$CL_AGENT" "quantified achievements" "cv-cover-letter agent prefers quantified achievements"
+fi
+if [[ -f "$CL_CMD" ]]; then
+  assert_contains "$CL_CMD" "Application gate" "ocf:cv-cover-letter command documents the application gate"
+  assert_contains "$CL_CMD" "feedback.md" "ocf:cv-cover-letter command documents feedback.md"
+  assert_contains "$CL_CMD" "quantified achievements" "ocf:cv-cover-letter command prefers quantified achievements"
+fi
+
+# 6. standards/cv-analysis.md documents the feedback report (§3.5) + gate protocol
+CV_ANALYSIS="$SCRIPT_DIR/../../standards/cv-analysis.md"
+if [[ -f "$CV_ANALYSIS" ]]; then
+  assert_contains "$CV_ANALYSIS" "### 3.5" "cv-analysis standard documents the §3.5 feedback report"
+  assert_contains "$CV_ANALYSIS" "feedback.md" "cv-analysis standard defines feedback.md structure"
+  assert_contains "$CV_ANALYSIS" "min_match_percentage" "cv-analysis standard documents the application gate threshold"
+  assert_contains "$CV_ANALYSIS" "WITHOUT confirmation" "cv-analysis standard documents proceed-without-confirmation"
+fi
+
 t_finish

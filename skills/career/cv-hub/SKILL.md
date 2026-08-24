@@ -99,9 +99,30 @@ summary). The hub is the foundation for tailored resume generation
     { "name": "open-source x", "description": "...", "technologies": ["Go"] }
   ],
   "languages": [ { "language": "English", "level": "fluent", "scale_note": "C1" } ],
-  "links": [ { "name": "GitHub", "url": "https://github.com/x" } ]
+  "links": [ { "name": "GitHub", "url": "https://github.com/x" } ],
+  "preferences": {
+    "dislikes": ["on-site roles", "on-call rotations"],
+    "excluded_roles": ["people management", "sales"],
+    "min_match_percentage": 70
+  }
 }
 ```
+
+`preferences` is **optional** — hubs without it remain valid. It feeds the
+application gate of `cv-tailor`/`cv-cover-letter`:
+
+- `dislikes` — things the candidate doesn't like or that don't fit them in a
+  job offer (e.g. on-site roles, legacy stacks, micromanagement, on-call
+  rotations). When the gate blocks an offer (match below the threshold), these
+  are surfaced in `feedback.md` as dealbreakers; when the offer passes the
+  gate it proceeds without confirmation.
+- `excluded_roles` — roles/functions the candidate doesn't want to assume
+  (e.g. people management, sales, support). Same dealbreaker semantics as
+  `dislikes` (surfaced in the blocked `feedback.md`).
+- `min_match_percentage` — the minimum weighted match percentage (from the
+  gap analysis) for the candidate to apply. Below it, cv-tailor/cv-cover-letter
+  recommend NOT applying and produce a feedback report instead of the
+  artifact. Default **70** when absent.
 
 All keys and enum values are English (snake_case). The schema is the
 canonical structure for every locale. When migrating an existing hub built
@@ -126,6 +147,10 @@ with the legacy Portuguese keys, run
 - **Sensitive**: full address, CPF, document, bank details are NOT copied to
   the hub (only city/state/country when available).
 - **Reverse chronological order** in `experience`, `education`, `projects`.
+- **Preferences**: `dislikes` and `excluded_roles` are recorded only when the
+  candidate states them — never inferred from experience (absence of a
+  disliked thing is not a preference). `min_match_percentage` defaults to
+  **70** when absent; record only a different value.
 
 ## README.md template
 
@@ -172,12 +197,18 @@ structure (sections appear ONLY when the hub has data for them):
 
 ## Links
 - <name>: <url>
+
+## Preferences
+- Dislikes: <dislikes, comma-separated>          (only when present)
+- Excluded roles: <excluded_roles, comma-separated>  (only when present)
+- Minimum match to apply: <min_match_percentage>% (only when present)
 ```
 
 Rules:
 
 1. Section order mirrors the hub: name + title, contact, summary, experience,
-   education, skills, certifications, projects, languages, links.
+   education, skills, certifications, projects, languages, links,
+   preferences.
 2. Empty sections are omitted (e.g. no certifications → no `## Certifications`).
 3. Contact fields appear only when present in `personal_info`; sensitive data
    (CPF, document, bank details) never.
@@ -227,8 +258,9 @@ is the base for the update.
    consolidation rules (schema above, consolidation rules below), but apply
    them to the EXISTING entries:
    - **ADD** new entries into their section (`experience`, `education`,
-     `skills`, `certifications`, `projects`, `languages`, `links`, ...),
-     keeping reverse chronological order where applicable.
+      `skills`, `certifications`, `projects`, `languages`, `links`,
+      `preferences`, ...), keeping reverse chronological order where
+      applicable.
    - **UPDATE** existing entries with corrected/more recent data when the
      new information supersedes them.
 5. **Validate** — `python3 $SCRIPTS_DIR/cv/validate.py hub.json`; fix until
@@ -252,7 +284,10 @@ is the base for the update.
     entry (union of fields, prefer the most complete version).
   - `education`: same `institution` + `course` → merge.
   - `languages`: same `language` → merge.
-  - `links`: same `name` (or same `url`) → merge.
+   - `links`: same `name` (or same `url`) → merge.
+   - `preferences`: an object, not a list — merge field-by-field (a new
+     `dislikes` item, `excluded_roles` item or `min_match_percentage` value is
+     added/updated, never duplicated).
 - **Preserve existing `[INFERIDO]` markers** — an entry that already carries
   the marker KEEPS it after an update; only the candidate can remove it by
   confirming real data. New inferences introduced by the update are marked
