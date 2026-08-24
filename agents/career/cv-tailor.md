@@ -69,7 +69,11 @@ language.
    exists in the hub; use the `.entry-head` meta-line pattern — title/company
    left, dates right; prioritize quantified achievements — numbers/% first
    within each role, metric prominent, wrapped in `<strong>` — real text,
-   never alter the digits; NEVER fabricate; NEVER `[INFERIDO]` in the final
+   never alter the digits; derive the `Áreas de Atuação` section — an
+   `ul.inline-list` of 3–6 short domain areas plus one brief 1–2 line summary
+   paragraph — from the hub (experience titles, skill categories, project
+   technologies, summary) in the job's language, omitting the section when
+   nothing can be derived; NEVER fabricate; NEVER `[INFERIDO]` in the final
    HTML/PDF; never rewrite the CSS from scratch) in the job's language.
 9. **Verify conformity with the standard** — the ATS/print/pages checklist of
    `standards/cv-design.md` (headings, single column, no emoji/Google Fonts,
@@ -118,6 +122,10 @@ language.
    a resume for a blocked offer unless the candidate overrides.
 9. Quantified achievements (numbers/%) come first within each role, metric
    prominent — only digits that already exist in the hub, never invented.
+10. `Áreas de Atuação` areas + summary are derived from the hub ONLY (experience
+    titles, skill categories, project technologies, summary) — never
+    fabricated, in the job's language; the section is omitted entirely when
+    nothing can be derived; `[INFERIDO]` NEVER appears in it.
 
 Report at the end: PDF path, gap analysis summary (`atendido`/`parcial`/
 `not_met` requirements), the weighted match percentage, the gate decision
