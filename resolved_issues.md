@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 215. cv-optimizer global score (qualificação total) sometimes 0 — empty sections must be excluded from the weighted average
+- Resolved: 2026-08-24
+- Durations: backlog=0d waiting=0d dev=0d review=- qa=- publish=0d total=0d
+- Severity: medium
+- Type: bug
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #131
+- Summary: As a candidate, I want the optimizer's global score (qualificação total) to reflect a real weighted average, so that a strong profile is never reported as 0. Today the scoring protocol is ambiguous — Refine cv-optimizer/SKILL.md §3 (Profile score) — Global = weighted average over present/non-empty sections only (experience 1.5x, skills 1.5x, others 1x), the 0-global guard (only when every section is empty), and a worked example; document the exclusion rule in standards/cv-analysis.md §4.2; add regression assertions in scripts/tests/test_cv.sh; run `make test-scripts`. Effort ~2-3h.
+
 ### 214. Aplicar "Swiss Measure" al template del currículo — numerales tabulares, escala tipográfica tokenizada, negrita racionada, hairline endurecido y footer de página 2
 - Resolved: 2026-08-24
 - Durations: backlog=0d waiting=0d dev=0d review=0d qa=0d publish=0d total=0d
