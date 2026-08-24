@@ -122,7 +122,38 @@ Score each section based on **completeness and strength**:
 Rules:
 - Each empty section = 0. Each section with minimal data = 40-60. Complete
   sections = 70-90. With differentiators (metrics, links, formal notes) = 90-100.
-- Global score = weighted average (experience and skills weigh more: 1.5x).
+- **Global = weighted average over ONLY the sections present AND non-empty**
+  in the hub (single source of the exclusion rule:
+  `standards/cv-analysis.md` §4.2). A section is present/non-empty when its
+  array has ≥ 1 item (`experience`, `education`, `skills`, `certifications`,
+  `projects`, `languages`, `links`) or when the value has content (`summary`
+  string, `personal_info` object). Empty/missing sections keep a score row of
+  0 in the table (they are context gaps) but are **excluded** from the Global
+  average — never included as 0.
+- **Explicit weights**: `experience` 1.5x, `skills` 1.5x, all other present
+  sections 1x. Weighted formula (round to the nearest integer):
+
+  ```
+  Global = round( Σ (score_section × weight_section) / Σ weight_section )
+  ```
+
+- **Worked example** — experience 85, skills 90, education 65, personal_info
+  80, summary 70; certifications, projects, languages and links empty (score
+  0, excluded):
+
+  ```
+  (85×1.5 + 90×1.5 + 65×1 + 80×1 + 70×1) / (1.5 + 1.5 + 1 + 1 + 1)
+  = 477.5 / 6 = 79.58 → Global = 80
+  ```
+
+  The Global row justification reads: "Weighted average over present sections
+  (experience, skills, education, personal_info, summary); excluded: projects, certifications, languages, links — empty/missing sections."
+- **0-global guard** — `Global = 0` is valid ONLY when every hub section is empty/missing.
+  The Global MUST NEVER be 0 when at least one scored section has a score ≥ 40.
+- **Global row justification MUST list the excluded sections and why** — no
+  silent averages.
+- Excluded empty sections remain listed under **Context gaps** (report §5) —
+  never silently dropped.
 - **Textual justification required** for every score.
 - Scores are estimates — no `[INFERIDO]` on the score itself (it is
   computed), but any inference used in the justification must be marked.

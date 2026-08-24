@@ -419,6 +419,46 @@ else
   t_fail "cv-optimizer skill missing at $OPT_SKILL"
 fi
 
+# --- issue #215: Global score excludes empty/missing sections ---
+# BR 1/2/3/4/5 — the exclusion rule is documented in standards/cv-analysis.md
+# §4.2 (single source) and the cv-optimizer skill cross-references it; the
+# skill carries the explicit weights, the 0-global guard and the worked
+# example (Tests: 1-3 of issue #215).
+CV_ANALYSIS_215="$SCRIPT_DIR/../../standards/cv-analysis.md"
+if [[ -f "$CV_ANALYSIS_215" ]]; then
+  assert_contains "$CV_ANALYSIS_215" "present AND non-empty" \
+    "cv-analysis §4.2 documents the present/non-empty exclusion rule (BR 1)"
+  assert_contains "$CV_ANALYSIS_215" "1.5x" \
+    "cv-analysis §4.2 documents the experience/skills 1.5x weights (BR 3)"
+  assert_contains "$CV_ANALYSIS_215" "score ≥ 40" \
+    "cv-analysis §4.2 documents the 0-global guard (BR 2)"
+  assert_contains "$CV_ANALYSIS_215" "every hub section is empty" \
+    "cv-analysis §4.2 documents the completely-empty-hub → Global 0 case (Tests: 2)"
+  assert_contains "$CV_ANALYSIS_215" "excluded: projects, certifications, languages, links" \
+    "cv-analysis §4.2 documents listing excluded empty sections in the justification (BR 4)"
+else
+  t_fail "cv-analysis standard missing at $CV_ANALYSIS_215"
+fi
+
+if [[ -f "$OPT_SKILL" ]]; then
+  assert_contains "$OPT_SKILL" "present AND non-empty" \
+    "cv-optimizer skill computes Global over present/non-empty sections only (BR 1)"
+  assert_contains "$OPT_SKILL" "1.5x" \
+    "cv-optimizer skill documents the 1.5x experience/skills weights (BR 3)"
+  assert_contains "$OPT_SKILL" "Global = 80" \
+    "cv-optimizer skill pins the worked example — strong hub → Global 80 (Tests: 1)"
+  assert_contains "$OPT_SKILL" "score ≥ 40" \
+    "cv-optimizer skill documents the 0-global guard (BR 2)"
+  assert_contains "$OPT_SKILL" "every hub section is empty" \
+    "cv-optimizer skill documents Global = 0 only for a completely empty hub (Tests: 2)"
+  assert_contains "$OPT_SKILL" "excluded: projects, certifications, languages, links" \
+    "cv-optimizer skill lists the excluded empty sections in the Global justification (Tests: 1)"
+  assert_contains "$OPT_SKILL" "standards/cv-analysis.md" \
+    "cv-optimizer skill cross-references the §4.2 single source (BR 5)"
+else
+  t_fail "cv-optimizer skill missing at $OPT_SKILL"
+fi
+
 # --- cv-cover-letter contract (issue #66) ---
 CL_SKILL="$SCRIPT_DIR/../../skills/career/cv-cover-letter/SKILL.md"
 if [[ -f "$CL_SKILL" ]]; then

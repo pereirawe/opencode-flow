@@ -237,6 +237,31 @@ Columns: `Section | Score (0-100) | Justification`
 - `Justification` — textual justification in the report language; any
   inference used in the justification is marked `[INFERIDO]`.
 
+**Global row — exclusion rule (single source).** The `Global` score is the
+weighted average over ONLY the hub sections that are present AND non-empty:
+
+- A section is **present AND non-empty** when its array has ≥ 1 item
+  (`experience`, `education`, `skills`, `certifications`, `projects`,
+  `languages`, `links`) or when the value has content (`summary` string,
+  `personal_info` object).
+- Empty/missing sections keep a score row of `0` in the table (they are
+  context gaps) but are **excluded** from the Global average — never
+  included as 0.
+- **Weights**: `experience` 1.5x, `skills` 1.5x, all other present sections
+  1x. Formula (round to the nearest integer):
+
+  ```
+  Global = round( Σ (score_section × weight_section) / Σ weight_section )
+  ```
+
+- **0-global guard**: `Global = 0` is valid ONLY when every hub section is empty/missing.
+  The Global MUST NEVER be 0 when at least one scored section has a score ≥ 40.
+- The Global row `Justification` MUST list the excluded sections and why
+  (e.g. "excluded: projects, certifications, languages, links — empty/missing
+  sections") — no silent averages.
+- Excluded empty sections remain listed under Context gaps (report §5) —
+  never silently dropped.
+
 ### 4.3 Action plan
 
 Columns: `ID | Action | Impact | Effort | Priority | Target profile`
