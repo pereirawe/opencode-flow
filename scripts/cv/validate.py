@@ -321,6 +321,42 @@ def _validate_cross_field_dates(hub, errors):
                 )
 
 
+def _validate_preferences(hub, errors):
+    """preferences block (issue #212) — shared by both validation paths:
+    - dislikes / excluded_roles must be arrays of strings;
+    - min_match_percentage must be an integer in 0-100 (bool excluded);
+    - an absent key = default (no check); a key present with value null is
+      REJECTED on both paths (jsonschema rejects null for the type; the
+      fallback key-presence guard routes null into the type check);
+    - unknown keys inside preferences are rejected by the jsonschema path
+      (additionalProperties: false); the hand-rolled fallback is lenient on
+      unknown keys, matching its documented unknown-root-key leniency.
+    """
+    prefs = hub.get("preferences")
+    if prefs is None:
+        return
+    if not isinstance(prefs, dict):
+        check(False, "preferences must be an object", errors)
+        return
+    for key in ("dislikes", "excluded_roles"):
+        if key not in prefs:
+            continue
+        value = prefs[key]
+        if not isinstance(value, list):
+            check(False, f"preferences.{key} must be an array of strings", errors)
+            continue
+        for i, item in enumerate(value):
+            if not isinstance(item, str):
+                check(False, f"preferences.{key}[{i}] must be a string", errors)
+    if "min_match_percentage" not in prefs:
+        return
+    threshold = prefs["min_match_percentage"]
+    if isinstance(threshold, bool) or not isinstance(threshold, int):
+        check(False, "preferences.min_match_percentage must be an integer (0-100)", errors)
+    elif not (0 <= threshold <= 100):
+        check(False, "preferences.min_match_percentage must be between 0 and 100", errors)
+
+
 def validate_hub(hub, schema):
     """Validate a loaded hub against the schema. Returns a list of error
     strings (empty when valid)."""
@@ -335,6 +371,7 @@ def validate_hub(hub, schema):
     _validate_formats(hub, errors)
     _validate_summary_i18n(hub, errors)
     _validate_cross_field_dates(hub, errors)
+    _validate_preferences(hub, errors)
 
     return errors
 

@@ -44,22 +44,31 @@ The job can be provided as:
    `atendido`/`parcial`/`not_met` per `standards/cv-analysis.md` §4.1), saved
    in `cartas/<job-slug>/gap-analysis.md` (written in the user's communication
    language).
-5. **Human decision on inferences** — list all of them in
+5. **Application gate** — compare the weighted match percentage with
+   `preferences.min_match_percentage` (default **70%** when the hub has none).
+   When reusing cv-tailor's gap analysis, reuse its gate decision (a blocked
+   offer without override — read the `proceed anyway` decision persisted in
+   cv-tailor's `feedback.md` — is NOT generated). When built inline: match <
+   threshold → `cartas/<job-slug>/feedback.md` (per `standards/cv-analysis.md`
+   §3.5) + candidate decision (proceed anyway / stop); match ≥ threshold →
+   proceed directly WITHOUT confirmation.
+6. **Human decision on inferences** — list all of them in
    `cartas/<job-slug>/inferences.md` per `standards/cv-analysis.md`
    §3.3/§4.4 (table `Inference | Context | Decision | Status`) and ask the
    candidate to decide on each (rephrase/omit/promote with real data) before
    the final output.
-6. **Draft the letter** — in the job's language, referencing SPECIFIC
-   achievements from the hub that match the job's key requirements; NEVER
+7. **Draft the letter** — in the job's language, referencing SPECIFIC
+   achievements from the hub that match the job's key requirements, preferring
+   quantified achievements (numbers/% prominent) when the hub has them; NEVER
    fabricate; starting from the reference template
    `skills/career/cv-pdf/templates/resume.html`, following the
    `standards/cv-design.md` standard; NEVER `[INFERIDO]` in the final HTML/PDF.
-7. **Verify conformity** with the standard (the ATS/print/pages checklist of
+8. **Verify conformity** with the standard (the ATS/print/pages checklist of
    `standards/cv-design.md`) before the PDF.
-8. **Mandatory gate** — `bash $SCRIPTS_DIR/cv/check-inference.sh index.html`
+9. **Mandatory gate** — `bash $SCRIPTS_DIR/cv/check-inference.sh index.html`
    MUST pass (exit 0) before the PDF.
-9. **Generate the PDF** —
-   `bash $SCRIPTS_DIR/cv/pdf.sh index.html carta-apresentacao.pdf`.
+10. **Generate the PDF** —
+    `bash $SCRIPTS_DIR/cv/pdf.sh index.html carta-apresentacao.pdf`.
 
 ### Output
 
@@ -89,5 +98,7 @@ The job can be provided as:
 - Generated PDF path
   (`~/career/<candidate>/cartas/<slug>/carta-apresentacao.pdf`).
 - Gap analysis summary (reused or inline, `atendido`/`parcial`/`not_met`).
+- Application gate decision: blocked (`feedback.md` written, candidate's
+  decision) or approved (match ≥ threshold, no confirmation needed).
 - Resolved inferences list (rephrased/omitted/promoted) the candidate
   approved — no `[INFERIDO]` marker in the shareable artifact.

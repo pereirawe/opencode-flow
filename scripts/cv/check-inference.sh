@@ -2,8 +2,8 @@
 # Gate: ensure the final shareable resume artifact (HTML/PDF) contains no
 # [INFERIDO] markers or the bare word "inferido" (case-insensitive).
 #
-# Internal analysis files (hub.json, analise-perfil.md, gap-analysis.md,
-# inferences.md) MAY keep [INFERIDO]. The final HTML/PDF MUST NOT.
+# Internal analysis files (hub.json, profile-analysis.md, gap-analysis.md,
+# inferences.md, feedback.md) MAY keep [INFERIDO]. The final HTML/PDF MUST NOT.
 #
 # Usage: check-inference.sh <file> [<file> ...]
 #   - HTML: strips HTML/CSS comments (non-rendered, not part of the

@@ -80,6 +80,33 @@ fallback), like the other career analysis outputs (resolution order in
 `standards/cv-analysis.md` §1). The cover letter itself follows the job's
 language.
 
+## Application gate (recommend-or-proceed)
+
+The same gate as cv-tailor applies BEFORE the letter is drafted:
+
+1. **Reuse**: when reusing `resumes/<job-slug>/gap-analysis.md` from
+   cv-tailor, ALSO reuse its gate decision. If cv-tailor blocked the offer
+   (match < threshold) and the candidate did not override, the letter is NOT
+   generated — point the candidate to the cv-tailor `feedback.md`. The
+   candidate can still override to proceed. The override is persisted in
+   cv-tailor's `feedback.md` (Recommendation section: decision `proceed
+   anyway`); READ that decision to determine whether the candidate overrode —
+   never assume.
+2. **Build inline**: when the gap analysis is built here, compute the
+   weighted match percentage (mandatory 2x, desirable 1x, per
+   `standards/cv-analysis.md` §4.5) and compare with
+   `preferences.min_match_percentage` (default **70** when absent):
+   - match < threshold → write `cartas/<job-slug>/feedback.md` (canonical
+     §3.5 of `standards/cv-analysis.md`) explaining why it is not worth
+     applying (match vs threshold, `not_met`/`parcial` drag, and dealbreakers
+     from `preferences.dislikes`/`excluded_roles`) and ask the candidate to
+     decide (proceed anyway / stop).
+   - match ≥ threshold → proceed directly WITHOUT asking for confirmation;
+     record the gate decision in the gap analysis.
+
+`feedback.md` is an internal analysis artifact — the `check-inference.sh` gate
+applies only to the final letter HTML/PDF.
+
 ## Human validation flow for inferences
 
 Before generating the final HTML/PDF, list ALL inferences and placeholders in
@@ -124,6 +151,9 @@ structured as:
    "In my role as X at Acme I led the migration that reduced cost by 30% —
    the same profile as your Senior Platform Engineer opening"). Use real
    numbers, project names and outcomes from the hub — never invented ones.
+   **Quantified achievements (numbers/%) are the strongest evidence**: prefer
+   a metric-carrying achievement over a qualitative one whenever the hub has
+   one for the requirement, and keep the number prominent in the phrasing.
 5. **Closing** — enthusiasm for the role/company, availability for an
    interview, and a professional sign-off with the candidate's name.
 
@@ -161,8 +191,13 @@ structured as:
 ├── index.html            # cover letter HTML (job language)
 ├── carta-apresentacao.pdf  # generated A4 PDF
 ├── gap-analysis.md       # requirements vs hub analysis (when built inline)
-└── inferences.md        # resolved inferences list (human review)
+├── inferences.md        # resolved inferences list (human review)
+└── feedback.md          # gate feedback (ONLY when match < threshold) — why not worth applying + candidate decision
 ```
+
+`feedback.md` exists only when the application gate blocked the offer
+(match < `preferences.min_match_percentage`); it records the candidate's
+decision (proceed anyway / stop).
 
 `<job-slug>` = normalized company + title (e.g. `acme-senior-data-engineer`).
 

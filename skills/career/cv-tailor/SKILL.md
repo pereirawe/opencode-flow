@@ -89,6 +89,37 @@ Record the weighted computation and the resulting percentage in
 `standards/cv-analysis.md` §4.5 (mandatory requirements weigh 2x, desirable
 1x).
 
+### Application gate (recommend-or-proceed)
+
+Before generating the resume — and BEFORE the human inference flow — compare
+the weighted match percentage with the candidate's application threshold:
+
+1. **Read the threshold** — `preferences.min_match_percentage` in the hub;
+   default **70** when the hub has no `preferences` section or the field is
+   absent.
+2. **Below threshold** (`match_percentage < threshold`):
+   - **DO NOT generate the resume.** Instead write
+     `resumes/<job-slug>/feedback.md` (canonical structure §3.5 of
+     `standards/cv-analysis.md`) explaining why it is not worth applying:
+     - the match percentage vs the threshold;
+     - the `not_met`/`parcial` requirements that drag the score down;
+     - the **dealbreakers**: `preferences.dislikes` / `preferences.excluded_roles`
+       entries the job conflicts with (when any).
+   - Ask the candidate to decide: **proceed anyway** (generate the resume
+     normally) or **stop** (no artifact). Record the decision in
+     `feedback.md`.
+   - If the candidate proceeds anyway, generate the resume normally — the
+     dealbreakers stay noted in `feedback.md`, never in the resume.
+3. **At or above threshold** (`match_percentage >= threshold`) — proceed
+   directly with the resume generation, **without asking for confirmation**.
+   Record the gate decision (match %, threshold, verdict) in `gap-analysis.md`.
+
+`feedback.md` is an internal analysis artifact (may carry `[INFERIDO]` inline
+per `standards/cv-analysis.md` §5). The `check-inference.sh` gate applies only
+to the final `index.html`/PDF, never to `feedback.md`/`gap-analysis.md`. The
+keyword density & coverage metrics below are computed only when the resume is
+actually generated (gate passed or overridden).
+
 ### Keyword density & coverage
 
 AFTER generating the final resume (`index.html` and the PDF when available),
@@ -156,6 +187,11 @@ Reorder, highlight and rephrase **only what already exists in the hub**:
   first and their metric is wrapped in `<strong>` so it renders bold (real
   selectable text — the ATS reads it unchanged; never alter the digits). Do
   not remove roles; you may condense the least relevant ones.
+- **Quantified achievements**: within each role, achievements carrying
+  numbers/metrics (%, R$, counts, time, throughput) come FIRST, phrased with
+  the metric prominent (e.g. "Reduced infrastructure cost by 30%") — metrics
+  are the strongest evidence of impact. Never invent or exaggerate a number:
+  only digits that already exist in the hub.
 - **Projects**: highlight projects using the job's technologies; mark
   `relevance: high`.
 - **Certifications**: order the most relevant to the job first.
@@ -194,9 +230,14 @@ Reorder, highlight and rephrase **only what already exists in the hub**:
 ~/career/<candidate-name>/resumes/<job-slug>/
 ├── index.html            # resume HTML (job language)
 ├── curriculo.pdf         # generated A4 PDF
-├── gap-analysis.md       # requirements vs hub analysis + match % + keyword density & coverage
-└── inferences.md        # resolved inferences list (human review)
+├── gap-analysis.md       # requirements vs hub analysis + match % + gate decision + keyword density & coverage
+├── inferences.md        # resolved inferences list (human review)
+└── feedback.md          # gate feedback (ONLY when match < threshold) — why not worth applying + candidate decision
 ```
+
+`feedback.md` exists only when the application gate blocked the offer
+(match < `preferences.min_match_percentage`); it records the candidate's
+decision (proceed anyway / stop).
 
 `<job-slug>` = normalized company + title (e.g. `acme-senior-data-engineer`).
 
