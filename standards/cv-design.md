@@ -19,7 +19,11 @@ values), not opinions.
    job language. Empty sections MUST be omitted.
 3. All text MUST be real, selectable text — NEVER text rendered as an image.
 4. The layout MUST be single-column. CSS `columns`/multicol and two-column
-   flex/grid layouts are FORBIDDEN (they break ATS parsing order).
+   flex/grid **content** layouts that interleave or reorder items are
+   FORBIDDEN (they break ATS parsing order). A single sequential meta-line
+   row — the `.entry-head` pattern of §3.6 (title left, dates right, one flex
+   line, DOM order intact) — is ALLOWED: it does not interleave items and the
+   ATS reads it as one text line in order.
 5. Complex tables are FORBIDDEN. Key/value lines (contact, dates) MUST be
    plain text lines or simple inline lists, not table cells.
 6. Fonts MUST be ATS-safe system fonts: `Helvetica`, `Arial`, `sans-serif`.
@@ -56,10 +60,10 @@ values), not opinions.
 
 ## 3. Sober professional style
 
-1. Typography hierarchy MUST be discrete: name > section title > body.
-   Recommended print sizes: name 15–17pt bold, section titles 10.5–11pt
-   bold/small-caps, body 9.5–10.5pt, line-height 1.4–1.5.
-2. Spacing MUST be generous: ~6–10mm between sections, ~3–5mm between
+1. Typography hierarchy MUST be discrete: name > role > section title > body.
+   Recommended print sizes: name 17–20pt bold, role/headline 11pt, section
+   titles 10.5–11pt bold uppercase, body 9.5–10.5pt, line-height 1.4–1.5.
+2. Spacing MUST be generous: ~7–10mm between sections, ~3–5mm between
    entries. No cramped blocks.
 3. At most ONE accent color is allowed, and it MUST be grayscale-safe (the
    resume must remain fully readable and understandable when printed in
@@ -69,6 +73,15 @@ values), not opinions.
    structural divider.
 5. Body text MUST NOT be pure black (`#000`); use a near-black such as
    `#1a1a1a`.
+6. Entries (Experience, Education, Certifications) MUST use the **`.entry-head`
+   meta-line pattern**: the title/company on the left and the dates on the
+   right, on ONE line of text via flex (`display: flex;
+   justify-content: space-between; align-items: baseline`). It is NOT a table
+   and NOT multicol — the DOM order MUST stay sequentially readable by the
+   ATS (title · company first, dates after).
+7. Metrics/numbers of quantified achievements MUST be wrapped in `<strong>`
+   (real selectable text — the ATS reads them unchanged); the visual bold
+   emphasizes impact. The digits themselves are NEVER altered.
 
 ## 4. Length by seniority
 
@@ -96,6 +109,10 @@ Before generating the PDF, the cv-tailor agent MUST verify every item:
       boundaries)
 - [ ] No color-dependent information (legible in black-and-white)
 - [ ] No gradients/shadows/decorative borders/background tints
+- [ ] Entries use the `.entry-head` meta-line (title left + dates right on one
+      flex line — no table, no multicol)
+- [ ] Quantified achievements wrap their metrics in `<strong>` (real selectable
+      text; the digits are never altered)
 - [ ] Page count: 1 page (Junior/Pleno) or at most 2 (Senior+)
 - [ ] Word count <= ~700 words per page
 

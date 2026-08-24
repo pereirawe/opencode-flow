@@ -56,8 +56,11 @@ language.
 7. Generate `index.html` from the reference template
    `skills/career/cv-pdf/templates/resume.html` following the
    `standards/cv-design.md` standard (reorder/highlight/condense ONLY what
-   exists in the hub; NEVER fabricate; NEVER `[INFERIDO]` in the final
-   HTML/PDF; never rewrite the CSS from scratch) in the job's language.
+   exists in the hub; use the `.entry-head` meta-line pattern — title/company
+   left, dates right; wrap the metric of each quantified achievement in
+   `<strong>` — real text, never alter the digits; NEVER fabricate; NEVER
+   `[INFERIDO]` in the final HTML/PDF; never rewrite the CSS from scratch) in
+   the job's language.
 8. **Verify conformity with the standard** — the ATS/print/pages checklist of
    `standards/cv-design.md` (headings, single column, no emoji/Google Fonts,
    12–15mm margins, 1–2 pages) before generating the PDF.

@@ -152,8 +152,10 @@ Reorder, highlight and rephrase **only what already exists in the hub**:
 - **Skills**: reorder prioritizing the job keywords. Skills with
   `importance: primary` and a job match come first.
 - **Experience**: reorder achievements within each role — the ones with the
-  most job relevance first. Do not remove roles; you may condense the least
-  relevant ones.
+  most job relevance first; quantified achievements (with numbers/%) come
+  first and their metric is wrapped in `<strong>` so it renders bold (real
+  selectable text — the ATS reads it unchanged; never alter the digits). Do
+  not remove roles; you may condense the least relevant ones.
 - **Projects**: highlight projects using the job's technologies; mark
   `relevance: high`.
 - **Certifications**: order the most relevant to the job first.

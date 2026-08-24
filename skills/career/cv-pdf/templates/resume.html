@@ -10,6 +10,10 @@
     - lang: pt | en | es conforme o idioma da vaga (use resumo_i18n no hub).
     - Traduza os títulos das seções para o idioma da vaga.
     - Traduza também o <title> e o conteúdo do <header> (nome, cargo, contato).
+    - Use o padrão .entry-head (cargo/empresa à esquerda + <p class="dates">
+      à direita) nas entradas de Experiência, Educação e Certificações.
+    - Envolva a métrica/número de cada conquista quantificada em <strong>
+      (texto real — nunca altere as cifras do hub).
     - Omita seções vazias (ex.: sem certificações → remova a <section>).
     - NUNCA inclua [INFERIDO] neste arquivo (gate: scripts/cv/check-inference.sh).
 
@@ -43,40 +47,59 @@
     print-color-adjust: exact;
   }
 
-  /* ===== Cabeçalho ===== */
-  .header { margin-bottom: 6mm; }
+  /* ===== Cabeçalho (header lockup) ===== */
+  .header { margin-bottom: 7mm; }
   .header h1 {
-    font-size: 17pt;
+    font-size: 18pt;
     font-weight: 700;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
     color: var(--accent);
-    margin-bottom: 1mm;
+    margin-bottom: 1.5mm;
   }
   .header .role {
     font-size: 11pt;
     font-weight: 600;
-    margin-bottom: 1.5mm;
+    letter-spacing: 0.01em;
+    margin-bottom: 2mm;
   }
   .header .contact { font-size: 9.5pt; color: #3a3a3a; }
   .header .contact span { white-space: nowrap; }
   .header .contact span + span::before { content: " · "; }
 
   /* ===== Seções ===== */
-  section { margin-bottom: 6mm; }
+  section { margin-bottom: 7mm; }
   section h2 {
     font-size: 10.5pt;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.05em;
     color: var(--accent);
     border-bottom: 0.4pt solid #d9d9d9;   /* hairline estrutural */
-    padding-bottom: 1mm;
+    padding-bottom: 1.2mm;
     margin-bottom: 2.5mm;
   }
 
-  .entry { margin-bottom: 3mm; }
+  .entry { margin-bottom: 3.5mm; }
   .entry:last-child { margin-bottom: 0; }
-  .entry h3 { font-size: 10pt; font-weight: 700; }
+  /* Título de entrada: regra genérica (cobre <h3> sem .entry-head, ex. Projetos) */
+  .entry h3, .entry-head h3 { font-size: 10pt; font-weight: 700; }
+  /* Meta-linha da entrada: cargo · empresa à esquerda, datas à direita, em
+     UMA linha de texto (flex — NÃO é tabela, NÃO é multicol; o ATS lê em
+     ordem sequencial). */
+  .entry-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 4mm;
+  }
+  .entry-head h3 { flex: 1 1 auto; min-width: 0; }
+  .entry-head .dates {
+    font-size: 9.5pt;
+    color: #3a3a3a;
+    white-space: nowrap;
+    text-align: right;
+    flex-shrink: 0;
+  }
   .entry .meta {
     font-size: 9.5pt;
     color: #3a3a3a;
@@ -85,6 +108,9 @@
   .entry p, .entry ul { font-size: 9.5pt; }
   .entry ul { padding-left: 4mm; }
   .entry li { margin-bottom: 0.6mm; }
+  /* Métricas quantificadas em <strong>: texto real e selecionável (o ATS lê
+     igual), visual em negrito — nunca alterar as cifras do hub. */
+  .entry li strong { font-weight: 700; }
 
   /* ===== Skills/Idiomas: lista em linha, sem tabelas ===== */
   .inline-list { list-style: none; padding-left: 0; }
@@ -123,16 +149,22 @@
   <section>
     <h2>Experiência</h2>
     <div class="entry">
-      <h3>Cargo — Empresa</h3>
-      <p class="meta">Jan 2020 — Dez 2023 · Localidade</p>
+      <div class="entry-head">
+        <h3>Cargo — Empresa</h3>
+        <p class="dates">Jan 2020 — Dez 2023</p>
+      </div>
+      <p class="meta">Localidade · Tipo</p>
       <ul>
-        <li>Conquista mensurável e aderente à vaga.</li>
+        <li>Conquista mensurável e aderente à vaga, com a métrica em <strong>negrito</strong> (ex.: reduziu custos em <strong>30%</strong>).</li>
         <li>Segunda conquista, reformulada para destacar o impacto.</li>
       </ul>
     </div>
     <div class="entry">
-      <h3>Cargo anterior — Empresa anterior</h3>
-      <p class="meta">Jun 2016 — Dez 2019 · Localidade</p>
+      <div class="entry-head">
+        <h3>Cargo anterior — Empresa anterior</h3>
+        <p class="dates">Jun 2016 — Dez 2019</p>
+      </div>
+      <p class="meta">Localidade · Tipo</p>
       <ul>
         <li>Conquista mensurável.</li>
       </ul>
@@ -142,8 +174,11 @@
   <section>
     <h2>Educação</h2>
     <div class="entry">
-      <h3>Curso — Instituição</h3>
-      <p class="meta">Concluído em 2015 · Localidade</p>
+      <div class="entry-head">
+        <h3>Curso — Instituição</h3>
+        <p class="dates">Concluído em 2015</p>
+      </div>
+      <p class="meta">Localidade</p>
     </div>
   </section>
 
@@ -159,8 +194,10 @@
   <section>
     <h2>Certificações</h2>
     <div class="entry">
-      <h3>Certificação — Emissor</h3>
-      <p class="meta">Ano</p>
+      <div class="entry-head">
+        <h3>Certificação — Emissor</h3>
+        <p class="dates">Ano</p>
+      </div>
     </div>
   </section>
 
