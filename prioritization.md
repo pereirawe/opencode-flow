@@ -772,3 +772,25 @@ at proposal time. Unknown rules will be captured during discovery refinement.
 - Rationale: La causa raíz del "hasta 5x más lento en review/QA" es que el entorno no es un contrato conocido: cada sesión descubre o reconfigura la versión de Node. El fix es barato (manifest + `.nvmrc`/`.node-version` + reporte de versiones en el runner ya existente) y de efecto permanente: el entorno queda documentado, versionado y autodiagnosticado con warning — sin añadir fricción al pipeline (nunca bloquea).
 - Dependencies: Issue #56 (test-runner, resuelta — el runner ya existe y esta propuesta lo extiende sin cambiar su contrato); `package.json` en la raíz (Node) y Python3 en scripts (`sync-jira.sh`, cv) ya presentes; Makefile disponible. Sin dependencia con la issue #209 (propuesta 2026-08-19-2) — se ejecuta como issue separada.
 - Proposed issue type: feat
+
+### Proposal 2026-08-24-2: Refinar el patrón single-column ATS del currículo (jerarquía tipográfica, meta-línea con fechas alineadas, énfasis en métricas)
+- Priority: medium
+- Business value: El currículo generado por ocf:cv-tailor cumple el estándar ATS pero su formato visual es básico (título y fechas en líneas separadas, sin jerarquía refinada, métricas sin énfasis). Refinar el template dentro de los límites ATS mejora la primera impresión del reclutador humano sin romper el parsing automático — el mismo contenido, mejor presentado.
+- Target sprint: next
+- Description: Refinar el template de referencia `skills/career/cv-pdf/templates/resume.html` y el estándar `standards/cv-design.md` con un patrón **single-column tipográfico refinado** que respeta todas las reglas ATS (sin multicol, sin tablas, sin web fonts, sin color-dependence):
+  1. **Header lockup** — nombre 17–20pt con letter-spacing ajustado, cargo como subhead 11pt, contacto en una línea limpia.
+  2. **Meta-línea de entrada** — nueva `.entry-head` (flex en una sola línea de texto): título · empresa a la izquierda y fechas alineadas a la derecha (`justify-content: space-between`); la localidad pasa a una segunda línea `.meta`. Sigue siendo flujo de columna única ATS-safe.
+  3. **Énfasis en métricas** — los números/% de los logros cuantificados se envuelven en `<strong>` (texto real seleccionable, ATS lo lee; se ve en negrita). Instrucción en cv-tailor skill/agent, nunca se alteran las cifras.
+  4. **Ritmo de espaciado** — ~7mm entre secciones, 3.5mm entre entradas, hairline estructural en h2 conservado.
+- Business rules:
+  1. El template DEBE conservar `@page { size: A4; margin: 12mm 15mm; }`, `Helvetica, Arial, sans-serif`, sin Google Fonts, sin emoji, single-column (sin `columns`/multicol), sin tablas complejas.
+  2. La nueva `.entry-head` DEBE ser flex en UNA línea (título/empresa + fechas), NO tabla, NO multicol; el orden del DOM es texto legible secuencialmente por el ATS.
+  3. Las métricas envueltas en `<strong>` DEBEN ser el texto real del hub — nunca se cambian las cifras; el `<strong>` es solo énfasis visual (ATS lee el texto igual).
+  4. Las reglas de impresión existentes DEBEN preservarse: `.entry { break-inside: avoid; }`, `section { break-inside: auto; orphans: 3; widows: 3; }`, `.header`/`h2 { break-after: avoid; }`.
+  5. El estándar `standards/cv-design.md` DEBE documentar el patrón refinado (jerarquía 17–20pt/11pt/10.5–11pt/9.5–10.5pt, `.entry-head`, `<strong>` para métricas) y su checklist §5 DEBE incluir las nuevas aserciones.
+  6. La instrucción de cv-tailor (skill y agent) DEBE indicar envolver las métricas de los logros cuantificados en `<strong>`.
+  7. El cambio DEBE mantener el page-count estándar (§4: 1 página junior/pleno, máx. 2 senior+).
+- Stakeholders: william_pereira (candidato), cv-tailor, cv-pdf
+- Rationale: El formato actual cumple la técnica pero no aprovecha la jerarquía tipográfica dentro de lo permitido por ATS. El refinamiento es de bajo riesgo (template + estándar + instrucción), con impacto directo en la calidad percibida del entregable principal del sector.
+- Dependencies: Issue #203 (blank-gap CSS, resuelta — el template ya usa break-inside:auto en secciones largas); #212 (gate de aplicación, in-publish — este cambio convive con él y se implementa después). El template sigue siendo la base obligatoria de cv-tailor.
+- Proposed issue type: feat

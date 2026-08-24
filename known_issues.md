@@ -520,3 +520,45 @@ issues only. See `standards/issues.md` for the full contract.
   5. `ocf:develop` con lista de 2 issues → secuencial: 1ª termina en `in-publish` sin merge, 2ª procesada desde la base; exactamente UNA notificación Telegram final
 - Suggested fix: dividir el template de `ocf:develop` en opencode.json — `ocf:develop` conserva los pasos 1-5 + reporte "esperando merge manual" (sin pasos 6-8), y nuevo `ocf:develop-full` con el template completo actual (auto-merge + base + close/archive); crear `commands/ocf:develop-full.md` y actualizar `commands/ocf:develop.md`; cambiar watcher y CI a `ocf:develop-full`; actualizar tests e2e, workflow.md, READMEs y comentarios Dockerfile. Esfuerzo ~4-6h.
 
+
+### 213. Refinar el patrón single-column ATS del currículo (jerarquía tipográfica, meta-línea con fechas alineadas, énfasis en métricas)
+- Status: in-publish
+- Opened: 2026-08-24
+- Ready: 2026-08-24
+- Started: 2026-08-24
+- In review: 2026-08-24
+- In QA: 2026-08-24
+- In publish: 2026-08-24
+- Type: feat
+- Severity: medium
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (qa, ux-ui)
+- Remote: #127
+- Jira: -
+- PR: -
+- Location: skills/career/cv-pdf/templates/resume.html, skills/career/cv-pdf/SKILL.md, standards/cv-design.md, skills/career/cv-tailor/SKILL.md, agents/career/cv-tailor.md, scripts/tests/test_cv.sh
+- Description: Refinar el template de referencia del currículo (resume.html) y el estándar cv-design.md con un patrón single-column tipográfico refinado que respeta todas las reglas ATS: header lockup (nombre 17–20pt, cargo 11pt), nueva meta-línea `.entry-head` con título/empresa a la izquierda y fechas a la derecha en flex de una sola línea, énfasis de métricas cuantificadas vía `<strong>` (texto real, sin alterar cifras), y ritmo de espaciado refinado (~7mm entre secciones). Preserva las reglas de impresión existentes (break-inside:avoid en .entry, break-inside:auto + orphans/widows en secciones, break-after:avoid en h2/.header).
+- Impact: Todos los currículos generados por ocf:cv-tailor (el template es la base obligatoria del sector). Mejora la calidad percibida del entregable principal sin romper ATS; riesgo bajo (cambio de template + estándar + instrucción de contenido).
+- Business rules:
+  1. El template DEBE conservar `@page { size: A4; margin: 12mm 15mm; }`, la fuente `Helvetica, Arial, sans-serif`, sin Google Fonts, sin emoji, layout single-column (sin `columns`/multicol) y sin tablas complejas.
+  2. La meta-línea `.entry-head` DEBE ser flex en UNA línea de texto (título · empresa a la izquierda, fechas a la derecha con `justify-content: space-between`); NO DEBE ser tabla ni multicol; el DOM DEBE mantener orden de texto legible secuencialmente para el ATS.
+  3. Las métricas/números de los logros cuantificados DEBEN envolverse en `<strong>` (texto real seleccionable) — NUNCA se alteran las cifras del hub; es énfasis visual únicamente.
+  4. Las reglas de impresión existentes DEBEN preservarse: `.entry { break-inside: avoid; }`, `section { break-inside: auto; orphans: 3; widows: 3; }`, `.header`/`h2 { break-after: avoid; }` (sin regresión del issue #203).
+  5. `standards/cv-design.md` DEBE documentar el patrón refinado (jerarquía 17–20pt/11pt/10.5–11pt/9.5–10.5pt, `.entry-head`, `<strong>` para métricas) y su checklist §5 DEBE incluir las nuevas aserciones.
+  6. La instrucción de cv-tailor (skill y agent) DEBE indicar envolver las métricas de los logros cuantificados en `<strong>`.
+  7. El cambio DEBE mantener el page-count estándar (§4: 1 página junior/pleno, máx. 2 senior+).
+- Acceptance criteria:
+  1. `resume.html` contiene `.entry-head` con `display: flex; justify-content: space-between` y una regla para `.dates`/`.meta` alineada; el `@page A4 12mm`, la fuente del sistema y las reglas de impresión existentes se conservan.
+  2. El template sigue pasando las aserciones existentes de test_cv.sh (break-inside:auto en secciones, break-inside:avoid en .entry, break-after:avoid en h2/.header, sin Google Fonts/emoji).
+  3. `standards/cv-design.md` documenta el patrón refinado y el checklist §5 lo incluye.
+  4. `cv-tailor` skill/agent indican envolver las métricas en `<strong>`.
+  5. `make test-scripts` pasa (exit 0) con las nuevas aserciones.
+- Tests:
+  1. `grep` en resume.html → `.entry-head`, `justify-content: space-between`, `.dates` presentes; `@page`/`A4`/`12mm`/`Helvetica` presentes; `break-inside: auto`, `.entry { break-inside: avoid; }`, `h2 { break-after: avoid; }` presentes; sin `fonts.googleapis.com` ni emoji
+  2. `grep` en standards/cv-design.md → documenta `.entry-head` (o "meta-line"/"fechas alineadas") y `<strong>` para métricas en §3 y §5
+  3. `grep` en cv-tailor skill y agent → instrucción de envolver métricas en `<strong>`
+  4. `bash scripts/tests/test_cv.sh` → exit 0 (las aserciones nuevas y existentes pasan)
+  5. Render con Chrome de un currículo con logros cuantificados → `pdftotext` extrae el texto con las cifras intactas (el `<strong>` no altera el texto) y el PDF sigue siendo ATS-parsable
+  6. Currículo junior/pleno renderizado → `pdfinfo` reporta exactamente 1 página (page-count §4 preservado)
+- Suggested fix: (1) refinar `skills/career/cv-pdf/templates/resume.html` (header lockup, `.entry-head` flex con fechas a la derecha, ritmo de espaciado, nota de `<strong>` para métricas) preservando las reglas de impresión; (2) actualizar `standards/cv-design.md` (§3 jerarquía + `.entry-head` + `<strong>`, §5 checklist); (3) añadir la instrucción de `<strong>` para métricas en cv-tailor skill y agent; (4) extender `scripts/tests/test_cv.sh` y correr `make test-scripts`. Esfuerzo ~3-5h. Origen: Proposal 2026-08-24-2 en prioritization.md.
