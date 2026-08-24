@@ -537,7 +537,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 2 (qa, docs)
 - Remote: #131
 - Jira: -
-- PR: -
+- PR: #132
 - Location: skills/career/cv-optimizer/SKILL.md:123-133, standards/cv-analysis.md §4.2
 - Description: As a candidate, I want the optimizer's global score (qualificação total) to reflect a real weighted average, so that a strong profile is never reported as 0. Today the scoring protocol is ambiguous: "Global score = weighted average (experience and skills weigh more: 1.5x)" over ALL sections, while "Each empty section = 0". When the hub has several empty sections (projects, certifications, languages, links), the agent computes a global near 0 even with a strong experience/skills — the empty sections drag the weighted average down. The fix: the Global MUST be the weighted average over the sections PRESENT and NON-EMPTY in the hub; empty sections keep a score row of 0 (they are context gaps) but are excluded from the Global average, with explicit weights and a worked example.
 - Impact: Every candidate using `ocf:cv-optimize` with a partially empty hub — the profile-analysis report (md/html/pdf) misleads with a 0 global score, undermining the optimization flow that precedes cv-tailor.
