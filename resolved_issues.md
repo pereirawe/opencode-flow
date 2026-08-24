@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 216. Add "Áreas de Atuação" section with brief summary to the tailored resume (derived from the hub)
+- Resolved: 2026-08-24
+- Durations: backlog=0d waiting=0d dev=0d review=- qa=- publish=0d total=0d
+- Severity: medium
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #133
+- Summary: As a candidate, I want a compact "Áreas de Atuação" section in my tailored resume so the recruiter immediately sees the domains I work in. The section lists 3–6 short domain areas plus a brief 1–2 line summary of the professional focus. Content is derived from the hub (experience titles, skill categories, project technologies, summary) — never invented — in the job's language, and omitted when nothing can be derived. — Add the section markup to `skills/career/cv-pdf/templates/resume.html` (after Summary); extend cv-tailor SKILL.md + agent with the derivation rules; add the section to cv-design.md §1.2 and cv-analysis.md §4.7; add regression assertions in scripts/tests/test_cv.sh; run `make test-scripts`. Effort ~2-3h.
+
 ### 215. cv-optimizer global score (qualificação total) sometimes 0 — empty sections must be excluded from the weighted average
 - Resolved: 2026-08-24
 - Durations: backlog=0d waiting=0d dev=0d review=- qa=- publish=0d total=0d
