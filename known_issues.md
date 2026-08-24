@@ -536,7 +536,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 2 (qa, runtime)
 - Remote: #125
 - Jira: -
-- PR: -
+- PR: #126
 - Location: scripts/cv/schema.json, scripts/cv/validate.py, scripts/cv/check-inference.sh, skills/career/cv-hub/SKILL.md, skills/career/cv-tailor/SKILL.md, skills/career/cv-cover-letter/SKILL.md, agents/career/cv-tailor.md, agents/career/cv-cover-letter.md, commands/ocf:cv-tailor.md, commands/ocf:cv-cover-letter.md, standards/cv-analysis.md, scripts/tests/test_cv.sh
 - Description: Mejorar el sector career del pipeline con tres cambios coordinados: (1) nueva sección `preferences` en el hub (dislikes, excluded_roles, min_match_percentage default 70%); (2) gate de aplicación en cv-tailor y cv-cover-letter — antes de generar el artefacto se compara el weighted match % del gap analysis contra el umbral; si es menor se escribe `feedback.md` (por qué no vale la pena postularse) y se pide decisión, si es mayor o igual se procede sin confirmación; (3) resaltar logros cuantificados (números/%) primero en el currículo y anclados en la carta. Nunca se inventan cifras.
 - Impact: Candidatos del sector career (todos los que usan ocf:cv-tailor/ocf:cv-cover-letter). Evita generar currículos/cartas para ofertas con bajo match o que violan preferencias declaradas; ahorra tiempo/costos; los artefactos generados destacan los logros con métricas que más pesan en selección. Backward-compatible: `preferences` es opcional en el schema y los hubs existentes siguen siendo válidos.
