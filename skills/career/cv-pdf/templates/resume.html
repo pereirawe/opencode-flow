@@ -14,6 +14,11 @@
       à direita) nas entradas de Experiência, Educação e Certificações.
     - Envolva a métrica/número de cada conquista quantificada em <strong>
       (texto real — nunca altere as cifras do hub).
+    - Os dígitos (datas, contato e métricas) usam cifras tabulares
+      (font-variant-numeric: tabular-nums) — não altere essa regra.
+    - Footer de página 2 (senior+): injete "Nome · Página x de y" no
+      .page-footer apenas quando o PDF ultrapassar 1 página; remova o bloco
+      em currículos de 1 página.
     - Omita seções vazias (ex.: sem certificações → remova a <section>).
     - NUNCA inclua [INFERIDO] neste arquivo (gate: scripts/cv/check-inference.sh).
 
@@ -31,6 +36,18 @@
     /* Única cor de acento opcional — por padrão grayscale-safe (mesma do texto).
        Se alterar, mantenha contraste >= 4.5:1 e legibilidade em preto-e-branco. */
     --accent: #1a1a1a;
+    /* Escala tipográfica em pontos (impressão) — fonte de verdade única.
+       Hierarquia: nome > cargo > título de seção > corpo > meta. Os pesos e
+       o tracking ficam nos próprios seletores; aqui só o tamanho. */
+    --name: 18pt;
+    --role: 11pt;
+    --h2: 10.5pt;
+    --body: 10pt;
+    --entry-body: 9.5pt;
+    --meta: 9.5pt;
+    --dates: 9.5pt;
+    --contact: 9.5pt;
+    --footer: 9pt;
   }
 
   @page { size: A4; margin: 12mm 15mm; }
@@ -39,7 +56,7 @@
 
   body {
     font-family: Helvetica, Arial, sans-serif;
-    font-size: 10pt;
+    font-size: var(--body);
     line-height: 1.45;
     color: #1a1a1a;            /* near-black — nunca #000 puro */
     background: #ffffff;
@@ -50,31 +67,31 @@
   /* ===== Cabeçalho (header lockup) ===== */
   .header { margin-bottom: 7mm; }
   .header h1 {
-    font-size: 18pt;
+    font-size: var(--name);
     font-weight: 700;
     letter-spacing: -0.015em;
     color: var(--accent);
     margin-bottom: 1.5mm;
   }
   .header .role {
-    font-size: 11pt;
+    font-size: var(--role);
     font-weight: 600;
     letter-spacing: 0.01em;
     margin-bottom: 2mm;
   }
-  .header .contact { font-size: 9.5pt; color: #3a3a3a; }
+  .header .contact { font-size: var(--contact); color: #3a3a3a; }
   .header .contact span { white-space: nowrap; }
   .header .contact span + span::before { content: " · "; }
 
   /* ===== Seções ===== */
   section { margin-bottom: 7mm; }
   section h2 {
-    font-size: 10.5pt;
+    font-size: var(--h2);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--accent);
-    border-bottom: 0.4pt solid #d9d9d9;   /* hairline estrutural */
+    border-bottom: 0.4pt solid #d9d9d9;   /* hairline estrutural — ÚNICA regra de borda do documento */
     padding-bottom: 1.2mm;
     margin-bottom: 2.5mm;
   }
@@ -82,7 +99,7 @@
   .entry { margin-bottom: 3.5mm; }
   .entry:last-child { margin-bottom: 0; }
   /* Título de entrada: regra genérica (cobre <h3> sem .entry-head, ex. Projetos) */
-  .entry h3, .entry-head h3 { font-size: 10pt; font-weight: 700; }
+  .entry h3, .entry-head h3 { font-size: var(--body); font-weight: 700; }
   /* Meta-linha da entrada: cargo · empresa à esquerda, datas à direita, em
      UMA linha de texto (flex — NÃO é tabela, NÃO é multicol; o ATS lê em
      ordem sequencial). */
@@ -94,23 +111,44 @@
   }
   .entry-head h3 { flex: 1 1 auto; min-width: 0; }
   .entry-head .dates {
-    font-size: 9.5pt;
+    font-size: var(--dates);
     color: #3a3a3a;
     white-space: nowrap;
     text-align: right;
     flex-shrink: 0;
   }
   .entry .meta {
-    font-size: 9.5pt;
+    font-size: var(--meta);
     color: #3a3a3a;
     margin-bottom: 0.8mm;
   }
-  .entry p, .entry ul { font-size: 9.5pt; }
+  .entry p, .entry ul { font-size: var(--entry-body); }
   .entry ul { padding-left: 4mm; }
   .entry li { margin-bottom: 0.6mm; }
   /* Métricas quantificadas em <strong>: texto real e selecionável (o ATS lê
      igual), visual em negrito — nunca alterar as cifras do hub. */
   .entry li strong { font-weight: 700; }
+
+  /* ===== Espinha de numerais tabulares (Swiss Measure) =====
+     Todos os dígitos do documento (datas à direita, telefone/contato, toda
+     métrica em <strong> e o número de página do footer) usam cifras de
+     largura fixa e alinham em colunas invisíveis, tipo ledger. Só a largura
+     do glifo muda — o texto e a ordem DOM são idênticos para o ATS. */
+  .dates, .contact, strong, .page-footer {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  /* ===== Footer de página 2 (senior+ — só quando o PDF ultrapassa 1 página) =====
+     Texto plano: nome · página x de y. cv-tailor injeta o conteúdo (2-pass:
+     render → pdfinfo → injetar → re-render) e OMITE o footer em currículos
+     de 1 página. */
+  .page-footer {
+    font-size: var(--footer);
+    color: #3a3a3a;
+    margin-top: 4mm;
+    text-align: right;
+  }
 
   /* ===== Skills/Idiomas: lista em linha, sem tabelas ===== */
   .inline-list { list-style: none; padding-left: 0; }
@@ -155,7 +193,7 @@
       </div>
       <p class="meta">Localidade · Tipo</p>
       <ul>
-        <li>Conquista mensurável e aderente à vaga, com a métrica em <strong>negrito</strong> (ex.: reduziu custos em <strong>30%</strong>).</li>
+        <li>Conquista mensurável e aderente à vaga, com a métrica em negrito (ex.: reduziu custos em <strong>30%</strong>).</li>
         <li>Segunda conquista, reformulada para destacar o impacto.</li>
       </ul>
     </div>
@@ -216,6 +254,19 @@
       <li>Inglês — avançado</li>
     </ul>
   </section>
+
+  <!-- Footer de página 2: renderizado SOMENTE quando o currículo ultrapassa
+       1 página (senior+). cv-tailor injeta "Nome · Página x de y" via 2-pass
+       (render → pdfinfo → injetar → re-render) e REMOVE este bloco em
+       currículos de 1 página. Texto plano, ATS-safe. -->
+  <footer class="page-footer">
+    <!-- cv-tailor (2-pass): preencha <span class="footer-name"> com o nome do
+         candidato e <span class="footer-page"> com " · Página x de y" no idioma
+         da vaga, SOMENTE quando o PDF ultrapassar 1 página. Em currículos de
+         1 página, REMOVA este bloco inteiro. Os spans ficam vazios por padrão
+         (safe default — nenhum texto incorreto vaza se o passo for esquecido). -->
+    <span class="footer-name"></span><span class="footer-page"></span>
+  </footer>
 
 </body>
 </html>

@@ -613,3 +613,48 @@ issues only. See `standards/issues.md` for the full contract.
   5. Render con Chrome de un currículo con logros cuantificados → `pdftotext` extrae el texto con las cifras intactas (el `<strong>` no altera el texto) y el PDF sigue siendo ATS-parsable
   6. Currículo junior/pleno renderizado → `pdfinfo` reporta exactamente 1 página (page-count §4 preservado)
 - Suggested fix: (1) refinar `skills/career/cv-pdf/templates/resume.html` (header lockup, `.entry-head` flex con fechas a la derecha, ritmo de espaciado, nota de `<strong>` para métricas) preservando las reglas de impresión; (2) actualizar `standards/cv-design.md` (§3 jerarquía + `.entry-head` + `<strong>`, §5 checklist); (3) añadir la instrucción de `<strong>` para métricas en cv-tailor skill y agent; (4) extender `scripts/tests/test_cv.sh` y correr `make test-scripts`. Esfuerzo ~3-5h. Origen: Proposal 2026-08-24-2 en prioritization.md.
+
+### 214. Aplicar "Swiss Measure" al template del currículo — numerales tabulares, escala tipográfica tokenizada, negrita racionada, hairline endurecido y footer de página 2
+- Status: in-publish
+- Opened: 2026-08-24
+- Ready: 2026-08-24
+- Started: 2026-08-24
+- In review: 2026-08-24
+- In QA: 2026-08-24
+- In publish: 2026-08-24
+- Type: feat
+- Severity: medium
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (qa, ux-ui)
+- Remote: #129
+- Jira: -
+- PR: #130
+- Location: skills/career/cv-pdf/templates/resume.html, standards/cv-design.md, skills/career/cv-tailor/SKILL.md, agents/career/cv-tailor.md, scripts/tests/test_cv.sh
+- Description: Implementar la dirección de diseño "Swiss Measure" del art-director (design_spec.json) en el template del currículo: espina de numerales tabulares (font-variant-numeric: tabular-nums en .dates/.contact/strong), escala tipográfica tokenizada en :root (--name 18pt, --role 11pt, --h2 10.5pt uppercase, --body 10pt, --meta 9.5pt), negrita racionada (<strong> solo para métricas), hairline endurecido (una sola regla 0.4pt bajo h2), footer de página 2 (nombre · página x de y, solo senior+), verificación pdftotext-diff en cv-tailor, y documentación en cv-design.md (§3.1 tabla de escala, §3.8 numerales tabulares, §3.7 reforzado, §5 lint grep). Todo 100% ATS-safe.
+- Impact: Todos los currículos generados por ocf:cv-tailor (template obligatorio). Mejora el escaneo humano de ~6s (los números de impacto se alinean y resaltan) sin romper el parsing ATS; riesgo bajo (cambios CSS/tipográficos visuales + verificación mecanizada de dígitos).
+- Business rules:
+  1. El template DEBE aplicar `font-variant-numeric: tabular-nums;` y `font-feature-settings: 'tnum' 1;` en `.dates`, `.contact` y `strong`. Los dígitos NUNCA se alteran (ATS + gate de no-fabricación).
+  2. La escala tipográfica DEBE centralizarse en custom properties `:root`: `--name: 18pt/700/-0.015em`, `--role: 11pt/600`, `--h2: 10.5pt/700 uppercase +0.05em`, `--body: 10pt/1.45`, `--meta/--dates/--contact: 9.5pt`; los valores hardcodeados DEBEN reemplazarse por los tokens.
+  3. `<strong>` DEBE reservarse exclusivamente para métricas cuantificadas; cv-design.md §3.7 DEBE declarar "bold MUST NOT be used for any non-metric text".
+  4. El sistema de hairline DEBE ser una única regla estructural: 0.4pt solid #d9d9d9 bajo h2 (padding-bottom 1.2mm); cualquier otro borde DEBE prohibirse en §3.4.
+  5. cv-design.md DEBE documentar: §3.1 tabla de escala en puntos (valores exactos de la BR 2), nuevo §3.8 "Tabular numerals", §3.7 reforzado, y §5 con un item de lint grep manual de patrones prohibidos (`columns|multicol|<table|<img|fonts.googleapis|emoji`).
+  6. El template DEBE incluir un `<footer class="page-footer">` (9pt muted) que cv-tailor inyecta con "nombre · página x de y" SOLO cuando el PDF supera 1 página (2-pass: render → pdfinfo → inyectar → re-render); para 1 página DEBE omitirse.
+  7. cv-tailor DEBE verificar tras generar el PDF: diff `pdftotext` del PDF contra el HTML fuente — las secuencias de dígitos DEBEN coincidir exactamente.
+  8. Todas las reglas ATS/print existentes DEBEN preservarse: @page A4 12mm 15mm, Helvetica/Arial/sans-serif, single-column (sin multicol/tablas), `.entry { break-inside: avoid; }`, `section { break-inside: auto; orphans: 3; widows: 3; }`, `.header`/`h2 { break-after: avoid; }`, sin Google Fonts, sin emoji, WCAG AA.
+  9. El template DEBE seguir siendo la base obligatoria de cv-tailor (adaptar contenido, nunca reescribir CSS desde cero).
+- Acceptance criteria:
+  1. `resume.html` tiene `tabular-nums` y `'tnum' 1` en `.dates`, `.contact` y `strong`; las custom properties `--name/--role/--h2/--body/--meta` están en `:root` y los estilos las usan; el footer `.page-footer` existe.
+  2. cv-design.md §3.1 (tabla de escala), §3.7 (negrita racionada), §3.8 (numerales tabulares) y §5 (lint grep) documentan las nuevas reglas.
+  3. cv-tailor skill/agent documentan la verificación pdftotext-diff y la inyección 2-pass del footer.
+  4. `scripts/tests/test_cv.sh` incluye aserciones de las nuevas reglas (tabular-nums, tokens, negrita racionada, footer, lint) y `make test-scripts` pasa (exit 0).
+  5. Render mecanizado: un currículo con métricas → `pdftotext` extrae los dígitos idénticos al HTML fuente; un currículo junior/pleno → exactamente 1 página sin footer; un senior 2 páginas → footer presente en la página 2.
+- Tests:
+  1. `grep` en resume.html → `tabular-nums`, `'tnum' 1`, `--name: 18pt`, `--role: 11pt`, `--h2`, `--body`, `page-footer` presentes; `@page`/`A4`/`12mm`/`Helvetica` presentes; `break-inside: auto`, `.entry { break-inside: avoid; }`, `h2 { break-after: avoid; }` presentes; sin `fonts.googleapis.com` ni emoji
+  2. `grep` en standards/cv-design.md → §3.8 "Tabular numerals" (o "tabular"), §3.7 "MUST NOT be used for any non-metric text", §5 item de lint grep (`multicol|<table|<img`)
+  3. `grep` en cv-tailor skill y agent → paso de verificación `pdftotext` (diff de dígitos) y footer 2-pass (página 2)
+  4. Render senior 2 páginas → `pdfinfo` ≥ 2 páginas y el texto del footer ("Página 2 de 2" o equivalente) aparece en la página 2; render junior → exactamente 1 página sin footer
+  5. Render con métricas → `pdftotext` del PDF contiene los dígitos idénticos a la fuente (30%, 25%, etc.) — la espina tabular no altera el texto
+  6. `bash scripts/tests/test_cv.sh` → exit 0
+  7. `make test-scripts` → exit 0 (15 archivos)
+- Suggested fix: (1) en resume.html: añadir tabular-nums/'tnum' a .dates/.contact/strong, crear las custom properties :root de la escala y reemplazar tamaños hardcodeados, añadir `<footer class="page-footer">` con CSS 9pt muted; (2) actualizar cv-design.md §3.1/§3.7/§3.8/§5; (3) documentar la verificación pdftotext-diff y el footer 2-pass en cv-tailor skill y agent; (4) extender scripts/tests/test_cv.sh y correr make test-scripts. Esfuerzo ~3-5h. Origen: Proposal 2026-08-24-3 en prioritization.md.

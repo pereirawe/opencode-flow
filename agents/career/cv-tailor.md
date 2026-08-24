@@ -77,7 +77,18 @@ language.
 10. **Run the mandatory gate**: `bash $SCRIPTS_DIR/cv/check-inference.sh index.html`
     — the gate MUST pass (exit 0) before the PDF.
 11. Generate the PDF: `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
-12. Compute the gap-analysis metrics on the FINAL resume text — the
+12. **Page-2 footer (2-pass)** — check the page count with
+    `pdfinfo curriculo.pdf | awk '/^Pages:/ {print $2}'`. If > 1 page
+    (senior+), fill the `<footer class="page-footer">` spans with
+    `<name> · Page X of Y` (job language) and re-run `pdf.sh`; if exactly 1
+    page, REMOVE the `.page-footer` block and re-run. After the re-render,
+    re-run `pdfinfo` and confirm ≤ 2 pages (3+ is forbidden); condense if
+    needed. The footer is plain text, never altering digits or ATS order.
+13. **Digit verification** — after the final PDF, run `pdftotext curriculo.pdf -`
+    and confirm every metric/date digit from `index.html` appears unchanged
+    (the tabular-numeral spine changes only glyph widths). If any digit is
+    altered, fix the source and re-render.
+14. Compute the gap-analysis metrics on the FINAL resume text — the
     keyword density map (each job keyword → its count, extracted from
     `index.html` stripped of HTML tags, or from the PDF via `pdftotext`
     when available) and the coverage summary by section (which resume

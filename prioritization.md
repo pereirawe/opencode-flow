@@ -819,3 +819,30 @@ at proposal time. Unknown rules will be captured during discovery refinement.
 - Rationale: El formato actual cumple la técnica pero no aprovecha la jerarquía tipográfica dentro de lo permitido por ATS. El refinamiento es de bajo riesgo (template + estándar + instrucción), con impacto directo en la calidad percibida del entregable principal del sector.
 - Dependencies: Issue #203 (blank-gap CSS, resuelta — el template ya usa break-inside:auto en secciones largas); #212 (gate de aplicación, in-publish — este cambio convive con él y se implementa después). El template sigue siendo la base obligatoria de cv-tailor.
 - Proposed issue type: feat
+
+### Proposal 2026-08-24-3: Aplicar "Swiss Measure" al template del currículo — espina de numerales tabulares, escala tipográfica tokenizada, negrita racionada, hairline endurecido y footer de página 2
+- Priority: medium
+- Business value: Aplica la dirección de diseño aprobada por el art-director ("Swiss Measure") al template de referencia del currículo. Mejora la calidad percibida del entregable principal del sector (escaneo humano de ~6s aterriza en los números de impacto) con cambios 100% ATS-safe (solo anchos de glifo, tokens de tipografía, negrita racionada y un footer de texto plano).
+- Target sprint: next
+- Description: Implementar el design_spec del art-director (design_spec.json, dirección "Swiss Measure") en `skills/career/cv-pdf/templates/resume.html`, `standards/cv-design.md`, `skills/career/cv-tailor/SKILL.md` y `agents/career/cv-tailor.md`:
+  1. **Espina de numerales tabulares** — `font-variant-numeric: tabular-nums` (+ `font-feature-settings: 'tnum' 1`) en `.dates`, `.contact` y `strong`, para que todos los dígitos se alineen en columnas invisibles tipo ledger. Los dígitos NUNCA se alteran.
+  2. **Escala tipográfica tokenizada** — custom properties en `:root` (`--name: 18pt/700/-0.015em`, `--role: 11pt/600`, `--h2: 10.5pt/700 uppercase +0.05em`, `--body: 10pt/1.45`, `--meta/--dates/--contact: 9.5pt`); se reemplazan los valores hardcodeados.
+  3. **Negrita racionada** — `<strong>` reservado EXCLUSIVAMENTE para métricas cuantificadas; reforzado en cv-design.md §3.7.
+  4. **Hairline endurecido** — una sola regla 0.4pt #d9d9d9 bajo h2; prohibido cualquier otro borde.
+  5. **Estándar** — cv-design.md §3.1 (tabla de escala en puntos), nuevo §3.8 (numerales tabulares), §3.7 reforzado, §5 con lint grep manual (columns|multicol|<table|<img|fonts.googleapis|emoji).
+  6. **Footer de página 2** — footer de texto plano (nombre · página x de y, 9pt muted) solo cuando el PDF supera 1 página (inyección 2-pass por cv-tailor).
+  7. **Verificación cv-tailor** — tras el PDF, `pdftotext` y diff contra el HTML fuente: los dígitos deben coincidir byte a byte.
+- Business rules:
+  1. El template DEBE aplicar `font-variant-numeric: tabular-nums` (+ `font-feature-settings: 'tnum' 1`) en `.dates`, `.contact` y `strong`. NUNCA se alteran dígitos (ATS + gate de no-fabricación).
+  2. La escala tipográfica DEBE centralizarse en custom properties `:root` (--name 18pt, --role 11pt, --h2 10.5pt uppercase, --body 10pt, --meta/--dates/--contact 9.5pt) y los valores hardcodeados DEBEN reemplazarse.
+  3. `<strong>` DEBE reservarse exclusivamente para métricas cuantificadas; cv-design.md §3.7 DEBE declarar "bold MUST NOT be used for any non-metric text".
+  4. El sistema de hairline DEBE ser una única regla 0.4pt #d9d9d9 bajo h2; cualquier otro borde DEBE prohibirse en §3.4.
+  5. cv-design.md DEBE documentar: §3.1 tabla de escala en puntos, nuevo §3.8 numerales tabulares, §3.7 reforzado y §5 con lint grep manual de patrones prohibidos (columns|multicol|<table|<img|fonts.googleapis|emoji).
+  6. El footer de página 2 (nombre · página x de y, 9pt muted) DEBE renderizarse SOLO cuando el PDF supera 1 página (senior+); para 1 página DEBE omitirse. La inyección es 2-pass por cv-tailor (render → pdfinfo → inyectar → re-render).
+  7. La verificación de cv-tailor DEBE incluir un diff `pdftotext` del PDF contra el HTML fuente tras la generación — los dígitos deben coincidir.
+  8. Todas las reglas ATS/print existentes DEBEN preservarse: @page A4 12mm 15mm, Helvetica/Arial, single-column (sin multicol/tablas), break-inside/after, sin Google Fonts/emoji, WCAG AA.
+  9. El template DEBE seguir siendo la base obligatoria de cv-tailor (adaptar contenido, nunca reescribir CSS desde cero).
+- Stakeholders: william_pereira (candidato), cv-tailor, cv-pdf
+- Rationale: El art-director revisó el estándar y el template actuales y produjo un design_spec con dirección seleccionada y plan de 8 pasos (Proposal 2026-08-24-3). El cambio es de bajo riesgo: son refinamientos CSS/tipográficos puramente visuales dentro de los límites ATS ya establecidos, con verificación mecanizada de que los dígitos se conservan.
+- Dependencies: Issue #213 (refinamiento single-column, MR #128 abierto — este cambio se implementa sobre main y convive sin conflicto); #212 (gate, MR #126). El template sigue siendo la base obligatoria.
+- Proposed issue type: feat
