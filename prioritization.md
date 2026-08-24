@@ -772,3 +772,27 @@ at proposal time. Unknown rules will be captured during discovery refinement.
 - Rationale: La causa raíz del "hasta 5x más lento en review/QA" es que el entorno no es un contrato conocido: cada sesión descubre o reconfigura la versión de Node. El fix es barato (manifest + `.nvmrc`/`.node-version` + reporte de versiones en el runner ya existente) y de efecto permanente: el entorno queda documentado, versionado y autodiagnosticado con warning — sin añadir fricción al pipeline (nunca bloquea).
 - Dependencies: Issue #56 (test-runner, resuelta — el runner ya existe y esta propuesta lo extiende sin cambiar su contrato); `package.json` en la raíz (Node) y Python3 en scripts (`sync-jira.sh`, cv) ya presentes; Makefile disponible. Sin dependencia con la issue #209 (propuesta 2026-08-19-2) — se ejecuta como issue separada.
 - Proposed issue type: feat
+
+### Proposal 2026-08-24-1: Gate de aplicación (umbral mínimo de match) + sección de preferencias/dealbreakers en el hub + énfasis en logros cuantificados (cv-tailor y cv-cover-letter)
+- Priority: high
+- Business value: Evita que el candidato pierda tiempo generando currículos/cartas para ofertas donde no encaja o que violan sus preferencias, y da feedback accionable sobre por qué no vale la pena postularse. A la vez, hace que el currículo y la carta generados destaquen los logros cuantificados (números/%) que más pesan en la selección. El umbral es personalizable y queda guardado en el hub.
+- Target sprint: next
+- Description: Mejorar el sector career del pipeline (cv-hub, cv-tailor, cv-cover-letter) con tres cambios coordinados:
+  1. **Nueva sección `preferences` en el hub** (`hub.json`): `dislikes` (cosas que no gustan o no encajan en una oferta), `excluded_roles` (funciones que el candidato no quiere asumir) y `min_match_percentage` (umbral mínimo de match para aplicar, personalizable, default 70% cuando está ausente).
+  2. **Gate de aplicación** en cv-tailor y cv-cover-letter: antes de generar el currículo/carta, se compara el weighted match percentage del gap analysis contra `preferences.min_match_percentage` (default 70%). Si el match es menor → NO se genera el artefacto; se escribe un reporte de feedback (`feedback.md`) con el análisis de por qué no vale la pena postularse (requisitos no cumplidos/parciales + dealbreakers de `dislikes`/`excluded_roles` que la oferta viola) y se pide decisión al candidato (proceder de todos modos o detener). Si el match ≥ umbral → se procede directamente SIN pedir confirmación.
+  3. **Resaltar logros cuantificados**: cv-tailor ordena los logros con números/% primero dentro de cada rol y los redacta con la métrica prominente; cv-cover-letter ancla cada requisito clave en un logro numérico específico del hub cuando existe. Nunca se inventan cifras.
+- Business rules:
+  1. El schema del hub (`scripts/cv/schema.json`) DEBE ganar una sección opcional de nivel raíz `preferences` con `dislikes` (array de strings), `excluded_roles` (array de strings) y `min_match_percentage` (integer 0–100). Los hubs existentes sin `preferences` DEBEN seguir siendo válidos (sección no-required).
+  2. `validate.py` DEBE aceptar un bloque `preferences` válido y rechazar uno inválido (min_match_percentage fuera de 0–100 o no-entero, items de lista no-string, claves desconocidas dentro de `preferences`). Ambas rutas (jsonschema y fallback) DEBEN coincidir en las comprobaciones semánticas compartidas.
+  3. El umbral por defecto DEBE ser 70% cuando `preferences.min_match_percentage` está ausente (decisión del candidato, 2026-08-24).
+  4. El gate DEBE aplicarse tanto a cv-tailor como a cv-cover-letter (decisión del candidato, 2026-08-24).
+  5. Si match < umbral → NO se genera el currículo/carta; se escribe `feedback.md` con el análisis de por qué no vale la pena postularse y se pide decisión al candidato (proceder de todos modos / detener).
+  6. Si match ≥ umbral → se procede directamente SIN pedir confirmación.
+  7. cv-cover-letter DEBE reutilizar la decisión del gate de cv-tailor cuando reutiliza su `gap-analysis.md` (si cv-tailor bloqueó, la carta no se genera salvo override del candidato).
+  8. El reporte `feedback.md` DEBE seguir la estructura canónica de `standards/cv-analysis.md` (nuevo §3.5) y escribirse en el idioma del usuario.
+  9. Los logros cuantificados (contienen dígitos/%) DEBEN priorizarse primero dentro de cada rol en el currículo y anclarse en la carta; NUNCA se inventan cifras.
+  10. La regla `[INFERIDO]` y el gate `check-inference.sh` siguen aplicando solo a los artefactos finales compartibles (index.html/PDF), no a `feedback.md`/`gap-analysis.md`.
+- Stakeholders: william_pereira (candidato), cv-tailor, cv-cover-letter, cv-hub, QA
+- Rationale: Hoy el pipeline genera currículos y cartas para cualquier oferta sin advertir cuándo el match es bajo o la oferta viola preferencias declaradas — tiempo y costo perdidos. El porcentaje de match ya se calcula en el gap analysis; solo falta convertirlo en un gate con default configurable. Los logros con números son el diferencial más valorado en selección y ya existen en el hub — falta priorizarlos en la adaptación de contenido.
+- Dependencies: Issues #66–#72 (bundle career, resueltas) — la infraestructura de skills/agentes/commands/standards ya está consolidada; este cambio extiende el contrato existente sin romper hubs previos (preferences opcional). Relacionado: issue #77 (curl -L en cv-cover-letter, backlog) es independiente — este cambio no toca la carga de URL.
+- Proposed issue type: feat

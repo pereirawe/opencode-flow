@@ -48,23 +48,35 @@ language.
    Evidence in hub`, match values `atendido`/`parcial`/`not_met`). Compute
    and record the weighted match percentage (mandatory requirements weigh
    2x, desirable 1x) per `standards/cv-analysis.md` §4.5.
-6. List ALL inferences/placeholders in
+6. **Application gate (recommend-or-proceed)** — BEFORE generating anything,
+   compare the weighted match percentage with
+   `preferences.min_match_percentage` (default **70** when absent). If
+   match < threshold → DO NOT generate the resume; write
+   `resumes/<job-slug>/feedback.md` (canonical §3.5 of
+   `standards/cv-analysis.md`: why it is not worth applying — match vs
+   threshold, `not_met`/`parcial` drag, and dealbreakers from
+   `preferences.dislikes`/`excluded_roles`) and ask the candidate to decide
+   (proceed anyway / stop). If match ≥ threshold → proceed directly WITHOUT
+   asking for confirmation; record the gate decision in `gap-analysis.md`.
+7. List ALL inferences/placeholders in
    `resumes/<job-slug>/inferences.md` per `standards/cv-analysis.md`
    §3.3/§4.4 (table `Inference | Context | Decision | Status`) and ask the
    candidate to decide on each one (rephrase/omit/promote with real data)
    BEFORE generating the final output.
-7. Generate `index.html` from the reference template
+8. Generate `index.html` from the reference template
    `skills/career/cv-pdf/templates/resume.html` following the
    `standards/cv-design.md` standard (reorder/highlight/condense ONLY what
-   exists in the hub; NEVER fabricate; NEVER `[INFERIDO]` in the final
-   HTML/PDF; never rewrite the CSS from scratch) in the job's language.
-8. **Verify conformity with the standard** — the ATS/print/pages checklist of
+   exists in the hub; prioritize quantified achievements — numbers/% first
+   within each role, metric prominent; NEVER fabricate; NEVER `[INFERIDO]` in
+   the final HTML/PDF; never rewrite the CSS from scratch) in the job's
+   language.
+9. **Verify conformity with the standard** — the ATS/print/pages checklist of
    `standards/cv-design.md` (headings, single column, no emoji/Google Fonts,
    12–15mm margins, 1–2 pages) before generating the PDF.
-9. **Run the mandatory gate**: `bash $SCRIPTS_DIR/cv/check-inference.sh index.html`
-   — the gate MUST pass (exit 0) before the PDF.
-10. Generate the PDF: `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
-11. Compute the gap-analysis metrics on the FINAL resume text — the
+10. **Run the mandatory gate**: `bash $SCRIPTS_DIR/cv/check-inference.sh index.html`
+    — the gate MUST pass (exit 0) before the PDF.
+11. Generate the PDF: `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
+12. Compute the gap-analysis metrics on the FINAL resume text — the
     keyword density map (each job keyword → its count, extracted from
     `index.html` stripped of HTML tags, or from the PDF via `pdftotext`
     when available) and the coverage summary by section (which resume
@@ -77,7 +89,7 @@ language.
 
 1. NEVER invent experience, skills, projects, certifications or contact.
 2. `[INFERIDO]` is allowed ONLY in internal artifacts (hub.json, gap-analysis.md,
-   inferences.md) per `standards/cv-analysis.md` §5. In the final HTML/PDF NO
+   inferences.md, feedback.md) per `standards/cv-analysis.md` §5. In the final HTML/PDF NO
    `[INFERIDO]` may appear (nor case-insensitive variants) — the
    `check-inference.sh` gate blocks generation.
 3. Resume language = job language (pt/en/es).
@@ -88,9 +100,16 @@ language.
    from scratch; verify conformity (ATS/print/pages checklist) before the PDF.
 6. A4 PDF via Chrome headless (`$SCRIPTS_DIR/cv/pdf.sh`), LibreOffice fallback.
 7. If the engine fails, report the error — never deliver an empty PDF.
+8. Application gate: match < `preferences.min_match_percentage` (default 70) →
+   write `feedback.md` and ask the candidate (proceed anyway / stop) before any
+   generation; match ≥ threshold → generate WITHOUT confirmation. Never generate
+   a resume for a blocked offer unless the candidate overrides.
+9. Quantified achievements (numbers/%) come first within each role, metric
+   prominent — only digits that already exist in the hub, never invented.
 
 Report at the end: PDF path, gap analysis summary (`atendido`/`parcial`/
-`not_met` requirements), the weighted match percentage, the keyword density
-map and coverage summary by section, and the list of resolved inferences
-(rephrased/omitted/promoted) the candidate approved — no `[INFERIDO]` marker
-may appear in the shareable artifact.
+`not_met` requirements), the weighted match percentage, the gate decision
+(blocked/approved, threshold), the keyword density map and coverage summary by
+section, and the list of resolved inferences (rephrased/omitted/promoted) the
+candidate approved — no `[INFERIDO]` marker may appear in the shareable
+artifact.

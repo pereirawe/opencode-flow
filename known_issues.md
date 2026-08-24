@@ -520,3 +520,53 @@ issues only. See `standards/issues.md` for the full contract.
   5. `ocf:develop` con lista de 2 issues → secuencial: 1ª termina en `in-publish` sin merge, 2ª procesada desde la base; exactamente UNA notificación Telegram final
 - Suggested fix: dividir el template de `ocf:develop` en opencode.json — `ocf:develop` conserva los pasos 1-5 + reporte "esperando merge manual" (sin pasos 6-8), y nuevo `ocf:develop-full` con el template completo actual (auto-merge + base + close/archive); crear `commands/ocf:develop-full.md` y actualizar `commands/ocf:develop.md`; cambiar watcher y CI a `ocf:develop-full`; actualizar tests e2e, workflow.md, READMEs y comentarios Dockerfile. Esfuerzo ~4-6h.
 
+
+### 212. Gate de aplicación (umbral mínimo de match) + sección preferences en el hub + énfasis en logros cuantificados para cv-tailor y cv-cover-letter
+- Status: in-publish
+- Opened: 2026-08-24
+- Ready: 2026-08-24
+- Started: 2026-08-24
+- In review: 2026-08-24
+- In QA: 2026-08-24
+- In publish: 2026-08-24
+- Type: feat
+- Severity: medium
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (qa, runtime)
+- Remote: #125
+- Jira: -
+- PR: #126
+- Location: scripts/cv/schema.json, scripts/cv/validate.py, scripts/cv/check-inference.sh, skills/career/cv-hub/SKILL.md, skills/career/cv-tailor/SKILL.md, skills/career/cv-cover-letter/SKILL.md, agents/career/cv-tailor.md, agents/career/cv-cover-letter.md, commands/ocf:cv-tailor.md, commands/ocf:cv-cover-letter.md, standards/cv-analysis.md, scripts/tests/test_cv.sh
+- Description: Mejorar el sector career del pipeline con tres cambios coordinados: (1) nueva sección `preferences` en el hub (dislikes, excluded_roles, min_match_percentage default 70%); (2) gate de aplicación en cv-tailor y cv-cover-letter — antes de generar el artefacto se compara el weighted match % del gap analysis contra el umbral; si es menor se escribe `feedback.md` (por qué no vale la pena postularse) y se pide decisión, si es mayor o igual se procede sin confirmación; (3) resaltar logros cuantificados (números/%) primero en el currículo y anclados en la carta. Nunca se inventan cifras.
+- Impact: Candidatos del sector career (todos los que usan ocf:cv-tailor/ocf:cv-cover-letter). Evita generar currículos/cartas para ofertas con bajo match o que violan preferencias declaradas; ahorra tiempo/costos; los artefactos generados destacan los logros con métricas que más pesan en selección. Backward-compatible: `preferences` es opcional en el schema y los hubs existentes siguen siendo válidos.
+- Business rules:
+  1. `scripts/cv/schema.json` DEBE ganar una sección opcional de nivel raíz `preferences` con `dislikes` (array de strings, cosas que no gustan o no encajan en una oferta), `excluded_roles` (array de strings, funciones que el candidato no quiere asumir) y `min_match_percentage` (integer 0–100, umbral mínimo para aplicar). La sección NO DEBE ser required — los hubs existentes sin `preferences` siguen siendo válidos.
+  2. `scripts/cv/validate.py` DEBE aceptar un bloque `preferences` válido y rechazar uno inválido: `min_match_percentage` no-entero o fuera de 0–100, items de `dislikes`/`excluded_roles` no-string, y claves desconocidas dentro de `preferences` (additionalProperties). Las rutas jsonschema y fallback DEBEN coincidir en las comprobaciones semánticas compartidas.
+  3. El umbral por defecto DEBE ser 70% cuando `preferences.min_match_percentage` está ausente (decisión del candidato 2026-08-24), documentado en skills y estándar.
+  4. El gate DEBE aplicarse tanto a cv-tailor como a cv-cover-letter (decisión del candidato 2026-08-24).
+  5. Si weighted match % < umbral → NO se genera el currículo/carta; se escribe `resumes/<slug>/feedback.md` (o `cartas/<slug>/feedback.md`) con el análisis de por qué no vale la pena postularse (match vs umbral, requisitos `not_met`/`parcial` que arrastran el puntaje, y dealbreakers de `dislikes`/`excluded_roles` que la oferta viola) y se pide decisión al candidato: proceder de todos modos o detener.
+  6. Si weighted match % ≥ umbral → se procede directamente con la generación SIN pedir confirmación (la decisión del gate queda registrada en `gap-analysis.md`).
+  7. cv-cover-letter DEBE reutilizar la decisión del gate de cv-tailor cuando reutiliza `resumes/<slug>/gap-analysis.md`: si cv-tailor bloqueó y el candidato no hizo override, la carta NO se genera.
+  8. `feedback.md` DEBE seguir la estructura canónica de `standards/cv-analysis.md` (nuevo §3.5: H1, sin metadata header, secciones Job context / Match percentage vs threshold / Reasons not to apply / Recommendation) y escribirse en el idioma de comunicación del usuario; los tokens de protocolo (`atendido`/`parcial`/`not_met`, `[INFERIDO]`) no se traducen.
+  9. cv-tailor DEBE priorizar los logros cuantificados (que contienen dígitos/%) dentro de cada rol — primero los que tienen métricas, redactados con el número prominente — y reordenar/condensar solo lo que existe en el hub; NUNCA se inventan cifras.
+  10. cv-cover-letter DEBE anclar cada requisito clave de la oferta en un logro numérico específico del hub cuando existe uno; NUNCA se inventan cifras.
+  11. La regla `[INFERIDO]` y el gate `check-inference.sh` siguen aplicando SOLO a los artefactos finales compartibles (index.html/PDF); `feedback.md` y `gap-analysis.md` son artefactos internos y pueden contener `[INFERIDO]` inline.
+- Acceptance criteria:
+  1. `schema.json` contiene la sección `preferences` (dislikes, excluded_roles, min_match_percentage); un hub con `preferences` válido pasa `validate.py` (exit 0) y un hub sin `preferences` sigue pasando.
+  2. `validate.py` rechaza `min_match_percentage: 150`, `min_match_percentage: "60"` y `dislikes: [123]` en ambas rutas (jsonschema y fallback).
+  3. `skills/career/cv-hub/SKILL.md` documenta la sección `preferences` en el schema canónico, en el template del README y en las reglas de consolidación; el modo update permite agregar/actualizar `preferences`.
+  4. `skills/career/cv-tailor/SKILL.md`, `agents/career/cv-tailor.md` y `commands/ocf:cv-tailor.md` documentan el gate: umbral por defecto 70%, comparación antes de generar, `feedback.md` + decisión cuando match < umbral, proceder sin confirmación cuando match ≥ umbral, y priorización de logros cuantificados.
+  5. `skills/career/cv-cover-letter/SKILL.md`, `agents/career/cv-cover-letter.md` y `commands/ocf:cv-cover-letter.md` aplican el mismo gate (umbral 70% default, reutiliza la decisión de cv-tailor) y el anclaje en logros numéricos.
+  6. `standards/cv-analysis.md` documenta el §3.5 (feedback report) y el protocolo del gate (comparación del §4.5 contra `preferences.min_match_percentage`).
+  7. `scripts/tests/test_cv.sh` incluye aserciones del nuevo contrato (schema preferences, validate.py, skills/agents/commands) y `make test-scripts` pasa (exit 0).
+- Tests:
+  1. Hub con `preferences.min_match_percentage: 70` y oferta con weighted match 55% → cv-tailor NO genera index.html/curriculo.pdf, escribe `feedback.md` con el análisis y pide decisión al candidato
+  2. Mismo hub, oferta con weighted match 80% → cv-tailor genera el currículo directamente SIN pedir confirmación y sin `feedback.md` (decisión registrada en gap-analysis.md)
+  3. Hub sin `preferences` → el umbral por defecto 70% se aplica (match 65% bloquea; match 75% procede)
+  4. `python3 validate.py` sobre un hub con `preferences` válido → exit 0; con `min_match_percentage: 150`, `min_match_percentage: "60"` o `dislikes: [123]` → exit 1 (ambas rutas: normal y CV_VALIDATE_FALLBACK=1)
+  5. Hub con `dislikes: ["on-site"]` y oferta on-site + match < umbral → `feedback.md` lista el dealbreaker; con match ≥ umbral → genera currículo + carta sin bloqueo
+  6. cv-cover-letter que reutiliza un `gap-analysis.md` bloqueado de cv-tailor (match < 70, sin override) → NO genera la carta; tras override del candidato → la genera
+  7. `grep` en cv-tailor/cv-cover-letter skills+agents+commands → documentan `min_match_percentage`, umbral 70% default y la priorización/anclaje de logros con números
+  8. `make test-scripts` → exit 0 con las nuevas aserciones en test_cv.sh
+- Suggested fix: (1) extender `schema.json` + `validate.py` (sección `preferences` + validación 0–100 y tipos); (2) documentar la sección en `cv-hub/SKILL.md`; (3) añadir el gate de aplicación y la priorización de logros cuantificados en `cv-tailor` y `cv-cover-letter` (skills, agents, commands); (4) documentar §3.5 + protocolo del gate en `standards/cv-analysis.md`; (5) extender `scripts/tests/test_cv.sh` y correr `make test-scripts`. Esfuerzo ~4-6h. Origen: Proposal 2026-08-24-1 en prioritization.md.
