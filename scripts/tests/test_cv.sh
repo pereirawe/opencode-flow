@@ -1833,6 +1833,11 @@ if [[ -n "$CHROME" ]] && command -v pdftotext >/dev/null 2>&1 && command -v pdfi
   TMP_ENV="$TMP" TPL="$CV_TEMPLATE" python3 - <<'PYEOF'
 import os, re
 tpl = open(os.environ["TPL"], encoding="utf-8").read()
+# isolate the Swiss-Measure 2-page behavior: drop the Áreas de Atuação
+# section (covered by its own render test in the #216 block) so the senior
+# fixture stays at exactly two pages
+areas_re = re.compile(r'  <section>\n    <h2>Áreas de Atuação</h2>.*?</section>\n', re.DOTALL)
+tpl, _n = areas_re.subn('', tpl)
 entries = ""
 for i in range(1, 18):
     entries += (
@@ -1862,7 +1867,7 @@ PYEOF
   assert_eq "0" "$rc_swiss" "pdf.sh renders the senior Swiss-Measure resume"
   if [[ -s "$SWISS_PDF" ]]; then
     PAGES="$(pdfinfo "$SWISS_PDF" 2>/dev/null | awk '/^Pages:/ {print $2}')" || PAGES="0"
-    assert_eq "1" "$(test "${PAGES:-0}" -ge 2 && echo 1 || echo 0)" "senior Swiss-Measure resume spans 2+ pages"
+    assert_eq "2" "$PAGES" "senior Swiss-Measure resume fits exactly two pages"
     P2="$(pdftotext -f 2 -l 2 "$SWISS_PDF" - 2>/dev/null || true)"
     if [[ "$P2" == *"Página 2 de 2"* || "$P2" == *"Page 2 of 2"* ]]; then
       t_ok "page-2 footer text present on page 2"
@@ -1998,7 +2003,10 @@ PYEOF
   assert_eq "0" "$rc_areas" "pdf.sh renders the resume with the Áreas de Atuação section"
   if [[ -s "$AREAS_PDF" ]]; then
     EXTRACTED="$(pdftotext "$AREAS_PDF" - 2>/dev/null || true)"
-    if [[ "$EXTRACTED" == *"Áreas de Atuação"* && "$EXTRACTED" == *"Data Engineering"* ]]; then
+    # Chrome renders the h2 with text-transform: uppercase (template CSS), so
+    # pdftotext extracts "ÁREAS DE ATUAÇÃO" — compare case-insensitively.
+    if printf '%s\n' "$EXTRACTED" | grep -qi 'Áreas de Atuação' \
+       && printf '%s\n' "$EXTRACTED" | grep -qi 'Data Engineering'; then
       t_ok "PDF text contains the Áreas de Atuação heading and a filled domain"
     else
       t_fail "PDF text missing the Áreas de Atuação heading or a filled domain"
