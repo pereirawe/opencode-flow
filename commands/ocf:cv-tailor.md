@@ -42,22 +42,30 @@ The job can be provided as:
    (mandatory requirements weigh 2x, desirable 1x per §4.5), saved in
    `resumes/<job-slug>/gap-analysis.md` (written in the user's
    communication language).
-5. **Human decision on inferences** — list all of them in
+5. **Application gate** — compare the weighted match percentage with
+   `preferences.min_match_percentage` (default **70%** when the hub has none).
+   If match < threshold → the agent writes `resumes/<job-slug>/feedback.md`
+   (per `standards/cv-analysis.md` §3.5) explaining why it is not worth
+   applying and asks the candidate to decide (proceed anyway / stop); no
+   resume is generated unless the candidate overrides. If match ≥ threshold →
+   proceed directly WITHOUT confirmation.
+6. **Human decision on inferences** — list all of them in
    `resumes/<job-slug>/inferences.md` per `standards/cv-analysis.md`
    §3.3/§4.4 (table `Inference | Context | Decision | Status`) and ask the
    candidate to decide on each (rephrase/omit/promote with real data) before
    the final output.
-6. **Adapt content** — starting from the reference template
+7. **Adapt content** — starting from the reference template
    `skills/career/cv-pdf/templates/resume.html`, following the
    `standards/cv-design.md` standard; reorder/highlight/condense only what
-   exists in the hub; NEVER `[INFERIDO]` in the final HTML/PDF; language =
-   job language.
-7. **Verify conformity** with the standard (the ATS/print/pages checklist of
+   exists in the hub; prioritize quantified achievements (numbers/% first,
+   metric prominent — never invented); NEVER `[INFERIDO]` in the final
+   HTML/PDF; language = job language.
+8. **Verify conformity** with the standard (the ATS/print/pages checklist of
    `standards/cv-design.md`) before the PDF.
-8. **Mandatory gate** — `bash $SCRIPTS_DIR/cv/check-inference.sh index.html`
+9. **Mandatory gate** — `bash $SCRIPTS_DIR/cv/check-inference.sh index.html`
    MUST pass (exit 0) before the PDF.
-9. **Generate the PDF** — `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
-10. **Gap-analysis metrics** — after the PDF, extract the FINAL resume text
+10. **Generate the PDF** — `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
+11. **Gap-analysis metrics** — after the PDF, extract the FINAL resume text
     (`index.html` stripped of HTML tags, or the PDF via `pdftotext` when
     available) and record the keyword density map (`Keyword | Count in
     resume`) and the coverage summary by section in `gap-analysis.md` per
@@ -81,6 +89,8 @@ The job can be provided as:
 - Generated PDF path (`~/career/<name>/resumes/<slug>/curriculo.pdf`).
 - Gap analysis summary (`atendido`/`parcial`/`not_met` requirements) and the
   weighted match percentage.
+- Application gate decision: blocked (`feedback.md` written, candidate's
+  decision) or approved (match ≥ threshold, no confirmation needed).
 - Keyword density map and coverage summary by section (computed from the
   generated resume text).
 - Resolved inferences list (rephrased/omitted/promoted) the candidate
