@@ -578,7 +578,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 2 (qa, ux-ui)
 - Remote: #129
 - Jira: -
-- PR: -
+- PR: #130
 - Location: skills/career/cv-pdf/templates/resume.html, standards/cv-design.md, skills/career/cv-tailor/SKILL.md, agents/career/cv-tailor.md, scripts/tests/test_cv.sh
 - Description: Implementar la dirección de diseño "Swiss Measure" del art-director (design_spec.json) en el template del currículo: espina de numerales tabulares (font-variant-numeric: tabular-nums en .dates/.contact/strong), escala tipográfica tokenizada en :root (--name 18pt, --role 11pt, --h2 10.5pt uppercase, --body 10pt, --meta 9.5pt), negrita racionada (<strong> solo para métricas), hairline endurecido (una sola regla 0.4pt bajo h2), footer de página 2 (nombre · página x de y, solo senior+), verificación pdftotext-diff en cv-tailor, y documentación en cv-design.md (§3.1 tabla de escala, §3.8 numerales tabulares, §3.7 reforzado, §5 lint grep). Todo 100% ATS-safe.
 - Impact: Todos los currículos generados por ocf:cv-tailor (template obligatorio). Mejora el escaneo humano de ~6s (los números de impacto se alinean y resaltan) sin romper el parsing ATS; riesgo bajo (cambios CSS/tipográficos visuales + verificación mecanizada de dígitos).
