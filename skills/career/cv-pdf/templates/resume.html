@@ -20,6 +20,11 @@
       .page-footer apenas quando o PDF ultrapassar 1 página; remova o bloco
       em currículos de 1 página.
     - Omita seções vazias (ex.: sem certificações → remova a <section>).
+    - Preencha a seção "Áreas de Atuação" (logo após o Resumo) com 3–6 domínios
+      curtos em ul.inline-list + um parágrafo de 1–2 linhas do foco profissional,
+      ambos derivados do hub (cargos, categorias de skills, tecnologias de
+      projetos, summary) no idioma da vaga; omita a seção inteira quando nada
+      puder ser derivado.
     - NUNCA inclua [INFERIDO] neste arquivo (gate: scripts/cv/check-inference.sh).
 
   Regras que este template já cumpre: A4 12-15mm, fontes de sistema, headings
@@ -182,6 +187,20 @@
   <section>
     <h2>Resumo</h2>
     <p>Resumo profissional direcionado à vaga, destacando as competências mais relevantes. Use summary_i18n quando disponível.</p>
+  </section>
+
+  <!-- Áreas de Atuação: lista inline de 3–6 domínios + resumo curto (1–2 linhas),
+       derivados do hub (cargos, categorias de skills, tecnologias de projetos,
+       summary) no idioma da vaga. Omita a seção inteira quando nada puder ser
+       derivado. Traduza o título para o idioma da vaga. -->
+  <section>
+    <h2>Áreas de Atuação</h2>
+    <ul class="inline-list">
+      <li>Domínio 1</li>
+      <li>Domínio 2</li>
+      <li>Domínio 3</li>
+    </ul>
+    <p>Resumo curto (1–2 linhas) do foco profissional, reescrito do summary/experiência do hub no idioma da vaga.</p>
   </section>
 
   <section>

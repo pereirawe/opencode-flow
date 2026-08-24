@@ -1904,4 +1904,108 @@ else
   echo "skip - chrome/pdftotext/pdfinfo not available; Swiss-Measure render assertions skipped"
 fi
 
+# --- issue #216: Áreas de Atuação section (inline domains + brief summary) ---
+# 1. Template static assertions: the section sits immediately after Summary and
+#    before Experience, carries an ul.inline-list + a brief paragraph, and the
+#    template has no <table> (ATS-safe). Emoji/Google-Fonts assertions above
+#    already cover the template.
+if [[ -f "$CV_TEMPLATE" ]]; then
+  assert_contains "$CV_TEMPLATE" "<h2>Áreas de Atuação</h2>" \
+    "cv-pdf template has the Áreas de Atuação section heading (issue #216)"
+  assert_contains "$CV_TEMPLATE" "Resumo curto (1–2 linhas) do foco profissional" \
+    "cv-pdf template section carries the brief summary paragraph (issue #216)"
+  assert_not_contains "$CV_TEMPLATE" "<table>" \
+    "cv-pdf template has no <table> (ATS-safe, issue #216)"
+  # ordering: Summary < Áreas de Atuação < Experience (grep line numbers)
+  TPL_LINE_SUMMARY="$(grep -n '<h2>Resumo</h2>' "$CV_TEMPLATE" | cut -d: -f1)"
+  TPL_LINE_AREAS="$(grep -n '<h2>Áreas de Atuação</h2>' "$CV_TEMPLATE" | cut -d: -f1)"
+  TPL_LINE_EXPER="$(grep -n '<h2>Experi' "$CV_TEMPLATE" | cut -d: -f1)"
+  if [[ -n "$TPL_LINE_SUMMARY" && -n "$TPL_LINE_AREAS" && -n "$TPL_LINE_EXPER" \
+        && "$TPL_LINE_SUMMARY" -lt "$TPL_LINE_AREAS" && "$TPL_LINE_AREAS" -lt "$TPL_LINE_EXPER" ]]; then
+    t_ok "Áreas de Atuação section placed after Summary and before Experience"
+  else
+    t_fail "Áreas de Atuação section not placed after Summary / before Experience"
+  fi
+  # section body: inline list + paragraph between the heading and Experience
+  TPL_AREAS_BLOCK="$(sed -n "${TPL_LINE_AREAS},${TPL_LINE_EXPER}p" "$CV_TEMPLATE")"
+  if [[ "$TPL_AREAS_BLOCK" == *'<ul class="inline-list">'* && "$TPL_AREAS_BLOCK" == *'<p>'* ]]; then
+    t_ok "Áreas de Atuação section body carries an inline list + brief paragraph"
+  else
+    t_fail "Áreas de Atuação section body missing the inline list or the brief paragraph"
+  fi
+else
+  t_fail "cv-pdf template missing at $CV_TEMPLATE"
+fi
+
+# 2. cv-tailor skill documents the derivation rule (BR 3/4/5/7)
+if [[ -f "$TAILOR_SKILL" ]]; then
+  assert_contains "$TAILOR_SKILL" "Áreas de Atuação" \
+    "cv-tailor skill documents the Áreas de Atuação derivation rule (issue #216)"
+  assert_contains "$TAILOR_SKILL" "derived from the hub" \
+    "cv-tailor skill derives the areas from the hub (never fabricates, issue #216)"
+else
+  t_fail "cv-tailor skill missing at $TAILOR_SKILL"
+fi
+
+# 3. cv-tailor agent mirrors the derivation rule (BR 3/5/7)
+if [[ -f "$TAILOR_AGENT" ]]; then
+  assert_contains "$TAILOR_AGENT" "Áreas de Atuação" \
+    "cv-tailor agent derives the Áreas de Atuação section (issue #216)"
+else
+  t_fail "cv-tailor agent missing at $TAILOR_AGENT"
+fi
+
+# 4. cv-design standard §1.2 lists the section; §5 checklist covers the pattern
+if [[ -f "$CV_DESIGN" ]]; then
+  assert_contains "$CV_DESIGN" "Áreas de Atuação" \
+    "cv-design standard §1.2 lists Áreas de Atuação in the section set (issue #216)"
+  assert_contains "$CV_DESIGN" "ul.inline-list" \
+    "cv-design standard §5 documents the Áreas de Atuação inline-list pattern (issue #216)"
+else
+  t_fail "cv-design standard missing at $CV_DESIGN"
+fi
+
+# 5. cv-analysis standard §4.7 coverage list includes the section (BR 8)
+if [[ -f "$CV_ANALYSIS_STD" ]]; then
+  assert_contains "$CV_ANALYSIS_STD" "Áreas de Atuação" \
+    "cv-analysis standard §4.7 includes Áreas de Atuação in the coverage list (issue #216)"
+else
+  t_fail "cv-analysis standard missing at $CV_ANALYSIS_STD"
+fi
+
+# 6. Mechanized render: the filled section text appears in the PDF (Tests: 1)
+if [[ -n "$CHROME" ]] && command -v pdftotext >/dev/null 2>&1 && command -v pdfinfo >/dev/null 2>&1; then
+  AREAS_HTML="$TMP/areas-atuacao.html"
+  AREAS_PDF="$TMP/areas-atuacao.pdf"
+  TMP_ENV="$TMP" TPL="$CV_TEMPLATE" python3 - <<'PYEOF'
+import os
+tpl = open(os.environ["TPL"], encoding="utf-8").read()
+# cv-tailor fills the section with derived hub domains in the job language
+tpl = tpl.replace(
+    '      <li>Domínio 1</li>\n      <li>Domínio 2</li>\n      <li>Domínio 3</li>',
+    '      <li>Data Engineering</li>\n      <li>Analytics</li>\n      <li>Backend</li>',
+)
+tpl = tpl.replace(
+    '<p>Resumo curto (1–2 linhas) do foco profissional, reescrito do summary/experiência do hub no idioma da vaga.</p>',
+    '<p>Foco em pipelines de dados e produtos analíticos.</p>',
+)
+open(os.path.join(os.environ["TMP_ENV"], "areas-atuacao.html"), "w", encoding="utf-8").write(tpl)
+PYEOF
+  set +e
+  bash "$PDF_SH" "$AREAS_HTML" "$AREAS_PDF" chrome >/dev/null 2>&1
+  rc_areas=$?
+  set -e
+  assert_eq "0" "$rc_areas" "pdf.sh renders the resume with the Áreas de Atuação section"
+  if [[ -s "$AREAS_PDF" ]]; then
+    EXTRACTED="$(pdftotext "$AREAS_PDF" - 2>/dev/null || true)"
+    if [[ "$EXTRACTED" == *"Áreas de Atuação"* && "$EXTRACTED" == *"Data Engineering"* ]]; then
+      t_ok "PDF text contains the Áreas de Atuação heading and a filled domain"
+    else
+      t_fail "PDF text missing the Áreas de Atuação heading or a filled domain"
+    fi
+  fi
+else
+  echo "skip - chrome/pdftotext/pdfinfo not available; Áreas de Atuação render assertion skipped"
+fi
+
 t_finish

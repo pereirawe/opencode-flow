@@ -136,7 +136,8 @@ keywords — never against the hub or the job text:
    `standards/cv-analysis.md` §4.6.
 3. **Coverage summary by section** — count how many job keyword occurrences
    fall in each resume section (Summary, Experience, Education, Skills,
-   Certifications, Projects, Languages) and rank the sections by that count.
+   Certifications, Projects, Languages, Áreas de Atuação) and rank the
+   sections by that count.
    Record the ranking in `gap-analysis.md` following the canonical coverage
    table of `standards/cv-analysis.md` §4.7.
 
@@ -195,6 +196,14 @@ Reorder, highlight and rephrase **only what already exists in the hub**:
 - **Projects**: highlight projects using the job's technologies; mark
   `relevance: high`.
 - **Certifications**: order the most relevant to the job first.
+- **Áreas de Atuação**: 3–6 short domain areas derived from the hub —
+  experience titles, skill categories, project technologies and the summary —
+  plus one brief summary paragraph (1–2 lines) rephrasing the professional
+  focus from the hub summary/experience, all in the job's language. Never
+  invent an area (hard rule 1 applies); `[INFERIDO]` NEVER appears in the
+  section (hard rule 2 applies). ATS-safe: `ul.inline-list` + one plain `<p>`,
+  no table, no emoji, `<strong>` reserved for metrics. Omit the entire section
+  when nothing can be derived.
 - **Sections**: omit empty sections (e.g. no certifications → omit the section).
 
 ### Hard rules

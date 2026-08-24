@@ -335,8 +335,9 @@ are listed last.
 Columns: `Resume section | Job keywords found | Count`
 
 - `Resume section` — the resume section name: Summary, Experience,
-  Education, Skills, Certifications, Projects, Languages (localized to the
-  resume language; only sections present in the resume appear).
+  Education, Skills, Certifications, Projects, Languages, Áreas de Atuação
+  (localized to the resume language; only sections present in the resume
+  appear).
 - `Job keywords found` — the job keywords appearing in that section
   (comma-separated, at most 3 shown, then `...`).
 - `Count` — the total number of job keyword occurrences found in that

@@ -15,8 +15,8 @@ values), not opinions.
    `h2` for standard section titles, and `h3` for sub-entries (job title,
    institution, project name).
 2. Section titles MUST follow the standard set — Summary, Experience,
-   Education, Skills, Certifications, Projects, Languages — localized to the
-   job language. Empty sections MUST be omitted.
+   Education, Skills, Certifications, Projects, Languages, Áreas de Atuação —
+   localized to the job language. Empty sections MUST be omitted.
 3. All text MUST be real, selectable text — NEVER text rendered as an image.
 4. The layout MUST be single-column. CSS `columns`/multicol and two-column
    flex/grid **content** layouts that interleave or reorder items are
@@ -149,6 +149,9 @@ Before generating the PDF, the cv-tailor agent MUST verify every item:
       text; the digits are never altered)
 - [ ] `<strong>` used ONLY around quantified metrics — no bold on other text
       (rationed bold)
+- [ ] `Áreas de Atuação` section (when present): `ul.inline-list` of 3–6 short
+      domain areas + one brief paragraph (1–2 lines) — no table, no emoji,
+      omitted when nothing derivable
 - [ ] Tabular numerals present: `tabular-nums`/`tnum` on `.dates`, `.contact`
       and `strong`
 - [ ] Type scale matches the §3.1 canonical tokens (`--name`/`--role`/`--h2`/
