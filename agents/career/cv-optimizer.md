@@ -41,7 +41,10 @@ plan in `profile-analysis.md`.
 8. Generate a prioritized action plan (impact × effort).
 9. Write `profile-analysis.md` in `~/career/<candidate>/`.
 10. Also generate `analise-perfil.pdf` (via `bash $SCRIPTS_DIR/cv/pdf.sh` on the
-    rendered HTML) for easier reading/analysis.
+    rendered HTML from the reference template
+    `skills/career/cv-optimizer/templates/profile-analysis.html` — sharing the
+    resume's design language per `standards/cv-design.md`) for easier
+    reading/analysis.
 
 ## Rules
 

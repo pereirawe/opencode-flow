@@ -21,7 +21,15 @@
 
   Rules this template already complies with: A4 12-15mm margins, system
   fonts, semantic headings, sober grayscale-safe style, no emoji/Google
-  Fonts/gradients/shadows, clean @media print, break-inside: avoid.
+  Fonts/gradients/shadows, clean @media print (long sections break with
+  orphans/widows; canonical table rows never split), shared design language
+  with resume.html (cv-design.md §3: token scale, tabular numerals, page-2
+  footer).
+
+  This template shares the resume's design language (standards/cv-design.md —
+  the resume template skills/career/cv-pdf/templates/resume.html is the
+  reference implementation). cv-optimizer injects the page-2 footer via 2-pass
+  (render → pdfinfo → inject → re-render) ONLY when the report exceeds 1 page.
 -->
 <html lang="pt">
 <head>
@@ -33,6 +41,21 @@
     /* Single optional accent — grayscale-safe by default (same as text).
        If changed, keep contrast >= 4.5:1 and black-and-white readability. */
     --accent: #1a1a1a;
+    /* Shared print-point typographic scale — same tokens as the resume
+       template (standards/cv-design.md §3.1, single source of truth; never
+       ad-hoc sizes). Hierarchy: name > role > section title > body > meta. */
+    --name: 18pt;
+    --role: 11pt;
+    --h2: 10.5pt;
+    --body: 10pt;
+    --entry-body: 9.5pt;
+    --meta: 9.5pt;
+    --dates: 9.5pt;
+    --contact: 9.5pt;
+    --footer: 9pt;
+    /* Report-side extension of the shared scale for canonical table cells
+       (resume.html has no tables, so this token lives only here). */
+    --table: 9pt;
   }
 
   @page { size: A4; margin: 12mm 15mm; }
@@ -41,7 +64,7 @@
 
   body {
     font-family: Helvetica, Arial, sans-serif;
-    font-size: 10pt;
+    font-size: var(--body);
     line-height: 1.45;
     color: #1a1a1a;            /* near-black — never pure #000 */
     background: #ffffff;
@@ -49,41 +72,67 @@
     print-color-adjust: exact;
   }
 
-  /* ===== Header ===== */
-  .header { margin-bottom: 6mm; }
+  /* ===== Header lockup (shared with resume.html — cv-design.md §3) ===== */
+  .header { margin-bottom: 7mm; }
   .header h1 {
-    font-size: 17pt;
+    font-size: var(--name);
     font-weight: 700;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
     color: var(--accent);
-    margin-bottom: 1mm;
+    margin-bottom: 1.5mm;
   }
   .header .role {
-    font-size: 11pt;
+    font-size: var(--role);
     font-weight: 600;
-    margin-bottom: 1.5mm;
+    letter-spacing: 0.01em;
+    margin-bottom: 2mm;
   }
 
   /* ===== Sections ===== */
-  section { margin-bottom: 6mm; }
+  section { margin-bottom: 7mm; }
   section h2 {
-    font-size: 10.5pt;
+    font-size: var(--h2);
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.05em;
     color: var(--accent);
-    border-bottom: 0.4pt solid #d9d9d9;   /* structural hairline */
-    padding-bottom: 1mm;
+    border-bottom: 0.4pt solid #d9d9d9;   /* structural hairline — ONLY border */
+    padding-bottom: 1.2mm;
     margin-bottom: 2.5mm;
   }
   h3 {
-    font-size: 10pt;
+    font-size: var(--body);
     font-weight: 700;
     margin-bottom: 1mm;
   }
-  p, li { font-size: 9.5pt; }
+  p, li { font-size: var(--entry-body); }
   ul { padding-left: 4mm; }
   li { margin-bottom: 0.6mm; }
+
+  /* ===== Numeric spine — tabular numerals (cv-design.md §3.8, shared with
+     resume.html). Scores, salary ranges, dates and the page number use
+     fixed-width figures; extends the shared selector set with td/li so the
+     canonical table scores and salary ranges align in invisible columns. ===== */
+  .dates, .contact, strong, td, li, .page-footer {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  /* ===== Inline list (shared with resume.html) ===== */
+  .inline-list { list-style: none; padding-left: 0; }
+  .inline-list li { display: inline; }
+  .inline-list li + li::before { content: " · "; }
+
+  /* ===== Page-2 running footer (cv-design.md §3.9, shared with resume.html) =====
+     Plain text: name · page x of y. cv-optimizer injects the content (2-pass:
+     render → pdfinfo → inject → re-render) and OMITS the footer in reports
+     that fit on one page. */
+  .page-footer {
+    font-size: var(--footer);
+    color: #3a3a3a;
+    margin-top: 4mm;
+    text-align: right;
+  }
 
   /* ===== Canonical tables (analysis report — NOT ATS-submitted) ===== */
   table {
@@ -92,7 +141,7 @@
     margin-bottom: 3mm;
   }
   th, td {
-    font-size: 9pt;
+    font-size: var(--table);
     text-align: left;
     vertical-align: top;
     padding: 1.2mm 2mm;
@@ -100,10 +149,12 @@
   }
   th { font-weight: 700; }
 
-  /* ===== Clean print ===== */
+  /* ===== Clean print (issue #204) =====
+     Long sections break across pages with orphans/widows protection; the
+     canonical table rows and the headings never split awkwardly. */
   @media print {
     body { background: none; }
-    section { break-inside: avoid; }
+    section { break-inside: auto; orphans: 3; widows: 3; }
     .header { break-after: avoid; }
     h2 { break-after: avoid; }
     table tr { break-inside: avoid; }
@@ -188,6 +239,16 @@
       </tbody>
     </table>
   </section>
+
+  <!-- Footer de página 2: renderizado SOMENTE quando o relatório ultrapassa
+       1 página. cv-optimizer injeta "Nome · Página x de y" via 2-pass
+       (render → pdfinfo → injetar → re-render) no idioma do relatório e
+       REMOVE este bloco em relatórios de 1 página. Os spans ficam vazios por
+       padrão (safe default — nenhum texto incorreto vaza se o passo for
+       esquecido). -->
+  <footer class="page-footer">
+    <span class="footer-name"></span><span class="footer-page"></span>
+  </footer>
 
 </body>
 </html>

@@ -73,7 +73,12 @@ After writing `profile-analysis.md`, also generate the PDF for easier reading:
    `profile-analysis.html` and adapt the CONTENT (never the CSS), following the
    design language of `standards/cv-design.md` and the structure of
    `standards/cv-analysis.md` (A4 via `@page { size: A4; margin: 12mm 15mm }`,
-   clean typography, semantic headings, no metadata header).
+   clean typography, semantic headings, no metadata header). The template
+   shares the resume's design language — the same `:root` typographic token
+   scale and components (header lockup, tabular numerals, `.inline-list`,
+   page-2 running footer) per `standards/cv-design.md` §3 (token scale,
+   tabular numerals, page-2 footer) with the resume template as the reference
+   implementation for the header-lockup and `.inline-list` patterns.
 2. Run `bash $SCRIPTS_DIR/cv/pdf.sh profile-analysis.html profile-analysis.pdf`.
 3. If the engine fails, report the error — never deliver an empty PDF.
 
