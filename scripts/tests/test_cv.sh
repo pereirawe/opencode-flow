@@ -832,6 +832,10 @@ if [[ -f "$ATS_SKILL" ]]; then
     "cv-ats-score skill detects missing standard sections (BR 3)"
   assert_contains "$ATS_SKILL" "section_completeness" \
     "cv-ats-score skill covers section detection (BR 3)"
+  # issue #219: §3.2 optional-section enumeration must stay in sync with the
+  # standard section set of cv-design.md §1.2 (incl. Áreas de Atuação)
+  assert_contains "$ATS_SKILL" "Áreas de Atuação" \
+    "cv-ats-score skill §3.2 enumerates Áreas de Atuação among the optional sections (issue #219)"
   # pdftotext best-effort (BR 2) + no URL fetching
   assert_contains "$ATS_SKILL" "pdftotext" \
     "cv-ats-score skill extracts text via pdftotext (BR 2)"

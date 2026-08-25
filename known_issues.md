@@ -485,19 +485,21 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: dividir el template de `ocf:develop` en opencode.json — `ocf:develop` conserva los pasos 1-5 + reporte "esperando merge manual" (sin pasos 6-8), y nuevo `ocf:develop-full` con el template completo actual (auto-merge + base + close/archive); crear `commands/ocf:develop-full.md` y actualizar `commands/ocf:develop.md`; cambiar watcher y CI a `ocf:develop-full`; actualizar tests e2e, workflow.md, READMEs y comentarios Dockerfile. Esfuerzo ~4-6h.
 
 ### 219. cv-ats-score §3.2 section enumeration missing "Áreas de Atuação" (follow-up from #216)
-- Status: backlog
+- Status: in-publish
 - Opened: 2026-08-24
-- Ready: -
-- Started: -
+- Ready: 2026-08-24
+- Started: 2026-08-24
+- In review: 2026-08-24
+- In publish: 2026-08-24
 - Type: chore
 - Severity: low
 - Priority: low
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 1
-- Remote: -
+- Remote: #139
 - Jira: -
-- PR: -
+- PR: #140
 - Location: skills/career/cv-ats-score/SKILL.md §3.2, scripts/tests/test_cv.sh
 - Description: Issue #216 added the "Áreas de Atuação" section to the resume template, the cv-tailor skill/agent and the cv-design/cv-analysis standards, but the cv-ats-score skill's §3.2 optional-standard-sections enumeration (used for section detection / section_completeness) was not updated to include it. Registered by the docs senior reviewer of #216 — zero scoring impact today (unknown sections are tolerated and never penalized), but the enumeration should stay in sync with the standard section set of cv-design.md §1.2 for future completeness scoring.
 - Impact: Consistency only — no current scoring behavior change; keeps the career docs' section enumeration in sync with the standard set (cv-design.md §1.2, cv-analysis.md §4.7).

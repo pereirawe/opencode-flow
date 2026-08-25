@@ -100,7 +100,7 @@ Required standard sections (MUST be present for ATS parsing):
 
 Optional standard sections (detected when present, not penalized when absent
 per the cv-design standard's empty-section rule): Summary, Certifications,
-Projects, Languages.
+Projects, Languages, Áreas de Atuação.
 
 Sections are detected from the resume text: `h2`-level headings in the HTML,
 or recognizable heading blocks in the extracted PDF text (e.g. a line that is
