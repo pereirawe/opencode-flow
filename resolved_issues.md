@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 219. cv-ats-score §3.2 section enumeration missing "Áreas de Atuação" (follow-up from #216)
+- Resolved: 2026-08-24
+- Durations: backlog=0d waiting=0d dev=0d review=- qa=- publish=0d total=0d
+- Severity: low
+- Type: chore
+- Report: william_pereira
+- Reviewers: 1
+- Remote: #139
+- Summary: Issue #216 added the "Áreas de Atuação" section to the resume template, the cv-tailor skill/agent and the cv-design/cv-analysis standards, but the cv-ats-score skill's §3.2 optional-standard-sections enumeration (used for section detection / section_completeness) was not updated to include it. Registered by the docs senior reviewer of #216 — zero scoring impact today (unknown sections are tolerated and never penalized), but the enumeration should stay in sync with the standard section set of cv-design.md §1.2 for future completeness scoring. — Add "Áreas de Atuação" to the §3.2 optional-section enumeration in cv-ats-score/SKILL.md and one assert_contains in scripts/tests/test_cv.sh; run `make test-scripts`. Effort ~30min.
+
 ### 218. Profile-aware scoring criteria in cv-optimizer — per-domain section priorities (GitHub/project links not required for every profile)
 - Resolved: 2026-08-24
 - Durations: backlog=0d waiting=0d dev=0d review=- qa=- publish=0d total=0d
