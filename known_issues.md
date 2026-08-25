@@ -485,17 +485,19 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: dividir el template de `ocf:develop` en opencode.json — `ocf:develop` conserva los pasos 1-5 + reporte "esperando merge manual" (sin pasos 6-8), y nuevo `ocf:develop-full` con el template completo actual (auto-merge + base + close/archive); crear `commands/ocf:develop-full.md` y actualizar `commands/ocf:develop.md`; cambiar watcher y CI a `ocf:develop-full`; actualizar tests e2e, workflow.md, READMEs y comentarios Dockerfile. Esfuerzo ~4-6h.
 
 ### 218. Profile-aware scoring criteria in cv-optimizer — per-domain section priorities (GitHub/project links not required for every profile)
-- Status: ready
+- Status: in-publish
 - Opened: 2026-08-24
 - Ready: 2026-08-24
-- Started: -
+- Started: 2026-08-24
+- In review: 2026-08-24
+- In publish: 2026-08-24
 - Type: feat
 - Severity: medium
 - Priority: medium
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 2 (qa, docs)
-- Remote: -
+- Remote: #137
 - Jira: -
 - PR: -
 - Location: skills/career/cv-optimizer/SKILL.md §2-§3, standards/cv-analysis.md §4.2, agents/career/cv-optimizer.md, commands/ocf:cv-optimize.md
