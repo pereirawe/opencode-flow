@@ -485,19 +485,21 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: dividir el template de `ocf:develop` en opencode.json — `ocf:develop` conserva los pasos 1-5 + reporte "esperando merge manual" (sin pasos 6-8), y nuevo `ocf:develop-full` con el template completo actual (auto-merge + base + close/archive); crear `commands/ocf:develop-full.md` y actualizar `commands/ocf:develop.md`; cambiar watcher y CI a `ocf:develop-full`; actualizar tests e2e, workflow.md, READMEs y comentarios Dockerfile. Esfuerzo ~4-6h.
 
 ### 218. Profile-aware scoring criteria in cv-optimizer — per-domain section priorities (GitHub/project links not required for every profile)
-- Status: ready
+- Status: in-publish
 - Opened: 2026-08-24
 - Ready: 2026-08-24
-- Started: -
+- Started: 2026-08-24
+- In review: 2026-08-24
+- In publish: 2026-08-24
 - Type: feat
 - Severity: medium
 - Priority: medium
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 2 (qa, docs)
-- Remote: -
+- Remote: #137
 - Jira: -
-- PR: -
+- PR: #138
 - Location: skills/career/cv-optimizer/SKILL.md §2-§3, standards/cv-analysis.md §4.2, agents/career/cv-optimizer.md, commands/ocf:cv-optimize.md
 - Description: As a candidate, I want the cv-optimizer to score my profile against criteria that fit MY area, so that missing a GitHub or project link never penalizes a profile for which it is not a requirement (e.g. lawyer, HR, marketing, commercial). Today the scoring criteria table (§3) is profile-agnostic — e.g. "links | at least LinkedIn + GitHub/site" and "projects | link = bonus" apply uniformly to every profile. The fix: detect the candidate's primary domain(s) from the hub (professional_title, skill categories, experience titles, summary) and apply per-domain section priorities (high/medium/low) that shape the section weights and criteria. The domain taxonomy MUST be extensible — new domains are derived by mapping the domain's nature to section relevance, not by an exhaustive closed list; a reference table covers the known domains (engineering, technology/IT, commercial/sales, human resources, legal, marketing, design).
 - Impact: Every candidate using `ocf:cv-optimize`. Without the fix, profiles outside engineering/tech are scored against tech-centric criteria (GitHub/portfolio links treated as mandatory), producing unfair scores and wrong context-gap suggestions.

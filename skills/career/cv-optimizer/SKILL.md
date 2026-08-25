@@ -94,6 +94,10 @@ After writing `profile-analysis.md`, also generate the PDF for easier reading:
 
 ### 2. Analyze general qualifications
 
+- **Detected domain(s)** — the candidate's primary domain(s), inferred from
+  `personal_info.professional_title`, skill `category` values, experience
+  `title`s and the `summary`. Always `[INFERIDO]`. Drives the domain-relative
+  scoring criteria of §3 (per-domain section priorities).
 - **Inferred seniority** — from the total years of experience, most recent
   titles and skill depth (junior/mid/senior/expert/lead). Always `[INFERIDO]`.
 - **Top skills** — top skills by `level` and `importance`. For each skill,
@@ -110,19 +114,47 @@ After writing `profile-analysis.md`, also generate the PDF for easier reading:
 
 ### 3. Profile score (0-100)
 
-Score each section based on **completeness and strength**:
+**Domain-relative scoring.** Before scoring, apply the **Detected domain(s)**
+from §2 (inferred from `professional_title`, skill categories, experience
+titles and the summary — always `[INFERIDO]` in the report). Each domain maps
+to high/medium/low section priorities (reference table below) that shape the
+scoring criteria per priority tier — applied per tier, never globally. For a
+domain NOT in the reference table, derive the priorities from the domain's
+nature (extensibility rule below) and RECORD the derivation in the report.
 
-| Section | Scoring criteria |
-|---------|------------------|
+Score each section based on **completeness and strength** relative to the
+domain's priorities:
+
+| Section | Scoring criteria (domain-relative) |
+|---------|------------------------------------|
 | personal_info | name + contact + location + professional links present |
 | summary | summary present, clear, with differentiators; ideally bilingual (summary_i18n) |
-| experience | titles with dates, summary, achievements (metrics = bonus) |
-| education | complete institutions/courses, defined status |
+| experience | titles with dates, summary, achievements (metrics = bonus); always high priority |
+| education | complete institutions/courses, defined status; high priority in licensing/certification-driven domains (legal, HR) |
 | skills | quantity, explicit level, categories, `since`/years of experience (bonus: `since` present — allows computing years dynamically) |
-| certifications | present, with issuer and year |
-| projects | present, with description and link (link = bonus) |
-| languages | present, with formal level (scale_note = bonus) |
-| links | at least LinkedIn + GitHub/site |
+| certifications | present, with issuer and year; high priority in licensing/certification-driven domains |
+| projects | present, with description and link (link = bonus); link REQUIRED when the domain's projects priority is high (portfolio-driven domains: engineering, technology/IT, design) |
+| languages | present, with formal level (scale_note = bonus); high priority in client-facing domains |
+| links | LinkedIn is near-universal — required for every domain. GitHub/site/portfolio is REQUIRED only when the domain's links priority is **high** (engineering, technology/IT, design). When links priority is low/medium, LinkedIn presence alone satisfies the criterion — a missing GitHub/site MUST NOT lower the links score. |
+
+**Per-domain section priorities (reference table):**
+
+| Domain | personal_info | summary | experience | education | skills | certifications | projects | languages | links |
+|--------|---------------|---------|------------|-----------|--------|----------------|----------|-----------|-------|
+| engineering | medium | medium | high | medium | high | medium | high | low | high |
+| technology/IT | medium | medium | high | medium | high | medium | high | low | high |
+| commercial/sales | medium | high | high | medium | medium | medium | low | high | medium |
+| human resources | medium | medium | high | high | medium | high | low | medium | low |
+| legal | medium | medium | high | high | medium | high | low | medium | low |
+| marketing | medium | high | high | medium | medium | medium | medium | medium | medium |
+| design | medium | medium | high | medium | medium | low | high | low | high |
+
+**Extensibility rule (domains not in the reference table).** Derive the
+section priorities from the domain's nature — portfolio-driven →
+`projects` high; licensing/certification-driven → `certifications` high;
+client-facing → `languages`/`experience` high — and RECORD the derivation in
+the report (`[INFERIDO]`). Never fail and never silently fall back to the
+engineering template.
 
 Rules:
 - Each empty section = 0. Each section with minimal data = 40-60. Complete
@@ -136,7 +168,11 @@ Rules:
   0 in the table (they are context gaps) but are **excluded** from the Global
   average — never included as 0.
 - **Explicit weights**: `experience` 1.5x, `skills` 1.5x, all other present
-  sections 1x. Weighted formula (round to the nearest integer):
+  sections 1x — the issue #215 base weights, preserved. The domain-relative
+  part is the per-section score: the domain priorities (reference table)
+  shape each section's criteria (required vs bonus), which drives the score
+  that enters the Global average. Weighted formula (round to the nearest
+  integer):
 
   ```
   Global = round( Σ (score_section × weight_section) / Σ weight_section )

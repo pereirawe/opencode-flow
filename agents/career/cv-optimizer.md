@@ -32,9 +32,13 @@ plan in `profile-analysis.md`.
    `[INFERIDO]` and language rules).
 2. Read `hub.json` and validate with `python3 $SCRIPTS_DIR/cv/validate.py`;
    missing/invalid hub → tell the user that `ocf:cv-hub` must run first.
-3. Analyze general qualifications (inferred seniority, top skills,
-   strengths/weaknesses).
-4. Compute the per-section score (0-100) + global score, with textual justification.
+3. Analyze general qualifications (detected domain(s), inferred seniority,
+   top skills, strengths/weaknesses) — the detected domain(s) are inferred
+   from the hub (`professional_title`, skill categories, experience titles,
+   summary), marked `[INFERIDO]`, and drive the scoring criteria.
+4. Compute the per-section score (0-100) + global score, with textual
+   justification — the scoring criteria are domain-relative per the skill's
+   §3 priority table (tiered links/projects criteria).
 5. Suggest target job profiles (offline, no concrete jobs).
 6. Evaluate CLT vs PJ market salary ranges (`[INFERIDO]` bands).
 7. Detect context gaps in the hub.
