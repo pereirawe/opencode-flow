@@ -499,7 +499,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 2 (qa, docs)
 - Remote: #137
 - Jira: -
-- PR: -
+- PR: #138
 - Location: skills/career/cv-optimizer/SKILL.md §2-§3, standards/cv-analysis.md §4.2, agents/career/cv-optimizer.md, commands/ocf:cv-optimize.md
 - Description: As a candidate, I want the cv-optimizer to score my profile against criteria that fit MY area, so that missing a GitHub or project link never penalizes a profile for which it is not a requirement (e.g. lawyer, HR, marketing, commercial). Today the scoring criteria table (§3) is profile-agnostic — e.g. "links | at least LinkedIn + GitHub/site" and "projects | link = bonus" apply uniformly to every profile. The fix: detect the candidate's primary domain(s) from the hub (professional_title, skill categories, experience titles, summary) and apply per-domain section priorities (high/medium/low) that shape the section weights and criteria. The domain taxonomy MUST be extensible — new domains are derived by mapping the domain's nature to section relevance, not by an exhaustive closed list; a reference table covers the known domains (engineering, technology/IT, commercial/sales, human resources, legal, marketing, design).
 - Impact: Every candidate using `ocf:cv-optimize`. Without the fix, profiles outside engineering/tech are scored against tech-centric criteria (GitHub/portfolio links treated as mandatory), producing unfair scores and wrong context-gap suggestions.
