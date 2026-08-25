@@ -499,7 +499,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 1
 - Remote: #139
 - Jira: -
-- PR: -
+- PR: #140
 - Location: skills/career/cv-ats-score/SKILL.md §3.2, scripts/tests/test_cv.sh
 - Description: Issue #216 added the "Áreas de Atuação" section to the resume template, the cv-tailor skill/agent and the cv-design/cv-analysis standards, but the cv-ats-score skill's §3.2 optional-standard-sections enumeration (used for section detection / section_completeness) was not updated to include it. Registered by the docs senior reviewer of #216 — zero scoring impact today (unknown sections are tolerated and never penalized), but the enumeration should stay in sync with the standard section set of cv-design.md §1.2 for future completeness scoring.
 - Impact: Consistency only — no current scoring behavior change; keeps the career docs' section enumeration in sync with the standard set (cv-design.md §1.2, cv-analysis.md §4.7).
