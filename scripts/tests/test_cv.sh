@@ -459,6 +459,112 @@ else
   t_fail "cv-optimizer skill missing at $OPT_SKILL"
 fi
 
+# --- issue #218: profile-aware scoring — per-domain section priorities ---
+# BR 1/2/3/4/5/6/7/8 — the optimizer detects the candidate's domain(s) from
+# the hub, applies per-domain high/medium/low priorities (reference table +
+# extensibility rule), tiers the links/projects criteria, and reports the
+# detected domain + applied priorities; the #215 Global rules are preserved
+# (Tests: 1-5 of issue #218).
+if [[ -f "$OPT_SKILL" ]]; then
+  # BR 1 — domain detection from the hub before scoring
+  assert_contains "$OPT_SKILL" "Detected domain" \
+    "cv-optimizer skill detects the candidate's domain(s) before scoring (BR 1)"
+  assert_contains "$OPT_SKILL" "professional_title" \
+    "cv-optimizer skill detects the domain from professional_title (BR 1)"
+  assert_contains "$OPT_SKILL" "skill \`category\`" \
+    "cv-optimizer skill detects the domain from skill categories (BR 1)"
+  # BR 1 — domain detection is [INFERIDO]-marked in the report
+  assert_contains "$OPT_SKILL" "Always \`[INFERIDO]\`" \
+    "cv-optimizer skill marks the detected domain(s) as [INFERIDO] (BR 1)"
+  # BR 5 — the per-domain priority reference table covers all known domains
+  assert_contains "$OPT_SKILL" "reference table" \
+    "cv-optimizer skill has the per-domain priority reference table (BR 5)"
+  assert_contains "$OPT_SKILL" "| engineering | medium | medium | high | medium | high | medium | high | low | high |" \
+    "engineering links high / projects high (BR 3)"
+  assert_contains "$OPT_SKILL" "| technology/IT | medium | medium | high | medium | high | medium | high | low | high |" \
+    "technology/IT links high / projects high (BR 3)"
+  assert_contains "$OPT_SKILL" "| commercial/sales | medium | high | high | medium | medium | medium | low | high | medium |" \
+    "commercial/sales projects low / languages high"
+  assert_contains "$OPT_SKILL" "| human resources | medium | medium | high | high | medium | high | low | medium | low |" \
+    "human resources certifications high / links low"
+  assert_contains "$OPT_SKILL" "| legal | medium | medium | high | high | medium | high | low | medium | low |" \
+    "legal certifications high / links low"
+  assert_contains "$OPT_SKILL" "| marketing | medium | high | high | medium | medium | medium | medium | medium | medium |" \
+    "marketing links+projects NOT high (AC 4)"
+  assert_contains "$OPT_SKILL" "| design | medium | medium | high | medium | medium | low | high | low | high |" \
+    "design projects high / links high (BR 3)"
+  # BR 4 — extensibility: derive priorities from the domain's nature
+  assert_contains "$OPT_SKILL" "Extensibility rule" \
+    "cv-optimizer skill documents the extensibility rule for new domains (BR 4)"
+  assert_contains "$OPT_SKILL" "portfolio-driven" \
+    "cv-optimizer skill derives portfolio-driven priorities (BR 4)"
+  assert_contains "$OPT_SKILL" "licensing/certification-driven" \
+    "cv-optimizer skill derives certification-driven priorities (BR 4)"
+  assert_contains "$OPT_SKILL" "client-facing" \
+    "cv-optimizer skill derives client-facing priorities (BR 4)"
+  assert_contains "$OPT_SKILL" "never silently fall back" \
+    "cv-optimizer skill never falls back to the tech template for new domains (BR 4)"
+  # BR 3 — tiered links criterion: GitHub/site required only for high-priority domains
+  assert_contains "$OPT_SKILL" "LinkedIn is near-universal" \
+    "cv-optimizer skill tiers the links criterion — LinkedIn near-universal (BR 3)"
+  assert_contains "$OPT_SKILL" "MUST NOT lower the links score" \
+    "cv-optimizer skill forbids penalizing non-tech profiles for a missing GitHub/site (BR 3)"
+  # BR 2 — criteria apply per priority tier, never globally
+  assert_contains "$OPT_SKILL" "never globally" \
+    "cv-optimizer skill applies criteria per priority tier, never globally (BR 2)"
+  assert_contains "$OPT_SKILL" "domain-relative" \
+    "cv-optimizer skill marks scoring as domain-relative (BR 2)"
+  # AC 2 — no unconditional GitHub/site requirement remains
+  assert_not_contains "$OPT_SKILL" "| links | at least LinkedIn + GitHub/site |" \
+    "cv-optimizer skill no longer mandates GitHub/site unconditionally (AC 2)"
+  # BR 6 — the #215 Global computation stays intact (regression)
+  assert_contains "$OPT_SKILL" "Global = round" \
+    "cv-optimizer skill keeps the weighted Global formula (#215 preserved, BR 6)"
+  assert_contains "$OPT_SKILL" "never included as 0" \
+    "cv-optimizer skill keeps excluding empty sections from Global (#215 preserved, BR 6)"
+else
+  t_fail "cv-optimizer skill missing at $OPT_SKILL"
+fi
+
+if [[ -f "$CV_ANALYSIS_215" ]]; then
+  # BR 7 — the detected domain + applied priorities appear in General qualifications
+  assert_contains "$CV_ANALYSIS_215" "Detected domain(s)" \
+    "cv-analysis §3.1 reports the detected domain(s) under General qualifications (BR 7)"
+  assert_contains "$CV_ANALYSIS_215" "applied section priorities" \
+    "cv-analysis §3.1 reports the applied priorities for auditability (BR 7)"
+  # BR 8 — §4.2 documents domain-relative scores and references the skill's table
+  assert_contains "$CV_ANALYSIS_215" "domain-relative" \
+    "cv-analysis §4.2 documents domain-relative scores (BR 8)"
+  assert_contains "$CV_ANALYSIS_215" "priority table" \
+    "cv-analysis §4.2 references the skill's priority table (BR 8)"
+  assert_contains "$CV_ANALYSIS_215" "LinkedIn is near-universal" \
+    "cv-analysis §4.2 documents the tiered links criterion (BR 8)"
+  assert_contains "$CV_ANALYSIS_215" "never globally" \
+    "cv-analysis §4.2 documents per-tier (never global) criteria (BR 8)"
+else
+  t_fail "cv-analysis standard missing at $CV_ANALYSIS_215"
+fi
+
+OPT_AGENT_218="$SCRIPT_DIR/../../agents/career/cv-optimizer.md"
+if [[ -f "$OPT_AGENT_218" ]]; then
+  assert_contains "$OPT_AGENT_218" "detected domain(s)" \
+    "cv-optimizer agent analyzes the detected domain(s) (BR 1)"
+  assert_contains "$OPT_AGENT_218" "domain-relative" \
+    "cv-optimizer agent computes domain-relative scores (BR 2)"
+else
+  t_fail "cv-optimizer agent missing at $OPT_AGENT_218"
+fi
+
+OPT_CMD_218="$SCRIPT_DIR/../../commands/ocf:cv-optimize.md"
+if [[ -f "$OPT_CMD_218" ]]; then
+  assert_contains "$OPT_CMD_218" "detected domain(s)" \
+    "ocf:cv-optimize command documents the detected-domain analysis step (BR 7)"
+  assert_contains "$OPT_CMD_218" "domain-relative" \
+    "ocf:cv-optimize command documents the domain-relative criteria (BR 2)"
+else
+  t_fail "ocf:cv-optimize command missing at $OPT_CMD_218"
+fi
+
 # --- cv-cover-letter contract (issue #66) ---
 CL_SKILL="$SCRIPT_DIR/../../skills/career/cv-cover-letter/SKILL.md"
 if [[ -f "$CL_SKILL" ]]; then

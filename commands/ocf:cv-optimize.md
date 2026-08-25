@@ -27,8 +27,10 @@ to improve the profile substantially before generating tailored resumes with
    directory.
 4. **Analyze** — the agent produces `profile-analysis.md` following the
    canonical structure of `standards/cv-analysis.md` (§3.1, tables §4.2/§4.3):
-   - Profile score (0-100 per section + global, with justification)
-   - General qualifications (seniority, skills, strengths/weaknesses)
+   - Profile score (0-100 per section + global, with justification —
+     domain-relative criteria per the skill's §3 priority table)
+   - General qualifications (detected domain(s), seniority, skills,
+     strengths/weaknesses)
    - Target job profiles (offline — never concrete jobs)
    - CLT vs PJ salary ranges (all `[INFERIDO]` for human review)
    - Context gaps in the hub

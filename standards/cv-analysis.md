@@ -70,8 +70,12 @@ Content per section:
 
 1. **Profile score** — the canonical score table (Section 4.2): one row per
    hub section plus the `Global` row.
-2. **General qualifications** — `H3` subsections: Inferred seniority;
-   Top skills; Strengths; Weaknesses.
+2. **General qualifications** — `H3` subsections: Detected domain(s);
+   Inferred seniority; Top skills; Strengths; Weaknesses. The Detected
+   domain(s) item reports the domain(s) inferred from the hub
+   (`professional_title`, skill categories, experience titles, summary —
+   `[INFERIDO]`) and the applied section priorities, so the candidate can
+   audit the domain-relative scoring criteria.
 3. **Target job profiles** — one `H3` per profile (title, segments,
    stacks, seniority). Generic profiles only — never concrete jobs,
    companies or URLs. Every profile marked `[INFERIDO]`.
@@ -261,6 +265,17 @@ weighted average over ONLY the hub sections that are present AND non-empty:
   sections") — no silent averages.
 - Excluded empty sections remain listed under Context gaps (report §5) —
   never silently dropped.
+
+**Domain-relative scores.** Scores are computed against the candidate's
+detected domain(s) — the per-domain section priorities (high/medium/low) of
+the cv-optimizer skill's §3 reference priority table (extensible: domains not
+in the table derive priorities from their nature and the derivation is
+recorded in the report). The `links` criterion is tiered: **LinkedIn is near-universal**
+(required for every domain), while GitHub/site/portfolio is REQUIRED only when the
+domain's links priority is high. A missing GitHub/site never lowers the score of a
+profile whose domain does not require it — the criteria apply per priority tier,
+never globally. The detected domain(s) and applied priorities are reported under
+General qualifications (§3.1).
 
 ### 4.3 Action plan
 
