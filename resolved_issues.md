@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 218. Profile-aware scoring criteria in cv-optimizer — per-domain section priorities (GitHub/project links not required for every profile)
+- Resolved: 2026-08-24
+- Durations: backlog=0d waiting=0d dev=0d review=- qa=- publish=0d total=0d
+- Severity: medium
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #137
+- Summary: As a candidate, I want the cv-optimizer to score my profile against criteria that fit MY area, so that missing a GitHub or project link never penalizes a profile for which it is not a requirement (e.g. lawyer, HR, marketing, commercial). Today the scoring criteria table (§3) is profile-agnostic — e.g. "links | at least LinkedIn + GitHub/site" and "projects | link = bonus" apply uniformly to every profile. The fix — Extend cv-optimizer/SKILL.md §2-§3 with domain detection + a per-domain priority reference table (engineering, technology/IT, commercial, HR, legal, marketing, design) and the extensibility rule; tier the `links`/`projects` criteria by priority; document domain-relative scoring in standards/cv-analysis.md §4.2; require the detected domain + applied priorities in profile-analysis.md; add regression assertions in scripts/tests/test_cv.sh; run `make test-scripts`. Effort ~3-4h.
+
 ### 204. `profile-analysis.html` template still applies blanket `section { break-inside: avoid; }` — same blank-gap defect in analysis reports
 - Resolved: 2026-08-24
 - Durations: backlog=- waiting=- dev=- review=- qa=- publish=0d total=7d
