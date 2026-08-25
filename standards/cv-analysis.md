@@ -377,6 +377,31 @@ flow copies it to `~/career/<candidate-name>/profile-analysis.html` and adapts
 the CONTENT (never the CSS), then renders the PDF with
 `bash $SCRIPTS_DIR/cv/pdf.sh profile-analysis.html analise-perfil.pdf`.
 
+**Shared design language (single source of truth).** `profile-analysis.html`
+and the resume template `skills/career/cv-pdf/templates/resume.html` are
+governed by the SAME shared design language — the `:root` typographic token
+scale (`--name` 18pt → `--footer` 9pt) and the component patterns (header
+lockup `h1` + role line, tabular numerals, `.inline-list`, page-2 running
+footer) — defined in `standards/cv-design.md` (§3 for the token scale,
+tabular numerals and page-2 footer; the resume template is the reference
+implementation for the header-lockup and `.inline-list` patterns). The report
+template mirrors the resume's tokens and patterns instead of ad-hoc sizes, so
+the sector's deliverables look coherent:
+
+- **§3.1 (token scale)** — the canonical print-point tokens
+  (`--name`/`--role`/`--h2`/`--body`/`--entry-body`/`--meta`/`--dates`/
+  `--contact`/`--footer`) plus the report-side `--table` extension for the
+  canonical table cells (resume.html has no tables); the report never uses
+  ad-hoc font sizes.
+- **§3.8 (tabular numerals)** — `.dates`, `.contact`, `strong`, `td`, `li` and
+  `.page-footer` set to `tabular-nums` + `tnum` so scores, salary ranges,
+  dates and the page number align in fixed-width columns.
+- **§3.9 (page-2 footer)** — `<footer class="page-footer">` with
+  `footer-name`/`footer-page` spans, injected by cv-optimizer via 2-pass only
+  when the report exceeds one page; omitted entirely from one-page reports.
+- Header lockup (`h1` + `.role` line) and `.inline-list` — the same component
+  patterns as the resume.
+
 The template shares the design language of `standards/cv-design.md`:
 
 - A4 with `@page { size: A4; margin: 12mm 15mm; }` (margins 12–15mm).
@@ -385,9 +410,15 @@ The template shares the design language of `standards/cv-design.md`:
   grayscale-safe accent, no gradients/shadows/decorative borders/emoji.
 - Semantic headings: exactly one `h1` (report title), `h2` per section.
 - No metadata header in the rendered output.
-- Clean `@media print` (no backgrounds; short sections and entries keep
-  `break-inside: avoid`; long content sections may break across pages with
-  `orphans`/`widows` protection — per `standards/cv-design.md` §2.4).
+- Clean `@media print` (no backgrounds): report sections use
+  `break-inside: auto` — long content sections may break across pages with
+  `orphans: 3` / `widows: 3` protection; the canonical table rows keep
+  `table tr { break-inside: avoid; }` and the headings keep
+  `h2 { break-after: avoid; }` / `.header { break-after: avoid; }`
+  — per `standards/cv-design.md` §2.4; the report treats every top-level
+  section as a breakable section (only the canonical table rows and the
+  headings are protected), so the §2.4 short-section clause for `.entry`
+  entries does not apply to the report template.
 
 Unlike resumes, analysis report HTML MAY use the canonical tables — the ATS
 no-table rule applies to resumes submitted to ATS; analysis reports are

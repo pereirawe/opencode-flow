@@ -73,6 +73,7 @@ values), not opinions.
    | Entry body (`--entry-body`) | 9.5pt | 400 | bullets/paragraphs in entries |
    | Meta/dates/contact (`--meta`/`--dates`/`--contact`) | 9.5pt | 400 | muted `#3a3a3a` |
    | Page footer (`--footer`) | 9pt | 400 | page-2 running footer, muted |
+   | Table cell (`--table`) | 9pt | 400 | canonical analysis-report table cells (th: 700); reports only — resumes have no tables |
 
    Exactly three weights are used: 400 (body), 600 (role), 700 (name/sections/
    metrics).

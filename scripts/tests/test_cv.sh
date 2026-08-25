@@ -2016,4 +2016,71 @@ else
   echo "skip - chrome/pdftotext/pdfinfo not available; Áreas de Atuação render assertion skipped"
 fi
 
+# --- issue #217: profile-analysis.html aligns with the resume's design language ---
+PA_TEMPLATE="$SCRIPT_DIR/../../skills/career/cv-optimizer/templates/profile-analysis.html"
+if [[ -f "$PA_TEMPLATE" ]]; then
+  # 1. Shared :root typographic token scale (cv-design.md §3.1) — no ad-hoc sizes
+  assert_contains "$PA_TEMPLATE" "--name: 18pt" "profile-analysis template tokenizes the name size (--name)"
+  assert_contains "$PA_TEMPLATE" "--role: 11pt" "profile-analysis template tokenizes the role size (--role)"
+  assert_contains "$PA_TEMPLATE" "--h2: 10.5pt" "profile-analysis template tokenizes the section size (--h2)"
+  assert_contains "$PA_TEMPLATE" "--body: 10pt" "profile-analysis template tokenizes the body size (--body)"
+  assert_contains "$PA_TEMPLATE" "--entry-body: 9.5pt" "profile-analysis template tokenizes the entry-body size (--entry-body)"
+  assert_contains "$PA_TEMPLATE" "--meta: 9.5pt" "profile-analysis template tokenizes the meta size (--meta)"
+  assert_contains "$PA_TEMPLATE" "--dates: 9.5pt" "profile-analysis template tokenizes the dates size (--dates)"
+  assert_contains "$PA_TEMPLATE" "--contact: 9.5pt" "profile-analysis template tokenizes the contact size (--contact)"
+  assert_contains "$PA_TEMPLATE" "--footer: 9pt" "profile-analysis template tokenizes the footer size (--footer)"
+  assert_contains "$PA_TEMPLATE" "var(--name)" "profile-analysis template uses the --name token (header lockup)"
+  assert_contains "$PA_TEMPLATE" "var(--role)" "profile-analysis template uses the --role token (header lockup)"
+  assert_contains "$PA_TEMPLATE" "var(--body)" "profile-analysis template uses the --body token"
+  assert_contains "$PA_TEMPLATE" "var(--h2)" "profile-analysis template uses the --h2 token"
+  assert_contains "$PA_TEMPLATE" "--table: 9pt" "profile-analysis template tokenizes the table-cell size (--table)"
+  assert_contains "$PA_TEMPLATE" "var(--table)" "profile-analysis template uses the --table token"
+  # 2. Tabular numerals (numeric spine, cv-design.md §3.8) + inline-list pattern
+  assert_contains "$PA_TEMPLATE" "font-variant-numeric: tabular-nums" "profile-analysis template uses tabular-nums (numeric spine)"
+  assert_contains "$PA_TEMPLATE" '"tnum" 1' "profile-analysis template enables the tnum feature"
+  assert_contains "$PA_TEMPLATE" ".dates, .contact, strong" "profile-analysis template applies tabular numerals to the shared selectors"
+  assert_contains "$PA_TEMPLATE" ".inline-list" "profile-analysis template provides the .inline-list pattern"
+  # 3. Page-2 footer (2-pass contract)
+  assert_contains "$PA_TEMPLATE" ".page-footer" "profile-analysis template defines the .page-footer block"
+  assert_contains "$PA_TEMPLATE" "footer-name" "profile-analysis template footer carries the candidate name"
+  assert_contains "$PA_TEMPLATE" "footer-page" "profile-analysis template footer carries the page marker"
+  # 4. Print CSS: issue #204 fix (no blanket break-inside: avoid on sections)
+  assert_contains "$PA_TEMPLATE" "break-inside: auto" "profile-analysis template allows long sections to break (break-inside: auto)"
+  assert_contains "$PA_TEMPLATE" "orphans: 3" "profile-analysis template protects against stranded lines (orphans: 3)"
+  assert_contains "$PA_TEMPLATE" "widows: 3" "profile-analysis template protects against stranded lines (widows: 3)"
+  assert_not_contains "$PA_TEMPLATE" "section { break-inside: avoid" "profile-analysis template no longer applies break-inside: avoid to all sections (issue #204)"
+  assert_contains "$PA_TEMPLATE" "table tr { break-inside: avoid; }" "profile-analysis template keeps table rows unbroken (canonical tables)"
+  assert_contains "$PA_TEMPLATE" "h2 { break-after: avoid; }" "profile-analysis template keeps break-after: avoid on h2"
+  assert_not_contains "$PA_TEMPLATE" "font-size: 9pt" "profile-analysis template has no ad-hoc font sizes"
+  # 5. Canonical tables kept in the body (score §4.2 + action plan §4.3)
+  assert_contains "$PA_TEMPLATE" "Seção" "profile-analysis template keeps the canonical score table"
+  assert_contains "$PA_TEMPLATE" "Score (0-100)" "profile-analysis template keeps the score column"
+  assert_contains "$PA_TEMPLATE" "Justificativa" "profile-analysis template keeps the justification column"
+  assert_contains "$PA_TEMPLATE" "Ação" "profile-analysis template keeps the canonical action plan table"
+  assert_contains "$PA_TEMPLATE" "Perfil-alvo" "profile-analysis template keeps the target-profile column"
+else
+  t_fail "profile-analysis template missing at $PA_TEMPLATE"
+fi
+
+# 1c. cv-design §3.1 documents the --table report-side token (docs review F1)
+if [[ -f "$CV_DESIGN" ]]; then
+  assert_contains "$CV_DESIGN" "--table" "cv-design §3.1 documents the --table token"
+fi
+
+# 6. standards/cv-analysis.md §6 documents the shared design language (BR 8 / Tests: 4)
+if [[ -f "$CV_ANALYSIS_STD" ]]; then
+  assert_contains "$CV_ANALYSIS_STD" "shared design language" "cv-analysis §6 documents the shared design language (BR 8)"
+  assert_contains "$CV_ANALYSIS_STD" "resume.html" "cv-analysis §6 references the resume template base"
+  assert_contains "$CV_ANALYSIS_STD" "token scale" "cv-analysis §6 references the shared token scale"
+else
+  t_fail "cv-analysis standard missing at $CV_ANALYSIS_STD"
+fi
+
+# 7. cv-optimizer skill points at the shared design language (stale-reference update)
+if [[ -f "$OPT_SKILL" ]]; then
+  assert_contains "$OPT_SKILL" "shares the resume" "cv-optimizer skill points at the shared design language"
+else
+  t_fail "cv-optimizer skill missing at $OPT_SKILL"
+fi
+
 t_finish

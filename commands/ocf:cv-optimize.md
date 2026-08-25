@@ -36,7 +36,8 @@ to improve the profile substantially before generating tailored resumes with
 5. **Generate the PDF** — the agent renders `profile-analysis.html` from the
    reference template
    `skills/career/cv-optimizer/templates/profile-analysis.html` (adapt content,
-   never the CSS) and runs `bash $SCRIPTS_DIR/cv/pdf.sh` to produce
+   never the CSS — sharing the resume's design language per
+   `standards/cv-design.md`) and runs `bash $SCRIPTS_DIR/cv/pdf.sh` to produce
    `profile-analysis.pdf` (A4), making reading/analysis easier.
 6. **Report** — report paths (.md and .pdf), global score, top actions and
    the `[INFERIDO]` items the candidate should review.
