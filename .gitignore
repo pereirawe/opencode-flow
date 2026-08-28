@@ -9,3 +9,6 @@ __pycache__/
 *.pyc
 docs/delivery-prompts/
 reviews/*.md
+hive/
+roster-backups/
+roster.json

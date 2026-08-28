@@ -1,348 +1,350 @@
 {
-    "$schema": "https://opencode.ai/config.json",
-    "subagent_depth": 4,
-    "instructions": [
-        "~/.config/opencode/AGENTS.md",
-        "~/.config/opencode/workflow.md",
-        "~/.config/opencode/agents/*/devs/REGISTRY.md"
-    ],
-    "command": {
-        "init": {
-            "template": "Ask the user which locale they want for this project (pt for Portuguese, es for Spanish, or en for English). Then initialize the `.opencode/` project configuration in the current working directory by running the init script with the chosen locale. The script will detect project languages, suggest LSPs, and optionally configure `.vscode/settings.json`. After init completes, verify `.opencode/locale` contains the chosen language. Then review the generated files.",
-            "description": "Initialize opencode project config with repo context and locale"
-        },
-        "ocf:plan-feature": {
-            "template": "Break down the feature into steps, identify impacted layers, and register risks and planned work in `.opencode/known_issues.md`.",
-            "description": "Feature planning with risk awareness"
-        },
-        "ocf:promote": {
-            "template": "Detect the issue ID from the argument, or from the current branch name (`issue-<id>-<slug>`), or ask if neither is available.\n\n**CRITICAL: Resolve the project's `known_issues.md` first.** The agent's context only contains the GLOBAL `~/.config/opencode/known_issues.md`, NOT the project's file. You MUST resolve the correct file via bash before reading the issue:\n\n```bash\nif [ -f .opencode/known_issues.md ]; then ISSUES_FILE=\".opencode/known_issues.md\"; elif [ -f ~/.config/opencode/known_issues.md ]; then ISSUES_FILE=\"~/.config/opencode/known_issues.md\"; else echo 'No known_issues.md found'; exit 1; fi\nawk -v id=\"$ARGUMENTS\" '$0 ~ \"^### \" id \"\\\\.\" {found=1} found { if ($0 ~ /^### [0-9]+\\./ && $0 !~ \"^### \" id \"\\\\.\") exit; print }' \"$ISSUES_FILE\"\n```\n\nRead data from the issue entry — if something essential is missing, handle gracefully without asking: `Base branch:` empty → detect from git; `Reviewers:` empty → default to 1; `Remote:` empty → create automatically. If status is `backlog`: run `scripts/promote.sh <id>` (→ ready, status only). If status is `ready`: ensure `Remote:` is populated (auto-create if missing), then run `scripts/promote.sh <id>` (→ in-progress + branch). Other statuses: refuse with reason.",
-            "description": "Promote an issue — backlog→ready or ready→in-progress with branch"
-        },
-        "ocf:review-branch": {
-            "template": "Detect the issue ID from the argument, or from the current branch name (`issue-<id>-<slug>`), or ask if neither is available.\n\n**CRITICAL: Resolve the project's `known_issues.md` first.** The agent's context only contains the GLOBAL `~/.config/opencode/known_issues.md`, NOT the project's file. You MUST resolve the correct file via bash before reading the issue:\n\n```bash\nif [ -f .opencode/known_issues.md ]; then ISSUES_FILE=\".opencode/known_issues.md\"; elif [ -f ~/.config/opencode/known_issues.md ]; then ISSUES_FILE=\"~/.config/opencode/known_issues.md\"; else echo 'No known_issues.md found'; exit 1; fi\nawk -v id=\"$ARGUMENTS\" '$0 ~ \"^### \" id \"\\\\.\" {found=1} found { if ($0 ~ /^### [0-9]+\\./ && $0 !~ \"^### \" id \"\\\\.\") exit; print }' \"$ISSUES_FILE\"\n```\n\nRead `- Reviewers:` from the issue entry to determine how many Senior Reviewers should perform this review. If the field is missing or empty, default to 1 — do NOT ask the user unless the field is absent. Do NOT read reviewer count from opencode.json. Then run a full PR/MR-style review: analyze `git diff`, use that many Senior Engineer reviewers, identify Critical and Major issues only, validate tests and docs, and register new issues.",
-            "description": "Full PR/MR-style code review"
-        },
-        "ocf:develop": {
-            "template": "Parse the command argument as a LIST of issue IDs. The argument MUST contain at least one issue ID, separated by spaces, commas, or dashes (e.g. `/ocf:develop 4`, `/ocf:develop 4 5 6`, `/ocf:develop 4,5,6`, `/ocf:develop 4-5-6`, `/ocf:develop #4 #5 #6`). Extract every numeric ID (strip leading `#`), deduplicate while preserving order. If no ID is provided, ask the user for at least one issue ID — do NOT guess from the branch name.\n\nThen run the task flow for EACH issue in the list, sequentially, WITHOUT pauses, confirmations, or permission prompts between them. The pipeline is continuous UP TO MR creation: promotion → development → senior review → QA → corrections → committer gate → MR creation. The command STOPS there: it does NOT merge the MR, does NOT close/archive the issue, and does NOT expect the base branch to contain the change. Each issue ends in `Status: in-publish` with `PR: #<n>` and the MR left OPEN, awaiting a manual merge. Send exactly ONE Telegram notification at the very end, after the LAST issue completes.\n\nFor EACH issue id in the list, in order:\n\n**1. Resolve the project's `known_issues.md` first.** The agent's context only contains the GLOBAL `~/.config/opencode/known_issues.md`, NOT the project's file. You MUST resolve the correct file via bash before reading the issue:\n\n```bash\n# Find the project's known_issues.md (project .opencode/ takes precedence over global)\nif [ -f .opencode/known_issues.md ]; then ISSUES_FILE=\".opencode/known_issues.md\"; elif [ -f ~/.config/opencode/known_issues.md ]; then ISSUES_FILE=\"~/.config/opencode/known_issues.md\"; else echo 'No known_issues.md found'; exit 1; fi\necho \"Using: $ISSUES_FILE\"\n# Extract the issue entry by ID (use the resolved path)\nawk -v id=\"$ID\" '$0 ~ \"^### \" id \"\\.\" {found=1} found { if ($0 ~ /^### [0-9]+\\./ && $0 !~ \"^### \" id \"\\.\") exit; print }' \"$ISSUES_FILE\"\n```\n\nIf the issue is NOT found in the project file, check the global `~/.config/opencode/known_issues.md` as fallback. If an issue is not found anywhere, record the failure and STOP the list — do not skip it and continue silently.\n\n**2. Check for missing data and handle gracefully:**\n- `Base branch:` empty → detect from git (origin/HEAD → main/master fallback), no prompt\n- `Reviewers:` empty → default to 1, no prompt\n- `Business rules:` empty for `feat` type → warn user it will be blocked by Committer gate later\n- `Remote:` empty and status needs it → auto-create via `scripts/create_issue.sh <id>`, no prompt\n\n**3. Auto-promote based on status:**\n\n- `backlog`: `scripts/promote.sh <id>` (→ ready) → `scripts/create_issue.sh <id>` (remote) → `scripts/promote.sh <id>` (→ in-progress + branch)\n- `ready`: if Remote is `-`, create it first. Then `scripts/promote.sh <id>` (→ in-progress + branch)\n- `open` with Remote set: transition to `in-progress` via `scripts/transition.sh <id> in-progress`, checkout/create branch `issue-<id>-<slug>`\n- `open` with `Remote: -`: `scripts/create_issue.sh <id>` (→ in-progress + branch)\n- `in-progress`: proceed directly\n- `in-review` / `in-qa` / `in-publish` / `resolved`: refuse — issue is past development. Record the refusal and STOP the list.\n\nAfter promotion, verify the current git branch matches `issue-<id>-<slug>`; if not, checkout or create it. (Between issues the previous flow returned to the base branch, so each issue starts clean from the base.)\n\n**4. Deliver the task** — Invoke the `development/delivery` subagent via the task tool with the full issue context (title, description, business rules, acceptance criteria, location, status, branch). The issue is already promoted (`Status: in-progress`, feature branch `issue-<id>-<slug>` checked out), so instruct the delivery agent to SKIP Phase 6 (PM promotion) and start at Phase 7 (Developer). Delivery runs: Developer (via develop-router) → Senior Review → QA → corrections loop → Committer gate → Publish Requester (creates the MR). Instruct the delivery subagent to NOT send Telegram notifications — this command sends the single final one at the end of the whole list.\n\n**5. Read the MR** — After delivery returns, re-extract the issue entry and read the `- PR: #<n>` field. If it is missing or `-`, the MR was not created: record the failure and STOP the list.\n\n**6. Report \"esperando merge manual\" (awaiting manual merge)** — Do NOT merge the MR, do NOT close the remote issue, do NOT archive the entry. Optionally verify the MR state is OPEN (`gh pr view <n> --json state --jq '.state'` / `glab mr view <n> --json state --jq '.state'`) and record it for the final summary — a state-check failure is reported but non-blocking. The issue stays `in-publish` with `PR: #<n>`; the MR stays OPEN for a human review/merge. Closing and archiving are delegated to `ocf:check-pr` (or the Close Requester) after the manual merge.\n\n**7. Return to the base branch locally** — Read `- Base branch:` from the issue entry (fallback: main/master). Run `git checkout <base>` and `git pull origin <base>` so the next issue starts clean from the base. The base does NOT contain this issue's changes (the MR is still open) — that is expected.\n\n**Repeat for the next issue in the list** — the previous issue ended on the base branch in `in-publish`, so the next promotion starts clean.\n\n**After the LAST issue completes (or on the FIRST failure/refusal):**\n\n**Send exactly ONE Telegram notification** via the `telegram-notifier` skill or `scripts/telegram-notify.sh` with the FINAL outcome: a per-issue summary (id, PR/MR link, \"esperando merge manual\" — MR left OPEN) for every issue processed, or the blocker of the issue that failed, plus the current local branch. One message — success or failure — at the very end, after the last issue. Do NOT send intermediate notifications between issues.\n\nFailure handling: if any issue in the list fails at any phase (issue not found, refused status, development blocked, review/QA not approved, committer gate fails, MR creation fails), STOP the entire list immediately — do not continue to the next issue and do not ask. Send exactly ONE failure notification summarizing the blocker and which issue failed. The issues already delivered stay in `known_issues.md` with `Status: in-publish` and their MR open; the failed issue stays with its current status for the next cycle.",
-            "description": "Run the full task lifecycle up to MR creation for one or more issues: promote, develop, review, QA, MR — then wait for a manual merge (no auto-merge, no archive)"
-        },
-        "ocf:scan-issues": {
-            "template": "Run a deep analysis of the codebase to detect new issues (security, concurrency, architecture, reliability). Create or update `.opencode/known_issues.md`. Follow the issue entry format from `standards/issues.md`.",
-            "description": "Deep codebase analysis and issue detection"
-        },
-        "ocf:commit": {
-            "template": "Create an atomic semantic commit following `standards/commits.md`. Use format `<type>(<scope>): <imperative description>` with `Issue: #<id>` and `Status:` trailers. Ask for type/scope/description/issue-id.\n\n**Resolve the project's `known_issues.md`** via bash (project `.opencode/` takes precedence over global `~/.config/opencode/`):\n```bash\nif [ -f .opencode/known_issues.md ]; then ISSUES_FILE=\".opencode/known_issues.md\"; elif [ -f ~/.config/opencode/known_issues.md ]; then ISSUES_FILE=\"~/.config/opencode/known_issues.md\"; else echo 'No known_issues.md found'; exit 1; fi\n```\n\nConstruct the commit, run `git commit`, and update the issue status in the resolved `known_issues.md` based on trailers. Split if the change covers multiple concerns.",
-            "description": "Atomic semantic commit with standards/commits.md"
-        },
-        "ocf:sync-issues": {
-            "template": "Scan known_issues.md entries with Remote: references, fetch remote issue state via gh/glab, sync status (close remote if local resolved, reopen if mismatch), create remote issues for open entries without remote, and report sync results.",
-            "description": "Sync known_issues with remote issue tracker"
-        },
-        "ocf:sync-jira": {
-            "template": "Run the Jira Cloud reconciliation: `scripts/sync-jira.sh sync` — iterate known_issues.md and, for every issue with a `- Jira:` field, transition its card to the status mapped from the local `- Status:` (statusMap in `.opencode/jira.json`, defaults: backlog/ready→To Do, in-progress→In Progress, in-review→In Review, in-qa→QA/Testing, in-publish→Ready for Release, resolved→Done). Configuration comes from `.opencode/jira.json` (baseUrl, email, projectKey, optional statusMap/authMode) or env vars JIRA_BASE_URL/JIRA_PROJECT_KEY/JIRA_EMAIL, plus JIRA_API_TOKEN (env only — never committed, never logged). Without valid config the sync reports it is disabled and exits cleanly. Sync is non-blocking: network/API/auth failures log a warning and continue; transitions not allowed by the Jira workflow are no-ops with a warning. Report per-issue results and the list of issues without a card.",
-            "description": "Reconcile known_issues status with Jira Cloud cards"
-        },
-        "ocf:archive-issue": {
-            "template": "Move a resolved issue from known_issues.md to resolved_issues.md in compact format. The issue must be Status: resolved. Use close_issue.sh which handles both closing and archiving in one step.",
-            "description": "Archive resolved issue to compact format"
-        },
-        "ocf:maintain": {
-            "template": "Run full maintenance on known_issues.md and prioritization. Resolve `prioritization.md` relative to the project root first (`.opencode/prioritization.md`), falling back to `~/.config/opencode/prioritization.md` if the project has no local copy. First run `$SCRIPTS_DIR/maintain.sh` to detect stale issues (local in-progress but remote closed) and status mismatches. Then for each stale issue, run `close_issue.sh <id>` to archive. Reindex remaining issues. Report what was archived/updated.",
-            "description": "Maintain known_issues.md and prioritization.md"
-        },
-        "ocf:close-issue": {
-            "template": "Detect the issue ID from the argument, or from the current branch name (`issue-<id>-<slug>`), or ask if neither is available.\n\n**CRITICAL: Resolve the project's `known_issues.md` first.** The agent's context only contains the GLOBAL `~/.config/opencode/known_issues.md`, NOT the project's file. You MUST resolve the correct file via bash before reading the issue:\n\n```bash\nif [ -f .opencode/known_issues.md ]; then ISSUES_FILE=\".opencode/known_issues.md\"; elif [ -f ~/.config/opencode/known_issues.md ]; then ISSUES_FILE=\"~/.config/opencode/known_issues.md\"; else echo 'No known_issues.md found'; exit 1; fi\nawk -v id=\"$ARGUMENTS\" '$0 ~ \"^### \" id \"\\\\.\" {found=1} found { if ($0 ~ /^### [0-9]+\\./ && $0 !~ \"^### \" id \"\\\\.\") exit; print }' \"$ISSUES_FILE\"\n```\n\nRead the issue entry. The issue must have `Remote: #<id>` and `Status: in-publish` or `resolved`. For `in-publish`: verify the PR is merged — if `- PR: #<n>` field exists, run `gh pr view <n> --json state --jq '.state'`; if not merged, report state and abort. If no PR field, search merged PRs by branch name matching `issue-<remote-id>-*`. For `resolved`: the issue is already archived locally, just close the remote if still open. If the remote issue or PR is valid, run `scripts/close_issue.sh <id>` — this closes the remote issue on GitHub/GitLab (with user confirmation) and archives the entry to `resolved_issues.md` in compact format. Report the result.",
-            "description": "Close remote issue and archive after PR merge"
-        },
-        "ocf:check-pr": {
-            "template": "Check PR merge status for issues. Ask the user for an issue ID, or scan all issues with `Status: in-publish`. For each issue:\n1. If the issue has a `- PR:` field, use `gh pr view <pr-number> --json state,mergedAt` directly.\n2. If no PR field, search for merged PRs referencing the issue:\n   - First try: `gh pr list --search \"Issue: #<local-id> in:body\" --state merged --json number,headRefName,mergedAt`\n   - If that fails (or is ambiguous), list all merged PRs with `gh pr list --state merged --json number,headRefName,mergedAt --limit 30` and filter by branch name matching the Remote ID pattern `issue-<remote-id>-`.\n3. If a unique merged PR is found:\n   - Add a `- PR: #<number>` field to the issue entry\n   - Update status to `resolved`\n   - Run `close_issue.sh <id>` to archive to `resolved_issues.md`\n   - Report PR number and merge date\n4. If no merged PR found, report the PR state (open/closed/not found).\n5. For issues without `Remote:` field, skip with a warning.",
-            "description": "Check PR merge status for issues and auto-archive merged ones"
-        },
-        "ocf:review-external": {
-            "template": "Ask the user for the MR URL (GitHub/GitLab) or remote branch name to review. If nothing is provided, show usage: `ocf:review-external <mr-url|remote-branch>`. Parse the input: if an MR URL is provided, extract the repo and branch info; if a remote branch is provided, use it directly. Fetch the remote branch and check it out locally for analysis. Then run the review-external subagent to perform a structured review across all senior reviewer domains (backend, frontend, security, data, devops, performance, runtime, mobile, ux-ui, qa), classify findings (critical/high/medium/low/nit), generate a report saved to `.opencode/reviews/review-<branch>-<timestamp>.md`, and optionally post critical/high findings to the MR. Present the report path and a summary of findings to the user.",
-            "description": "Review external branches/MRs with structured report generation"
-        },
-        "ocf:bump-version": {
-            "template": "Calculate version bump, update changelog, commit, tag, and publish to main. Steps:\n\n1. Read VERSION file → get current version. Find the latest git tag matching `v*` (e.g. v1.2.0). Compare VERSION with the tag version to determine baseline.\n\n2. Analyze commits since the last tag via `git log <last-tag>..HEAD --oneline`. Classify each commit:\n   - `feat!:` or `BREAKING CHANGE:` → breaking (major)\n   - `feat:` → feature (minor)\n   - `fix:`, `refactor:`, `chore:`, `docs:`, `test:` → patch-level\n   - No meaningful changes → no bump needed, abort\n\n3. Calculate bump type from the highest classification found. Show user:\n   - Current VERSION: X.Y.Z\n   - Last tag: vX.Y.Z\n   - Commits analyzed: N (list types found)\n   - Suggested new version: X.Y.Z + 1\n\n4. Ask user to confirm the new version. They can accept, override with a different version, or cancel.\n\n5. If confirmed:\n   a. Update VERSION file with new version\n   b. Update README.md version badge (line 3: `**Version:** X.Y.Z`)\n   c. Ask user for a one-line changelog entry title describing the changes\n   d. Read CHANGELOG.md, prepend a new section after the header:\n      `## X.Y.Z (YYYY-MM-DD)\\n\\n- <user's title>`\n   e. `git add VERSION README.md CHANGELOG.md`\n   f. Commit: `chore: bump version to X.Y.Z`\n   g. Create annotated tag: `git tag -a vX.Y.Z -m \"Version X.Y.Z\"`\n   h. Push commit + tags: `git push origin <current-branch> --tags`\n   i. Create GitHub Release: extract the CHANGELOG section for this version and run `gh release create vX.Y.Z --title \"vX.Y.Z\" --notes \"<changelog section>\"`\n   j. If current branch is NOT main: create a PR to main via `gh pr create --base main --head <current-branch> --title \"chore: bump version to X.Y.Z\" --body \"Automated version bump.\"`\n      If current branch IS main: push directly (already done in step h)\n\n6. Report the result: new version, commit hash, tag, Release URL, and PR URL (if created).",
-            "description": "Calculate and apply version bump, update changelog, commit, tag, and publish to main"
-        },
-        "ocf:backup": {
-            "template": "Run `$SCRIPTS_DIR/backup.sh` with the provided arguments. Ask the user for: 1) source directory, 2) backup name (default dev_backup), 3) whether to create a .zip. Then execute the backup. After completion, report the backup path, size, and exclusions applied.",
-            "description": "Create intelligent timestamped backup excluding junk"
-        },
-        "ocf:discovery": {
-            "template": "Invoke the development/discovery subagent to orchestrate discovery, routing by issue type: for `bug` run the LEAN track (PO triage -> QA pre-development -> PM promotion, exactly 3 phases; the PO scores the bug via the bug-triage skill, QA validates the Tests floor + Business rules: none contract + derived Priority, PM promotes non-interactively); for `feat` run the FULL 6-phase pipeline (PO -> CTO -> Tech Lead -> PO -> QA -> PM) unchanged. Start by asking the user for the feature idea or bug report and its type. Escalate bugs (no root cause/repro, multi-layer fix, business-rule ambiguity, security involvement, or touches architecture/standards) by restarting the flow at the CTO with Flow: escalated. After completion, the issue is tracked and ready for delivery. If the user wants to proceed to implementation, invoke the delivery subagent.",
-            "description": "Orchestrate full discovery pipeline (PO -> CTO -> Tech Lead -> PO -> QA -> PM)"
-        },
-        "ocf:delivery": {
-            "template": "Invoke the development/delivery subagent to orchestrate the full delivery pipeline from tracked issue to merged MR. The issue must be in known_issues.md with status ready (or backlog if fully refined) and have Base branch, Reviewers, and Remote defined. Execute all phases sequentially: (6) PM promotes issue and creates feature branch, (7) Developer implements with tests (via develop-router), (8) Senior Reviewers review code, (9) QA verifies quality, (10) Committer verifies gates, (11) Publish Requester creates MR. After MR creation, the pipeline pauses. Phase 12 (Close Requester) triggers only after MR is merged. Do NOT pause between phases 7-11 — the pipeline is continuous.",
-            "description": "Orchestrate full delivery pipeline (PM -> Developer -> Review -> QA -> Committer -> Publish -> Close)"
-        },
-        "ocf:restart-web": {
-            "template": "Restart the opencode web service. IMPORTANT: `sudo systemctl` needs an interactive terminal for the password prompt and CANNOT be run from inside the agent session — do NOT attempt it. Instead, show the user the exact command to run in their own terminal: `sudo systemctl restart opencode`, and explain it applies the latest config changes (agents, skills, commands). If the nginx reverse proxy is installed (via `setup-web.sh --with-nginx`), also suggest `sudo systemctl reload nginx` to pick up nginx config changes. You may check current state read-only (no sudo) with `systemctl is-active opencode` and report it. If the service is not installed, point the user to `scripts/setup-web.sh` (or `ocf:setup-web`).",
-            "description": "Restart opencode web service to apply configuration changes"
-        },
-        "ocf:start-web": {
-            "template": "Start the opencode web service. IMPORTANT: `sudo systemctl` needs an interactive terminal and CANNOT be run from inside the agent session — do NOT attempt it. Show the user the exact command to run in their own terminal: `sudo systemctl start opencode`, and explain what it does. You may check state read-only (no sudo) with `systemctl is-active opencode`. If the service is not installed, report that and point to `ocf:setup-web`.",
-            "description": "Start the opencode web service"
-        },
-        "ocf:stop-web": {
-            "template": "Stop the opencode web service. IMPORTANT: `sudo systemctl` needs an interactive terminal and CANNOT be run from inside the agent session — do NOT attempt it. Show the user the exact command to run in their own terminal: `sudo systemctl stop opencode`, and explain they can bring it back with `sudo systemctl start opencode` (`ocf:start-web`). You may check state read-only (no sudo) with `systemctl is-active opencode`.",
-            "description": "Stop the opencode web service"
-        },
-        "ocf:reset-web": {
-            "template": "Reset the opencode web service (clear accumulated session DB and restart). The full reset uses `sudo systemctl` internally, which needs an interactive terminal and CANNOT be run from inside the agent session — do NOT attempt it. Instead: (1) run the read-only preview yourself: `$SCRIPTS_DIR/reset-web.sh --list` (no sudo needed) to show the current session DB size (can be GBs); (2) show the user the exact command to run in their own terminal: `bash $SCRIPTS_DIR/reset-web.sh` (or `make reset-web`), explaining it stops the service, moves the session DB to a timestamped backup in `~/.local/share/opencode/backups/`, clears the log dir, and restarts — auth.json/account.json preserved. Ask them to run it in a terminal and report the result.",
-            "description": "Stop opencode web, clear session cache/DB, and restart"
-        },
-        "ocf:setup-web": {
-            "template": "Install or update the opencode web systemd service. IMPORTANT: `setup-web.sh` uses `sudo` internally (systemctl/tee) and CANNOT be run from inside the agent session (no terminal for the password prompt) — do NOT attempt it. Show the user the exact command to run in their own terminal: `sudo scripts/setup-web.sh --user <user> --bin <path-to-opencode>`, and explain it installs/updates the `opencode.service` from the versioned template. The service file is stored at `$SCRIPTS_DIR/opencode.service` and can be replicated to other machines.\n\nOptionally pass `--with-nginx` (and `--hostname opencode.local`) to also set up an nginx reverse proxy with HTTPS (mkcert). This runs `setup-nginx.sh` which: selects a free HTTP port (80→8080→8081→...), generates certs via mkcert, configures nginx as reverse proxy to 127.0.0.1:4096 with HTTP→HTTPS redirect, WebSocket support, and firewall prompt.",
-            "description": "Install or update the opencode web systemd service (optionally with nginx HTTPS)"
-        },
-        "ocf:aibot-notify": {
-            "template": "Post exactly ONE standardized aibot message to a remote issue. Arguments: <remote-issue-id> <message-key> [<pr-number>]. The message-key is one of: success | already-in-progress | already-resolved | not-tracked | cannot-develop. Read the templates from standards/aibot-messages.md, select the one for <message-key>, and substitute {issue_id} (and {mr_link} for success — resolve via `gh pr view <n> --json url --jq .url` / `glab mr view <n> --json web_url --jq .web_url`, with fallback built from `git remote get-url origin`). Detect the remote provider (GitHub -> gh, GitLab -> glab) from the workspace git remote. Then invoke the development/aibot subagent via `task:` with subagent_type 'development/aibot', passing: workspace directory, remote issue id, message key, PR number (if provided) and provider. The subagent posts the message to the remote issue (gh issue comment / glab issue comment) in PT-BR, one message per trigger. Do NOT post anything else and NEVER post the token `@aibot:develop`. Report success or failure; failures are non-blocking.",
-            "description": "Post standardized aibot message to a remote issue"
-        },
-        "ocf:import-skill": {
-            "template": "Import an external skill from a git repository using the vendor clone strategy. Ask the user for the source: a git URL (`https://github.com/owner/repo`) or `owner/repo` shorthand. If the repo contains multiple skills and the user only wants specific ones, ask which folders (relative to the repo root) to check out as sparse paths. Then run `$SCRIPTS_DIR/skill-vendor.sh add <url> [--sparse <paths...>]` — this clones the repo into `~/.config/opencode/vendor/`, discovers every SKILL.md frontmatter name, and registers each as `allow` in `permission.skill` (atomic write to opencode.json). If the repo is already vendored, run `skill-vendor.sh update <name>` instead. Report the installed path and discovered skill names, and tell the user to restart opencode (or restart the web service) for the skills to appear. Never copy skills into `skills/`.",
-            "description": "Import external skills as git clones via skill-vendor.sh"
-        },
-        "ocf:telegram-notify": {
-            "template": "Send a Telegram notification to the user. This is for MANUAL use — agents should use the telegram-notifier skill instead. Read the message from the user. Run `$HOME/.config/opencode/scripts/telegram-notify.sh --title \"<title>\" \"<message>\"`. If no title is provided, omit --title. The script loads credentials from .opencode/telegram.env automatically. Report success or failure.",
-            "description": "Send a manual Telegram notification"
-        },
-        "ocf:cv-hub": {
-            "template": "Load the `cv-hub` skill. Args: <candidate-directory> (default ~/career/<name>). Ask the user for: 1) candidate directory, 2) CV PDF path (required), 3) official LinkedIn export (optional — Download My Data, NEVER scrape linkedin.com), 4) extra files (optional). Create directory structure (entradas/, resumes/), copy sources into entradas/, then invoke the career/cv-extractor subagent via task: with the candidate directory and source paths. Report hub.json path, validation result, and next step (ocf:cv-tailor).",
-            "description": "Build candidate resume hub (hub.json + README.md) from CV PDF + LinkedIn export"
-        },
-        "ocf:cv-hub-update": {
-            "template": "Load the `cv-hub` skill (update mode). Args: <candidate-directory> (default ~/career/<name>). If hub.json does NOT exist, tell user to run `ocf:cv-hub` first and stop. Collect new information from user (pasted text, new PDF, new file, or manual edits). Record a snapshot of hub.json BEFORE changes. Then invoke the career/cv-extractor subagent via task: with update-mode instruction. After update, validate with `python3 $SCRIPTS_DIR/cv/validate.py` and regenerate README.md. Report the diff/summary, validation result, and regenerated README.md path.",
-            "description": "Update an existing candidate hub incrementally (add/update entries without recreating hub.json)"
-        },
-        "ocf:cv-tailor": {
-            "template": "Load the `cv-tailor` skill. Args: <candidate-directory> <job>. The job must be pasted text, a local file, or LinkedIn export — never a URL (ask user to paste). Validate hub.json with `python3 $SCRIPTS_DIR/cv/validate.py`; if missing, tell user to run `ocf:cv-hub` and stop. Invoke the career/cv-tailor subagent via task: with the candidate directory and job. Report the PDF path, gap analysis summary, and resolved inferences.",
-            "description": "Generate job-tailored resume PDF from candidate hub"
-        },
-        "ocf:cv-optimize": {
-            "template": "Load the `cv-optimizer` skill. Args: <candidate-directory> (default ~/career/<name>). If hub.json missing or invalid, run `ocf:cv-hub` first. Validate with `python3 $SCRIPTS_DIR/cv/validate.py` (exit 0 required). Invoke the career/cv-optimizer subagent via task: with the candidate directory. Report profile-analysis.md + .pdf paths, global score, top actions, and [INFERIDO] items to review.",
-            "description": "Analyze candidate profile and generate improvement plan (profile-analysis.md + PDF)"
-        },
-        "ocf:cv-cover-letter": {
-            "template": "Load the `cv-cover-letter` skill. Args: <candidate-directory> <job>. The job must be pasted text, a local file, or LinkedIn export — never a URL (ask user to paste). Validate hub.json with `python3 $SCRIPTS_DIR/cv/validate.py`; if missing, tell user to run `ocf:cv-hub` and stop. Invoke the career/cv-cover-letter subagent via task: with the candidate directory and job. Report the PDF path, gap analysis summary (reused or inline), and resolved inferences.",
-            "description": "Generate job-tailored cover letter PDF from candidate hub"
-        },
-        "ocf:cv-linkedin": {
-            "template": "Load the `cv-linkedin` skill. Args: <candidate-directory> [<job>]. Optional job = pasted text or local file (never URL). Validate hub.json with `python3 $SCRIPTS_DIR/cv/validate.py`; if missing, tell user to run `ocf:cv-hub` and stop. Invoke the career/cv-linkedin subagent via task: with the candidate directory and job (when provided). Report the output path, target role, and summary of the four suggestion blocks.",
-            "description": "Generate LinkedIn profile optimization suggestions from candidate hub"
-        },
-        "ocf:cv-interview-prep": {
-            "template": "Load the `cv-interview-prep` skill. Args: <candidate-directory> <job>. Job = pasted text or local file (never URL). Validate hub.json with `python3 $SCRIPTS_DIR/cv/validate.py`; if missing, tell user to run `ocf:cv-hub` and stop. Invoke the career/cv-interview-prep subagent via task: with the candidate directory and job. Report the output path, target role, question counts, STAR answers count, and preparation gaps.",
-            "description": "Generate a structured interview preparation kit from candidate hub"
-        },
-        "ocf:cv-ats-score": {
-            "template": "Load the `cv-ats-score` skill. Args: <candidate-directory> <job-slug>. Validate hub.json; if missing, tell user to run `ocf:cv-hub`. Check that cv-tailor output exists at ~/career/<candidate>/resumes/<job-slug>/; if missing, tell user to run `ocf:cv-tailor` for that slug. Invoke the career/cv-ats-score subagent via task: with the candidate directory and job slug. Report ats-score.md path, global score, breakdown, and top recommendations.",
-            "description": "Score a generated resume's ATS compatibility (keyword match, sections, format)"
-        },
-        "ocf:develop-full": {
-            "template": "Parse the command argument as a LIST of issue IDs. The argument MUST contain at least one issue ID, separated by spaces, commas, or dashes (e.g. `/ocf:develop-full 4`, `/ocf:develop-full 4 5 6`, `/ocf:develop-full 4,5,6`, `/ocf:develop-full 4-5-6`, `/ocf:develop-full #4 #5 #6`). Extract every numeric ID (strip leading `#`), deduplicate while preserving order. If no ID is provided, ask the user for at least one issue ID — do NOT guess from the branch name.\n\nThis is the FULL end-to-end variant of `ocf:develop`: after the MR is created, the pipeline auto-merges it (authorized by review + QA), checks out the updated base branch locally, and closes/archives the issue. Use `/ocf:develop` when you want to stop at MR creation and merge manually.\n\nThen run the ENTIRE task flow for EACH issue in the list, sequentially, WITHOUT pauses, confirmations, or permission prompts between them. The pipeline is continuous: promotion → development → senior review → QA → corrections → committer gate → MR creation → auto-merge → local checkout of the updated base branch → remote issue close + archive. Send exactly ONE Telegram notification at the very end, after the LAST issue completes.\n\nFor EACH issue id in the list, in order:\n\n**1. Resolve the project's `known_issues.md` first.** The agent's context only contains the GLOBAL `~/.config/opencode/known_issues.md`, NOT the project's file. You MUST resolve the correct file via bash before reading the issue:\n\n```bash\n# Find the project's known_issues.md (project .opencode/ takes precedence over global)\nif [ -f .opencode/known_issues.md ]; then ISSUES_FILE=\".opencode/known_issues.md\"; elif [ -f ~/.config/opencode/known_issues.md ]; then ISSUES_FILE=\"~/.config/opencode/known_issues.md\"; else echo 'No known_issues.md found'; exit 1; fi\necho \"Using: $ISSUES_FILE\"\n# Extract the issue entry by ID (use the resolved path)\nawk -v id=\"$ID\" '$0 ~ \"^### \" id \"\\.\" {found=1} found { if ($0 ~ /^### [0-9]+\\./ && $0 !~ \"^### \" id \"\\.\") exit; print }' \"$ISSUES_FILE\"\n```\n\nIf the issue is NOT found in the project file, check the global `~/.config/opencode/known_issues.md` as fallback. If an issue is not found anywhere, record the failure and STOP the list — do not skip it and continue silently.\n\n**2. Check for missing data and handle gracefully:**\n- `Base branch:` empty → detect from git (origin/HEAD → main/master fallback), no prompt\n- `Reviewers:` empty → default to 1, no prompt\n- `Business rules:` empty for `feat` type → warn user it will be blocked by Committer gate later\n- `Remote:` empty and status needs it → auto-create via `scripts/create_issue.sh <id>`, no prompt\n\n**3. Auto-promote based on status:**\n\n- `backlog`: `scripts/promote.sh <id>` (→ ready) → `scripts/create_issue.sh <id>` (remote) → `scripts/promote.sh <id>` (→ in-progress + branch)\n- `ready`: if Remote is `-`, create it first. Then `scripts/promote.sh <id>` (→ in-progress + branch)\n- `open` with Remote set: transition to `in-progress` via `scripts/transition.sh <id> in-progress`, checkout/create branch `issue-<id>-<slug>`\n- `open` with `Remote: -`: `scripts/create_issue.sh <id>` (→ in-progress + branch)\n- `in-progress`: proceed directly\n- `in-review` / `in-qa` / `in-publish` / `resolved`: refuse — issue is past development. Record the refusal and STOP the list.\n\nAfter promotion, verify the current git branch matches `issue-<id>-<slug>`; if not, checkout or create it. (Between issues the previous flow returned to the base branch, so each issue starts clean from the base.)\n\n**4. Deliver the task** — Invoke the `development/delivery` subagent via the task tool with the full issue context (title, description, business rules, acceptance criteria, location, status, branch). The issue is already promoted (`Status: in-progress`, feature branch `issue-<id>-<slug>` checked out), so instruct the delivery agent to SKIP Phase 6 (PM promotion) and start at Phase 7 (Developer). Delivery runs: Developer (via develop-router) → Senior Review → QA → corrections loop → Committer gate → Publish Requester (creates the MR). Instruct the delivery subagent to NOT send Telegram notifications — this command sends the single final one at the end of the whole list.\n\n**5. Read the MR** — After delivery returns, re-extract the issue entry and read the `- PR: #<n>` field. If the field is missing or `-`, the MR was not created: record the failure and STOP the list.\n\n**6. Auto-merge the MR** — The pipeline review and QA already approved the change, so the MR merge is authorized. Do NOT ask for permission:\n   - GitHub: `gh pr merge <n> --merge`. If the merge is blocked (pending checks or branch protection), enable auto-merge with `gh pr merge <n> --auto` and poll `gh pr view <n> --json state --jq '.state'` until MERGED (bounded: up to ~15 minutes; if still not merged, report and proceed to the final notification with the MR link).\n   - GitLab: `glab mr merge <n>`. Poll `glab mr view <n> --json state --jq '.state'` until `merged`.\n\n**7. Return to the base branch locally** — Read `- Base branch:` from the issue entry (fallback: main/master). Run `git checkout <base>` and `git pull origin <base>` so the local checkout ends on the updated main/master.\n\n**8. Close and archive** — Run `scripts/close_issue.sh <id>` to close the remote issue and archive the resolution locally (it verifies the PR is merged, updates `known_issues.md`, and appends to `resolved_issues.md`). Commit the tracker update on the base branch (`chore: resolve issue #<id>`) and push. If the close fails, log it and continue.\n\n**Repeat for the next issue in the list** — the previous issue ended on the updated base branch, so the next promotion starts clean.\n\n**After the LAST issue completes (or on the FIRST failure/refusal):**\n\n**Send exactly ONE Telegram notification** via the `telegram-notifier` skill or `scripts/telegram-notify.sh` with the FINAL outcome: a per-issue summary (id, PR/MR link, merged status) for every issue processed, or the blocker of the issue that failed, plus the current local branch. One message — success or failure — at the very end, after the last issue. Do NOT send intermediate notifications between issues.\n\nFailure handling: if any issue in the list fails at any phase (issue not found, refused status, development blocked, review/QA not approved, committer gate fails, MR creation fails, merge fails), STOP the entire list immediately — do not continue to the next issue and do not ask. Send exactly ONE failure notification summarizing the blocker and which issue failed. The issues already merged stay resolved; the failed issue stays in `known_issues.md` with its current status for the next cycle.",
-            "description": "Run the full task lifecycle end-to-end for one or more issues: promote, develop, review, QA, MR, auto-merge, return-to-base, close + archive"
-        },
-        "ocf:build-ui": {
-            "template": "Parse the argument as a design brief (text or a file path to read). If none is provided, ask the user for a brief. If the argument matches the session-id format `YYYY-MM-DDTHH-MM-SS`, treat it as a resumption session id, not a brief. Then orchestrate the 4-pass design pipeline (the Adorable pipeline) for a GREENFIELD project:\n\n1. Session setup: if the argument is an existing session id, REUSE it and its output directory `.opencode/design-outputs/<session-id>/` (resumption — skip stages whose output files already exist, see step 7). Otherwise create a session id (UTC timestamp, format `YYYY-MM-DDTHH-MM-SS`) and the output directory (create it if missing).\n2. Pass 1 — art-director: invoke the `design/art-director` subagent (defined at `agents/design/art-director.md`) with the brief and the output path `<dir>/design_spec.json`. It produces the design spec JSON (brief_analysis, rejected_defaults, directions_considered, selected_direction, design_spec).\n3. Pass 2 — ui-architect: invoke the `design/ui-architect` subagent with `<dir>/design_spec.json` and output path `<dir>/component_tree.json`. It produces the component tree JSON (layout_regions, component_tree, components, interaction_map, build_order).\n4. Pass 3 — ui-implementer: invoke the `design/ui-implementer` subagent with both JSON file paths and the project root. It writes production code in the project following the build order; it never skips defined states.\n5. Pass 4 — ui-critic: invoke the `design/ui-critic` subagent with the implemented code, `<dir>/design_spec.json`, `<dir>/component_tree.json` and output path `<dir>/quality_report.json`. It returns APPROVED or ISSUES_FOUND. If ISSUES_FOUND with blocking items, feed the feedback back to the design/ui-implementer (iterate, max 3 rounds). If still ISSUES_FOUND after 3 rounds, stop, log the failure, send a Telegram notification, and deliver with the remaining findings listed in the summary.\n6. On ANY stage failure: log the failure, send a Telegram notification (via the telegram-notifier skill / scripts/telegram-notify.sh), and STOP — do not continue to the next stage.\n7. Resumption: if the command is re-run with the same session id (e.g. `/ocf:build-ui <session-id>`), skip stages whose output files already exist and continue from the first missing stage. Pass 3 (ui-implementer) is considered complete when `<dir>/handoff.json` exists.\n8. Do not hardcode a model for any stage — subagents use the user's default model (see issue #82).\n9. Respond in the user's input language (locale rule #73).",
-            "description": "Orchestrate the 4-pass greenfield design pipeline (art-director → ui-architect → ui-implementer → ui-critic) with deterministic output files"
-        },
-        "ocf:audit-ui": {
-            "template": "Parse the first argument as a project path (default: current working directory). When a second argument matches the session-id format `YYYY-MM-DDTHH-MM-SS`, treat it as a resumption session id. Then orchestrate the audit/refactor pipeline for an EXISTING codebase:\n\n1. Session setup: if a resumption session id was provided, REUSE it and its output directory `.opencode/design-outputs/<session-id>/` (skip stages whose output files already exist, see step 6). Otherwise create a session id (UTC timestamp, format `YYYY-MM-DDTHH-MM-SS`) and the output directory (create it if missing).\n2. Pass 1 — ui-auditor: invoke the `design/ui-auditor` subagent (defined at `agents/design/ui-auditor.md`) with the project path and output path `<dir>/audit_report.json`. It detects the stack via bash (REACT_VITE, NEXTJS_APP, VUE_VITE, PHP_BLADE, PHP_HTML, HTML_VANILLA, etc.), scores dimensions 1-5, cites file:line for every issue, and records preserved patterns.\n3. Pass 2 — ui-refactor-planner: invoke the `design/ui-refactor-planner` subagent (defined at `agents/design/ui-refactor-planner.md`) with `<dir>/audit_report.json` and, when available, a design spec (`.opencode/design-outputs/<session-id>/design_spec.json` from a prior build-ui run) — output path `<dir>/refactor_plan.json`. It produces a phased plan (Group A blockers, Group B inline, Group C opportunities), never plans a big bang and never deletes before replacing.\n4. Optional Pass 3 — if the user also wants the refactored UI implemented, continue into the build pipeline, reusing this session id and output files: `design/ui-architect` receives `<dir>/design_spec.json` (when available from a prior build-ui run) AND `<dir>/refactor_plan.json`, producing `<dir>/component_tree.json`; `design/ui-implementer` receives `<dir>/design_spec.json`, `<dir>/component_tree.json` AND `<dir>/refactor_plan.json` plus the project root, and writes production code; `design/ui-critic` receives the implemented code plus `<dir>/design_spec.json` and `<dir>/component_tree.json`, producing `<dir>/quality_report.json` (APPROVED or ISSUES_FOUND, iterate max 3 rounds; if still ISSUES_FOUND after 3 rounds, stop, log the failure, send a Telegram notification, and deliver with the remaining findings listed in the summary).\n5. On ANY stage failure: log the failure, send a Telegram notification (via the telegram-notifier skill / scripts/telegram-notify.sh), and STOP — do not continue to the next stage.\n6. Resumption: if re-run with the same session id, skip stages whose output files already exist and continue from the first missing stage. Pass 3 (ui-implementer) is considered complete when `<dir>/handoff.json` exists.\n7. Do not hardcode a model for any stage — subagents use the user's default model (see issue #82).\n8. Respond in the user's input language (locale rule #73).",
-            "description": "Orchestrate the audit/refactor pipeline for existing codebases (ui-auditor → ui-refactor-planner, optionally → build pipeline)"
-        }
+  "$schema": "https://opencode.ai/config.json",
+  "subagent_depth": 4,
+  "instructions": [
+    "~/.config/opencode/AGENTS.md",
+    "~/.config/opencode/workflow.md",
+    "~/.config/opencode/agents/*/devs/REGISTRY.md"
+  ],
+  "command": {
+    "init": {
+      "template": "Ask the user which locale they want for this project (pt for Portuguese, es for Spanish, or en for English). Then initialize the `.opencode/` project configuration in the current working directory by running the init script with the chosen locale. The script will detect project languages, suggest LSPs, and optionally configure `.vscode/settings.json`. After init completes, verify `.opencode/locale` contains the chosen language. Then review the generated files.",
+      "description": "Initialize opencode project config with repo context and locale"
     },
-    "permission": {
-        "edit": {
-            "~/.config/opencode/**": "ask",
-            "~/.config/opencode/opencode.json": "deny",
-            "~/.config/opencode/aibot-repos.json": "deny",
-            "~/.config/opencode/scripts/aibot-watcher.sh": "deny",
-            "~/.config/opencode/state/**": "deny",
-            "~/.ssh/**": "deny",
-            ".opencode/cache/**": "deny"
-        },
-        "read": {
-            ".opencode/cache/**": "deny"
-        },
-        "bash": {
-            "rm -rf /": "deny",
-            "rm -rf /*": "deny",
-            "rm -rf ~": "deny",
-            "rm -rf $HOME": "deny",
-            "sudo rm -rf /*": "deny",
-            "sudo rm -rf ~*": "deny",
-            "git push --force*": "deny",
-            "git push -f*": "deny",
-            "git reset --hard*": "deny",
-            "git clean -f*": "deny",
-            "git branch -D *": "deny",
-            "mkfs*": "deny",
-            "dd if=*": "deny",
-            "curl * | sh": "deny",
-            "curl * | bash": "deny",
-            "wget * | sh": "deny",
-            "wget * | bash": "deny",
-            "chmod -R 777 *": "deny",
-            "chown -R *": "deny",
-            "shutdown*": "deny",
-            "reboot*": "deny"
-        },
-        "skill": {
-            "issue-manager": "allow",
-            "customize-opencode": "allow",
-            "graphify": "allow",
-            "seo-optimizer": "allow",
-            "skill-importer": "allow",
-            "skill-creator": "allow",
-            "ads-campaign": "allow",
-            "landing-pages": "allow",
-            "presentations": "allow",
-            "marketing-reports": "allow",
-            "market-research": "allow",
-            "social-media": "allow",
-            "marketing-templates": "allow",
-            "copywriting": "allow",
-            "conversion-optimization": "allow",
-            "content-strategy": "allow",
-            "email-marketing": "allow",
-            "marketing-analytics": "allow",
-            "marketing-psychology": "allow",
-            "marketing-plan": "allow",
-            "customer-research": "allow",
-            "video-production": "allow",
-            "competitor-intelligence": "allow",
-            "ab-testing": "allow",
-            "launch": "allow",
-            "cold-email": "allow",
-            "influencer-marketing": "allow",
-            "public-relations": "allow",
-            "analytics-engineering": "allow",
-            "dashboard-design": "allow",
-            "data-analysis": "allow",
-            "report-automation": "allow",
-            "data-governance": "allow",
-            "sales-pipeline": "allow",
-            "prospecting": "allow",
-            "sales-enablement": "allow",
-            "proposals": "allow",
-            "account-management": "allow",
-            "financial-modeling": "allow",
-            "budgeting": "allow",
-            "cost-analytics": "allow",
-            "revenue-analytics": "allow",
-            "financial-reporting": "allow",
-            "cfo-advisory": "allow",
-            "pricing-strategist": "allow",
-            "deal-desk": "allow",
-            "partnerships-architect": "allow",
-            "channel-economics": "allow",
-            "commercial-forecasting": "allow",
-            "rfp-responder": "allow",
-            "process-mapper": "allow",
-            "vendor-management": "allow",
-            "capacity-planner": "allow",
-            "internal-comms": "allow",
-            "knowledge-ops": "allow",
-            "procurement-optimizer": "allow",
-            "frontend-design": "allow",
-            "theme-factory": "allow",
-            "sales-psychology": "allow",
-            "design-taste-frontend": "allow",
-            "redesign-existing-projects": "allow",
-            "minimalist-ui": "allow",
-            "motion-design": "allow",
-            "color-expert": "allow",
-            "icon-generator": "allow",
-            "brand-to-design-md": "allow",
-            "responsive-craft": "allow",
-            "ux-flow-designer": "allow",
-            "frontend-designer": "allow",
-            "cto-architecture-decision": "allow",
-            "cto-engineering-metrics": "allow",
-            "cto-risk-resilience": "allow",
-            "cto-technology-roadmap": "allow",
-            "seo-geo": "allow",
-            "senior-frontend": "allow",
-            "google-search-console": "allow",
-            "youtube-seo": "allow",
-            "next-best-practices": "allow",
-            "nextjs-seo": "allow",
-            "python-expert-best-practices-code-review": "allow",
-            "tailwind": "allow",
-            "poster-design-generation": "allow",
-            "telegram-notifier": "allow",
-            "test-runner": "allow",
-            "auth-architecture": "allow",
-            "cv-hub": "allow",
-            "cv-tailor": "allow",
-            "cv-pdf": "allow",
-            "cv-optimizer": "allow",
-            "cv-cover-letter": "allow",
-            "cv-linkedin": "allow",
-            "cv-interview-prep": "allow",
-            "cv-ats-score": "allow",
-            "owasp-top10": "allow",
-            "owasp-asvs": "allow",
-            "owasp-wstg": "allow",
-            "owasp-samm": "allow",
-            "threat-modeling": "allow",
-            "secure-code-review": "allow",
-            "reference-library": "allow",
-            "component-patterns": "allow",
-            "design-tokens": "allow",
-            "visual-hierarchy": "allow"
-        },
-        "external_directory": {
-            "~/.config/opencode/**": "allow",
-            "~/career/**": "allow",
-            "/tmp/*": "allow"
-        },
-        "task": "allow"
+    "ocf:plan-feature": {
+      "template": "Break down the feature into steps, identify impacted layers, and register risks and planned work in `.opencode/known_issues.md`.",
+      "description": "Feature planning with risk awareness"
     },
-    "watcher": {
-        "ignore": [
-            ".git/**",
-            "bin/**",
-            "node_modules/**",
-            ".opencode/**"
-        ]
+    "ocf:promote": {
+      "template": "Detect the issue ID from the argument, or from the current branch name (`issue-<id>-<slug>`), or ask if neither is available.\n\n**CRITICAL: Resolve the project's `known_issues.md` first.** The agent's context only contains the GLOBAL `~/.config/opencode/known_issues.md`, NOT the project's file. You MUST resolve the correct file via bash before reading the issue:\n\n```bash\nif [ -f .opencode/known_issues.md ]; then ISSUES_FILE=\".opencode/known_issues.md\"; elif [ -f ~/.config/opencode/known_issues.md ]; then ISSUES_FILE=\"~/.config/opencode/known_issues.md\"; else echo 'No known_issues.md found'; exit 1; fi\nawk -v id=\"$ARGUMENTS\" '$0 ~ \"^### \" id \"\\\\.\" {found=1} found { if ($0 ~ /^### [0-9]+\\./ && $0 !~ \"^### \" id \"\\\\.\") exit; print }' \"$ISSUES_FILE\"\n```\n\nRead data from the issue entry — if something essential is missing, handle gracefully without asking: `Base branch:` empty → detect from git; `Reviewers:` empty → default to 1; `Remote:` empty → create automatically. If status is `backlog`: run `scripts/promote.sh <id>` (→ ready, status only). If status is `ready`: ensure `Remote:` is populated (auto-create if missing), then run `scripts/promote.sh <id>` (→ in-progress + branch). Other statuses: refuse with reason.",
+      "description": "Promote an issue — backlog→ready or ready→in-progress with branch"
     },
-    "disabled_providers": [],
-    "provider": {
-        "ollama": {
-            "name": "ollama",
-            "npm": "@ai-sdk/openai-compatible",
-            "options": {
-                "baseURL": "http://127.0.0.1:11434/v1"
-            },
-            "models": {
-                "qwen3.6:27b": {
-                    "name": "LOCALHOST-qwen3.6-27b"
-                }
-            }
-        },
-        "orcarouter": {
-            "npm": "@ai-sdk/openai-compatible",
-            "name": "OrcaRouter",
-            "options": {
-                "baseURL": "https://api.orcarouter.ai/v1"
-            },
-            "models": {
-                "orcarouter/auto": {
-                    "name": "OrcaRouter Auto"
-                }
-            },
-            "max_tokens": 4096
-        }
+    "ocf:review-branch": {
+      "template": "Detect the issue ID from the argument, or from the current branch name (`issue-<id>-<slug>`), or ask if neither is available.\n\n**CRITICAL: Resolve the project's `known_issues.md` first.** The agent's context only contains the GLOBAL `~/.config/opencode/known_issues.md`, NOT the project's file. You MUST resolve the correct file via bash before reading the issue:\n\n```bash\nif [ -f .opencode/known_issues.md ]; then ISSUES_FILE=\".opencode/known_issues.md\"; elif [ -f ~/.config/opencode/known_issues.md ]; then ISSUES_FILE=\"~/.config/opencode/known_issues.md\"; else echo 'No known_issues.md found'; exit 1; fi\nawk -v id=\"$ARGUMENTS\" '$0 ~ \"^### \" id \"\\\\.\" {found=1} found { if ($0 ~ /^### [0-9]+\\./ && $0 !~ \"^### \" id \"\\\\.\") exit; print }' \"$ISSUES_FILE\"\n```\n\nRead `- Reviewers:` from the issue entry to determine how many Senior Reviewers should perform this review. If the field is missing or empty, default to 1 — do NOT ask the user unless the field is absent. Do NOT read reviewer count from opencode.json. Then run a full PR/MR-style review: analyze `git diff`, use that many Senior Engineer reviewers, identify Critical and Major issues only, validate tests and docs, and register new issues.",
+      "description": "Full PR/MR-style code review"
     },
-    "skills": {
-        "paths": [
-            "~/.config/opencode/vendor"
-        ]
+    "ocf:develop": {
+      "template": "Parse the command argument as a LIST of issue IDs. The argument MUST contain at least one issue ID, separated by spaces, commas, or dashes (e.g. `/ocf:develop 4`, `/ocf:develop 4 5 6`, `/ocf:develop 4,5,6`, `/ocf:develop 4-5-6`, `/ocf:develop #4 #5 #6`). Extract every numeric ID (strip leading `#`), deduplicate while preserving order. If no ID is provided, ask the user for at least one issue ID — do NOT guess from the branch name.\n\nThen run the task flow for EACH issue in the list, sequentially, WITHOUT pauses, confirmations, or permission prompts between them. The pipeline is continuous UP TO MR creation: promotion → development → senior review → QA → corrections → committer gate → MR creation. The command STOPS there: it does NOT merge the MR, does NOT close/archive the issue, and does NOT expect the base branch to contain the change. Each issue ends in `Status: in-publish` with `PR: #<n>` and the MR left OPEN, awaiting a manual merge. Send exactly ONE Telegram notification at the very end, after the LAST issue completes.\n\nFor EACH issue id in the list, in order:\n\n**1. Resolve the project's `known_issues.md` first.** The agent's context only contains the GLOBAL `~/.config/opencode/known_issues.md`, NOT the project's file. You MUST resolve the correct file via bash before reading the issue:\n\n```bash\n# Find the project's known_issues.md (project .opencode/ takes precedence over global)\nif [ -f .opencode/known_issues.md ]; then ISSUES_FILE=\".opencode/known_issues.md\"; elif [ -f ~/.config/opencode/known_issues.md ]; then ISSUES_FILE=\"~/.config/opencode/known_issues.md\"; else echo 'No known_issues.md found'; exit 1; fi\necho \"Using: $ISSUES_FILE\"\n# Extract the issue entry by ID (use the resolved path)\nawk -v id=\"$ID\" '$0 ~ \"^### \" id \"\\.\" {found=1} found { if ($0 ~ /^### [0-9]+\\./ && $0 !~ \"^### \" id \"\\.\") exit; print }' \"$ISSUES_FILE\"\n```\n\nIf the issue is NOT found in the project file, check the global `~/.config/opencode/known_issues.md` as fallback. If an issue is not found anywhere, record the failure and STOP the list — do not skip it and continue silently.\n\n**2. Check for missing data and handle gracefully:**\n- `Base branch:` empty → detect from git (origin/HEAD → main/master fallback), no prompt\n- `Reviewers:` empty → default to 1, no prompt\n- `Business rules:` empty for `feat` type → warn user it will be blocked by Committer gate later\n- `Remote:` empty and status needs it → auto-create via `scripts/create_issue.sh <id>`, no prompt\n\n**3. Auto-promote based on status:**\n\n- `backlog`: `scripts/promote.sh <id>` (→ ready) → `scripts/create_issue.sh <id>` (remote) → `scripts/promote.sh <id>` (→ in-progress + branch)\n- `ready`: if Remote is `-`, create it first. Then `scripts/promote.sh <id>` (→ in-progress + branch)\n- `open` with Remote set: transition to `in-progress` via `scripts/transition.sh <id> in-progress`, checkout/create branch `issue-<id>-<slug>`\n- `open` with `Remote: -`: `scripts/create_issue.sh <id>` (→ in-progress + branch)\n- `in-progress`: proceed directly\n- `in-review` / `in-qa` / `in-publish` / `resolved`: refuse — issue is past development. Record the refusal and STOP the list.\n\nAfter promotion, verify the current git branch matches `issue-<id>-<slug>`; if not, checkout or create it. (Between issues the previous flow returned to the base branch, so each issue starts clean from the base.)\n\n**4. Deliver the task** — Invoke the `development/delivery` subagent via the task tool with the full issue context (title, description, business rules, acceptance criteria, location, status, branch). The issue is already promoted (`Status: in-progress`, feature branch `issue-<id>-<slug>` checked out), so instruct the delivery agent to SKIP Phase 6 (PM promotion) and start at Phase 7 (Developer). Delivery runs: Developer (via develop-router) → Senior Review → QA → corrections loop → Committer gate → Publish Requester (creates the MR). Instruct the delivery subagent to NOT send Telegram notifications — this command sends the single final one at the end of the whole list.\n\n**5. Read the MR** — After delivery returns, re-extract the issue entry and read the `- PR: #<n>` field. If it is missing or `-`, the MR was not created: record the failure and STOP the list.\n\n**6. Report \"esperando merge manual\" (awaiting manual merge)** — Do NOT merge the MR, do NOT close the remote issue, do NOT archive the entry. Optionally verify the MR state is OPEN (`gh pr view <n> --json state --jq '.state'` / `glab mr view <n> --json state --jq '.state'`) and record it for the final summary — a state-check failure is reported but non-blocking. The issue stays `in-publish` with `PR: #<n>`; the MR stays OPEN for a human review/merge. Closing and archiving are delegated to `ocf:check-pr` (or the Close Requester) after the manual merge.\n\n**7. Return to the base branch locally** — Read `- Base branch:` from the issue entry (fallback: main/master). Run `git checkout <base>` and `git pull origin <base>` so the next issue starts clean from the base. The base does NOT contain this issue's changes (the MR is still open) — that is expected.\n\n**Repeat for the next issue in the list** — the previous issue ended on the base branch in `in-publish`, so the next promotion starts clean.\n\n**After the LAST issue completes (or on the FIRST failure/refusal):**\n\n**Send exactly ONE Telegram notification** via the `telegram-notifier` skill or `scripts/telegram-notify.sh` with the FINAL outcome: a per-issue summary (id, PR/MR link, \"esperando merge manual\" — MR left OPEN) for every issue processed, or the blocker of the issue that failed, plus the current local branch. One message — success or failure — at the very end, after the last issue. Do NOT send intermediate notifications between issues.\n\nFailure handling: if any issue in the list fails at any phase (issue not found, refused status, development blocked, review/QA not approved, committer gate fails, MR creation fails), STOP the entire list immediately — do not continue to the next issue and do not ask. Send exactly ONE failure notification summarizing the blocker and which issue failed. The issues already delivered stay in `known_issues.md` with `Status: in-publish` and their MR open; the failed issue stays with its current status for the next cycle.",
+      "description": "Run the full task lifecycle up to MR creation for one or more issues: promote, develop, review, QA, MR — then wait for a manual merge (no auto-merge, no archive)"
+    },
+    "ocf:scan-issues": {
+      "template": "Run a deep analysis of the codebase to detect new issues (security, concurrency, architecture, reliability). Create or update `.opencode/known_issues.md`. Follow the issue entry format from `standards/issues.md`.",
+      "description": "Deep codebase analysis and issue detection"
+    },
+    "ocf:commit": {
+      "template": "Create an atomic semantic commit following `standards/commits.md`. Use format `<type>(<scope>): <imperative description>` with `Issue: #<id>` and `Status:` trailers. Ask for type/scope/description/issue-id.\n\n**Resolve the project's `known_issues.md`** via bash (project `.opencode/` takes precedence over global `~/.config/opencode/`):\n```bash\nif [ -f .opencode/known_issues.md ]; then ISSUES_FILE=\".opencode/known_issues.md\"; elif [ -f ~/.config/opencode/known_issues.md ]; then ISSUES_FILE=\"~/.config/opencode/known_issues.md\"; else echo 'No known_issues.md found'; exit 1; fi\n```\n\nConstruct the commit, run `git commit`, and update the issue status in the resolved `known_issues.md` based on trailers. Split if the change covers multiple concerns.",
+      "description": "Atomic semantic commit with standards/commits.md"
+    },
+    "ocf:sync-issues": {
+      "template": "Scan known_issues.md entries with Remote: references, fetch remote issue state via gh/glab, sync status (close remote if local resolved, reopen if mismatch), create remote issues for open entries without remote, and report sync results.",
+      "description": "Sync known_issues with remote issue tracker"
+    },
+    "ocf:sync-jira": {
+      "template": "Run the Jira Cloud reconciliation: `scripts/sync-jira.sh sync` — iterate known_issues.md and, for every issue with a `- Jira:` field, transition its card to the status mapped from the local `- Status:` (statusMap in `.opencode/jira.json`, defaults: backlog/ready→To Do, in-progress→In Progress, in-review→In Review, in-qa→QA/Testing, in-publish→Ready for Release, resolved→Done). Configuration comes from `.opencode/jira.json` (baseUrl, email, projectKey, optional statusMap/authMode) or env vars JIRA_BASE_URL/JIRA_PROJECT_KEY/JIRA_EMAIL, plus JIRA_API_TOKEN (env only — never committed, never logged). Without valid config the sync reports it is disabled and exits cleanly. Sync is non-blocking: network/API/auth failures log a warning and continue; transitions not allowed by the Jira workflow are no-ops with a warning. Report per-issue results and the list of issues without a card.",
+      "description": "Reconcile known_issues status with Jira Cloud cards"
+    },
+    "ocf:archive-issue": {
+      "template": "Move a resolved issue from known_issues.md to resolved_issues.md in compact format. The issue must be Status: resolved. Use close_issue.sh which handles both closing and archiving in one step.",
+      "description": "Archive resolved issue to compact format"
+    },
+    "ocf:maintain": {
+      "template": "Run full maintenance on known_issues.md and prioritization. Resolve `prioritization.md` relative to the project root first (`.opencode/prioritization.md`), falling back to `~/.config/opencode/prioritization.md` if the project has no local copy. First run `$SCRIPTS_DIR/maintain.sh` to detect stale issues (local in-progress but remote closed) and status mismatches. Then for each stale issue, run `close_issue.sh <id>` to archive. Reindex remaining issues. Report what was archived/updated.",
+      "description": "Maintain known_issues.md and prioritization.md"
+    },
+    "ocf:close-issue": {
+      "template": "Detect the issue ID from the argument, or from the current branch name (`issue-<id>-<slug>`), or ask if neither is available.\n\n**CRITICAL: Resolve the project's `known_issues.md` first.** The agent's context only contains the GLOBAL `~/.config/opencode/known_issues.md`, NOT the project's file. You MUST resolve the correct file via bash before reading the issue:\n\n```bash\nif [ -f .opencode/known_issues.md ]; then ISSUES_FILE=\".opencode/known_issues.md\"; elif [ -f ~/.config/opencode/known_issues.md ]; then ISSUES_FILE=\"~/.config/opencode/known_issues.md\"; else echo 'No known_issues.md found'; exit 1; fi\nawk -v id=\"$ARGUMENTS\" '$0 ~ \"^### \" id \"\\\\.\" {found=1} found { if ($0 ~ /^### [0-9]+\\./ && $0 !~ \"^### \" id \"\\\\.\") exit; print }' \"$ISSUES_FILE\"\n```\n\nRead the issue entry. The issue must have `Remote: #<id>` and `Status: in-publish` or `resolved`. For `in-publish`: verify the PR is merged — if `- PR: #<n>` field exists, run `gh pr view <n> --json state --jq '.state'`; if not merged, report state and abort. If no PR field, search merged PRs by branch name matching `issue-<remote-id>-*`. For `resolved`: the issue is already archived locally, just close the remote if still open. If the remote issue or PR is valid, run `scripts/close_issue.sh <id>` — this closes the remote issue on GitHub/GitLab (with user confirmation) and archives the entry to `resolved_issues.md` in compact format. Report the result.",
+      "description": "Close remote issue and archive after PR merge"
+    },
+    "ocf:check-pr": {
+      "template": "Check PR merge status for issues. Ask the user for an issue ID, or scan all issues with `Status: in-publish`. For each issue:\n1. If the issue has a `- PR:` field, use `gh pr view <pr-number> --json state,mergedAt` directly.\n2. If no PR field, search for merged PRs referencing the issue:\n   - First try: `gh pr list --search \"Issue: #<local-id> in:body\" --state merged --json number,headRefName,mergedAt`\n   - If that fails (or is ambiguous), list all merged PRs with `gh pr list --state merged --json number,headRefName,mergedAt --limit 30` and filter by branch name matching the Remote ID pattern `issue-<remote-id>-`.\n3. If a unique merged PR is found:\n   - Add a `- PR: #<number>` field to the issue entry\n   - Update status to `resolved`\n   - Run `close_issue.sh <id>` to archive to `resolved_issues.md`\n   - Report PR number and merge date\n4. If no merged PR found, report the PR state (open/closed/not found).\n5. For issues without `Remote:` field, skip with a warning.",
+      "description": "Check PR merge status for issues and auto-archive merged ones"
+    },
+    "ocf:review-external": {
+      "template": "Ask the user for the MR URL (GitHub/GitLab) or remote branch name to review. If nothing is provided, show usage: `ocf:review-external <mr-url|remote-branch>`. Parse the input: if an MR URL is provided, extract the repo and branch info; if a remote branch is provided, use it directly. Fetch the remote branch and check it out locally for analysis. Then run the review-external subagent to perform a structured review across all senior reviewer domains (backend, frontend, security, data, devops, performance, runtime, mobile, ux-ui, qa), classify findings (critical/high/medium/low/nit), generate a report saved to `.opencode/reviews/review-<branch>-<timestamp>.md`, and optionally post critical/high findings to the MR. Present the report path and a summary of findings to the user.",
+      "description": "Review external branches/MRs with structured report generation"
+    },
+    "ocf:bump-version": {
+      "template": "Calculate version bump, update changelog, commit, tag, and publish to main. Steps:\n\n1. Read VERSION file → get current version. Find the latest git tag matching `v*` (e.g. v1.2.0). Compare VERSION with the tag version to determine baseline.\n\n2. Analyze commits since the last tag via `git log <last-tag>..HEAD --oneline`. Classify each commit:\n   - `feat!:` or `BREAKING CHANGE:` → breaking (major)\n   - `feat:` → feature (minor)\n   - `fix:`, `refactor:`, `chore:`, `docs:`, `test:` → patch-level\n   - No meaningful changes → no bump needed, abort\n\n3. Calculate bump type from the highest classification found. Show user:\n   - Current VERSION: X.Y.Z\n   - Last tag: vX.Y.Z\n   - Commits analyzed: N (list types found)\n   - Suggested new version: X.Y.Z + 1\n\n4. Ask user to confirm the new version. They can accept, override with a different version, or cancel.\n\n5. If confirmed:\n   a. Update VERSION file with new version\n   b. Update README.md version badge (line 3: `**Version:** X.Y.Z`)\n   c. Ask user for a one-line changelog entry title describing the changes\n   d. Read CHANGELOG.md, prepend a new section after the header:\n      `## X.Y.Z (YYYY-MM-DD)\\n\\n- <user's title>`\n   e. `git add VERSION README.md CHANGELOG.md`\n   f. Commit: `chore: bump version to X.Y.Z`\n   g. Create annotated tag: `git tag -a vX.Y.Z -m \"Version X.Y.Z\"`\n   h. Push commit + tags: `git push origin <current-branch> --tags`\n   i. Create GitHub Release: extract the CHANGELOG section for this version and run `gh release create vX.Y.Z --title \"vX.Y.Z\" --notes \"<changelog section>\"`\n   j. If current branch is NOT main: create a PR to main via `gh pr create --base main --head <current-branch> --title \"chore: bump version to X.Y.Z\" --body \"Automated version bump.\"`\n      If current branch IS main: push directly (already done in step h)\n\n6. Report the result: new version, commit hash, tag, Release URL, and PR URL (if created).",
+      "description": "Calculate and apply version bump, update changelog, commit, tag, and publish to main"
+    },
+    "ocf:backup": {
+      "template": "Run `$SCRIPTS_DIR/backup.sh` with the provided arguments. Ask the user for: 1) source directory, 2) backup name (default dev_backup), 3) whether to create a .zip. Then execute the backup. After completion, report the backup path, size, and exclusions applied.",
+      "description": "Create intelligent timestamped backup excluding junk"
+    },
+    "ocf:discovery": {
+      "template": "Invoke the development/discovery subagent to orchestrate discovery, routing by issue type: for `bug` run the LEAN track (PO triage -> QA pre-development -> PM promotion, exactly 3 phases; the PO scores the bug via the bug-triage skill, QA validates the Tests floor + Business rules: none contract + derived Priority, PM promotes non-interactively); for `feat` run the FULL 6-phase pipeline (PO -> CTO -> Tech Lead -> PO -> QA -> PM) unchanged. Start by asking the user for the feature idea or bug report and its type. Escalate bugs (no root cause/repro, multi-layer fix, business-rule ambiguity, security involvement, or touches architecture/standards) by restarting the flow at the CTO with Flow: escalated. After completion, the issue is tracked and ready for delivery. If the user wants to proceed to implementation, invoke the delivery subagent.",
+      "description": "Orchestrate full discovery pipeline (PO -> CTO -> Tech Lead -> PO -> QA -> PM)"
+    },
+    "ocf:delivery": {
+      "template": "Invoke the development/delivery subagent to orchestrate the full delivery pipeline from tracked issue to merged MR. The issue must be in known_issues.md with status ready (or backlog if fully refined) and have Base branch, Reviewers, and Remote defined. Execute all phases sequentially: (6) PM promotes issue and creates feature branch, (7) Developer implements with tests (via develop-router), (8) Senior Reviewers review code, (9) QA verifies quality, (10) Committer verifies gates, (11) Publish Requester creates MR. After MR creation, the pipeline pauses. Phase 12 (Close Requester) triggers only after MR is merged. Do NOT pause between phases 7-11 — the pipeline is continuous.",
+      "description": "Orchestrate full delivery pipeline (PM -> Developer -> Review -> QA -> Committer -> Publish -> Close)"
+    },
+    "ocf:restart-web": {
+      "template": "Restart the opencode web service. IMPORTANT: `sudo systemctl` needs an interactive terminal for the password prompt and CANNOT be run from inside the agent session — do NOT attempt it. Instead, show the user the exact command to run in their own terminal: `sudo systemctl restart opencode`, and explain it applies the latest config changes (agents, skills, commands). If the nginx reverse proxy is installed (via `setup-web.sh --with-nginx`), also suggest `sudo systemctl reload nginx` to pick up nginx config changes. You may check current state read-only (no sudo) with `systemctl is-active opencode` and report it. If the service is not installed, point the user to `scripts/setup-web.sh` (or `ocf:setup-web`).",
+      "description": "Restart opencode web service to apply configuration changes"
+    },
+    "ocf:start-web": {
+      "template": "Start the opencode web service. IMPORTANT: `sudo systemctl` needs an interactive terminal and CANNOT be run from inside the agent session — do NOT attempt it. Show the user the exact command to run in their own terminal: `sudo systemctl start opencode`, and explain what it does. You may check state read-only (no sudo) with `systemctl is-active opencode`. If the service is not installed, report that and point to `ocf:setup-web`.",
+      "description": "Start the opencode web service"
+    },
+    "ocf:stop-web": {
+      "template": "Stop the opencode web service. IMPORTANT: `sudo systemctl` needs an interactive terminal and CANNOT be run from inside the agent session — do NOT attempt it. Show the user the exact command to run in their own terminal: `sudo systemctl stop opencode`, and explain they can bring it back with `sudo systemctl start opencode` (`ocf:start-web`). You may check state read-only (no sudo) with `systemctl is-active opencode`.",
+      "description": "Stop the opencode web service"
+    },
+    "ocf:reset-web": {
+      "template": "Reset the opencode web service (clear accumulated session DB and restart). The full reset uses `sudo systemctl` internally, which needs an interactive terminal and CANNOT be run from inside the agent session — do NOT attempt it. Instead: (1) run the read-only preview yourself: `$SCRIPTS_DIR/reset-web.sh --list` (no sudo needed) to show the current session DB size (can be GBs); (2) show the user the exact command to run in their own terminal: `bash $SCRIPTS_DIR/reset-web.sh` (or `make reset-web`), explaining it stops the service, moves the session DB to a timestamped backup in `~/.local/share/opencode/backups/`, clears the log dir, and restarts — auth.json/account.json preserved. Ask them to run it in a terminal and report the result.",
+      "description": "Stop opencode web, clear session cache/DB, and restart"
+    },
+    "ocf:setup-web": {
+      "template": "Install or update the opencode web systemd service. IMPORTANT: `setup-web.sh` uses `sudo` internally (systemctl/tee) and CANNOT be run from inside the agent session (no terminal for the password prompt) — do NOT attempt it. Show the user the exact command to run in their own terminal: `sudo scripts/setup-web.sh --user <user> --bin <path-to-opencode>`, and explain it installs/updates the `opencode.service` from the versioned template. The service file is stored at `$SCRIPTS_DIR/opencode.service` and can be replicated to other machines.\n\nOptionally pass `--with-nginx` (and `--hostname opencode.local`) to also set up an nginx reverse proxy with HTTPS (mkcert). This runs `setup-nginx.sh` which: selects a free HTTP port (80→8080→8081→...), generates certs via mkcert, configures nginx as reverse proxy to 127.0.0.1:4096 with HTTP→HTTPS redirect, WebSocket support, and firewall prompt.",
+      "description": "Install or update the opencode web systemd service (optionally with nginx HTTPS)"
+    },
+    "ocf:aibot-notify": {
+      "template": "Post exactly ONE standardized aibot message to a remote issue. Arguments: <remote-issue-id> <message-key> [<pr-number>]. The message-key is one of: success | already-in-progress | already-resolved | not-tracked | cannot-develop. Read the templates from standards/aibot-messages.md, select the one for <message-key>, and substitute {issue_id} (and {mr_link} for success — resolve via `gh pr view <n> --json url --jq .url` / `glab mr view <n> --json web_url --jq .web_url`, with fallback built from `git remote get-url origin`). Detect the remote provider (GitHub -> gh, GitLab -> glab) from the workspace git remote. Then invoke the development/aibot subagent via `task:` with subagent_type 'development/aibot', passing: workspace directory, remote issue id, message key, PR number (if provided) and provider. The subagent posts the message to the remote issue (gh issue comment / glab issue comment) in PT-BR, one message per trigger. Do NOT post anything else and NEVER post the token `@aibot:develop`. Report success or failure; failures are non-blocking.",
+      "description": "Post standardized aibot message to a remote issue"
+    },
+    "ocf:import-skill": {
+      "template": "Import an external skill from a git repository using the vendor clone strategy. Ask the user for the source: a git URL (`https://github.com/owner/repo`) or `owner/repo` shorthand. If the repo contains multiple skills and the user only wants specific ones, ask which folders (relative to the repo root) to check out as sparse paths. Then run `$SCRIPTS_DIR/skill-vendor.sh add <url> [--sparse <paths...>]` — this clones the repo into `~/.config/opencode/vendor/`, discovers every SKILL.md frontmatter name, and registers each as `allow` in `permission.skill` (atomic write to opencode.json). If the repo is already vendored, run `skill-vendor.sh update <name>` instead. Report the installed path and discovered skill names, and tell the user to restart opencode (or restart the web service) for the skills to appear. Never copy skills into `skills/`.",
+      "description": "Import external skills as git clones via skill-vendor.sh"
+    },
+    "ocf:telegram-notify": {
+      "template": "Send a Telegram notification to the user. This is for MANUAL use — agents should use the telegram-notifier skill instead. Read the message from the user. Run `$HOME/.config/opencode/scripts/telegram-notify.sh --title \"<title>\" \"<message>\"`. If no title is provided, omit --title. The script loads credentials from .opencode/telegram.env automatically. Report success or failure.",
+      "description": "Send a manual Telegram notification"
+    },
+    "ocf:cv-hub": {
+      "template": "Load the `cv-hub` skill. Args: <candidate-directory> (default ~/career/<name>). Ask the user for: 1) candidate directory, 2) CV PDF path (required), 3) official LinkedIn export (optional — Download My Data, NEVER scrape linkedin.com), 4) extra files (optional). Create directory structure (entradas/, resumes/), copy sources into entradas/, then invoke the career/cv-extractor subagent via task: with the candidate directory and source paths. Report hub.json path, validation result, and next step (ocf:cv-tailor).",
+      "description": "Build candidate resume hub (hub.json + README.md) from CV PDF + LinkedIn export"
+    },
+    "ocf:cv-hub-update": {
+      "template": "Load the `cv-hub` skill (update mode). Args: <candidate-directory> (default ~/career/<name>). If hub.json does NOT exist, tell user to run `ocf:cv-hub` first and stop. Collect new information from user (pasted text, new PDF, new file, or manual edits). Record a snapshot of hub.json BEFORE changes. Then invoke the career/cv-extractor subagent via task: with update-mode instruction. After update, validate with `python3 $SCRIPTS_DIR/cv/validate.py` and regenerate README.md. Report the diff/summary, validation result, and regenerated README.md path.",
+      "description": "Update an existing candidate hub incrementally (add/update entries without recreating hub.json)"
+    },
+    "ocf:cv-tailor": {
+      "template": "Load the `cv-tailor` skill. Args: <candidate-directory> <job>. The job must be pasted text, a local file, or LinkedIn export — never a URL (ask user to paste). Validate hub.json with `python3 $SCRIPTS_DIR/cv/validate.py`; if missing, tell user to run `ocf:cv-hub` and stop. Invoke the career/cv-tailor subagent via task: with the candidate directory and job. Report the PDF path, gap analysis summary, and resolved inferences.",
+      "description": "Generate job-tailored resume PDF from candidate hub"
+    },
+    "ocf:cv-optimize": {
+      "template": "Load the `cv-optimizer` skill. Args: <candidate-directory> (default ~/career/<name>). If hub.json missing or invalid, run `ocf:cv-hub` first. Validate with `python3 $SCRIPTS_DIR/cv/validate.py` (exit 0 required). Invoke the career/cv-optimizer subagent via task: with the candidate directory. Report profile-analysis.md + .pdf paths, global score, top actions, and [INFERIDO] items to review.",
+      "description": "Analyze candidate profile and generate improvement plan (profile-analysis.md + PDF)"
+    },
+    "ocf:cv-cover-letter": {
+      "template": "Load the `cv-cover-letter` skill. Args: <candidate-directory> <job>. The job must be pasted text, a local file, or LinkedIn export — never a URL (ask user to paste). Validate hub.json with `python3 $SCRIPTS_DIR/cv/validate.py`; if missing, tell user to run `ocf:cv-hub` and stop. Invoke the career/cv-cover-letter subagent via task: with the candidate directory and job. Report the PDF path, gap analysis summary (reused or inline), and resolved inferences.",
+      "description": "Generate job-tailored cover letter PDF from candidate hub"
+    },
+    "ocf:cv-linkedin": {
+      "template": "Load the `cv-linkedin` skill. Args: <candidate-directory> [<job>]. Optional job = pasted text or local file (never URL). Validate hub.json with `python3 $SCRIPTS_DIR/cv/validate.py`; if missing, tell user to run `ocf:cv-hub` and stop. Invoke the career/cv-linkedin subagent via task: with the candidate directory and job (when provided). Report the output path, target role, and summary of the four suggestion blocks.",
+      "description": "Generate LinkedIn profile optimization suggestions from candidate hub"
+    },
+    "ocf:cv-interview-prep": {
+      "template": "Load the `cv-interview-prep` skill. Args: <candidate-directory> <job>. Job = pasted text or local file (never URL). Validate hub.json with `python3 $SCRIPTS_DIR/cv/validate.py`; if missing, tell user to run `ocf:cv-hub` and stop. Invoke the career/cv-interview-prep subagent via task: with the candidate directory and job. Report the output path, target role, question counts, STAR answers count, and preparation gaps.",
+      "description": "Generate a structured interview preparation kit from candidate hub"
+    },
+    "ocf:cv-ats-score": {
+      "template": "Load the `cv-ats-score` skill. Args: <candidate-directory> <job-slug>. Validate hub.json; if missing, tell user to run `ocf:cv-hub`. Check that cv-tailor output exists at ~/career/<candidate>/resumes/<job-slug>/; if missing, tell user to run `ocf:cv-tailor` for that slug. Invoke the career/cv-ats-score subagent via task: with the candidate directory and job slug. Report ats-score.md path, global score, breakdown, and top recommendations.",
+      "description": "Score a generated resume's ATS compatibility (keyword match, sections, format)"
+    },
+    "ocf:develop-full": {
+      "template": "Parse the command argument as a LIST of issue IDs. The argument MUST contain at least one issue ID, separated by spaces, commas, or dashes (e.g. `/ocf:develop-full 4`, `/ocf:develop-full 4 5 6`, `/ocf:develop-full 4,5,6`, `/ocf:develop-full 4-5-6`, `/ocf:develop-full #4 #5 #6`). Extract every numeric ID (strip leading `#`), deduplicate while preserving order. If no ID is provided, ask the user for at least one issue ID — do NOT guess from the branch name.\n\nThis is the FULL end-to-end variant of `ocf:develop`: after the MR is created, the pipeline auto-merges it (authorized by review + QA), checks out the updated base branch locally, and closes/archives the issue. Use `/ocf:develop` when you want to stop at MR creation and merge manually.\n\nThen run the ENTIRE task flow for EACH issue in the list, sequentially, WITHOUT pauses, confirmations, or permission prompts between them. The pipeline is continuous: promotion → development → senior review → QA → corrections → committer gate → MR creation → auto-merge → local checkout of the updated base branch → remote issue close + archive. Send exactly ONE Telegram notification at the very end, after the LAST issue completes.\n\nFor EACH issue id in the list, in order:\n\n**1. Resolve the project's `known_issues.md` first.** The agent's context only contains the GLOBAL `~/.config/opencode/known_issues.md`, NOT the project's file. You MUST resolve the correct file via bash before reading the issue:\n\n```bash\n# Find the project's known_issues.md (project .opencode/ takes precedence over global)\nif [ -f .opencode/known_issues.md ]; then ISSUES_FILE=\".opencode/known_issues.md\"; elif [ -f ~/.config/opencode/known_issues.md ]; then ISSUES_FILE=\"~/.config/opencode/known_issues.md\"; else echo 'No known_issues.md found'; exit 1; fi\necho \"Using: $ISSUES_FILE\"\n# Extract the issue entry by ID (use the resolved path)\nawk -v id=\"$ID\" '$0 ~ \"^### \" id \"\\.\" {found=1} found { if ($0 ~ /^### [0-9]+\\./ && $0 !~ \"^### \" id \"\\.\") exit; print }' \"$ISSUES_FILE\"\n```\n\nIf the issue is NOT found in the project file, check the global `~/.config/opencode/known_issues.md` as fallback. If an issue is not found anywhere, record the failure and STOP the list — do not skip it and continue silently.\n\n**2. Check for missing data and handle gracefully:**\n- `Base branch:` empty → detect from git (origin/HEAD → main/master fallback), no prompt\n- `Reviewers:` empty → default to 1, no prompt\n- `Business rules:` empty for `feat` type → warn user it will be blocked by Committer gate later\n- `Remote:` empty and status needs it → auto-create via `scripts/create_issue.sh <id>`, no prompt\n\n**3. Auto-promote based on status:**\n\n- `backlog`: `scripts/promote.sh <id>` (→ ready) → `scripts/create_issue.sh <id>` (remote) → `scripts/promote.sh <id>` (→ in-progress + branch)\n- `ready`: if Remote is `-`, create it first. Then `scripts/promote.sh <id>` (→ in-progress + branch)\n- `open` with Remote set: transition to `in-progress` via `scripts/transition.sh <id> in-progress`, checkout/create branch `issue-<id>-<slug>`\n- `open` with `Remote: -`: `scripts/create_issue.sh <id>` (→ in-progress + branch)\n- `in-progress`: proceed directly\n- `in-review` / `in-qa` / `in-publish` / `resolved`: refuse — issue is past development. Record the refusal and STOP the list.\n\nAfter promotion, verify the current git branch matches `issue-<id>-<slug>`; if not, checkout or create it. (Between issues the previous flow returned to the base branch, so each issue starts clean from the base.)\n\n**4. Deliver the task** — Invoke the `development/delivery` subagent via the task tool with the full issue context (title, description, business rules, acceptance criteria, location, status, branch). The issue is already promoted (`Status: in-progress`, feature branch `issue-<id>-<slug>` checked out), so instruct the delivery agent to SKIP Phase 6 (PM promotion) and start at Phase 7 (Developer). Delivery runs: Developer (via develop-router) → Senior Review → QA → corrections loop → Committer gate → Publish Requester (creates the MR). Instruct the delivery subagent to NOT send Telegram notifications — this command sends the single final one at the end of the whole list.\n\n**5. Read the MR** — After delivery returns, re-extract the issue entry and read the `- PR: #<n>` field. If the field is missing or `-`, the MR was not created: record the failure and STOP the list.\n\n**6. Auto-merge the MR** — The pipeline review and QA already approved the change, so the MR merge is authorized. Do NOT ask for permission:\n   - GitHub: `gh pr merge <n> --merge`. If the merge is blocked (pending checks or branch protection), enable auto-merge with `gh pr merge <n> --auto` and poll `gh pr view <n> --json state --jq '.state'` until MERGED (bounded: up to ~15 minutes; if still not merged, report and proceed to the final notification with the MR link).\n   - GitLab: `glab mr merge <n>`. Poll `glab mr view <n> --json state --jq '.state'` until `merged`.\n\n**7. Return to the base branch locally** — Read `- Base branch:` from the issue entry (fallback: main/master). Run `git checkout <base>` and `git pull origin <base>` so the local checkout ends on the updated main/master.\n\n**8. Close and archive** — Run `scripts/close_issue.sh <id>` to close the remote issue and archive the resolution locally (it verifies the PR is merged, updates `known_issues.md`, and appends to `resolved_issues.md`). Commit the tracker update on the base branch (`chore: resolve issue #<id>`) and push. If the close fails, log it and continue.\n\n**Repeat for the next issue in the list** — the previous issue ended on the updated base branch, so the next promotion starts clean.\n\n**After the LAST issue completes (or on the FIRST failure/refusal):**\n\n**Send exactly ONE Telegram notification** via the `telegram-notifier` skill or `scripts/telegram-notify.sh` with the FINAL outcome: a per-issue summary (id, PR/MR link, merged status) for every issue processed, or the blocker of the issue that failed, plus the current local branch. One message — success or failure — at the very end, after the last issue. Do NOT send intermediate notifications between issues.\n\nFailure handling: if any issue in the list fails at any phase (issue not found, refused status, development blocked, review/QA not approved, committer gate fails, MR creation fails, merge fails), STOP the entire list immediately — do not continue to the next issue and do not ask. Send exactly ONE failure notification summarizing the blocker and which issue failed. The issues already merged stay resolved; the failed issue stays in `known_issues.md` with its current status for the next cycle.",
+      "description": "Run the full task lifecycle end-to-end for one or more issues: promote, develop, review, QA, MR, auto-merge, return-to-base, close + archive"
+    },
+    "ocf:build-ui": {
+      "template": "Parse the argument as a design brief (text or a file path to read). If none is provided, ask the user for a brief. If the argument matches the session-id format `YYYY-MM-DDTHH-MM-SS`, treat it as a resumption session id, not a brief. Then orchestrate the 4-pass design pipeline (the Adorable pipeline) for a GREENFIELD project:\n\n1. Session setup: if the argument is an existing session id, REUSE it and its output directory `.opencode/design-outputs/<session-id>/` (resumption — skip stages whose output files already exist, see step 7). Otherwise create a session id (UTC timestamp, format `YYYY-MM-DDTHH-MM-SS`) and the output directory (create it if missing).\n2. Pass 1 — art-director: invoke the `design/art-director` subagent (defined at `agents/design/art-director.md`) with the brief and the output path `<dir>/design_spec.json`. It produces the design spec JSON (brief_analysis, rejected_defaults, directions_considered, selected_direction, design_spec).\n3. Pass 2 — ui-architect: invoke the `design/ui-architect` subagent with `<dir>/design_spec.json` and output path `<dir>/component_tree.json`. It produces the component tree JSON (layout_regions, component_tree, components, interaction_map, build_order).\n4. Pass 3 — ui-implementer: invoke the `design/ui-implementer` subagent with both JSON file paths and the project root. It writes production code in the project following the build order; it never skips defined states.\n5. Pass 4 — ui-critic: invoke the `design/ui-critic` subagent with the implemented code, `<dir>/design_spec.json`, `<dir>/component_tree.json` and output path `<dir>/quality_report.json`. It returns APPROVED or ISSUES_FOUND. If ISSUES_FOUND with blocking items, feed the feedback back to the design/ui-implementer (iterate, max 3 rounds). If still ISSUES_FOUND after 3 rounds, stop, log the failure, send a Telegram notification, and deliver with the remaining findings listed in the summary.\n6. On ANY stage failure: log the failure, send a Telegram notification (via the telegram-notifier skill / scripts/telegram-notify.sh), and STOP — do not continue to the next stage.\n7. Resumption: if the command is re-run with the same session id (e.g. `/ocf:build-ui <session-id>`), skip stages whose output files already exist and continue from the first missing stage. Pass 3 (ui-implementer) is considered complete when `<dir>/handoff.json` exists.\n8. Do not hardcode a model for any stage — subagents use the user's default model (see issue #82).\n9. Respond in the user's input language (locale rule #73).",
+      "description": "Orchestrate the 4-pass greenfield design pipeline (art-director → ui-architect → ui-implementer → ui-critic) with deterministic output files"
+    },
+    "ocf:audit-ui": {
+      "template": "Parse the first argument as a project path (default: current working directory). When a second argument matches the session-id format `YYYY-MM-DDTHH-MM-SS`, treat it as a resumption session id. Then orchestrate the audit/refactor pipeline for an EXISTING codebase:\n\n1. Session setup: if a resumption session id was provided, REUSE it and its output directory `.opencode/design-outputs/<session-id>/` (skip stages whose output files already exist, see step 6). Otherwise create a session id (UTC timestamp, format `YYYY-MM-DDTHH-MM-SS`) and the output directory (create it if missing).\n2. Pass 1 — ui-auditor: invoke the `design/ui-auditor` subagent (defined at `agents/design/ui-auditor.md`) with the project path and output path `<dir>/audit_report.json`. It detects the stack via bash (REACT_VITE, NEXTJS_APP, VUE_VITE, PHP_BLADE, PHP_HTML, HTML_VANILLA, etc.), scores dimensions 1-5, cites file:line for every issue, and records preserved patterns.\n3. Pass 2 — ui-refactor-planner: invoke the `design/ui-refactor-planner` subagent (defined at `agents/design/ui-refactor-planner.md`) with `<dir>/audit_report.json` and, when available, a design spec (`.opencode/design-outputs/<session-id>/design_spec.json` from a prior build-ui run) — output path `<dir>/refactor_plan.json`. It produces a phased plan (Group A blockers, Group B inline, Group C opportunities), never plans a big bang and never deletes before replacing.\n4. Optional Pass 3 — if the user also wants the refactored UI implemented, continue into the build pipeline, reusing this session id and output files: `design/ui-architect` receives `<dir>/design_spec.json` (when available from a prior build-ui run) AND `<dir>/refactor_plan.json`, producing `<dir>/component_tree.json`; `design/ui-implementer` receives `<dir>/design_spec.json`, `<dir>/component_tree.json` AND `<dir>/refactor_plan.json` plus the project root, and writes production code; `design/ui-critic` receives the implemented code plus `<dir>/design_spec.json` and `<dir>/component_tree.json`, producing `<dir>/quality_report.json` (APPROVED or ISSUES_FOUND, iterate max 3 rounds; if still ISSUES_FOUND after 3 rounds, stop, log the failure, send a Telegram notification, and deliver with the remaining findings listed in the summary).\n5. On ANY stage failure: log the failure, send a Telegram notification (via the telegram-notifier skill / scripts/telegram-notify.sh), and STOP — do not continue to the next stage.\n6. Resumption: if re-run with the same session id, skip stages whose output files already exist and continue from the first missing stage. Pass 3 (ui-implementer) is considered complete when `<dir>/handoff.json` exists.\n7. Do not hardcode a model for any stage — subagents use the user's default model (see issue #82).\n8. Respond in the user's input language (locale rule #73).",
+      "description": "Orchestrate the audit/refactor pipeline for existing codebases (ui-auditor → ui-refactor-planner, optionally → build pipeline)"
     }
+  },
+  "permission": {
+    "edit": {
+      "~/.config/opencode/**": "ask",
+      "~/.config/opencode/opencode.json": "deny",
+      "~/.config/opencode/aibot-repos.json": "deny",
+      "~/.config/opencode/scripts/aibot-watcher.sh": "deny",
+      "~/.config/opencode/state/**": "deny",
+      "~/.ssh/**": "deny",
+      ".opencode/cache/**": "deny"
+    },
+    "read": {
+      ".opencode/cache/**": "deny"
+    },
+    "bash": {
+      "rm -rf /": "deny",
+      "rm -rf /*": "deny",
+      "rm -rf ~": "deny",
+      "rm -rf $HOME": "deny",
+      "sudo rm -rf /*": "deny",
+      "sudo rm -rf ~*": "deny",
+      "git push --force*": "deny",
+      "git push -f*": "deny",
+      "git reset --hard*": "deny",
+      "git clean -f*": "deny",
+      "git branch -D *": "deny",
+      "mkfs*": "deny",
+      "dd if=*": "deny",
+      "curl * | sh": "deny",
+      "curl * | bash": "deny",
+      "wget * | sh": "deny",
+      "wget * | bash": "deny",
+      "chmod -R 777 *": "deny",
+      "chown -R *": "deny",
+      "shutdown*": "deny",
+      "reboot*": "deny"
+    },
+    "skill": {
+      "issue-manager": "allow",
+      "customize-opencode": "allow",
+      "graphify": "allow",
+      "seo-optimizer": "allow",
+      "skill-importer": "allow",
+      "skill-creator": "allow",
+      "ads-campaign": "allow",
+      "landing-pages": "allow",
+      "presentations": "allow",
+      "marketing-reports": "allow",
+      "market-research": "allow",
+      "social-media": "allow",
+      "marketing-templates": "allow",
+      "copywriting": "allow",
+      "conversion-optimization": "allow",
+      "content-strategy": "allow",
+      "email-marketing": "allow",
+      "marketing-analytics": "allow",
+      "marketing-psychology": "allow",
+      "marketing-plan": "allow",
+      "customer-research": "allow",
+      "video-production": "allow",
+      "competitor-intelligence": "allow",
+      "ab-testing": "allow",
+      "launch": "allow",
+      "cold-email": "allow",
+      "influencer-marketing": "allow",
+      "public-relations": "allow",
+      "analytics-engineering": "allow",
+      "dashboard-design": "allow",
+      "data-analysis": "allow",
+      "report-automation": "allow",
+      "data-governance": "allow",
+      "sales-pipeline": "allow",
+      "prospecting": "allow",
+      "sales-enablement": "allow",
+      "proposals": "allow",
+      "account-management": "allow",
+      "financial-modeling": "allow",
+      "budgeting": "allow",
+      "cost-analytics": "allow",
+      "revenue-analytics": "allow",
+      "financial-reporting": "allow",
+      "cfo-advisory": "allow",
+      "pricing-strategist": "allow",
+      "deal-desk": "allow",
+      "partnerships-architect": "allow",
+      "channel-economics": "allow",
+      "commercial-forecasting": "allow",
+      "rfp-responder": "allow",
+      "process-mapper": "allow",
+      "vendor-management": "allow",
+      "capacity-planner": "allow",
+      "internal-comms": "allow",
+      "knowledge-ops": "allow",
+      "procurement-optimizer": "allow",
+      "frontend-design": "allow",
+      "theme-factory": "allow",
+      "sales-psychology": "allow",
+      "design-taste-frontend": "allow",
+      "redesign-existing-projects": "allow",
+      "minimalist-ui": "allow",
+      "motion-design": "allow",
+      "color-expert": "allow",
+      "icon-generator": "allow",
+      "brand-to-design-md": "allow",
+      "responsive-craft": "allow",
+      "ux-flow-designer": "allow",
+      "frontend-designer": "allow",
+      "cto-architecture-decision": "allow",
+      "cto-engineering-metrics": "allow",
+      "cto-risk-resilience": "allow",
+      "cto-technology-roadmap": "allow",
+      "seo-geo": "allow",
+      "senior-frontend": "allow",
+      "google-search-console": "allow",
+      "youtube-seo": "allow",
+      "next-best-practices": "allow",
+      "nextjs-seo": "allow",
+      "python-expert-best-practices-code-review": "allow",
+      "tailwind": "allow",
+      "poster-design-generation": "allow",
+      "telegram-notifier": "allow",
+      "test-runner": "allow",
+      "auth-architecture": "allow",
+      "cv-hub": "allow",
+      "cv-tailor": "allow",
+      "cv-pdf": "allow",
+      "cv-optimizer": "allow",
+      "cv-cover-letter": "allow",
+      "cv-linkedin": "allow",
+      "cv-interview-prep": "allow",
+      "cv-ats-score": "allow",
+      "owasp-top10": "allow",
+      "owasp-asvs": "allow",
+      "owasp-wstg": "allow",
+      "owasp-samm": "allow",
+      "threat-modeling": "allow",
+      "secure-code-review": "allow",
+      "reference-library": "allow",
+      "component-patterns": "allow",
+      "design-tokens": "allow",
+      "visual-hierarchy": "allow"
+    },
+    "external_directory": {
+      "~/.config/opencode/**": "allow",
+      "~/career/**": "allow",
+      "/tmp/*": "allow",
+      "/home/william_pereira/dev/munder-difflin/**": "allow"
+    },
+    "task": "allow"
+  },
+  "watcher": {
+    "ignore": [
+      ".git/**",
+      "bin/**",
+      "node_modules/**",
+      ".opencode/**"
+    ]
+  },
+  "disabled_providers": [
+    "ollama"
+  ],
+  "provider": {
+    "ollama": {
+      "name": "ollama",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "http://127.0.0.1:11434/v1"
+      },
+      "models": {
+        "qwen3.6:27b": {
+          "name": "LOCALHOST-qwen3.6-27b"
+        }
+      }
+    },
+    "orcarouter": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "OrcaRouter",
+      "options": {
+        "baseURL": "https://api.orcarouter.ai/v1"
+      },
+      "models": {
+        "orcarouter/auto": {
+          "name": "OrcaRouter Auto"
+        }
+      }
+    }
+  },
+  "skills": {
+    "paths": [
+      "~/.config/opencode/vendor"
+    ]
+  }
 }
