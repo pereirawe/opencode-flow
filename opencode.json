@@ -300,8 +300,7 @@
     "external_directory": {
       "~/.config/opencode/**": "allow",
       "~/career/**": "allow",
-      "/tmp/*": "allow",
-      "/home/william_pereira/dev/munder-difflin/**": "allow"
+      "/tmp/*": "allow"
     },
     "task": "allow"
   },

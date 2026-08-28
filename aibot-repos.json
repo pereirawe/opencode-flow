@@ -9,9 +9,5 @@
   "pereirawe/opencode-flow": {
     "workspace": "~/.config/opencode",
     "comment": "Exemplo: o proprio repositorio de config do opencode. O tracker real deste repo vive em ~/.config/opencode/known_issues.md (o .opencode/known_issues.md e o template vazio); o watcher resolve isso automaticamente. Em projetos padrao, o tracker e o .opencode/known_issues.md do workspace."
-  },
-  "chaitanyagiri/munder-difflin": {
-    "workspace": "/home/william_pereira/dev/munder-difflin",
-    "comment": "Projeto munder-difflin (Electron)."
   }
 }
