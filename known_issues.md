@@ -484,3 +484,38 @@ issues only. See `standards/issues.md` for the full contract.
   5. `ocf:develop` con lista de 2 issues → secuencial: 1ª termina en `in-publish` sin merge, 2ª procesada desde la base; exactamente UNA notificación Telegram final
 - Suggested fix: dividir el template de `ocf:develop` en opencode.json — `ocf:develop` conserva los pasos 1-5 + reporte "esperando merge manual" (sin pasos 6-8), y nuevo `ocf:develop-full` con el template completo actual (auto-merge + base + close/archive); crear `commands/ocf:develop-full.md` y actualizar `commands/ocf:develop.md`; cambiar watcher y CI a `ocf:develop-full`; actualizar tests e2e, workflow.md, READMEs y comentarios Dockerfile. Esfuerzo ~4-6h.
 
+### 220. Excluir o perfil `qa` da lista de senior reviewers — QA já participa da qualidade (discovery pre-dev + delivery post-review)
+- Status: ready
+- Opened: 2026-08-28
+- Type: feat
+- Severity: medium
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (runtime, devops)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: agents/development/tech-lead.md:35, agents/development/discovery.md (Phase 3, Phase 4, Phase L1), agents/development/delivery.md:69, agents/development/senior-reviewers/qa.md, standards/issues.md
+- Description: Durante a discovery, o Tech Lead define os perfis de senior reviewers com uma lista que inclui `qa` (tech-lead.md:35). Se o perfil `qa` for listado em `- Reviewers:`, o Quality Analyst participa 3x no ciclo: (1) discovery pre-development (full flow Phase 5 / lean Phase L2), (2) senior review (senior-reviewers/qa.md), (3) delivery post-review (Phase 9). Como o QA já participa da etapa de qualidade na discovery e na delivery, incluí-lo como senior reviewer duplica a revisão e aumenta o consumo de tokens sem agregar gate novo.
+- Impact: Redução de consumo de tokens por issue (menos uma invocação de revisão duplicada); definição de `- Reviewers:` mais enxuta e sem redundância. Todos os agentes que leem a lista de perfis de revisores (tech-lead, product-owner, discovery, delivery) e o padrão `standards/issues.md`.
+- Business rules:
+  1. Durante a discovery (full flow Phase 3 Tech Lead e Phase 4 PO; lean track Phase L1 PO triage), o perfil `qa` NÃO deve ser incluído em `- Reviewers:`.
+  2. A cobertura de qualidade NÃO é removida — o QA continua atuando em dois gates: discovery pre-development (full flow Phase 5 / lean Phase L2, validação de `Tests:`/business rules/priority) e delivery post-review (Phase 9, verificação pós-senior-review).
+  3. `tech-lead.md` deve remover `qa` da lista de perfis de senior reviewers (linha 35).
+  4. `discovery.md` deve instruir explicitamente que `qa` não entra em `- Reviewers:` (Phase 3, Phase 4, Phase L1), com a justificativa de que QA já participa da etapa de qualidade.
+  5. `delivery.md` Phase 8 não deve referenciar o perfil `qa` no exemplo (linha 69, `2 (backend, qa)`).
+  6. `senior-reviewers/qa.md` deve ser deprecado como perfil de revisor padrão — o domínio de revisão de testes (qualidade, cobertura, edge cases) é coberto pelo QA da delivery Phase 9 via `test-runner --check` + verificação de cobertura.
+  7. Issues existentes com `qa` em `- Reviewers:` NÃO são reescritas retroativamente; a regra vale para novas definições de revisores.
+- Acceptance criteria:
+  1. `tech-lead.md` não lista mais `qa` como perfil de senior reviewer.
+  2. `discovery.md` instrui a exclusão de `qa` de `- Reviewers:` (Phase 3, Phase 4, Phase L1).
+  3. `delivery.md` Phase 8 não referencia `qa` como perfil (exemplo atualizado).
+  4. `senior-reviewers/qa.md` carrega nota de deprecação como perfil de revisor padrão.
+  5. Os gates de QA permanecem: discovery pre-dev (Phase 5/L2) e delivery post-review (Phase 9) continuam executando.
+- Tests:
+  1. Nova issue `feat` promovida → `- Reviewers:` sem `qa` → QA ainda valida `Tests:` na discovery (Phase 5) e pós-review (Phase 9)
+  2. Nova issue `bug` (lean track) → `- Reviewers:` sem `qa` → QA ainda valida na Phase L2 (Tests floor, Business rules: none, Priority)
+  3. `grep qa agents/development/tech-lead.md agents/development/discovery.md agents/development/delivery.md` → nenhuma referência a `qa` como perfil de revisor
+  4. `grep deprecated agents/development/senior-reviewers/qa.md` → nota de deprecação presente
+- Suggested fix: remover `qa` da lista de perfis em tech-lead.md:35; adicionar instrução explícita em discovery.md (Phase 3/4/L1) para excluir `qa` de `- Reviewers:`; atualizar exemplo em delivery.md:69; adicionar nota de deprecação em senior-reviewers/qa.md; documentar a regra em standards/issues.md (perfis válidos de revisor). Esforço ~1-2h.
+
