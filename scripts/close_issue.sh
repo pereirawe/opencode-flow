@@ -122,15 +122,17 @@ STARTED_DATE=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Started:/ {print $2; e
 IN_REVIEW_DATE=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- In review:/ {print $2; exit}')
 IN_QA_DATE=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- In QA:/ {print $2; exit}')
 IN_PUBLISH_DATE=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- In publish:/ {print $2; exit}')
-RESOLVED_DATE=$(date +%Y-%m-%d)
+RESOLVED_DATE=$(date +%Y-%m-%dT%H:%M)
 SUMMARY="${DESC:-no description}${SUGGESTED:+ — ${SUGGESTED}}"
 
-# days_between <start|-> <end|-> — prints "<N>d" or "-"
+# days_between <start|-> <end|-> — prints "<N>d", "<N>h", or "-"
 # Duration math is UTC-anchored (TZ=UTC date -d "$d" +%s), which is DST-robust
 # (BR 4): naive local-epoch /86400 day counting fails the spring-forward DST
 # scenario (23-hour day → integer division floors to 0 days).
 # Guards (BR 5/BR 10): start > end renders `-` BEFORE division; missing dates
-# render `-`; differences are floored at 0 (non-negative); diff == 0 → "0d".
+# render `-`; differences are floored at 0 (non-negative); diff == 0 → "0h".
+# Sub-day durations render in hours ("<N>h") so the lifecycle report is not
+# vague (issue: timestamps previously stored date-only, hiding intra-day gaps).
 days_between() {
   local s="$1" e="$2"
   if [[ -z "$s" || -z "$e" || "$s" == "-" || "$e" == "-" ]]; then
@@ -145,9 +147,15 @@ days_between() {
   if (( ee < se )); then
     echo "-"; return
   fi
-  local diff=$(( (ee - se) / 86400 ))
-  if (( diff < 0 )); then diff=0; fi
-  echo "${diff}d"
+  local secs=$(( ee - se ))
+  local days=$(( secs / 86400 ))
+  if (( days >= 1 )); then
+    echo "${days}d"
+  else
+    local hrs=$(( (secs + 1799) / 3600 ))
+    if (( hrs < 1 )); then hrs=0; fi
+    echo "${hrs}h"
+  fi
 }
 
 # Compute per-stage durations (BR 12 / issue #81): backlog (Opened→Ready),

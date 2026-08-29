@@ -63,3 +63,12 @@ When called, implement the assigned feature or fix from `known_issues.md`.
 If business rules are missing or unclear, flag the gap as a new issue in
 `known_issues.md` and proceed with what is defined — do not block the pipeline.
 Do not ask questions — just implement, update status, and continue.
+
+### Preflight warm-up (token saver)
+
+Before exploring the codebase, check for a prebuilt inventory at
+`.opencode/preflight/issue-<id>.md` (produced by `scripts/preflight.sh`, e.g.
+by `/ocf:develop-full` while the previous issue closed). If it exists, consume
+its file inventory and candidate test list directly and skip the re-exploration
+pass — start implementing from the listed entry point. If it does not exist, do
+a normal, scoped exploration.

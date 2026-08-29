@@ -65,7 +65,7 @@ case "$NEW_STATUS" in
   in-publish)   FIELD="In publish" ;;
 esac
 
-TODAY=$(date +%Y-%m-%d)
+TODAY=$(date +%Y-%m-%dT%H:%M)
 
 # rewrite_entry — update the Status line and stamp FIELD (set-if-absent),
 # rebuilding the canonical timestamp block Status < Opened < Ready < Started <

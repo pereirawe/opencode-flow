@@ -31,6 +31,13 @@ permission:
 
 Orchestrate the complete delivery pipeline from tracked issue to merged MR.
 
+> NOTE: `/ocf:develop-full` does NOT invoke this agent anymore — it drives the
+> pipeline directly via scripts (preflight → detect-lang → developer → parallel
+> reviewers → `committer-check.sh` → `create-pr.sh` → `merge-and-close.sh`),
+> which is faster and cheaper. This agent is the **legacy manual-merge path**
+> (`/ocf:delivery`): it stops after MR creation and lets a human merge, then the
+> Close Requester finishes. Keep it for that path only.
+
 ## Precondition
 
 The issue must be in `known_issues.md` with status `ready` (or `backlog` if
@@ -102,13 +109,17 @@ Execute these phases **in sequence**, invoking each agent automatically:
 - **Do NOT ask for confirmation** — Committer gate has passed
 
 ### Phase 12: Close Requester (Post-Merge)
-- Invoke `development/close-requester` subagent via task tool
-- **Triggered only after MR is merged** (not automatic)
-- Verify PR is merged via `gh pr view <id> --json state --jq '.state'`
-- Close remote issue on GitHub/GitLab
-- Update `known_issues.md` status to `resolved`
-- Archive to `resolved_issues.md` via `close_issue.sh`
-- Commit and push the archive changes to main/master
+- **In `/ocf:develop-full`**: this phase is handled entirely by
+  `scripts/merge-and-close.sh <id>` (merge MR → return to base + pull → archive
+  via `close_issue.sh`), invoked by the command after the Committer gate passed.
+  No agent is spent on merge/archive bookkeeping; the script may post a one-line
+  closing note (`OCF_CLOSE_COMMENT=1`). Do NOT invoke the close-requester agent
+  here.
+- **In `/ocf:delivery` or `ocf:check-pr`** (manual-merge variant): invoke
+  `development/close-requester` subagent via task tool once a merge notification
+  arrives. The agent verifies the PR is merged, then runs
+  `scripts/merge-and-close.sh <id>` for the mechanics and may add a closing
+  comment/review — its value is the human-facing note, not the bookkeeping.
 
 ## Execution Rules
 

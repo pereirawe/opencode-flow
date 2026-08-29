@@ -1,99 +1,64 @@
 ## /ocf:develop [id...]
 
 ---
-description: Run the full task lifecycle up to MR creation for one or more issues: promote, develop, review, QA, MR — then wait for a manual merge (no auto-merge, no archive)
+description: Run the lifecycle up to MR creation for one or more issues — promote, develop, parallel review, QA gate, MR — then STOP (no auto-merge, no archive). Manual merge follows.
 ---
 
 Run the task flow for one or more tracked issues, from promotion to **MR
-creation**. Everything happens automatically — no confirmation, no permission
-prompts, no pausing between pipeline phases. The command **stops after the MR
-is created**: it does NOT merge, does NOT close/archive the issue, and the
-local checkout returns to the base branch without the change. The MR is left
-OPEN for a human review/merge.
+creation**, automatically. No confirmation, no pausing. The command **stops
+after the MR is created**: it does NOT merge, does NOT close/archive. The MR is
+left OPEN for a human review/merge.
 
-Closing and archiving after the manual merge are delegated to `ocf:check-pr`
-(or the Close Requester) — see `/ocf:develop-full` for the fully automated
-end-to-end variant (auto-merge + close + archive).
+**Design:** same flattened engine as `/ocf:develop-full` — no `delivery`
+orchestrator, no `develop-router`. `scripts/detect-lang.sh` picks the dev
+agent; agents appear only for judgment (developer + parallel senior reviewers).
+Mechanical steps (promote, preflight, committer gate, create-pr) are scripts.
 
-At least ONE issue ID is required. Multiple IDs may be passed separated by
-spaces, commas, or dashes. Each issue runs the flow sequentially, and a
-single Telegram notification is sent after the LAST issue.
+At least ONE issue ID required. Multiple IDs separated by spaces/commas/dashes;
+deduplicated, processed sequentially. One Telegram notification after the LAST.
 
 ### Arguments
 
 ```
 /ocf:develop 4
 /ocf:develop 4 5 6
-/ocf:develop 4,5,6
-/ocf:develop 4-5-6
 /ocf:develop #4 #5 #6
 ```
 
-IDs are deduplicated (preserving order) and processed one at a time, in order.
+### Auto-Promotion Flow (silent)
 
-### Auto-Promotion Flow
-
-The promote flow runs silently. Missing data is handled gracefully:
-`Base branch:` → detected from git; `Reviewers:` → defaults to 1;
-`Remote:` → auto-created if missing.
+`Base branch:` → git default; `Reviewers:` → `1 (backend)`; `Remote:` →
+auto-created via `create_issue.sh` if missing.
 
 | Status | Action |
 |--------|--------|
-| `backlog` | `promote.sh <id>` → `ready` → `create_issue.sh <id>` (remote) → `promote.sh <id>` → `in-progress` + branch |
-| `ready` | Auto-create remote if missing, then `promote.sh <id>` → `in-progress` + branch |
-| `open` with Remote set | Update status to `in-progress`, checkout/create branch `issue-<id>-<slug>` |
-| `open` with `Remote: -` | `create_issue.sh <id>` → `in-progress` + branch |
-| `in-progress` | Proceed directly |
-| `in-review` / `in-qa` / `in-publish` / `resolved` | Refuse — issue is past development |
+| `backlog` | `promote.sh` → `ready`; `create_issue.sh` if needed; `promote.sh` → `in-progress` + branch |
+| `ready` | `create_issue.sh` if needed; `promote.sh` → `in-progress` + branch |
+| `open` w/ Remote | `in-progress` + branch |
+| `in-progress` | proceed |
+| `in-review`/`in-qa`/`in-publish`/`resolved` | Refuse — past development |
 
-### Task Flow (per issue, up to MR creation)
+### Task Flow (per issue, up to MR)
 
-1. **Resolve `known_issues.md`** (project `.opencode/` first, global fallback)
-2. **Check & fill gaps**: detect `Base branch:` from git if empty, default
-   `Reviewers:` to 1 if empty, auto-create `Remote:` if needed — no user prompts
-3. **Auto-promote**: run the promotion flow above based on current status
-4. **Verify branch**: if not already on `issue-<id>-<slug>`, checkout or create it
-5. **Deliver**: invoke the `development/delivery` subagent (skipping its Phase 6
-   promotion, since the issue is already `in-progress`) — it runs Developer
-   (via develop-router) → Senior Review → QA → corrections loop → Committer
-   gate → Publish Requester, which creates the MR
-6. **Read the MR**: re-extract the issue entry and read the `- PR: #<n>` field.
-   If it is missing or `-`, the MR was not created — record the failure and
-   STOP the list
-7. **Report "esperando merge manual" (awaiting manual merge)**: do NOT merge
-   the MR, do NOT close the remote issue, do NOT archive the entry. The issue
-   stays `in-publish` with `PR: #<n>`; the MR stays OPEN for a human
-   review/merge (optionally verified via `gh pr view` / `glab mr view`)
-8. **Return to base**: `git checkout <base-branch>` + `git pull origin <base-branch>`
-   so the next issue starts clean — the base does NOT contain this issue's
-   changes (the MR is still open), which is expected
-9. **Repeat** for the next issue in the list — each one starts from the base
+1. **Resolve `known_issues.md`** (project first, global fallback).
+2. **Fill gaps** (base/reviewers/remote) — no prompts.
+3. **Promote**: `create_issue.sh` + `promote.sh`.
+4. **Warm current**: `scripts/preflight.sh <id>`.
+5. **Pick dev agent**: `LANG=$(scripts/detect-lang.sh [location])`.
+6. **Implement**: `Task(<devagent>)` → tests → self-review → `transition.sh <id> in-review`.
+7. **Parallel senior review**: one `Task(development/senior-reviewers/<profile>)`
+   per profile, in a single message. All approve; else fix+re-review loop.
+8. **Gate**: `scripts/committer-check.sh <id>` + `scripts/issue-lint.sh --strict
+   <id>` → PASS ⇒ `transition.sh <id> in-publish`. FAIL ⇒ STOP + notify.
+9. **Create MR**: `scripts/create-pr.sh <id>` (sets `- PR: #<n>`).
+10. **Report "esperando merge manual"**: do NOT merge/close. Issue stays
+    `in-publish`, MR OPEN.
+11. **Return to base**: `git checkout <base>` + `git pull` (base has no change).
+12. **Repeat** for the next issue.
 
-Closing/archiving after the merge: run `/ocf:check-pr <id>` (or wait for the
-Close Requester) once the MR has been merged manually.
+Closing/archiving after manual merge: `/ocf:check-pr <id>` (or Close Requester).
 
-### Telegram Notifications
+### Telegram & Failure
 
-Only ONE Telegram notification is sent for this command — after the LAST issue
-completes, summarizing the final outcome (success or failure) with a per-issue
-summary (id, PR/MR link, "esperando merge manual" — MR left OPEN). No
-intermediate notifications during promotion, development, review, QA, or
-between issues. Pipeline subagents (delivery, develop-router, implementation
-agents) are instructed to defer — the final message is sent exclusively by
-this command session.
-
-### Failure Handling
-
-If ANY issue in the list fails (not found, refused status, development blocked,
-review/QA not approved, committer gate fails, MR creation fails), STOP the
-entire list immediately — do not continue to the next issue and do not ask.
-Send exactly ONE failure notification. Issues already delivered stay in
-`known_issues.md` with `Status: in-publish` and their MR open; the failed
-issue stays with its current status.
-
-### Validation Notes
-
-- `Business rules:` empty for `feat` type → warns it will be blocked by Committer
-- `Remote:` auto-created when missing before `ready → in-progress`
-- Reviewer profiles validated during `promote.sh` (warns only, non-blocking)
-- Uncommitted changes: suggest stash or commit before promoting
+One notification after the LAST issue. Any failure → STOP list, one failure
+notification. Delivered issues stay `in-publish` with MR open.

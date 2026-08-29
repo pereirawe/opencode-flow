@@ -22,13 +22,20 @@ Responsibilities:
 - Detect remote type (GitHub/GitLab) from `git remote -v`
 
 When called, check each issue with `Status: in-publish` in `known_issues.md`,
-verify its PR is merged, close the remote issue, and archive the resolution.
+verify its PR is merged, then run `scripts/merge-and-close.sh <id>` for the
+mechanical close+archive (merge MR → return to base + pull → `close_issue.sh`).
+The agent's value here is the human-facing closing comment/review, NOT the
+bookkeeping — delegate all merge/archive steps to the script.
 
-Remote detection:
+For the closing note, invoke the script with `OCF_CLOSE_COMMENT=1` or post a
+short summary yourself; keep it minimal to avoid token waste.
+
+Remote detection (for verification only):
 - Use `gh` for GitHub remotes, `glab` for GitLab remotes
 - Fall back to `git remote -v` if AGENTS.md info is not available
 
 Note: This agent is the final step in the pipeline lifecycle. Once an issue
 is archived, it moves from `known_issues.md` to `resolved_issues.md`.
 This agent does not poll — it only acts when explicitly triggered by
-a merge notification.
+a merge notification. In `/ocf:develop-full` it is not invoked at all (the
+command calls `merge-and-close.sh` directly).

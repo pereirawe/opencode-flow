@@ -47,6 +47,17 @@ Responsibilities:
 
 When called, review current state and confirm readiness for MR.
 
+### Mechanical gate check (token saver)
+
+Run `scripts/committer-check.sh <id>` first — it performs the objective gates
+(test cache freshness, status precondition, business-rules presence for `feat`,
+security report approval) and prints a `VERDICT: PASS|FAIL`. Apply your
+judgment only on that verdict; do NOT re-scan files the script already checked.
+If the verdict is FAIL, document the gate failure in `known_issues.md` and let
+the pipeline continue to the next cycle (or route the security gate back through
+the review loop). On PASS, set status to `in-publish` via
+`scripts/transition.sh <id> in-publish`.
+
 Gates:
 1. Senior review completed ✅
 2. All senior review issues addressed ✅

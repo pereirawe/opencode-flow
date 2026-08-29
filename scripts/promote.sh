@@ -102,7 +102,7 @@ rewrite_entry() { # <file> <id> <new_status|''> <opened|''> <ready|''> <started|
 
 # --- Mode 1: backlog → ready ---
 if [[ "$STATUS" == "backlog" ]]; then
-  TODAY=$(date +%Y-%m-%d)
+  TODAY=$(date +%Y-%m-%dT%H:%M)
   # Stamp `- Ready:` (today, set-if-absent) alongside the status change (BR 2)
   rewrite_entry "$ISS_FILE" "$ID" "ready" "" "$TODAY" "" ""
 
@@ -178,7 +178,7 @@ if [[ "$STATUS" == "ready" ]]; then
   # Update status to in-progress (do NOT reset Remote); stamp Started and
   # backfill Opened set-if-absent (BR 2/BR 3 — documented approximation when
   # the remote was auto-created during promotion and has no Opened stamp yet)
-  TODAY=$(date +%Y-%m-%d)
+  TODAY=$(date +%Y-%m-%dT%H:%M)
   rewrite_entry "$ISS_FILE" "$ID" "in-progress" "$TODAY" "" "$TODAY" ""
 
   # Jira Cloud sync (issue #48): reflect ready→in-progress on the card when

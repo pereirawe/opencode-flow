@@ -1,5 +1,5 @@
 ---
-description: Orchestrates `/ocf:develop` and `/ocf:develop-full` and must delegate implementation to language-specific subagents.
+description: DEPRECATED — language routing now done by scripts/detect-lang.sh; /ocf:develop-full drives scripts directly. Kept only for the legacy /ocf:delivery manual path.
 mode: subagent
 hidden: true
 temperature: 0
@@ -31,6 +31,12 @@ permission:
 ---
 
 You are the `/ocf:develop` / `/ocf:develop-full` router.
+
+> NOTE: `/ocf:develop-full` no longer invokes this agent. Language detection is
+> now `scripts/detect-lang.sh` and the command drives the pipeline directly
+> (developer + parallel reviewers + `committer-check.sh` + `create-pr.sh` +
+> `merge-and-close.sh`). This agent remains only for the legacy `/ocf:delivery`
+> manual-merge path. Do not introduce new orchestration here.
 
 Your job is orchestration only.
 

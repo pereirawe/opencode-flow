@@ -102,6 +102,26 @@ vs 6 for the full flow — BR 4) that still enforces the quality gates:
 Escalated bugs MUST restart from the CTO (CTO → Tech Lead → PO#2 → QA → PM)
 and MUST set `- Flow: escalated` (BR 6, 10).
 
+### Loop Profiles (bugs and issues do NOT share a flow)
+
+Discovery selects ONE loop from `- Type:` + `- Severity:`. Bugs trade depth
+for **speed** but keep a **higher quality bar**; feats keep full depth. Every
+loop ends by writing a canonical entry via `scripts/append-issue.sh` and
+validating with `scripts/issue-lint.sh --strict` — the QA pre-development agent
+is replaced by that lint. PM/remote creation is deferred to promotion.
+
+| Loop | Trigger | Discovery agents | Delivery reviewers | Quality bar |
+|------|---------|-----------------|--------------------|-------------|
+| `feat-full` | `feat` | PO (rules+`Tests:`) → TL (branch/reviewers) | from TL | full |
+| `bug-expedite` | `bug` + `critical`/`high` | PO triage only (lean) | 2 (incl `security` if applicable) | high |
+| `bug-lean` | `bug` + `low`/`medium` | PO triage only (lean) | 1 | normal |
+| `chore` | `doc`/`chore` | none (script) | 1 | light |
+
+- **Expedite** (critical/high bugs) is the fastest path to code yet mandates 2
+  reviewers and `security` when relevant — speed without dropping the bar.
+- **Lean** (low/medium bugs) is the minimal path: one PO triage pass, one
+  reviewer, lint-strict.
+
 ### Aging policy (progressive prioritization)
 
 A medium-priority bug persisting N days in `ready` (N = 7 by default,
@@ -170,23 +190,27 @@ poll or check — it only acts when explicitly triggered by a merge notification
 The user merges the MR manually.
 
 **Exception — `/ocf:develop-full` (end-to-end) and `/ocf:develop` (up to MR)**:
-`/ocf:develop-full` is the end-to-end command. It runs the entire task
-lifecycle automatically — promotion → development → senior review → QA →
-corrections → committer gate → MR creation → **auto-merge** (authorized once
-review and QA approve) → local checkout of the updated base branch → remote
-issue close + archive → a single final Telegram notification. No confirmation,
-no permission prompts at any step. The Close Requester (Phase 12) is only used
-when the flow runs through `ocf:delivery` (which pauses after MR creation) or
-when triggered by `ocf:check-pr`.
+Both commands drive the pipeline **directly via scripts** — there is no
+`delivery` orchestrator agent and no `develop-router` agent in the critical
+path. The engine is: `promote.sh` → `preflight.sh` → `detect-lang.sh` picks the
+dev agent → developer implements + tests → **senior reviewers run in parallel**
+(one `Task` per profile, issued in a single message) → `committer-check.sh` +
+`issue-lint.sh --strict` gate → `create-pr.sh` builds the MR →
+`merge-and-close.sh` (develop-full only: auto-merge + return to base + archive).
+Agents appear only where judgment is needed (developer, reviewers); everything
+mechanical is scripted, which is faster and cheaper.
 
-`/ocf:develop` is the manual-merge variant: it runs the same pipeline UP TO MR
-creation (promote → develop → senior review → QA → corrections → committer
-gate → Publish Requester creates the MR) and then STOPS — it does NOT merge,
-does NOT close/archive, and the local checkout returns to the base branch
-without the change. The issue stays `in-publish` with `PR: #<n>` and the MR
-left OPEN, awaiting a manual merge; the final notification reports the MR link
-and the "esperando merge manual" state. Closing/archiving is delegated to
-`ocf:check-pr` / the Close Requester after the user merges the MR manually.
+- `/ocf:develop-full`: end-to-end — after the MR, it **auto-merges**, checks out
+  the updated base branch, and closes/archives the issue, then sends ONE
+  Telegram notification.
+- `/ocf:develop`: manual-merge variant — runs the same engine UP TO MR creation
+  and STOPS. The MR is left OPEN; the issue stays `in-publish`. Closing/archiving
+  is delegated to `ocf:check-pr` / the Close Requester after the user merges
+  manually.
+
+The `delivery` agent and `develop-router` are **legacy** (manual-merge
+`/ocf:delivery` path only). Loop differentiation (bug vs feat, expedite vs lean)
+is defined in § Loop Profiles above and selected during discovery.
 
 ### Remote Entry Point: `aibot-watcher` (issue #39)
 

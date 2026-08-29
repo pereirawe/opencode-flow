@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.0.0 (2026-08-29)
+
+- **refactor(pipeline): flatten delivery — agents only for judgment** — `/ocf:develop` and `/ocf:develop-full` now drive the pipeline directly via scripts; the `delivery` orchestrator and `develop-router` agents are legacy (manual `/ocf:delivery` path only). Engine: `promote.sh` → `preflight.sh` → `detect-lang.sh` → developer → **parallel senior reviewers** → `committer-check.sh` + `issue-lint.sh --strict` → `create-pr.sh` → `merge-and-close.sh`. Cuts the old 6+N agent chain to 1+N.
+- **feat(develop): `scripts/detect-lang.sh`** — replaces `develop-router` for language routing (Go/Python/ fallback) from repo markers.
+- **feat(develop): `scripts/committer-check.sh`** — mechanical gate verdict (test cache, status, business rules, security report) so the committer agent only applies judgment.
+- **feat(develop): `scripts/create-pr.sh`** — replaces `publish-requester`; builds the MR body from issue fields and records `- PR: #<n>`.
+- **feat(develop): `scripts/merge-and-close.sh`** — merges the MR, returns to the updated base branch, and archives via `close_issue.sh` (mechanical close; agent only adds a closing comment).
+- **feat(develop): `scripts/preflight.sh`** — warms the issue file inventory so the developer skips re-exploration (used for the current and next issue).
+- **feat(discovery): loop profiles by Type + Severity** — `feat-full` (PO + TL, full depth), `bug-expedite` (critical/high, 2 reviewers + security, high quality bar, fast), `bug-lean` (low/medium, 1 reviewer, fast), `chore` (script only). Bugs trade depth for speed but keep a higher quality bar; feats keep full depth.
+- **feat(discovery): `scripts/issue-lint.sh`** — replaces the QA pre-development agent pass; enforces schema + `Tests:` severity floor + business rules + reviewer format. `--strict` for the Committer gate.
+- **feat(discovery): `scripts/append-issue.sh`** — writes a canonical issue entry (no free-form PO/PM prose), removing format variance. PM/remote creation deferred to promotion.
+- **feat(commands): `/ocf:discovery`** — runs discovery (loops) from a proposal or existing issue; `/ocf:plan-feature` is now an alias.
+- **feat(tracking): timestamps with time** — `transition.sh`/`promote.sh`/`close_issue.sh` store `YYYY-MM-DDTHH:MM`; lifecycle durations render in hours for sub-day gaps (`Nh`), making reports precise.
+
 ## 1.9.0 (2026-08-13)
 
 - **feat(career): resume optimization flow — hub + job-tailored resume** — `ocf:cv-hub` builds a candidate hub (`hub.json` canonical schema + `README.md`) from CV PDF + official LinkedIn export (Download My Data, never scraping) + extras; `ocf:cv-tailor` analyzes a job (multi-portal), gap analysis vs hub, and generates a tailored resume PDF (HTML → PDF via Chrome headless, LibreOffice fallback) in the job's language; `cv-optimize` issue #61 registered (agent pending merge). Backed by `agents/career/*`, `skills/career/*` (cv-hub, cv-tailor, cv-pdf), `scripts/cv/*` (schema.json, validate.py, pdf.sh) and 23 script tests

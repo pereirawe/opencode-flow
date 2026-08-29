@@ -7,7 +7,7 @@
 [![GitHub last commit](https://img.shields.io/github/last-commit/pereirawe/opencode-flow)](https://github.com/pereirawe/opencode-flow/commits/main)
 [![GitHub Discussions](https://img.shields.io/badge/discussions-welcome-brightgreen)](https://github.com/pereirawe/opencode-flow/discussions)
 
-**Version:** 1.9.0 — [License](LICENSE) (MIT)
+**Version:** 2.0.0 — [License](LICENSE) (MIT)
 
 Configuração multi-setor para OpenCode com agentes C-level, skills especializadas
 e pipeline de desenvolvimento completo. Vive em `~/.config/opencode/` e é
@@ -114,10 +114,11 @@ make init target=<path> # init project with repo context
 | `/ocf:scan-issues` | Deep codebase analysis and issue detection |
 | `/ocf:review-branch` | Full PR/MR-style code review |
 | `/ocf:review-external` | External branch/MR review with structured report |
-| `/ocf:plan-feature` | Feature breakdown with risk assessment |
+| `/ocf:discovery [proposal\|id]` | Run discovery — routes by Type+severity into a LOOP (feat-full / bug-expedite / bug-lean / chore) and writes a canonical, linted issue |
+| `/ocf:plan-feature` | Alias of `/ocf:discovery` for feature planning |
 | `/ocf:promote <id>` | Promote backlog item + create remote issue |
-| `/ocf:develop [id...]` | Run the full task lifecycle up to MR creation for one or more issues (promote → develop → review → QA → MR → wait for manual merge) |
-| `/ocf:develop-full [id...]` | Run the full task lifecycle end-to-end for one or more issues (promote → develop → review → QA → MR → auto-merge → archive) |
+| `/ocf:develop [id...]` | Run the lifecycle up to MR (flattened engine: dev → parallel reviewers → committer-check → create-pr), then STOP for manual merge |
+| `/ocf:develop-full [id...]` | End-to-end for one or more issues (flattened engine → auto-merge → close+archive). Agents only for judgment |
 | `/ocf:commit` | Create structured commit with status trailers |
 | `/ocf:sync-issues` | Sync known_issues with remote tracker |
 | `/ocf:archive-issue <id>` | Archive resolved issue to compact format |
@@ -190,11 +191,58 @@ Every change in this repo follows the same lifecycle. See `workflow.md` for the 
 
 ## Pipeline Overview
 
-The development pipeline has three phases:
+The pipeline is split into **Discovery** (turn an idea into a tracked, linted
+issue) and **Delivery** (turn an issue into a merged, archived MR). Both are
+token-optimized: mechanical steps are scripts, agents appear only for judgment.
 
-1. **Discovery** (PO → CTO → Tech Lead → QA → PM): refine requirements, define business rules, branch base, and reviewer profiles. PM asks to create remote issue at the end.
-2. **Development** (Developer → Senior Reviewers → QA → Developer corrections): implement, self-review, run tests, then auto-proceed to senior review without pausing.
-3. **Publishing** (Committer → Publish Requester → Close Requester): verify gates, create MR, close issue on merge.
+### Discovery — loops by Type + Severity
+
+Bugs and features do **not** share a flow. Discovery selects a LOOP from
+`- Type:` + `- Severity:` (see `workflow.md` § Loop Profiles). Bugs trade depth
+for **speed** but keep a **higher quality bar**; feats keep full depth.
+
+```mermaid
+flowchart TD
+  A[Proposal or existing issue] --> B{Type + Severity}
+  B -->|feat| C[feat-full: PO rules+Tests → TL branch/reviewers]
+  B -->|bug critical/high| D[bug-expedite: PO triage → 2 reviewers + security]
+  B -->|bug low/medium| E[bug-lean: PO triage → 1 reviewer]
+  B -->|doc/chore| F[chore: script only]
+  C --> G[append-issue.sh → issue-lint.sh --strict → ready]
+  D --> G
+  E --> G
+  F --> G
+```
+
+Every loop ends by writing a **canonical** entry (`scripts/append-issue.sh`) and
+validating it (`scripts/issue-lint.sh`) — no free-form PO/PM prose, no separate
+QA-agent pass. PM and remote creation are deferred to promotion.
+
+### Delivery — flattened engine (develop / develop-full)
+
+There is **no `delivery` orchestrator and no `develop-router`** in the critical
+path. The command drives scripts directly; `scripts/detect-lang.sh` replaces the
+router. Agents appear only for implementation (developer) and parallel domain
+review (senior reviewers).
+
+```mermaid
+flowchart LR
+  P[promote.sh + create_issue.sh] --> W[preflight.sh: warm inventory]
+  W --> L[detect-lang.sh → pick dev agent]
+  L --> D[Developer: implement + tests]
+  D --> R[Senior reviewers in PARALLEL]
+  R -->|issues| D
+  R -->|approve| G[committer-check.sh + issue-lint.sh --strict]
+  G -->|PASS| PR[create-pr.sh: MR]
+  PR --> F[develop-full: merge-and-close.sh → archive]
+  PR -->|develop| STOP[MR OPEN — manual merge]
+```
+
+- **`/ocf:develop-full`** runs the full chain including auto-merge + archive.
+- **`/ocf:develop`** stops at MR creation (manual merge); closing is `/ocf:check-pr`.
+
+Timestamps are stored with **date + time** (`YYYY-MM-DDTHH:MM`) so lifecycle
+durations in `resolved_issues.md` are precise (hours for sub-day gaps).
 
 The pipeline runs continuously after promotion — no user confirmation needed between steps.
 See `workflow.md` for complete details.

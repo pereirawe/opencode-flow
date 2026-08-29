@@ -1,21 +1,24 @@
 ## /ocf:develop-full [id...]
 
 ---
-description: Run the full task lifecycle end-to-end for one or more issues: promote, develop, review, QA, MR, auto-merge, return-to-base, close + archive
+description: End-to-end lifecycle for one or more issues — promote, develop, parallel review, QA gate, MR, auto-merge, close+archive. Agents are used only for judgment (developer + senior reviewers); everything mechanical is a script.
 ---
 
 Run the ENTIRE task flow for one or more tracked issues, from promotion to
-archived merge. Everything happens automatically — no confirmation, no
-permission prompts, no pausing between pipeline phases. After the MR is
-created, the pipeline **auto-merges** it (authorized by review + QA), checks
-out the updated base branch locally, and closes/archives the issue.
+archived merge, automatically — no confirmation, no permission prompts, no
+pausing. After the MR is created the pipeline **auto-merges**, returns to the
+base branch, and closes/archives the issue.
 
-This is the full end-to-end variant of `/ocf:develop` — use `/ocf:develop`
-when you want to stop at MR creation and merge manually (the MR is left OPEN
-and closing/archiving is delegated to `ocf:check-pr` / Close Requester).
+**Design:** this command drives the pipeline directly. There is NO
+`delivery` orchestrator agent and NO `develop-router` agent in the critical
+path — `scripts/detect-lang.sh` replaces the router, and the merge/close is
+`scripts/merge-and-close.sh`. Agents appear only where judgment is needed:
+the **developer** (implementation) and the **senior reviewers** (parallel
+domain review). This cuts the old 6+N agent chain to 1+N and removes
+mechanical roundtrips.
 
-At least ONE issue ID is required. Multiple IDs may be passed separated by
-spaces, commas, or dashes. Each issue runs the full flow sequentially, and a
+At least ONE issue ID is required. Multiple IDs may be separated by spaces,
+commas, or dashes; deduplicated (order preserved), processed sequentially. A
 single Telegram notification is sent after the LAST issue.
 
 ### Arguments
@@ -24,70 +27,66 @@ single Telegram notification is sent after the LAST issue.
 /ocf:develop-full 4
 /ocf:develop-full 4 5 6
 /ocf:develop-full 4,5,6
-/ocf:develop-full 4-5-6
 /ocf:develop-full #4 #5 #6
 ```
 
-IDs are deduplicated (preserving order) and processed one at a time, in order.
+### Auto-Promotion Flow (silent)
 
-### Auto-Promotion Flow
-
-The promote flow runs silently. Missing data is handled gracefully:
-`Base branch:` → detected from git; `Reviewers:` → defaults to 1;
-`Remote:` → auto-created if missing.
+Missing data handled gracefully: `Base branch:` → git default; `Reviewers:` →
+`1 (backend)`; `Remote:` → auto-created via `create_issue.sh` if missing.
 
 | Status | Action |
 |--------|--------|
-| `backlog` | `promote.sh <id>` → `ready` → `create_issue.sh <id>` (remote) → `promote.sh <id>` → `in-progress` + branch |
-| `ready` | Auto-create remote if missing, then `promote.sh <id>` → `in-progress` + branch |
-| `open` with Remote set | Update status to `in-progress`, checkout/create branch `issue-<id>-<slug>` |
-| `open` with `Remote: -` | `create_issue.sh <id>` → `in-progress` + branch |
-| `in-progress` | Proceed directly |
-| `in-review` / `in-qa` / `in-publish` / `resolved` | Refuse — issue is past development |
+| `backlog` | `promote.sh` → `ready`; if `Remote: -`, `create_issue.sh`; `promote.sh` → `in-progress` + branch |
+| `ready` | if `Remote: -` → `create_issue.sh`; `promote.sh` → `in-progress` + branch |
+| `open` w/ Remote | `in-progress` + branch `issue-<id>-<slug>` |
+| `open` w/ `Remote: -` | `create_issue.sh` → `in-progress` + branch |
+| `in-progress` | proceed |
+| `in-review`/`in-qa`/`in-publish`/`resolved` | Refuse — past development |
 
 ### Full Task Flow (per issue)
 
-1. **Resolve `known_issues.md`** (project `.opencode/` first, global fallback)
-2. **Check & fill gaps**: detect `Base branch:` from git if empty, default
-   `Reviewers:` to 1 if empty, auto-create `Remote:` if needed — no user prompts
-3. **Auto-promote**: run the promotion flow above based on current status
-4. **Verify branch**: if not already on `issue-<id>-<slug>`, checkout or create it
-5. **Deliver**: invoke the `development/delivery` subagent (skipping its Phase 6
-   promotion, since the issue is already `in-progress`) — it runs Developer
-   (via develop-router) → Senior Review → QA → corrections loop → Committer
-   gate → Publish Requester, which creates the MR
-6. **Read the MR**: re-extract the issue entry and read the `- PR: #<n>` field.
-   If it is missing or `-`, the MR was not created — record the failure and
-   STOP the list
-7. **Auto-merge**: once review and QA approve, merge the MR on the remote
-   (GitHub `gh pr merge` / GitLab `glab mr merge`) — no permission prompt
-8. **Return to base**: `git checkout <base-branch>` + `git pull origin <base-branch>`
-   so the local checkout ends on the updated main/master
-9. **Close & archive**: `close_issue.sh <id>` closes the remote issue and
-   archives the entry; the tracker update is committed to the base branch
-10. **Repeat** for the next issue in the list — each one starts clean from the
-    updated base branch
+1. **Resolve `known_issues.md`** (project `.opencode/` first, global fallback).
+2. **Fill gaps**: detect `Base branch:` from git if empty, default `Reviewers:`
+   to `1 (backend)`, auto-create `Remote:` if needed — no user prompts.
+3. **Promote**: run the flow above (`create_issue.sh` + `promote.sh`).
+4. **Warm current issue**: `scripts/preflight.sh <id>` builds the file
+   inventory so the developer skips re-exploration.
+5. **Pick dev agent**: `LANG=$(scripts/detect-lang.sh [location])` →
+   `development/devs/golang` | `development/devs/python` | `development/developer`.
+6. **Implement**: `Task(<devagent>)` — implement per business rules, write
+   tests via `test-runner` skill, self-review, `transition.sh <id> in-review`.
+   No pausing.
+7. **Parallel senior review**: read `- Reviewers:` (`<n> (profiles)`). Launch
+   **one `Task(development/senior-reviewers/<profile>)` per profile in a SINGLE
+   message** for true parallelism. All must approve. On issues → `Task(<devagent>)`
+   fixes, then re-review (loop within this step).
+8. **Quality + committer gate**: run `scripts/committer-check.sh <id>` and
+   `scripts/issue-lint.sh --strict <id>`. Both must PASS → `transition.sh <id>
+   in-publish`. On FAIL → STOP the list, notify (do not auto-merge).
+9. **Create MR**: `scripts/create-pr.sh <id>` (builds body from issue fields,
+   sets `- PR: #<n>`).
+10. **Merge + archive**: `OCF_CLOSE_COMMENT=1 scripts/merge-and-close.sh <id>`
+    (merges MR, returns to base + pull, archives via `close_issue.sh`).
+11. **Warm next**: if there is a next ID, `scripts/preflight.sh <next-id>` now
+    (clean base) so the next developer starts warm.
+12. **Repeat** for the next issue.
 
 ### Telegram Notifications
 
-Only ONE Telegram notification is sent for this command — after the LAST issue
-completes, summarizing the final outcome (success or failure) with a per-issue
-summary (id, PR/MR link, merged status). No intermediate notifications during
-promotion, development, review, QA, merge, or between issues. Pipeline
-subagents (delivery, develop-router, implementation agents) are instructed to
-defer — the final message is sent exclusively by this command session.
+Exactly ONE, after the LAST issue: per-issue summary (id, PR link, merged). No
+intermediate notifications. Subagents (developer, reviewers) never notify.
 
 ### Failure Handling
 
-If ANY issue in the list fails (not found, refused status, development blocked,
-review/QA not approved, committer gate fails, MR creation fails, merge fails),
-STOP the entire list immediately — do not continue to the next issue and do not
-ask. Send exactly ONE failure notification. Already-merged issues stay resolved;
-the failed issue stays in `known_issues.md` with its current status.
+Any failure (not found, refused status, review not approved, committer/lint
+FAIL, MR/merge fails) → STOP the list, send ONE failure notification. Already
+merged issues stay resolved; the failed issue keeps its current status.
 
-### Validation Notes
+### Loop profiles
 
-- `Business rules:` empty for `feat` type → warns it will be blocked by Committer
-- `Remote:` auto-created when missing before `ready → in-progress`
-- Reviewer profiles validated during `promote.sh` (warns only, non-blocking)
-- Uncommitted changes: suggest stash or commit before promoting
+Discovery selects the loop; delivery is the same engine, differentiated by
+reviewer count + auto-merge. See `workflow.md` § Loop Profiles:
+`feat-full` (PO+TL, full depth), `bug-expedite` (critical/high, 2 reviewers +
+security, high quality bar), `bug-lean` (low/medium, 1 reviewer, fast),
+`chore` (light). Bugs trade depth for speed but keep a higher quality bar.
