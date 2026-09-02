@@ -17,7 +17,7 @@ summary). The hub is the foundation for tailored resume generation
 ├── hub.json          # canonical schema (source of truth for AI)
 ├── README.md         # human executive summary, generated from hub.json
 ├── entradas/         # original source files
-│   ├── curriculo.pdf # (required)
+│   ├── cv.pdf        # (required) the candidate's CV PDF — keeps its original filename
 │   ├── linkedin/     # official LinkedIn export (optional)
 │   └── extras/       # certificates, portfolio, projects (optional)
 └── resumes/       # generated resumes (HTML + PDF)
@@ -34,9 +34,10 @@ summary). The hub is the foundation for tailored resume generation
 ## Extraction process
 
 1. **Receive the sources** — confirm the candidate directory and copy the
-   files into `entradas/` (`curriculo.pdf`, `linkedin/`, `extras/`).
-2. **Extract the PDF** — run `pdftotext -layout curriculo.pdf -` (or use
-   `pdftotext curriculo.pdf out.txt`). If `pdftotext` is not available, use
+   files into `entradas/` (`cv.pdf` — the candidate's CV PDF, under whatever
+   filename they provided —, `linkedin/`, `extras/`).
+2. **Extract the PDF** — run `pdftotext -layout cv.pdf -` (or use
+   `pdftotext cv.pdf out.txt`). If `pdftotext` is not available, use
    Python: `python3 -c` with `pypdf`/`PyPDF2` if installed; otherwise ask the
    user to provide the text. Never attempt OCR if the tool does not exist.
 3. **Structure the LinkedIn export** — in the official export, read the files

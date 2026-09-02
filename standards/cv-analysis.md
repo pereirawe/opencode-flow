@@ -373,10 +373,12 @@ case-preserved.
    profile-analysis.md, gap-analysis.md, inferences.md, feedback.md (and
    their HTML/PDF renders, which are reading/analysis artifacts, not
    ATS-submitted).
-3. **NEVER in shareable resume artifacts** — the final resume
-   (`index.html`, `curriculo.pdf`) and any artifact submitted to an
-   ATS/recruiter MUST NOT contain `[INFERIDO]` — nor case-insensitive
-   variants (`[inferido]`, `[Inferido]`) or the bare word "inferido".
+3. **NEVER in shareable resume artifacts** — the final resume (`index.html`
+   and the generated resume PDF, named `<FirstName> <LastName> -
+   <JobTitle>.pdf` per the cv-tailor commercial name rule) and any artifact
+   submitted to an ATS/recruiter MUST NOT contain `[INFERIDO]` — nor
+   case-insensitive variants (`[inferido]`, `[Inferido]`) or the bare word
+   "inferido".
 4. **Gate** — `scripts/cv/check-inference.sh` MUST pass (exit 0) on the final
    resume HTML/PDF before delivery; it blocks with exit 1 when markers are
    found.

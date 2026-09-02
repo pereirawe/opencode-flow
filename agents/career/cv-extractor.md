@@ -31,7 +31,9 @@ existing `hub.json` — ADD or UPDATE only, never recreating the hub.
 ## Responsibilities
 
 - Receive the candidate directory (`~/career/<candidate-name>/`) and the sources:
-  - `curriculo.pdf` (required)
+  - the candidate's CV PDF (required — receives its actual path; after the
+    copy it is `cv.pdf` in `entradas/`, keeping the original filename if
+    provided)
   - official LinkedIn export (optional) — see the `cv-hub` skill for the official flow
   - extras (certificates, portfolio, projects)
 - Copy the sources into `entradas/`.

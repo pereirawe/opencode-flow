@@ -80,15 +80,23 @@ language.
    12–15mm margins, 1–2 pages) before generating the PDF.
 10. **Run the mandatory gate**: `bash $SCRIPTS_DIR/cv/check-inference.sh index.html`
     — the gate MUST pass (exit 0) before the PDF.
-11. Generate the PDF: `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
+11. **Derive the final PDF name** — `<FirstName> <LastName> - <JobTitle>.pdf`
+    from `hub.json → personal_info.name` (first + last name tokens) and the
+    job title in the JOB's language (ASCII-normalized — `João` → `Joao` —,
+    Title Case on main words, ` - ` separator; fallbacks: `<job-slug>.pdf`
+    when the name is unavailable, `<FirstName> <LastName> - Resume.pdf` when
+    the title is unavailable — see the cv-tailor skill, "PDF filename" rule).
+    Generate the PDF with that final name:
+    `bash $SCRIPTS_DIR/cv/pdf.sh index.html "<FirstName> <LastName> - <JobTitle>.pdf"`.
 12. **Page-2 footer (2-pass)** — check the page count with
-    `pdfinfo curriculo.pdf | awk '/^Pages:/ {print $2}'`. If > 1 page
+    `pdfinfo "<FirstName> <LastName> - <JobTitle>.pdf" | awk '/^Pages:/ {print $2}'`. If > 1 page
     (senior+), fill the `<footer class="page-footer">` spans with
     `<name> · Page X of Y` (job language) and re-run `pdf.sh`; if exactly 1
     page, REMOVE the `.page-footer` block and re-run. After the re-render,
     re-run `pdfinfo` and confirm ≤ 2 pages (3+ is forbidden); condense if
     needed. The footer is plain text, never altering digits or ATS order.
-13. **Digit verification** — after the final PDF, run `pdftotext curriculo.pdf -`
+13. **Digit verification** — after the final PDF, run
+    `pdftotext "<FirstName> <LastName> - <JobTitle>.pdf" -`
     and confirm every metric/date digit from `index.html` appears unchanged
     (the tabular-numeral spine changes only glyph widths). If any digit is
     altered, fix the source and re-render.
