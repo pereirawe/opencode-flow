@@ -22,7 +22,7 @@ The candidate must have a resume generated for the job slug by `ocf:cv-tailor`
 
 ```
 ~/career/<candidate-name>/resumes/<job-slug>/
-├── curriculo.pdf         # generated A4 PDF (primary text source)
+├── <FirstName> <LastName> - <JobTitle>.pdf   # generated A4 PDF (primary text source; cv-tailor commercial name)
 ├── index.html            # resume HTML (fallback text source)
 ├── gap-analysis.md       # Job context + Required/Desirable requirements (keyword source)
 └── inferences.md        # resolved inferences (optional context)
@@ -40,13 +40,26 @@ missing, tell the user to run `ocf:cv-tailor` for the job slug first.
 
 ## 1. Text extraction (best-effort)
 
-1. Extract the resume text from `curriculo.pdf` with
-   `pdftotext curriculo.pdf -` (single-column readable text). The PDF is the
+1. **Locate the resume PDF** — the generated resume PDF is named
+   `<FirstName> <LastName> - <JobTitle>.pdf` (cv-tailor commercial name rule;
+   the old generic PT name is retired). Find it in
+   `resumes/<job-slug>/`:
+   - read the candidate name from `hub.json` (`personal_info.name`) and list
+     the directory (`ls *.pdf`): the resume is the PDF whose basename starts
+     with `<FirstName> <LastName>` (ASCII-normalized — accents removed — and
+     followed by ` - <job title>.pdf`); or, when the name is unknown or the
+     match is ambiguous, list all `*.pdf` files of the slug directory — the
+     resume is the only PDF there (analysis reports are `.md`; cover letters
+     live in `cartas/`, never here).
+   - if no resume PDF is found, tell the user to run `ocf:cv-tailor` for the
+     job slug first.
+2. Extract the resume text from the located PDF with
+   `pdftotext "<resume pdf>" -` (single-column readable text). The PDF is the
    primary source because it is the artifact actually submitted to an ATS.
-2. **pdftotext unavailable** → report the limitation in the report and fall
+3. **pdftotext unavailable** → report the limitation in the report and fall
    back to the `index.html` text (real selectable text, same content as the
    PDF). The analysis still runs; the report notes the source used.
-3. If BOTH sources are unavailable or empty, produce the report with a
+4. If BOTH sources are unavailable or empty, produce the report with a
    `cannot-analyze` outcome, explain why, and do not invent a score.
 
 ## 2. Keyword extraction (from the job)
@@ -200,7 +213,8 @@ names, and the `[INFERIDO]` marker.
 the `[INFERIDO]` marker MAY appear INLINE next to estimates, per
 `standards/cv-analysis.md` §5 — e.g. an estimated ATS parse behavior
 `[INFERIDO]`. It MUST NEVER appear in the shareable resume artifacts
-(`index.html`, `curriculo.pdf`) — the report NEVER edits those files, and
+(`index.html` and the generated resume PDF, named per the cv-tailor rule) —
+the report NEVER edits those files, and
 `scripts/cv/check-inference.sh` remains the gate for the resume itself.
 
 ## Hard rules
@@ -209,8 +223,8 @@ the `[INFERIDO]` marker MAY appear INLINE next to estimates, per
    computed from the actual resume text and gap-analysis.md. If a metric
    cannot be computed from the sources, say so instead of inventing it.
 2. **Read-only** — the agent NEVER modifies `hub.json`, `gap-analysis.md`,
-   `inferences.md`, `index.html` or `curriculo.pdf`. The ONLY file written is
-   `ats-score.md`.
+   `inferences.md`, `index.html` or the generated resume PDF. The ONLY file
+   written is `ats-score.md`.
 3. **No URL fetching** — the job and the resume are read from local files
    only; never fetch job descriptions from the web.
 4. **Structure compliance** — exactly one H1 title, NO metadata header, only

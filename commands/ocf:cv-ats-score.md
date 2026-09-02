@@ -21,7 +21,7 @@ The candidate needs a valid hub at `~/career/<candidate-name>/hub.json`
 
 ```
 ~/career/<candidate-name>/resumes/<job-slug>/
-├── curriculo.pdf         # generated A4 PDF (primary text source)
+├── <FirstName> <LastName> - <JobTitle>.pdf   # generated A4 PDF (primary text source; cv-tailor commercial name)
 ├── index.html            # resume HTML (fallback text source)
 └── gap-analysis.md       # Job context + Required/Desirable requirements
 ```
@@ -41,17 +41,19 @@ missing, run `/ocf:cv-tailor` for the job slug first.
 
 ### Flow
 
-1. **Verify artifacts** — check `resumes/<job-slug>/curriculo.pdf`,
-   `index.html` and `gap-analysis.md` exist; missing → tell the user to run
+1. **Verify artifacts** — check `resumes/<job-slug>/` contains the generated
+   resume PDF (named `<FirstName> <LastName> - <JobTitle>.pdf` per the
+   cv-tailor commercial name rule — locate it by listing the `*.pdf` files),
+   plus `index.html` and `gap-analysis.md`; missing → tell the user to run
    `/ocf:cv-tailor` for the job slug first.
 2. **Validate hub** — `python3 $SCRIPTS_DIR/cv/validate.py hub.json`; if the
    hub is missing/invalid, tell the user to run `/ocf:cv-hub` first.
 3. **Invoke the agent** `career/cv-ats-score` via `task:` with the candidate
    directory and the job slug.
-4. **Extract resume text** — `pdftotext curriculo.pdf -` (best-effort; if
-   `pdftotext` is unavailable, report the limitation and fall back to the
-   `index.html` text; no source → `cannot-analyze` outcome, never an invented
-   score).
+4. **Extract resume text** — `pdftotext "<resume pdf>" -` on the located
+   resume PDF (best-effort; if `pdftotext` is unavailable, report the
+   limitation and fall back to the `index.html` text; no source →
+   `cannot-analyze` outcome, never an invented score).
 5. **Load job keywords** — from `resumes/<job-slug>/gap-analysis.md`
    (Job context + Required/Desirable requirements).
 6. **Analyze** —
@@ -81,7 +83,8 @@ Recommendations.
 - NEVER fabricate counts, scores, flags or recommendations — every metric is
   computed from the actual resume text and gap-analysis.md.
 - The agent is read-only besides the report: it NEVER modifies `hub.json`,
-  `gap-analysis.md`, `inferences.md`, `index.html` or `curriculo.pdf`.
+  `gap-analysis.md`, `inferences.md`, `index.html` or the generated resume
+  PDF.
 - `[INFERIDO]` MAY appear inline in `ats-score.md` (internal analysis report
   per `standards/cv-analysis.md` §5) — never in the shareable resume
   artifacts.

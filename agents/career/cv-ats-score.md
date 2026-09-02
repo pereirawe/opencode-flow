@@ -31,16 +31,20 @@ actual resume text and the job requirements persisted by cv-tailor.
 1. Load the `cv-ats-score` skill (full process) and the
    `standards/cv-analysis.md` standard (report language resolution, structure
    rules, `[INFERIDO]` convention).
-2. Verify the resume artifacts exist for the job slug:
-   `~/career/<candidate-name>/resumes/<job-slug>/curriculo.pdf` (primary),
-   `index.html` (fallback) and `gap-analysis.md` (job keywords). Missing
-   artifacts → tell the user that `ocf:cv-tailor` must run for the job slug
-   first.
+2. Verify the resume artifacts exist for the job slug: the generated resume
+   PDF in `~/career/<candidate-name>/resumes/<job-slug>/` — named
+   `<FirstName> <LastName> - <JobTitle>.pdf` per the cv-tailor commercial
+   name rule. Locate it by listing the `*.pdf` files of the slug directory
+   and picking the one whose basename starts with the candidate name from
+   `hub.json` (`personal_info.name`) when the name is known, or the only PDF
+   present otherwise — plus `index.html` (fallback) and `gap-analysis.md`
+   (job keywords). Missing artifacts → tell the user that `ocf:cv-tailor`
+   must run for the job slug first.
 3. Read `hub.json` and validate with `python3 $SCRIPTS_DIR/cv/validate.py`;
    missing/invalid hub → tell the user that `ocf:cv-hub` must run first.
 4. Extract the resume text:
-   - `pdftotext curriculo.pdf -` (primary source — the artifact actually
-     submitted to an ATS).
+   - `pdftotext "<resume pdf>" -` on the located PDF (primary source — the
+     artifact actually submitted to an ATS).
    - If `pdftotext` is unavailable, report the limitation and fall back to the
      `index.html` text (same content, real selectable text).
    - If no text source is available, produce the report with a
@@ -69,11 +73,12 @@ actual resume text and the job requirements persisted by cv-tailor.
    computed from the actual resume text and gap-analysis.md; when a metric
    cannot be computed, say so instead of inventing it.
 2. Read-only besides the report — NEVER modify `hub.json`, `gap-analysis.md`,
-   `inferences.md`, `index.html` or `curriculo.pdf`; the ONLY file written is
-   `ats-score.md`.
+   `inferences.md`, `index.html` or the generated resume PDF; the ONLY file
+   written is `ats-score.md`.
 3. `[INFERIDO]` MAY appear inline in `ats-score.md` (internal analysis report
    per `standards/cv-analysis.md` §5) — but NEVER in the shareable resume
-   artifacts (`index.html`/`curriculo.pdf`), which this agent never edits.
+   artifacts (`index.html`/the generated resume PDF), which this agent never
+   edits.
 4. Report language = the user's communication language.
 5. Report structure per `standards/cv-analysis.md` — exactly one H1 title, NO
    metadata header (no "Generated on:", "Source:", "Tool:", "Note:" at the

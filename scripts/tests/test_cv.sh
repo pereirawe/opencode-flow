@@ -99,12 +99,12 @@ if [[ -n "$CHROME" ]]; then
   mkdir -p "$TMP/joão-silva"
   cp "$TMP/resume.html" "$TMP/joão-silva/index.html"
   set +e
-  bash "$PDF_SH" "$TMP/joão-silva/index.html" "$TMP/joão-silva/curriculo.pdf" chrome >/dev/null 2>&1
+  bash "$PDF_SH" "$TMP/joão-silva/index.html" "$TMP/joão-silva/resume.pdf" chrome >/dev/null 2>&1
   rc_accent=$?
   set -e
   assert_eq "0" "$rc_accent" "pdf.sh handles a non-ASCII output path"
-  if command -v pdftotext >/dev/null 2>&1 && [[ -s "$TMP/joão-silva/curriculo.pdf" ]]; then
-    ACCENTED="$(pdftotext "$TMP/joão-silva/curriculo.pdf" - 2>/dev/null || true)"
+  if command -v pdftotext >/dev/null 2>&1 && [[ -s "$TMP/joão-silva/resume.pdf" ]]; then
+    ACCENTED="$(pdftotext "$TMP/joão-silva/resume.pdf" - 2>/dev/null || true)"
     if [[ "$ACCENTED" == *"Test Resume"* ]]; then
       t_ok "non-ASCII path renders the real content (not a Chrome error page)"
     else
@@ -184,22 +184,23 @@ chmod +x "$MOCK_DIR/libreoffice"
 mkdir -p "$TMP/in" "$TMP/out"
 cp "$TMP/resume.html" "$TMP/in/resume.html"
 set +e
-PATH="$MOCK_DIR:$PATH" bash "$PDF_SH" "$TMP/in/resume.html" "$TMP/out/curriculo.pdf" libreoffice >/dev/null 2>&1
+PATH="$MOCK_DIR:$PATH" bash "$PDF_SH" "$TMP/in/resume.html" "$TMP/out/resume.pdf" libreoffice >/dev/null 2>&1
 rc_lo=$?
 set -e
 assert_eq "0" "$rc_lo" "LibreOffice fallback succeeds with input and output in different dirs"
-assert_eq "1" "$(test -s "$TMP/out/curriculo.pdf" && echo 1 || echo 0)" "fallback PDF moved to OUTPUT_ABS (not stranded in input dir)"
+assert_eq "1" "$(test -s "$TMP/out/resume.pdf" && echo 1 || echo 0)" "fallback PDF moved to OUTPUT_ABS (not stranded in input dir)"
 
-# Same-dir invocation (the documented flow: pdf.sh index.html curriculo.pdf)
-# must also work — cp/mv "same file" guard (regression CRITICAL-1).
+# Same-dir invocation (input and output sharing one directory — the documented
+# pdf.sh index.html <output.pdf> flow) must also work — cp/mv "same file"
+# guard (regression CRITICAL-1).
 mkdir -p "$TMP/samedir"
 cp "$TMP/resume.html" "$TMP/samedir/index.html"
 set +e
-PATH="$MOCK_DIR:$PATH" bash "$PDF_SH" "$TMP/samedir/index.html" "$TMP/samedir/curriculo.pdf" libreoffice >/dev/null 2>&1
+PATH="$MOCK_DIR:$PATH" bash "$PDF_SH" "$TMP/samedir/index.html" "$TMP/samedir/resume.pdf" libreoffice >/dev/null 2>&1
 rc_samedir=$?
 set -e
 assert_eq "0" "$rc_samedir" "LibreOffice fallback succeeds in the same-dir invocation"
-assert_eq "1" "$(test -s "$TMP/samedir/curriculo.pdf" && echo 1 || echo 0)" "same-dir fallback PDF written"
+assert_eq "1" "$(test -s "$TMP/samedir/resume.pdf" && echo 1 || echo 0)" "same-dir fallback PDF written"
 
 # --- check-inference.sh gate ---
 # The gate blocks [INFERIDO] markers (case-insensitive) in the FINAL HTML/PDF.
@@ -299,7 +300,7 @@ if [[ -f "$MIGRATE_SCRIPT" ]]; then
   "projetos": [{"nome": "p", "descricao": "d", "relevancia": "alta"}],
   "idiomas": [{"idioma": "English", "nivel": "fluente", "nota_escala": "C1"}],
   "links": [{"nome": "GH", "url": "https://github.com/x"}],
-  "fontes": ["curriculo.pdf"],
+  "fontes": ["cv.pdf"],
   "data_geracao": "2026-08-15"
 }
 EOF
@@ -334,7 +335,7 @@ assert hub["skills"][0]["importance"] == "primary" and hub["skills"][0]["categor
 assert hub["languages"][0]["language"] == "English" and hub["languages"][0]["level"] == "fluent"
 assert hub["languages"][0]["scale_note"] == "C1"
 assert hub["certifications"][0]["issuer"] == "AWS"
-assert hub["sources"] == ["curriculo.pdf"] and hub["version"] == 2
+assert hub["sources"] == ["cv.pdf"] and hub["version"] == 2
 EOF
   t_ok "migrated hub has English keys, translated enums, and schema version 2"
 
@@ -2191,6 +2192,87 @@ if [[ -f "$OPT_SKILL" ]]; then
   assert_contains "$OPT_SKILL" "shares the resume" "cv-optimizer skill points at the shared design language"
 else
   t_fail "cv-optimizer skill missing at $OPT_SKILL"
+fi
+
+# --- issue #292: resume PDF named '<FirstName> <LastName> - <JobTitle>.pdf' ---
+# BR 1-9 — the cv-tailor output PDF follows the commercial naming pattern
+# (ASCII-normalized, job-language Title Case, ' - ' separator) with fallbacks;
+# the intermediate HTML stays index.html and the slug directory layout is
+# unchanged. No active career artifact may reference the retired generic PDF
+# name (Test 1 / AC 3). The retired needle is split so these very assertions
+# do not self-match.
+RETIRED_PDF_NAME="curricu""lo.pdf"
+if grep -rnF -- "$RETIRED_PDF_NAME" \
+      "$SCRIPT_DIR/../../skills/career" \
+      "$SCRIPT_DIR/../../agents/career" \
+      "$SCRIPT_DIR/../../commands"/ocf:cv-*.md \
+      "$SCRIPT_DIR/../../standards/cv-analysis.md" \
+      "$SCRIPT_DIR/test_cv.sh" >/dev/null 2>&1; then
+  t_fail "career artifacts still reference the retired generic PDF name"
+else
+  t_ok "no career artifact references the retired generic PDF name (grep 0)"
+fi
+
+# BR 1/2 — cv-tailor skill: generation step uses the commercial name, pins a
+# PT and an EN example (ASCII-normalized, job-language Title Case).
+if [[ -f "$TAILOR_SKILL" ]]; then
+  assert_contains "$TAILOR_SKILL" "pdf.sh index.html \"<FirstName> <LastName> - <JobTitle>.pdf\"" \
+    "cv-tailor skill generates the PDF with the commercial name (BR 1)"
+  assert_contains "$TAILOR_SKILL" "Joao Silva - Engenheiro de Software Senior.pdf" \
+    "cv-tailor skill pins the PT example, ASCII-normalized (BR 2)"
+  assert_contains "$TAILOR_SKILL" "Joao Silva - Senior Data Engineer.pdf" \
+    "cv-tailor skill pins the EN example with the job-language title (BR 2)"
+  assert_not_contains "$TAILOR_SKILL" "João Silva - Engenheiro de Software Senior.pdf" \
+    "cv-tailor skill filename example carries no accents (João -> Joao)"
+  assert_contains "$TAILOR_SKILL" "João" \
+    "cv-tailor skill documents the accented source name as normalization input"
+  assert_contains "$TAILOR_SKILL" "Title Case" \
+    "cv-tailor skill documents the Title Case normalization (BR 2)"
+  assert_contains "$TAILOR_SKILL" "job's language" \
+    "cv-tailor skill documents the job-language title rule (BR 2)"
+  assert_contains "$TAILOR_SKILL" "personal_info.name" \
+    "cv-tailor skill derives the name from hub.json personal_info.name (BR 1/3)"
+  # BR 3 — fallbacks documented without breaking the flow
+  assert_contains "$TAILOR_SKILL" "<job-slug>.pdf" \
+    "cv-tailor skill documents the <job-slug>.pdf fallback when the name is unavailable (BR 3)"
+  assert_contains "$TAILOR_SKILL" "- Resume.pdf" \
+    "cv-tailor skill documents the <Name> - Resume.pdf fallback when the title is unavailable (BR 3)"
+  # BR 4/7 — intermediate HTML stays index.html; output tree shows the new name
+  assert_contains "$TAILOR_SKILL" "<FirstName> <LastName> - <JobTitle>.pdf" \
+    "cv-tailor skill output tree shows the commercial PDF name"
+else
+  t_fail "cv-tailor skill missing at $TAILOR_SKILL"
+fi
+
+# cv-tailor agent + command mirror the naming rule and the fallbacks
+if [[ -f "$TAILOR_AGENT" ]]; then
+  assert_contains "$TAILOR_AGENT" "<FirstName> <LastName> - <JobTitle>.pdf" \
+    "cv-tailor agent generates the PDF with the commercial name (BR 1)"
+  assert_contains "$TAILOR_AGENT" "<job-slug>.pdf" \
+    "cv-tailor agent documents the <job-slug>.pdf fallback (BR 3)"
+else
+  t_fail "cv-tailor agent missing at $TAILOR_AGENT"
+fi
+
+if [[ -f "$TAILOR_CMD" ]]; then
+  assert_contains "$TAILOR_CMD" "<FirstName> <LastName> - <JobTitle>.pdf" \
+    "ocf:cv-tailor command documents the commercial PDF name (BR 1)"
+else
+  t_fail "ocf:cv-tailor command missing at $TAILOR_CMD"
+fi
+
+# BR 5 — cv-ats-score locates the resume PDF by the new pattern (never by the
+# retired string): *.pdf listing / candidate-name glob in the slug directory.
+ATS_SKILL_292="$SCRIPT_DIR/../../skills/career/cv-ats-score/SKILL.md"
+if [[ -f "$ATS_SKILL_292" ]]; then
+  assert_contains "$ATS_SKILL_292" "*.pdf" \
+    "cv-ats-score skill locates the resume PDF by listing *.pdf (BR 5)"
+  assert_contains "$ATS_SKILL_292" "personal_info.name" \
+    "cv-ats-score skill uses the candidate name from hub.json to locate the PDF (BR 5)"
+  assert_contains "$ATS_SKILL_292" "pdftotext" \
+    "cv-ats-score skill extracts text from the located PDF (BR 5)"
+else
+  t_fail "cv-ats-score skill missing at $ATS_SKILL_292"
 fi
 
 t_finish

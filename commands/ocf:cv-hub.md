@@ -26,7 +26,7 @@ and it violates the terms. Only the official export is accepted.
 ```
 
 - If the directory does not exist, create the structure:
-  `hub.json`, `README.md`, `entradas/` (curriculo.pdf, linkedin/, extras/),
+  `hub.json`, `README.md`, `entradas/` (cv.pdf, linkedin/, extras/),
   `resumes/`.
 - Ask the user where the following are: the CV PDF, the LinkedIn export
   directory (if any) and the extras (if any).

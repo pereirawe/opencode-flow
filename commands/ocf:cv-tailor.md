@@ -64,7 +64,14 @@ The job can be provided as:
    `standards/cv-design.md`) before the PDF.
 9. **Mandatory gate** — `bash $SCRIPTS_DIR/cv/check-inference.sh index.html`
    MUST pass (exit 0) before the PDF.
-10. **Generate the PDF** — `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf`.
+10. **Generate the PDF** — name the final PDF `<FirstName> <LastName> -
+    <JobTitle>.pdf` (first + last name tokens from `hub.json →
+    personal_info.name`, ASCII-normalized — `João` → `Joao` —, job title in
+    the job's language, Title Case on main words, ` - ` separator; fallbacks
+    `<job-slug>.pdf` when the name is unavailable / `<FirstName> <LastName> -
+    Resume.pdf` when the title is unavailable — see the cv-tailor skill,
+    "PDF filename" rule) and run
+    `bash $SCRIPTS_DIR/cv/pdf.sh index.html "<FirstName> <LastName> - <JobTitle>.pdf"`.
 11. **Gap-analysis metrics** — after the PDF, extract the FINAL resume text
     (`index.html` stripped of HTML tags, or the PDF via `pdftotext` when
     available) and record the keyword density map (`Keyword | Count in
@@ -86,7 +93,7 @@ The job can be provided as:
 
 ### Report to the user
 
-- Generated PDF path (`~/career/<name>/resumes/<slug>/curriculo.pdf`).
+- Generated PDF path (`~/career/<name>/resumes/<slug>/<FirstName> <LastName> - <JobTitle>.pdf`).
 - Gap analysis summary (`atendido`/`parcial`/`not_met` requirements) and the
   weighted match percentage.
 - Application gate decision: blocked (`feedback.md` written, candidate's

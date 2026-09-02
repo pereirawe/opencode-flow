@@ -214,8 +214,9 @@ Reorder, highlight and rephrase **only what already exists in the hub**:
 2. **Inferences NEVER in the final output** — `[INFERIDO]` is allowed ONLY in
    internal human-review artifacts (hub.json, gap-analysis.md, inferences
    list), per the `[INFERIDO]` convention of `standards/cv-analysis.md` §5. In
-   the final HTML/PDF (`index.html`/`curriculo.pdf`) NO `[INFERIDO]` may appear
-   — nor case-insensitive variants (`[inferido]`, `[Inferido]`, the
+   the final shareable resume — `index.html` and the generated PDF (named per
+   the "PDF filename" rule in *PDF generation*) — NO `[INFERIDO]` may appear —
+   nor case-insensitive variants (`[inferido]`, `[Inferido]`, the
    word "inferido"). Inferred content (e.g. an unstated language level, a
    relevant project by analogy) is omitted, rephrased or approved by the
    candidate BEFORE generation. Never silently, never in the shareable artifact.
@@ -238,7 +239,7 @@ Reorder, highlight and rephrase **only what already exists in the hub**:
 ```
 ~/career/<candidate-name>/resumes/<job-slug>/
 ├── index.html            # resume HTML (job language)
-├── curriculo.pdf         # generated A4 PDF
+├── <FirstName> <LastName> - <JobTitle>.pdf   # generated A4 PDF (naming rule in "PDF generation")
 ├── gap-analysis.md       # requirements vs hub analysis + match % + gate decision + keyword density & coverage
 ├── inferences.md        # resolved inferences list (human review)
 └── feedback.md          # gate feedback (ONLY when match < threshold) — why not worth applying + candidate decision
@@ -251,6 +252,34 @@ decision (proceed anyway / stop).
 `<job-slug>` = normalized company + title (e.g. `acme-senior-data-engineer`).
 
 ## PDF generation
+
+### PDF filename — `<FirstName> <LastName> - <JobTitle>.pdf`
+
+The final resume PDF MUST be named with the commercial pattern
+`<FirstName> <LastName> - <JobTitle>.pdf` (e.g.
+`Joao Silva - Engenheiro de Software Senior.pdf` for a PT job,
+`Joao Silva - Senior Data Engineer.pdf` for an EN job). This section is the
+single source of the naming rule:
+
+- **Name** — `<FirstName> <LastName>` = the first and last name tokens of
+  `hub.json → personal_info.name` (the schema's canonical name field — e.g.
+  `João Silva Pereira` → `João` + `Pereira`). Do not invent a name field.
+- **ASCII only** — normalize diacritics before composing the filename
+  (`João` → `Joao`; `ã/õ/á/é/í/ó/ú/â/ê/ô/ç` → base letters), keep spaces and
+  the ` - ` separator (space-hyphen-space) and drop any character that is not
+  filename-safe.
+- **Job title in the job's language** — `<JobTitle>` = the role/title
+  extracted in the job analysis, in the JOB's language (PT job → PT title,
+  EN job → EN title), normalized to Title Case on the main words (short
+  articles/prepositions in lowercase when the language requires it, e.g. PT
+  `de`/`da`/`e`).
+- **Fallbacks — never break the flow**:
+  - candidate name unavailable/empty → keep `<job-slug>.pdf` (previous
+    default);
+  - job title unavailable → `<FirstName> <LastName> - Resume.pdf`.
+
+The intermediate HTML stays `index.html` and the directory layout
+`~/career/<candidate-name>/resumes/<job-slug>/` is unchanged.
 
 1. Copy the reference template `skills/career/cv-pdf/templates/resume.html`
    to `resumes/<job-slug>/index.html` and adapt the CONTENT (never the
@@ -267,14 +296,14 @@ decision (proceed anyway / stop).
    `bash $SCRIPTS_DIR/cv/check-inference.sh index.html` — the gate MUST pass
    (exit 0) before continuing. If it fails, remove/rephrase the markers and
    run again. This gate is mandatory and cannot be skipped.
-4. Run `bash $SCRIPTS_DIR/cv/pdf.sh index.html curriculo.pdf` — `pdf.sh`
+4. Run `bash $SCRIPTS_DIR/cv/pdf.sh index.html "<FirstName> <LastName> - <JobTitle>.pdf"` — `pdf.sh`
    validates the input encoding and REFUSES to render HTML that is not valid
    UTF-8 or contains NUL bytes (e.g. a corrupted `·` separator rendering as
    `�b7`). If pdf.sh is blocked, the HTML bytes are corrupted: fix the
    encoding (checklist §5) and re-run — never deliver a PDF rendered from
    corrupt input.
 5. **Page-2 footer (2-pass)** — check the rendered PDF page count with
-   `pdfinfo curriculo.pdf | awk '/^Pages:/ {print $2}'`:
+   `pdfinfo "<FirstName> <LastName> - <JobTitle>.pdf" | awk '/^Pages:/ {print $2}'`:
    - If it exceeds ONE page (senior+), fill the template's
      `<footer class="page-footer">` spans
      (`<span class="footer-name"><name></span>
@@ -289,7 +318,8 @@ decision (proceed anyway / stop).
    - The footer is real selectable text — it never alters digits or ATS order.
 6. **Digit verification (numeric spine)** — after the final PDF, verify the
    tabular-numeral spine did not alter any digit: extract the PDF text with
-   `pdftotext curriculo.pdf -` and confirm every metric/date digit from
+   `pdftotext "<FirstName> <LastName> - <JobTitle>.pdf" -` and confirm every
+   metric/date digit from
    `index.html` appears unchanged (the digits are the sacred contract; only
    glyph widths change). If a digit is missing or altered, fix the source and
    re-render — never accept a PDF with altered figures.
