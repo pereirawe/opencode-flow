@@ -56,8 +56,9 @@ plan in `profile-analysis.md`.
    item per topic with priority, referencing the artifacts
    (`ocf:cv-banner` / `linkedin-optimization.md` / `linkedin-sync.json`)
    instead of duplicating their text; the skills item cites the issue-225
-   sync diff when `linkedin-sync.json` exists, otherwise recommends running
-   the sync or applying from the hub + objective keywords.
+   sync diff when `linkedin-sync.json` carries skills recommendations
+   (`sections.skills.recommendations[]`), otherwise recommends running the
+   sync or applying from the hub + objective keywords.
 10. Generate a prioritized action plan (impact × effort) that mirrors EVERY
     LinkedIn item as an action row (category LinkedIn) with the artifact/
     output to produce.

@@ -28,8 +28,17 @@ to improve the profile substantially before generating tailored resumes with
 2. **Validate** — `python3 $SCRIPTS_DIR/cv/validate.py hub.json`.
 3. **Invoke the agent** `career/cv-optimizer` via `task:` with the candidate
    directory.
-4. **Analyze** — the agent produces `profile-analysis.md` following the
-   canonical structure of `standards/cv-analysis.md` (§3.1, tables §4.2/§4.3):
+4. **Objective handling FIRST (issue #222, before writing the report)** —
+   read `hub.profile_objective` (`job_search` | `connections` |
+   `services_sales` | `personal_branding` + optional `target_role`/`note`):
+   present → echo at the top of the LinkedIn section and calibrate the items
+   (`job_search` → headline literal com vaga + disponibilidade;
+   `services_sales` → serviços + banner de oferta); absent/ambiguous → ask
+   one quick question or declare the assumed objective explicitly — never
+   silently, never founder/CEO for a `job_search` profile.
+5. **Analyze** — with the objective resolved (step 4), the agent produces
+   `profile-analysis.md` following the canonical structure of
+   `standards/cv-analysis.md` (§3.1, tables §4.2/§4.3):
    - Profile score (0-100 per section + global, with justification —
      domain-relative criteria per the skill's §3 priority table)
    - General qualifications (detected domain(s), seniority, skills,
@@ -37,18 +46,12 @@ to improve the profile substantially before generating tailored resumes with
    - Target job profiles (offline — never concrete jobs)
    - CLT vs PJ salary ranges (all `[INFERIDO]` for human review)
    - Context gaps in the hub
-   - Melhorias no LinkedIn (H2 — objective-calibrated, five cv-linkedin
-     topics: banner via `ocf:cv-banner`, headline literal, Sobre com logros,
-     experiência com bullets, revisão de skills com o diff da issue 225)
+   - Melhorias no LinkedIn (H2 — objective-calibrated per step 4, five
+     cv-linkedin topics: banner via `ocf:cv-banner`, headline literal, Sobre
+     com logros, experiência com bullets, revisão de skills com o diff da
+     issue 225)
    - Prioritized action plan (impact × effort) — every LinkedIn item mirrored
      as an action row with the artifact/output to produce
-5. **Objective handling** (issue #222) — read `hub.profile_objective`
-   (`job_search` | `connections` | `services_sales` | `personal_branding` +
-   optional `target_role`/`note`): present → echo at the top of the LinkedIn
-   section and calibrate the items (`job_search` → headline literal com vaga
-   + disponibilidade; `services_sales` → serviços + banner de oferta);
-   absent/ambiguous → ask one quick question or declare the assumed objective
-   explicitly — never silently, never founder/CEO for a `job_search` profile.
 6. **Generate the PDF** — the agent renders `profile-analysis.html` from the
    reference template
    `skills/career/cv-optimizer/templates/profile-analysis.html` (adapt content,

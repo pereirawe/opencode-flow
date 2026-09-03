@@ -137,10 +137,12 @@ Content per section:
      apply the literal headline / Sobre / experience bullets from
      `linkedin-optimization.md` (issue #223 / `ocf:cv-linkedin` output) or
      run `ocf:cv-linkedin` when that file does not exist yet; for Skills,
-     cite the issue-225 `linkedin-sync.json`
-     `sections.skills.recommendations[]` diff (add/promote/remove —
-     `add_to_linkedin`/`promote_on_linkedin`/`remove_from_linkedin`) when the
-     sync exists and, without it, recommend running the issue-225 sync
+      cite the issue-225 `linkedin-sync.json`
+      `sections.skills.recommendations[]` diff (add/promote/remove —
+      `add_to_linkedin`/`promote_on_linkedin`/`remove_from_linkedin`) when the
+      sync exists AND carries skills recommendations (an export without
+      `Skills.csv` has `skills.available: false` and no recommendations) and,
+      without it, recommend running the issue-225 sync
      (`scripts/cv/linkedin-sync.py` + `cv-linkedin-sync` skill) or applying
      from the hub + objective keywords. `profile-analysis.md` is an internal
      analysis artifact (§5): it RECOMMENDS the LinkedIn actions and never

@@ -36,8 +36,10 @@ analysis, it only changes what the section recommends:
   duplicate its text into `profile-analysis.md`.
 - `linkedin-sync.json` (issue #225 — `scripts/cv/linkedin-sync.py` +
   `cv-linkedin-sync` skill) — the real-LinkedIn skills diff
-  (add/promote/remove). Absent → recommend running the issue-225 sync or
-  applying from the hub + objective keywords.
+  (`sections.skills.recommendations[]`, emitted only when the export has a
+  `Skills.csv`; an export without it reports `skills.available: false` and no
+  recommendations). Absent/without recommendations → recommend running the
+  issue-225 sync or applying from the hub + objective keywords.
 - `ocf:cv-banner` (issue #224) — the planned banner command referenced as the
   artifact to run for the banner item; issue #224 is NOT implemented in this
   config version — never invent its output contract, just reference the
@@ -337,13 +339,16 @@ P3, consistent with the action-plan rules):
    condensadas) prontos para colar no campo de descrição do LinkedIn.
    Referencie os bullets do `linkedin-optimization.md`; sem métrica → gap.
 5. **Revisão de skills** (adicionar/promover/remover — issue 225/223) — vs a
-   lista REAL de skills do LinkedIn: quando existir `linkedin-sync.json`,
-   cite o diff (`sections.skills.recommendations[]`: `add_to_linkedin` /
+   lista REAL de skills do LinkedIn: quando existir `linkedin-sync.json` E o
+   sync trouxer recomendações de skills (`sections.skills.recommendations[]`
+   presente — um export sem `Skills.csv` tem `skills.available: false` e sem
+   recomendações), cite o diff (`add_to_linkedin` /
    `promote_on_linkedin` / `remove_from_linkedin`) com os totais
-   adicionar/promover/remover; sem export/sync → recomendar rodar o sync da
-   issue 225 (`scripts/cv/linkedin-sync.py` + skill `cv-linkedin-sync`) ou
-   aplicar a partir do hub + keywords do objetivo. Respeitar o top-3 de busca
-   e o teto top-50 de exibição do LinkedIn. Nunca inventar a lista real.
+   adicionar/promover/remover; sem export/sync ou sem recomendações no JSON →
+   recomendar rodar o sync da issue 225 (`scripts/cv/linkedin-sync.py` + skill
+   `cv-linkedin-sync`) ou aplicar a partir do hub + keywords do objetivo.
+   Respeitar o top-3 de busca e o teto top-50 de exibição do LinkedIn. Nunca
+   inventar a lista real.
 
 **Reference, never duplicate.** `profile-analysis.md` is an internal analysis
 artifact: `[INFERIDO]` markers are allowed inline here (§5). The section only
