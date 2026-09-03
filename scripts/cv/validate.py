@@ -28,7 +28,12 @@ Validation strategy
    - URL format (basic regex) on ``personal_info.site/github/linkedin``,
      ``links[].url``, ``certifications[].url`` and ``projects[].link``;
    - ``summary_i18n`` keys must be a subset of {pt, en, es} and the values
-     must be strings;
+      must be strings;
+   - ``profile_objective`` (optional, issue #222): when present, must be an
+      object with a required ``type`` in the closed enum {job_search,
+      connections, services_sales, personal_branding} and optional
+      ``target_role``/``note`` strings; unknown keys inside the object are
+      rejected on both paths (schema additionalProperties: false);
    - cross-field date consistency: ``experience.start_date <= end_date`` and
      ``education.start_date <= end_date`` (an end of "present"/"atual" or a
      missing end is treated as open-ended); ``certifications.year <=
@@ -52,6 +57,13 @@ EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 URL_RE = re.compile(r"^[a-z][a-z0-9+.-]*://\S+$", re.IGNORECASE)
 OPEN_ENDED_END = {"present", "atual"}
 LOCALE_KEYS = {"pt", "en", "es"}
+PROFILE_OBJECTIVE_TYPES = {
+    "job_search",
+    "connections",
+    "services_sales",
+    "personal_branding",
+}
+PROFILE_OBJECTIVE_KEYS = {"type", "target_role", "note"}
 
 
 def check(cond, msg, errors):
@@ -357,6 +369,54 @@ def _validate_preferences(hub, errors):
         check(False, "preferences.min_match_percentage must be between 0 and 100", errors)
 
 
+def _validate_profile_objective(hub, errors):
+    """profile_objective block (issue #222) — shared by both validation paths:
+
+    Optional top-level object declaring the current profile objective. Rules:
+    - an absent key is valid (backward compatibility — hubs without the field
+      keep passing);
+    - when present it must be an object (a null or a non-object value is
+      REJECTED on both paths: jsonschema rejects the type, the fallback
+      key-presence guard routes null into the object check);
+    - ``type`` is required and must be one of the closed enum
+      {job_search, connections, services_sales, personal_branding};
+    - ``target_role`` and ``note`` are optional free strings (a present null
+      or non-string is rejected);
+    - unknown keys inside the object are REJECTED on both paths — the schema
+      declares additionalProperties: false and the fallback mirrors it for
+      this block (unlike its documented root-level leniency).
+    """
+    if "profile_objective" not in hub:
+        return
+    objective = hub["profile_objective"]
+    if not isinstance(objective, dict):
+        check(False, "profile_objective must be an object", errors)
+        return
+    for key in objective:
+        if key not in PROFILE_OBJECTIVE_KEYS:
+            check(
+                False,
+                f"profile_objective has an invalid key {key!r} (allowed: type, target_role, note)",
+                errors,
+            )
+    if "type" not in objective:
+        check(False, "profile_objective.type is required", errors)
+    else:
+        otype = objective["type"]
+        if not isinstance(otype, str):
+            check(False, "profile_objective.type must be a string", errors)
+        elif otype not in PROFILE_OBJECTIVE_TYPES:
+            check(
+                False,
+                f"profile_objective.type {otype!r} is not a valid objective "
+                "(allowed: job_search, connections, services_sales, personal_branding)",
+                errors,
+            )
+    for key in ("target_role", "note"):
+        if key in objective and not isinstance(objective[key], str):
+            check(False, f"profile_objective.{key} must be a string", errors)
+
+
 def validate_hub(hub, schema):
     """Validate a loaded hub against the schema. Returns a list of error
     strings (empty when valid)."""
@@ -372,6 +432,7 @@ def validate_hub(hub, schema):
     _validate_summary_i18n(hub, errors)
     _validate_cross_field_dates(hub, errors)
     _validate_preferences(hub, errors)
+    _validate_profile_objective(hub, errors)
 
     return errors
 

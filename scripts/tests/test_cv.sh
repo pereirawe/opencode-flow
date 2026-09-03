@@ -2275,4 +2275,129 @@ else
   t_fail "cv-ats-score skill missing at $ATS_SKILL_292"
 fi
 
+# --- issue #222: optional profile_objective (profile positioning objective) ---
+# BR 1/2/3/4/5 — optional top-level object { type: enum, target_role?, note? }
+# added to schema.json; the closed enum is validated by validate.py and extra
+# keys / malformed values are rejected (both validation paths); hubs without
+# the field stay valid (no migration forced). The cv-hub skill documents the
+# canonical field, the never-infer capture rule and the `## Profile objective`
+# README mirror (Tests: 1-3 of issue #222).
+
+# 1. schema.json declares the optional field with the closed enum + shape
+if [[ -f "$CV_SCHEMA" ]]; then
+  assert_contains "$CV_SCHEMA" '"profile_objective"' \
+    "schema.json declares the profile_objective section (issue #222)"
+  assert_contains "$CV_SCHEMA" '"job_search"' \
+    "schema.json enumerates the job_search objective type"
+  assert_contains "$CV_SCHEMA" '"connections"' \
+    "schema.json enumerates the connections objective type"
+  assert_contains "$CV_SCHEMA" '"services_sales"' \
+    "schema.json enumerates the services_sales objective type"
+  assert_contains "$CV_SCHEMA" '"personal_branding"' \
+    "schema.json enumerates the personal_branding objective type"
+  assert_contains "$CV_SCHEMA" '"target_role"' \
+    "schema.json declares profile_objective.target_role"
+  assert_contains "$CV_SCHEMA" '"note"' \
+    "schema.json declares profile_objective.note"
+  assert_contains "$CV_SCHEMA" '"required": ["type"]' \
+    "schema.json requires profile_objective.type"
+  assert_contains "$CV_SCHEMA" '"required": ["personal_info", "summary", "experience", "education", "skills", "certifications", "projects", "languages", "links"]' \
+    "schema.json keeps the required sections unchanged (profile_objective optional)"
+  python3 - "$CV_SCHEMA" <<'PYEOF' || t_fail "schema.json profile_objective shape invalid"
+import json, sys
+schema = json.load(open(sys.argv[1]))
+po = schema["properties"]["profile_objective"]
+assert po["type"] == "object", "profile_objective must be an object"
+assert po["additionalProperties"] is False, "profile_objective must reject extra keys"
+assert po["required"] == ["type"], "profile_objective.type must be required"
+assert set(po["properties"]["type"]["enum"]) == {
+    "job_search", "connections", "services_sales", "personal_branding",
+}, "profile_objective.type enum mismatch"
+PYEOF
+  t_ok "schema.json profile_objective shape is valid JSON with the closed enum"
+else
+  t_fail "schema.json missing at $CV_SCHEMA"
+fi
+
+# 2. validate.py: hub without the field -> exit 0 (backward compatible); valid
+#    type -> exit 0; invalid type / extra key / malformed values -> exit != 0.
+#    Both validation paths must agree (run_both = jsonschema + fallback).
+TMP_ENV="$TMP" python3 - <<'EOF'
+import json, os
+tmp = os.environ["TMP_ENV"]
+base = {"personal_info": {"name": "T"}, "summary": "s",
+        "experience": [], "education": [], "skills": [], "certifications": [],
+        "projects": [], "languages": [], "links": []}
+def write(name, hub):
+    json.dump(hub, open(os.path.join(tmp, name), "w"))
+write("hub-obj-absent.json", dict(base))
+write("hub-obj-valid.json",
+      {**base, "profile_objective": {"type": "job_search", "target_role": "Tech Leader"}})
+write("hub-obj-full.json",
+      {**base, "profile_objective": {"type": "connections",
+                                     "target_role": "Tech Lead PHP/Laravel",
+                                     "note": "unemployed, immediate availability, remote"}})
+write("hub-obj-badtype.json",
+      {**base, "profile_objective": {"type": "founder"}})
+write("hub-obj-extra-key.json",
+      {**base, "profile_objective": {"type": "job_search", "extra": 1}})
+write("hub-obj-missing-type.json",
+      {**base, "profile_objective": {"target_role": "Tech Leader"}})
+write("hub-obj-nonobject.json",
+      {**base, "profile_objective": "job_search"})
+write("hub-obj-null.json",
+      {**base, "profile_objective": None})
+write("hub-obj-null-note.json",
+      {**base, "profile_objective": {"type": "job_search", "note": None}})
+write("hub-obj-null-target.json",
+      {**base, "profile_objective": {"type": "job_search", "target_role": None}})
+write("hub-obj-empty-string-type.json",
+      {**base, "profile_objective": {"type": ""}})
+write("hub-obj-nonstring-type.json",
+      {**base, "profile_objective": {"type": 7}})
+EOF
+run_both "0" "validate.py accepts a hub without profile_objective (backward compatible)" "$TMP/hub-obj-absent.json"
+run_both "0" "validate.py accepts profile_objective with a valid type + target_role" "$TMP/hub-obj-valid.json"
+run_both "0" "validate.py accepts the full profile_objective shape (type + target_role + note)" "$TMP/hub-obj-full.json"
+run_both "1" "validate.py rejects an invalid profile_objective.type (founder)" "$TMP/hub-obj-badtype.json"
+run_both "1" "validate.py rejects an extra key inside profile_objective" "$TMP/hub-obj-extra-key.json"
+run_both "1" "validate.py rejects profile_objective without a type" "$TMP/hub-obj-missing-type.json"
+run_both "1" "validate.py rejects a non-object profile_objective" "$TMP/hub-obj-nonobject.json"
+run_both "1" "validate.py rejects a null profile_objective (both paths)" "$TMP/hub-obj-null.json"
+run_both "1" "validate.py rejects a null profile_objective.note" "$TMP/hub-obj-null-note.json"
+run_both "1" "validate.py rejects a null profile_objective.target_role" "$TMP/hub-obj-null-target.json"
+run_both "1" "validate.py rejects an empty-string profile_objective.type" "$TMP/hub-obj-empty-string-type.json"
+run_both "1" "validate.py rejects a non-string profile_objective.type" "$TMP/hub-obj-nonstring-type.json"
+
+# 3. cv-hub skill documents the field, the closed enum, the never-infer
+#    capture rule (build + update flows) and the README mirror (Tests: 1-3)
+if [[ -f "$HUB_SKILL" ]]; then
+  assert_contains "$HUB_SKILL" "profile_objective" \
+    "cv-hub skill documents the profile_objective field"
+  assert_contains "$HUB_SKILL" "job_search" \
+    "cv-hub skill documents the job_search objective type"
+  assert_contains "$HUB_SKILL" "connections" \
+    "cv-hub skill documents the connections objective type"
+  assert_contains "$HUB_SKILL" "services_sales" \
+    "cv-hub skill documents the services_sales objective type"
+  assert_contains "$HUB_SKILL" "personal_branding" \
+    "cv-hub skill documents the personal_branding objective type"
+  assert_contains "$HUB_SKILL" "**Capture rule**" \
+    "cv-hub skill documents the profile_objective capture rule"
+  assert_contains "$HUB_SKILL" "recorded ONLY when the user declares it" \
+    "cv-hub skill capture rule: recorded only when declared, never invented"
+  assert_contains "$HUB_SKILL" "NEVER infer" \
+    "cv-hub skill forbids inferring the profile objective"
+  assert_contains "$HUB_SKILL" "## Profile objective" \
+    "cv-hub README template mirrors a ## Profile objective section"
+  assert_contains "$HUB_SKILL" "no \`profile_objective\` in the hub → no \`## Profile objective\`" \
+    "cv-hub README mirror rule: the section appears only when the field is present"
+  assert_contains "$HUB_SKILL" "merge field-by-field like" \
+    "cv-hub update mode merges profile_objective field-by-field (BR 5)"
+  assert_contains "$HUB_SKILL" "ONLY with the user's confirmation" \
+    "cv-hub update mode overwrites a profile_objective value only on confirmation (BR 5)"
+else
+  t_fail "cv-hub skill missing at $HUB_SKILL"
+fi
+
 t_finish

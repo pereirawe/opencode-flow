@@ -194,6 +194,27 @@
         }
       }
     },
+    "profile_objective": {
+      "type": "object",
+      "description": "Candidate's current profile objective — what the profile is positioning for (looking for a job, building connections, selling services, or personal branding). Optional — hubs without it remain valid (backward compatible, no migration required). Recorded ONLY when the user declares it (asked in the cv-hub build/update flow); never inferred. Drives positioning (headline, About, quick descriptions, skill recommendations) in the career-sector reports (cv-optimize/cv-linkedin).",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["job_search", "connections", "services_sales", "personal_branding"],
+          "description": "Closed-enum profile objective: job_search (looking for a job), connections (building a network), services_sales (selling services) or personal_branding (building a personal brand)."
+        },
+        "target_role": {
+          "type": "string",
+          "description": "Optional free string with the literal target role(s)/service(s), e.g. 'Tech Leader', 'Tech Lead PHP/Laravel'."
+        },
+        "note": {
+          "type": "string",
+          "description": "Optional free string with context, e.g. 'unemployed, immediate availability, remote'."
+        }
+      }
+    },
     "sources": {
       "type": "array",
       "description": "List of source files used to build the hub.",

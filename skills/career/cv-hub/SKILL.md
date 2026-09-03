@@ -47,9 +47,15 @@ summary). The hub is the foundation for tailored resume generation
 4. **Consolidate into hub.json** — use the canonical schema (definition
    below). Prefer the most recent data; record each item in **one** of the
    sources.
-5. **Validate** — run `python3 $SCRIPTS_DIR/cv/validate.py hub.json`. Fix until
+5. **Ask the profile objective (optional)** — explicitly ask "What is the
+   current profile objective of this profile?" with the options (looking for
+   a job / building connections / selling services / personal branding) plus
+   the literal target role(s)/service(s). Record `profile_objective` in
+   `hub.json` ONLY when the user declares it — NEVER infer it from the data.
+   When the user declines or has no objective, omit the field.
+6. **Validate** — run `python3 $SCRIPTS_DIR/cv/validate.py hub.json`. Fix until
    exit 0.
-6. **Generate README.md** — derive it from hub.json: name, title, summary,
+7. **Generate README.md** — derive it from hub.json: name, title, summary,
    contact (only if present in the hub), experience, education, top skills,
    certifications, projects, languages. The README is a **mirror** — never
    edit it manually in divergence with the JSON.
@@ -105,6 +111,11 @@ summary). The hub is the foundation for tailored resume generation
     "dislikes": ["on-site roles", "on-call rotations"],
     "excluded_roles": ["people management", "sales"],
     "min_match_percentage": 70
+  },
+  "profile_objective": {
+    "type": "job_search",
+    "target_role": "Tech Leader",
+    "note": "unemployed, immediate availability, remote"
   }
 }
 ```
@@ -124,6 +135,32 @@ application gate of `cv-tailor`/`cv-cover-letter`:
   gap analysis) for the candidate to apply. Below it, cv-tailor/cv-cover-letter
   recommend NOT applying and produce a feedback report instead of the
   artifact. Default **70** when absent.
+
+`profile_objective` is **optional** — hubs without it remain valid
+(retrocompatibilidade total; no migration is required or forced). It declares
+the candidate's current profile objective and orients the positioning in the
+career-sector reports (`cv-optimize`, `cv-linkedin`): headline, About section,
+quick descriptions and skill recommendations. The field is the base for issues
+223 and 226. Shape:
+
+- `type` — **required**, closed enum:
+  `job_search` (looking for a job) | `connections` (building a network) |
+  `services_sales` (selling services) | `personal_branding` (building a
+  personal brand). Example: an unemployed candidate who wants to be hired
+  fast as a Tech Leader → `"type": "job_search"` + `target_role: "Tech
+  Leader"`; a founder/CEO positioning would be inappropriate and can hurt.
+- `target_role` — optional free string with the literal target role(s) /
+  service(s) in the candidate's words (e.g. `"Tech Leader"`, `"Tech Lead
+  PHP/Laravel"`).
+- `note` — optional free string with context in the candidate's words (e.g.
+  `"unemployed, immediate availability, remote"`).
+
+**Capture rule**: `profile_objective` is recorded ONLY when the user declares it —
+the build and update flows ask "What is the current profile objective?"
+(the options above + literal target roles/services). The agent NEVER invents
+or infers the objective from the resume/LinkedIn data (e.g. an unemployed
+candidate is not automatically `job_search`). When the user gives no
+objective, omit the field.
 
 All keys and enum values are English (snake_case). The schema is the
 canonical structure for every locale. When migrating an existing hub built
@@ -152,6 +189,10 @@ with the legacy Portuguese keys, run
   candidate states them — never inferred from experience (absence of a
   disliked thing is not a preference). `min_match_percentage` defaults to
   **70** when absent; record only a different value.
+- **Profile objective**: `profile_objective` is recorded only when the user
+  declares it — asked explicitly in the build/update flow, never inferred
+  from the sources. When the user declines or gives no objective, omit the
+  field.
 
 ## README.md template
 
@@ -173,6 +214,11 @@ structure (sections appear ONLY when the hub has data for them):
 ## Summary
 <summary> (the hub's primary-language summary — from `summary` or
 `summary_i18n`)
+
+## Profile objective
+- Type: <type>                      (only when the hub has profile_objective)
+- Target role: <target_role>        (only when present)
+- Note: <note>                      (only when present)
 
 ## Experience
 ### <title> — <company>
@@ -207,10 +253,11 @@ structure (sections appear ONLY when the hub has data for them):
 
 Rules:
 
-1. Section order mirrors the hub: name + title, contact, summary, experience,
-   education, skills, certifications, projects, languages, links,
-   preferences.
-2. Empty sections are omitted (e.g. no certifications → no `## Certifications`).
+1. Section order mirrors the hub: name + title, contact, summary, profile
+   objective, experience, education, skills, certifications, projects,
+   languages, links, preferences.
+2. Empty sections are omitted (e.g. no certifications → no `## Certifications`;
+   no `profile_objective` in the hub → no `## Profile objective`).
 3. Contact fields appear only when present in `personal_info`; sensitive data
    (CPF, document, bank details) never.
 4. The README language follows the hub's primary language (the `summary`
@@ -235,6 +282,9 @@ is the base for the update.
 
 - The user wants to add **new entries** to an existing hub: a new
   experience, skill, certification, project, language, or link.
+- The user wants to set or change the **profile objective**
+  (`profile_objective`): ask the same question as the build flow and merge
+  field-by-field with confirmation (never overwrite silently).
 - The user provides **new information** in any of these forms:
   1. **Pasted text** — a new job, certification, project description, etc.
   2. **New PDF** — extract with `pdftotext -layout` (same flow as the build
@@ -260,8 +310,8 @@ is the base for the update.
    them to the EXISTING entries:
    - **ADD** new entries into their section (`experience`, `education`,
       `skills`, `certifications`, `projects`, `languages`, `links`,
-      `preferences`, ...), keeping reverse chronological order where
-      applicable.
+      `preferences`, `profile_objective`, ...), keeping reverse chronological
+      order where applicable.
    - **UPDATE** existing entries with corrected/more recent data when the
      new information supersedes them.
 5. **Validate** — `python3 $SCRIPTS_DIR/cv/validate.py hub.json`; fix until
@@ -289,6 +339,11 @@ is the base for the update.
    - `preferences`: an object, not a list — merge field-by-field (a new
      `dislikes` item, `excluded_roles` item or `min_match_percentage` value is
      added/updated, never duplicated).
+   - `profile_objective`: an object, not a list — merge field-by-field like
+     `preferences`, without duplicating. A new `type`, `target_role` or
+     `note` value replaces the old one ONLY with the user's confirmation —
+     never overwrite silently and never mix fragments into a new objective
+     the user did not state.
 - **Preserve existing `[INFERIDO]` markers** — an entry that already carries
   the marker KEEPS it after an update; only the candidate can remove it by
   confirming real data. New inferences introduced by the update are marked
