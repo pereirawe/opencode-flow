@@ -66,6 +66,24 @@ Not available (documented): `next-best-practices` from `vercel-labs/next-skills`
 (moved to `vercel/next.js`, split into framework-bundled docs) and
 `business-analyst` from `404kidwiz/claude-supercode-skills` (repo 404).
 
+## Career
+
+Native (`skills/career/` — resume optimization & LinkedIn flow; backed by
+`agents/career/*` and `scripts/cv/*`):
+
+| Skill | Purpose |
+|-------|---------|
+| `cv-hub` | Build/update the candidate hub (`hub.json` + `README.md`) from CV PDF + official LinkedIn export |
+| `cv-optimizer` | Profile analysis — score, target profiles, salary ranges, action plan + integrated LinkedIn improvements |
+| `cv-linkedin` | Objective-driven LinkedIn action report (literal headline, Sobre with logros, experience bullets, skills review) |
+| `cv-linkedin-sync` | Offline hub ↔ LinkedIn diff from the official export (headline, positions, skills, education, languages, certifications) |
+| `cv-linkedin-banner` | LinkedIn banner generation — 4:1 canvas, profile-photo safe zone, hub-sourced contact text, each::sense |
+| `cv-tailor` | Job-tailored resume PDF (HTML → PDF) with gap analysis |
+| `cv-cover-letter` | Tailored cover letter PDF for a job |
+| `cv-interview-prep` | Interview preparation kit (questions + STAR answers from real hub experience) |
+| `cv-ats-score` | ATS compatibility scoring of a generated resume |
+| `cv-pdf` | HTML → A4 PDF rendering (Chrome headless, LibreOffice fallback) |
+
 ## Development
 
 | Skill | Purpose |

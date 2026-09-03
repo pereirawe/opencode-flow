@@ -1,5 +1,41 @@
 # Changelog
 
+## 2.1.0 (2026-09-03)
+
+- **feat(career): hub profile objective** — `hub.json` gains the optional
+  top-level `profile_objective` (`job_search` | `connections` |
+  `services_sales` | `personal_branding` + `target_role`/`note`), validated by
+  `validate.py` (closed enum, no extra keys, fully backward compatible);
+  `cv-hub` captures it only when the user declares it and mirrors it in the
+  README (issue #222, PR #144)
+- **feat(career): offline LinkedIn ↔ hub sync** — `scripts/cv/linkedin-sync.py`
+  + `cv-linkedin-sync` skill diff the official Download My Data export
+  (headline, positions, skills, education, languages, certifications) against
+  `hub.json` into `linkedin-sync.md`/`.json` with add/promote/remove skill
+  recommendations; never scrapes; OAuth limitation documented (issue #225,
+  PR #146)
+- **feat(career): objective-driven `ocf:cv-linkedin` report** — revamped into a
+  six-section action report (objetivo confirmado, headline literal, Sobre com
+  logros, experiência com bullets, skills, próximos passos) driven by
+  `profile_objective`; no `[INFERIDO]` in the shareable file; consumes the
+  issue-225 sync diff (issue #223, PR #148)
+- **feat(career): `cv-optimize` integrates LinkedIn improvements** —
+  `profile-analysis.md` gains the "Melhorias no LinkedIn" section (banner,
+  headline, sobre, experiência, skills) integrated with the prioritized action
+  plan and calibrated by the profile objective (issue #226, PR #150)
+- **feat(career): LinkedIn profile banner** — `/ocf:cv-banner` +
+  `cv-linkedin-banner` skill + `scripts/cv/banner-gen.sh` generate a 4:1
+  (1584×396) banner via each::sense (eachlabs poster skill /
+  `EACHLABS_API_KEY`), honoring the profile-photo safe zone and the mobile
+  center-crop, with a text-legibility gate and a deterministic overlay
+  fallback; outputs under `~/career/<candidate>/linkedin/banner/` (issue #224,
+  PR #152)
+- **feat(career): cv-tailor resume filename pattern** — generated resumes use
+  the commercial `<First Last> - <Job Title>.pdf` pattern (issue #142)
+- **fix(career): restore `summary_i18n` drafting base in the cv-linkedin
+  skill** — regression from the issue-223 rewrite; `test_cv.sh` green again
+  (issue #227, PR #154)
+
 ## 2.0.0 (2026-08-29)
 
 - **refactor(pipeline): flatten delivery — agents only for judgment** — `/ocf:develop` and `/ocf:develop-full` now drive the pipeline directly via scripts; the `delivery` orchestrator and `develop-router` agents are legacy (manual `/ocf:delivery` path only). Engine: `promote.sh` → `preflight.sh` → `detect-lang.sh` → developer → **parallel senior reviewers** → `committer-check.sh` + `issue-lint.sh --strict` → `create-pr.sh` → `merge-and-close.sh`. Cuts the old 6+N agent chain to 1+N.
