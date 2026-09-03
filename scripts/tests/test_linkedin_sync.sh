@@ -337,4 +337,106 @@ else
   t_fail "empty Positions.csv handling incorrect"
 fi
 
+# --- 9. empty Certifications.csv -> same empty-source guard (review B1) -----
+mkdir -p "$TMP/certsexp"
+python3 - "$TMP" <<'PYEOF'
+import os, sys
+tmp = sys.argv[1]
+# header-only Certifications.csv next to a hub that HAS certifications
+with open(os.path.join(tmp, "certsexp", "Certifications.csv"), "w", encoding="utf-8") as f:
+    f.write("Name,Start Date,End Date,License Number,Authority\n")
+with open(os.path.join(tmp, "certsexp", "Positions.csv"), "w", encoding="utf-8") as f:
+    f.write("Company Name,Title,Description,Location,Started On,Finished On\n"
+            "Acme,Developer,,Remote,2019-01,2021-12\n")
+PYEOF
+set +e
+python3 "$SYNC" "$TMP/candidate" --export "$TMP/certsexp" --out-dir "$TMP/certout" --lang en >/dev/null 2>&1
+RC_CERTS=$?
+set -e
+assert_eq "0" "$RC_CERTS" "empty-Certifications.csv run exits 0"
+if python3 - "$TMP/certout/linkedin-sync.json" <<'PYEOF'
+import json, sys
+d = json.load(open(sys.argv[1]))
+certs = d["sections"]["certifications"]
+# An empty Certifications.csv must NOT turn hub certifications into hub_only
+# false positives (review B1): the section is unavailable instead.
+assert certs["available"] is False and certs.get("empty_source") is True, certs
+assert certs.get("empty_message_key") == "no_certifications", certs
+for key in ("consistent", "divergent", "hub_only", "linkedin_only", "counts"):
+    assert key not in certs, "unavailable certs section must not classify: " + key
+PYEOF
+then
+  t_ok "empty Certifications.csv -> no hub_only classification (review B1)"
+else
+  t_fail "empty Certifications.csv handling incorrect (review B1)"
+fi
+assert_not_contains "$TMP/certout/linkedin-sync.md" "hub_only — AWS Certified Developer" \
+  "no false hub_only certification bullets in the report"
+assert_contains "$TMP/certout/linkedin-sync.md" "no LinkedIn certifications to compare" \
+  "empty Certifications.csv note rendered in the report"
+
+# --- 10. hub-skill pairing: no drops, no duplicates (review B2) --------------
+mkdir -p "$TMP/b2cand" "$TMP/b2exp-a" "$TMP/b2exp-b"
+python3 - "$TMP" <<'PYEOF'
+import json, os, sys
+tmp = sys.argv[1]
+hub = {
+    "personal_info": {"name": "Subset Test", "professional_title": "Dev"},
+    "summary": "s",
+    "experience": [], "education": [], "certifications": [],
+    "projects": [], "languages": [], "links": [],
+    "skills": [
+        {"name": "React", "category": "framework", "importance": "primary"},
+        {"name": "React Native", "category": "framework", "importance": "secondary"},
+    ],
+}
+json.dump(hub, open(os.path.join(tmp, "b2cand", "hub.json"), "w"), ensure_ascii=False)
+with open(os.path.join(tmp, "b2exp-a", "Skills.csv"), "w", encoding="utf-8") as f:
+    f.write("Name\nReact\n")
+with open(os.path.join(tmp, "b2exp-b", "Skills.csv"), "w", encoding="utf-8") as f:
+    f.write("Name\nReact\nReact Native\n")
+PYEOF
+for CASE in a b; do
+  set +e
+  python3 "$SYNC" "$TMP/b2cand" --export "$TMP/b2exp-$CASE" \
+    --out-dir "$TMP/b2out-$CASE" --lang en >/dev/null 2>&1
+  RC_B2=$?
+  set -e
+  assert_eq "0" "$RC_B2" "subset pairing run (case $CASE) exits 0"
+done
+if python3 - "$TMP/b2out-a/linkedin-sync.json" <<'PYEOF'
+import json, sys
+d = json.load(open(sys.argv[1]))
+sk = d["sections"]["skills"]
+# hub {React, React Native} x LinkedIn {React}: React Native must NOT be
+# dropped and React must NOT be duplicated (review B2 drop case).
+names = [e["name"] for e in sk["consistent"]]
+assert names.count("React") == 1, names
+assert names.count("React Native") == 1, names
+assert names == ["React", "React Native"], names
+recs = {r["name"]: r for r in sk["recommendations"]}
+assert set(recs) == {"React", "React Native"}, set(recs)
+PYEOF
+then
+  t_ok "subset drop case: React consistent, React Native present once, no duplicates"
+else
+  t_fail "subset drop case incorrect (review B2): hub skills dropped or duplicated"
+fi
+if python3 - "$TMP/b2out-b/linkedin-sync.json" <<'PYEOF'
+import json, sys
+d = json.load(open(sys.argv[1]))
+sk = d["sections"]["skills"]
+# hub {React, React Native} x LinkedIn {React, React Native}: the old bug
+# emitted consistent:[React, React] (duplicate) and dropped React Native.
+names = [e["name"] for e in sk["consistent"]]
+assert names.count("React") == 1 and names.count("React Native") == 1, names
+assert len(names) == 2, names
+assert sk["hub_only"] == [], sk["hub_only"]
+PYEOF
+then
+  t_ok "subset duplicate case: React/React Native emitted once each (no duplicate)"
+else
+  t_fail "subset duplicate case incorrect (review B2): duplicate or missing hub skill"
+fi
+
 t_finish

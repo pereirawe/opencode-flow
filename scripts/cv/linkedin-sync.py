@@ -812,6 +812,15 @@ def diff_skills(hub_skills, li_skills, hub_languages, hub):
     linkedin_only = []
     recommendations = []
 
+    # hub entries are matched ONE-TO-ONE: a hub entry is consumed when a
+    # LinkedIn skill pairs with it (used-set pattern, like _pair_within_company).
+    # This prevents dropping or duplicating hub entries when several hub names
+    # share tokens under the subset semantics (hub {React, React Native} x
+    # LinkedIn {React} must not drop React Native nor duplicate React).
+    hub_list = list(hub_by_key.values())
+    consumed = [False] * len(hub_list)
+    li_tech_names = []  # LinkedIn skills NOT routed to the languages diff
+
     for name in li_names:
         if li_is_hub_language(name):
             recommendations.append({
@@ -822,12 +831,13 @@ def diff_skills(hub_skills, li_skills, hub_languages, hub):
                 "reason": "language_in_hub",
             })
             continue
-        found = None
-        for e in hub_by_key.values():
-            if skill_match(name, e["name"]):
-                found = e
+        li_tech_names.append(name)
+        found_idx = None
+        for idx, e in enumerate(hub_list):
+            if not consumed[idx] and skill_match(name, e["name"]):
+                found_idx = idx
                 break
-        if found is None:
+        if found_idx is None:
             linkedin_only.append(name)
             action, reason, priority = relevance_for_li_skill(name)
             recommendations.append({
@@ -838,30 +848,46 @@ def diff_skills(hub_skills, li_skills, hub_languages, hub):
                 "reason": reason,
             })
         else:
-            consistent.append({"name": found["name"], "category": found.get("category")})
-            action, reason, priority = action_for_shared(name, found)
+            e = hub_list[found_idx]
+            consumed[found_idx] = True
+            consistent.append({"name": e["name"], "category": e.get("category")})
+            action, reason, priority = action_for_shared(name, e)
             recommendations.append({
-                "name": found["name"],
+                "name": e["name"],
                 "side": "consistent",
                 "action": action,
                 "priority": priority,
                 "reason": reason,
-                "hub_category": found.get("category"),
+                "hub_category": e.get("category"),
             })
 
-    for e in hub_by_key.values():
-        if any(skill_match(li, e["name"]) for li in li_names):
+    for idx, e in enumerate(hub_list):
+        if consumed[idx]:
             continue
-        hub_only.append(e)
-        action, reason, priority = action_for_hub_skill(e)
-        recommendations.append({
-            "name": e["name"],
-            "side": "hub_only",
-            "action": action,
-            "priority": priority,
-            "reason": reason,
-            "hub_category": e.get("category"),
-        })
+        # Unconsumed hub entry still covered by a LinkedIn tech skill (subset
+        # semantics) -> emit ONCE as consistent; otherwise it is hub_only.
+        if any(skill_match(li, e["name"]) for li in li_tech_names):
+            consistent.append({"name": e["name"], "category": e.get("category")})
+            action, reason, priority = action_for_shared(e["name"], e)
+            recommendations.append({
+                "name": e["name"],
+                "side": "consistent",
+                "action": action,
+                "priority": priority,
+                "reason": reason,
+                "hub_category": e.get("category"),
+            })
+        else:
+            hub_only.append(e)
+            action, reason, priority = action_for_hub_skill(e)
+            recommendations.append({
+                "name": e["name"],
+                "side": "hub_only",
+                "action": action,
+                "priority": priority,
+                "reason": reason,
+                "hub_category": e.get("category"),
+            })
 
     return {
         "consistent": consistent,
@@ -976,8 +1002,12 @@ def diff_languages(hub_langs, li_langs):
                 "differences": ["level"],
             })
         else:
-            consistent.append({"language": h["language"],
-                               "level": h["level"] or l["level"]})
+            entry = {"language": h["language"], "level": h["level"] or l["level"]}
+            # Unmapped LinkedIn label on an otherwise-present language: surface
+            # the raw label instead of silently dropping it (backend N3).
+            if l["level"] is None and l.get("proficiency_raw"):
+                entry["linkedin_proficiency_raw"] = l["proficiency_raw"]
+            consistent.append(entry)
         used_li.add(j)
 
     for j, l in enumerate(li_entries):
@@ -1115,6 +1145,7 @@ MSGS = {
         "divergent_action": "campos divergentes — alinhe o lado desatualizado (o export é a fonte mais recente)",
         "file_missing": "arquivo não encontrado no export: {file} — esta seção não pôde ser comparada (as entradas do hub NÃO foram classificadas como hub_only)",
         "no_positions": "Positions.csv não tem registros — nenhuma posição do LinkedIn para comparar",
+        "no_certifications": "Certifications.csv não tem registros — nenhuma certificação do LinkedIn para comparar (as certificações do hub NÃO foram classificadas como hub_only)",
         "no_skills": "Skills.csv não tem registros — nenhuma skill do LinkedIn para comparar",
         "no_recommendations": "nenhuma recomendação de skill com ação (as demais estão consistentes/sem ação no JSON)",
         "skill_rec": "Recomendações de skills (por prioridade)",
@@ -1145,6 +1176,7 @@ MSGS = {
         "reason_shared_not_relevant": "presente nos dois lados — sem ação necessária",
         "written": "Relatórios gerados:",
         "diff_note_lang": "nível mapeado do rótulo do LinkedIn ({raw}) → {mapped}",
+        "label_not_mapped": "rótulo de proficiência do LinkedIn \"{raw}\" não mapeado para a escala do hub — revise manualmente",
     },
     "en": {
         "title": "LinkedIn ↔ Hub Sync",
@@ -1169,6 +1201,7 @@ MSGS = {
         "divergent_action": "divergent fields — align the stale side (the export is the most recent source)",
         "file_missing": "file not found in the export: {file} — this section could not be compared (hub entries were NOT classified as hub_only)",
         "no_positions": "Positions.csv has no records — no LinkedIn positions to compare",
+        "no_certifications": "Certifications.csv has no records — no LinkedIn certifications to compare (hub certifications were NOT classified as hub_only)",
         "no_skills": "Skills.csv has no records — no LinkedIn skills to compare",
         "no_recommendations": "no skill recommendation with an action (the remaining skills are consistent / no-action — see the JSON)",
         "skill_rec": "Skill recommendations (by priority)",
@@ -1199,6 +1232,7 @@ MSGS = {
         "reason_shared_not_relevant": "present on both sides — no action needed",
         "written": "Reports written:",
         "diff_note_lang": "level mapped from the LinkedIn label ({raw}) → {mapped}",
+        "label_not_mapped": "LinkedIn proficiency label \"{raw}\" was not mapped to the hub scale — review manually",
     },
     "es": {
         "title": "Sincronización LinkedIn ↔ Hub",
@@ -1223,6 +1257,7 @@ MSGS = {
         "divergent_action": "campos divergentes — alinea el lado desactualizado (el export es la fuente más reciente)",
         "file_missing": "archivo no encontrado en el export: {file} — esta sección no pudo compararse (las entradas del hub NO se clasificaron como hub_only)",
         "no_positions": "Positions.csv sin registros — no hay posiciones de LinkedIn para comparar",
+        "no_certifications": "Certifications.csv sin registros — no hay certificaciones de LinkedIn para comparar (las certificaciones del hub NO se clasificaron como hub_only)",
         "no_skills": "Skills.csv sin registros — no hay skills de LinkedIn para comparar",
         "no_recommendations": "ninguna recomendación de skill con acción (el resto están consistentes / sin acción — ver el JSON)",
         "skill_rec": "Recomendaciones de skills (por prioridad)",
@@ -1253,6 +1288,7 @@ MSGS = {
         "reason_shared_not_relevant": "presente en ambos lados — sin acción necesaria",
         "written": "Informes generados:",
         "diff_note_lang": "nivel mapeado desde la etiqueta de LinkedIn ({raw}) → {mapped}",
+        "label_not_mapped": "la etiqueta de proficiencia de LinkedIn \"{raw}\" no se mapeó a la escala del hub — revisa manualmente",
     },
 }
 
@@ -1308,7 +1344,8 @@ ACTION_PHRASE_KEY = {
 def unavailable_message(section_data, lang):
     """Human message for a section that could not be compared."""
     if section_data.get("empty_source"):
-        return MSGS[lang]["no_positions"]
+        key = section_data.get("empty_message_key", "no_positions")
+        return MSGS[lang].get(key, MSGS["en"].get(key, key))
     return MSGS[lang]["file_missing"].format(
         file=section_data.get("missing_file", "?"))
 
@@ -1427,7 +1464,12 @@ def render_report(data, lang):
         lines.append("- {0}".format(unavailable_message(langs, lang)))
     else:
         for e in langs["consistent"]:
-            lines.append("- consistent — {language}: {level}".format(language=e["language"], level=e["level"] or "-"))
+            line = "- consistent — {language}: {level}".format(
+                language=e["language"], level=e["level"] or "-")
+            if e.get("linkedin_proficiency_raw"):
+                line += " — {0}".format(L["label_not_mapped"].format(
+                    raw=e["linkedin_proficiency_raw"]))
+            lines.append(line)
         for d in langs["divergent"]:
             mapped = ""
             if d["linkedin"].get("proficiency_raw") and d["linkedin"].get("level"):
@@ -1566,6 +1608,13 @@ def build_payload(args, hub, export_dir, found):
 
     certs = section_box(missing_certs)
     sections["certifications"] = certs
+    # Same empty-source guard as Positions.csv: a present-but-empty
+    # Certifications.csv carries no per-certification data, so hub
+    # certifications are NOT classified as hub_only (SKILL.md §1/§2.10).
+    if certs["available"] and not li_certs and hub.get("certifications"):
+        certs["available"] = False
+        certs["empty_source"] = True
+        certs["empty_message_key"] = "no_certifications"
     if certs["available"]:
         certs.update(diff_certifications(hub.get("certifications", []), li_certs))
         certs["counts"] = count_cat(certs)
@@ -1640,6 +1689,10 @@ def main(argv=None):
         print("error: a URL was given as the export directory ({0}) — the sync "
               "only reads a local LinkedIn Download My Data export directory; "
               "linkedin.com is never scraped.".format(args.export_dir), file=sys.stderr)
+        return 1
+    if url_refused(args.candidate_dir):
+        print("error: a URL was given as the candidate directory ({0}) — the "
+              "sync only reads local files; linkedin.com is never scraped.".format(args.candidate_dir), file=sys.stderr)
         return 1
     if url_refused(args.hub):
         print("error: a URL was given as the hub path — hub.json must be a "

@@ -92,11 +92,13 @@ rejected as "not a Download My Data export directory".
    (≤ 220 chars) of the Profile Summary.csv cell. When the export has no
    headline at all the state is `not_available_in_export` — the report tells
    the user to check it manually instead of fabricating a comparison.
-10. **Empty Positions.csv** is treated as "no data to compare" (a LinkedIn
-    profile virtually always lists positions — an empty file signals a
-    partial export): the hub positions are NOT classified as `hub_only` and a
-    clear note is emitted. Empty Skills/Education/Languages/Certifications
-    files are real signals (the member lists none) and diff normally.
+10. **Empty Positions.csv / Certifications.csv** are treated as "no data to
+    compare" (a LinkedIn profile virtually always lists positions, and an
+    empty Certifications.csv carries no per-certification data — both signal
+    partial/empty sources): the hub positions/certifications are NOT
+    classified as `hub_only` and a clear note is emitted. Empty
+    Skills/Education/Languages files are real signals (the member lists none
+    in those sections) and diff normally.
 
 ## 3. Diff semantics (the four categories)
 
@@ -142,6 +144,21 @@ For every skill in the union the JSON emits a structured recommendation:
 Dominant categories = the top-2 hub skill `category` values by count (tie →
 alphabetical). Relevance labels are deterministic rules over real data —
 never fabricated.
+
+**Count semantics (skills).** The skills diff counts exclude LinkedIn skills
+that are spoken languages already recorded in `hub.languages` — those are
+routed to the languages diff (Skills.csv lists them as endorsable skills, but
+they are not tech-skill candidates). Therefore, per the count line,
+`LinkedIn skills = consistent + linkedin_only` (a multilingual Skills.csv does
+not inflate the totals).
+
+**Hub-skill pairing (no drops, no duplicates).** Hub skills are matched
+ONE-TO-ONE with LinkedIn skills (a hub entry is consumed when a LinkedIn skill
+pairs with it — the same used-set pattern as positions). A hub entry left
+unconsumed but still covered by a LinkedIn tech skill under the subset
+semantics (hub `{React, React Native}` × LinkedIn `{React}`) is emitted ONCE
+as `consistent`; only genuinely uncovered leftovers become `hub_only`. Hub
+skills are therefore never dropped from the JSON and never duplicated.
 
 ## 4. OAuth limitation (documented decision)
 
