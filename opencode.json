@@ -111,6 +111,10 @@
       "template": "Send a Telegram notification to the user. This is for MANUAL use — agents should use the telegram-notifier skill instead. Read the message from the user. Run `$HOME/.config/opencode/scripts/telegram-notify.sh --title \"<title>\" \"<message>\"`. If no title is provided, omit --title. The script loads credentials from .opencode/telegram.env automatically. Report success or failure.",
       "description": "Send a manual Telegram notification"
     },
+    "ocf:cv-banner": {
+      "template": "Load the `cv-linkedin-banner` skill. Args: <candidate-directory> [direction]. Validate hub.json with `python3 $SCRIPTS_DIR/cv/validate.py`; if missing/invalid, tell the user to run `ocf:cv-hub` and stop. Build the banner content from the hub ONLY (phone, email, socials, and a short phrase distilled from summary/profile_objective — no invention; omit what is absent). Get an art-director visual direction for the banner (agents/design/art-director), honoring canvas 1584x396 (4:1), the profile-photo guard zone (bottom-left ~500x260px) and mobile center-crop readability. Generate the image via each::sense (load the `poster-design-generation` skill and/or run `scripts/cv/banner-gen.sh`; EACHLABS_API_KEY required — without it report the clear error and stop). Verify the phone/email/social text is correct and legible in the desktop and mobile crops; retry up to 2 times; if still incorrect, produce the deterministic crisp-text overlay fallback. Write outputs to ~/career/<candidate>/linkedin/banner/ (final png + spec + desktop/mobile previews). Report the output paths and verification notes — nothing is published (manual upload).",
+      "description": "Generate a LinkedIn profile banner (4:1) from the candidate hub — art-director direction + each::sense image generation with phone/email/socials and a short phrase, respecting the profile-photo safe zone; outputs under ~/career/<candidate>/linkedin/banner/ (never fabricates, never publishes)"
+    },
     "ocf:cv-hub": {
       "template": "Load the `cv-hub` skill. Args: <candidate-directory> (default ~/career/<name>). Ask the user for: 1) candidate directory, 2) CV PDF path (required), 3) official LinkedIn export (optional — Download My Data, NEVER scrape linkedin.com), 4) extra files (optional). Create directory structure (entradas/, resumes/), copy sources into entradas/, then invoke the career/cv-extractor subagent via task: with the candidate directory and source paths. Report hub.json path, validation result, and next step (ocf:cv-tailor).",
       "description": "Build candidate resume hub (hub.json + README.md) from CV PDF + LinkedIn export"
@@ -286,6 +290,7 @@
       "cv-linkedin": "allow",
       "cv-interview-prep": "allow",
       "cv-ats-score": "allow",
+      "cv-linkedin-banner": "allow",
       "owasp-top10": "allow",
       "owasp-asvs": "allow",
       "owasp-wstg": "allow",
