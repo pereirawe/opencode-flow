@@ -138,35 +138,72 @@ traceability.
 
 Output: `~/career/<candidate-name>/linkedin-optimization.md`
 
-Section order (H2):
+`linkedin-optimization.md` is an **actionable, objective-driven suggestion
+file** (issue #223): the candidate copies its content into LinkedIn, so it is
+NOT an internal analysis artifact. The `[INFERIDO]` ban of §5 applies to it
+exactly as to the final resume artifacts — the marker (and the word
+"inferido") MUST NOT appear. Assumed content (e.g. an assumed profile
+objective when the hub has none) is DECLARED in prose inside the Profile
+objective section or omitted — never silently included.
 
-1. Target role
-2. Headline suggestions
-3. About section draft
-4. Skills ranking
-5. Featured section
+Section order (H2) after the single H1 title (headings rendered in the report
+language):
+
+1. Profile objective (Objetivo do perfil — confirmed)
+2. Headline
+3. Sobre (About)
+4. Experiência (Experience)
+5. Skills
+6. Prioritized next steps (Próximos passos priorizados)
 
 Content per section:
 
-1. **Target role** — the target job title or role the LinkedIn profile is
-   optimized for; every profile marked `[INFERIDO]`.
-2. **Headline suggestions** — optimized headline (≤220 chars) tailored to the
-   target role; follows the format: `Current Title | Company | Keywords`;
-   ALL suggestions marked `[INFERIDO]`.
-3. **About section draft** — about section draft (≤2600 chars) for the target
-   role, highlighting key achievements, skills, and experience; ALL content
-   marked `[INFERIDO]` when not directly from hub data.
-4. **Skills ranking** — top 50 skills ranked by relevance to the target role,
-   based on hub.json skills and the target job requirements; every skill
-   marked `[INFERIDO]`.
-5. **Featured section** — recommendations for the LinkedIn featured section
-   (e.g., projects, publications, courses) relevant to the target role; ALL
-   content marked `[INFERIDO]`.
+1. **Profile objective** — the objective that drives the whole report, read
+   from `hub.profile_objective` (issue #222: `type` in {`job_search`,
+   `connections`, `services_sales`, `personal_branding`} + optional
+   `target_role`/`note`), as key/value lines (`Tipo:`, `Objetivo:`,
+   `Cargo/serviço alvo:`, `Contexto:`). When missing or ambiguous, the user
+   was asked OR an **assumed** objective is explicitly declared at the top of
+   this section ("Objetivo assumido ... confirme se não for o caso") — never
+   silently assumed, never founder/CEO positioning for a `job_search` profile.
+2. **Headline** — 2–3 LITERAL variants (≤220 chars each; character count
+   stated per variant) combining the target role/service names verbatim
+   (`job_search` → the actual job titles, e.g. "Tech Leader";
+   `services_sales` → the offered services), seniority, real differentiators
+   and 1–2 target keywords.
+3. **Sobre (About)** — one structured draft (≤2600 chars; length stated)
+   following the proven high-converting structure (the text is always the
+   candidate's own, only rephrasing the hub — never copied from anyone):
+   opening hook → one-line value logic → ✔ achievement bullets (real metrics
+   only, `action → quantified result`) → optional "E como isso acontece na
+   prática?" block → languages/certifications/current learning when present →
+   optional "palavras que me definem" → closing CTA per the objective
+   (`job_search` → availability/apply; `services_sales` → quote/contact;
+   `connections` → connect; `personal_branding` → follow/engage).
+4. **Experiência (Experience)** — per relevant role: a role summary
+   (title + company + period, from the hub) and bullets ready to paste into
+   the LinkedIn role description field — achievement bullets with hub metrics
+   plus condensed responsibility bullets. Hub achievements WITHOUT metrics →
+   explicit gap ("adicionar resultado quantificado"), numbers never invented.
+5. **Skills** — add/promote/remove review against the candidate's REAL
+   LinkedIn skills when available (the issue-225 `linkedin-sync.json`
+   `sections.skills.recommendations[]` output — consumed, never
+   re-implemented — or a user-pasted list): what to ADD (hub skills absent
+   from LinkedIn / objective keywords), what to PROMOTE to the top 3 of
+   search (objective-relevant), what to DEPRIORITIZE/remove; LinkedIn's
+   top-50 display cap is respected. With NO LinkedIn source the section states
+   so explicitly and recommends from the hub + objective keywords only —
+   linkedin.com is never scraped.
+6. **Prioritized next steps** — ordered P1/P2/P3 action list covering the
+   profile banner, the Featured section (real hub projects/certifications
+   with factual captions) and the profile sections to apply/complete, plus
+   the data gaps found (e.g. metrics to collect).
 
 The report follows the general rules of §2 (exactly one H1 title; H2 for
 top-level sections in the mandated order; H3 for subsections; no metadata
-header). The [INFERIDO] convention of §5 applies inline next to every
-inference/estimate.
+header). Bullet lists and simple key/value lines are the default; only simple
+tables are allowed. In contrast to §3.1/§3.2, the `[INFERIDO]` convention of
+§5 applies as a BAN here (see above), never inline.
 
 ### 3.5 `feedback.md` (cv-tailor / cv-cover-letter — application gate)
 
@@ -378,7 +415,9 @@ case-preserved.
    <JobTitle>.pdf` per the cv-tailor commercial name rule) and any artifact
    submitted to an ATS/recruiter MUST NOT contain `[INFERIDO]` — nor
    case-insensitive variants (`[inferido]`, `[Inferido]`) or the bare word
-   "inferido".
+   "inferido". The same ban applies to `linkedin-optimization.md` (§3.4): the
+   candidate copies its content into LinkedIn, so it is a shareable,
+   actionable suggestion file, not an internal analysis artifact.
 4. **Gate** — `scripts/cv/check-inference.sh` MUST pass (exit 0) on the final
    resume HTML/PDF before delivery; it blocks with exit 1 when markers are
    found.
@@ -454,3 +493,4 @@ complex merges, no nested layouts.
 - [ ] Application gate: `feedback.md` written (and the artifact suppressed) whenever match < `preferences.min_match_percentage`; the gate decision recorded otherwise
 - [ ] HTML render follows the template + cv-design.md design language
 - [ ] `[INFERIDO]` NEVER in shareable resume artifacts (`check-inference.sh`)
+- [ ] `linkedin-optimization.md`: no `[INFERIDO]`/“inferido”, objective declared or assumed explicitly at the top, six H2 sections in the §3.4 order
