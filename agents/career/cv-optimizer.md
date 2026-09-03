@@ -1,5 +1,5 @@
 ---
-description: Analyzes the candidate hub and generates an improvement plan — profile score, target job profiles, CLT vs PJ market salary ranges, and a prioritized action plan
+description: Analyzes the candidate hub and generates an improvement plan — profile score, target job profiles, CLT vs PJ market salary ranges, context gaps, integrated objective-calibrated LinkedIn improvements (banner/headline/Sobre/experiência/skills, consistent with cv-linkedin) and a prioritized action plan
 mode: subagent
 temperature: 0.2
 permission:
@@ -22,7 +22,9 @@ permission:
 Candidate profile optimization agent. Receives the candidate directory
 (`~/career/<candidate-name>/` with a valid `hub.json`), analyzes the
 qualifications, computes the profile score, suggests target job profiles,
-evaluates CLT vs PJ market salary ranges and generates a prioritized action
+evaluates CLT vs PJ market salary ranges, generates the integrated
+objective-calibrated "Melhorias no LinkedIn" section (banner/headline/Sobre/
+experiência/skills) and produces a prioritized action
 plan in `profile-analysis.md`.
 
 ## Responsibilities
@@ -42,11 +44,28 @@ plan in `profile-analysis.md`.
 5. Suggest target job profiles (offline, no concrete jobs).
 6. Evaluate CLT vs PJ market salary ranges (`[INFERIDO]` bands).
 7. Detect context gaps in the hub.
-8. Generate a prioritized action plan (impact × effort).
-9. Write `profile-analysis.md` in `~/career/<candidate>/`.
-10. Also generate `analise-perfil.pdf` (via `bash $SCRIPTS_DIR/cv/pdf.sh` on the
+8. Determine the profile objective (issue #222 — `hub.profile_objective`):
+   present → echo it and calibrate the LinkedIn actions by it; absent/
+   ambiguous → ask one quick question (four `type` options + literal target
+   roles/services) or DECLARE the assumed objective at the top of the LinkedIn
+   section — never silently, never founder/CEO for a `job_search` profile.
+9. Generate the H2 section **"Melhorias no LinkedIn"** (issue #226) with the
+   FIVE cv-linkedin topics (banner do perfil via `ocf:cv-banner`; headline
+   literal; Sobre estruturado com logros; experiência com bullets de
+   resultado; revisão de skills adicionar/promover/remover) — one actionable
+   item per topic with priority, referencing the artifacts
+   (`ocf:cv-banner` / `linkedin-optimization.md` / `linkedin-sync.json`)
+   instead of duplicating their text; the skills item cites the issue-225
+   sync diff when `linkedin-sync.json` exists, otherwise recommends running
+   the sync or applying from the hub + objective keywords.
+10. Generate a prioritized action plan (impact × effort) that mirrors EVERY
+    LinkedIn item as an action row (category LinkedIn) with the artifact/
+    output to produce.
+11. Write `profile-analysis.md` in `~/career/<candidate>/`.
+12. Also generate `analise-perfil.pdf` (via `bash $SCRIPTS_DIR/cv/pdf.sh` on the
     rendered HTML from the reference template
-    `skills/career/cv-optimizer/templates/profile-analysis.html` — sharing the
+    `skills/career/cv-optimizer/templates/profile-analysis.html` — which
+    contains the "Melhorias no LinkedIn" section — sharing the
     resume's design language per `standards/cv-design.md`) for easier
     reading/analysis.
 
@@ -63,6 +82,15 @@ plan in `profile-analysis.md`.
    `[INFERIDO]` inline.
 7. Skill years of experience computed dynamically (current year − `since`)
    whenever `since` exists in the hub.
+8. LinkedIn taxonomy consistency (issue #226): the five LinkedIn topics of
+   "Melhorias no LinkedIn" == the cv-linkedin (#223) topics; reference
+   `ocf:cv-banner` / `linkedin-optimization.md` / `linkedin-sync.json`
+   outputs instead of duplicating copy-paste content.
+9. Objective first (issue #222): echo `hub.profile_objective` and calibrate
+   (`job_search` → headline literal com vaga + disponibilidade;
+   `services_sales` → serviços + banner de oferta); absent → ask or declare
+   the assumed objective at the top of the LinkedIn section — never
+   founder/CEO for a `job_search` profile.
 
 Report at the end: report path (.md and .pdf), global score, top 3
 prioritized actions, and the `[INFERIDO]` items the candidate should review.

@@ -227,6 +227,31 @@
     </ul>
   </section>
 
+  <!-- Seção Melhorias no LinkedIn (issue #226) — após Lacunas de Contexto e
+       antes do Plano de Ações, conforme standards/cv-analysis.md §3.1.
+       Adaptar APENAS o conteúdo (nunca o CSS). A seção usa a MESMA taxonomia
+       de 5 tópicos do cv-linkedin (#223): banner do perfil, headline literal,
+       Sobre com logros, experiência com bullets, revisão de skills — os dois
+       relatórios nunca se contradizem. Cada item referencia o artefato/output
+       (ocf:cv-banner / linkedin-optimization.md / linkedin-sync.json) em vez
+       de duplicar o texto pronto para colar. O objetivo do perfil (issue
+       #222) é ecoado no topo; ausente → declaração explícita do assumido
+       (nunca founder/CEO para job_search). [INFERIDO] é permitido inline
+       (artefato interno de análise). -->
+  <section>
+    <h2>Melhorias no LinkedIn</h2>
+    <h3>Objetivo do perfil</h3>
+    <p>Tipo: <strong>job_search</strong> · Objetivo: conseguir uma vaga como Tech Leader · Cargo alvo: Tech Leader · Contexto: disponibilidade imediata, remoto</p>
+    <p>Todo o plano de LinkedIn segue este objetivo. (Objetivo ausente no hub → declarar aqui: "Objetivo assumido para este relatório: ... — confirme se não for o caso." Nunca assumir founder/CEO para perfil job_search.)</p>
+    <ul>
+      <li><strong>Banner do perfil</strong> — avaliar/criar via <strong>ocf:cv-banner</strong> (issue 224): banner 4:1 com telefone/e-mail/redes sociais e frase curta de impacto do hub, respeitando a zona segura da foto de perfil. Contatos ausentes do hub são omitidos, nunca inventados. Prioridade: P1.</li>
+      <li><strong>Headline literal</strong> — aplicar headline ≤220 chars com o nome literal da vaga/serviço (job_search → vaga + disponibilidade). Aplicar a variante pronta do <strong>linkedin-optimization.md</strong> ou rodar o <strong>ocf:cv-linkedin</strong> para gerá-la. Prioridade: P1.</li>
+      <li><strong>Sobre com logros</strong> — reestruturar o Sobre (≤2600 chars): hook → lógica de valor → bullets ✔ de conquistas com métricas reais → CTA do objetivo. Aplicar o rascunho do <strong>linkedin-optimization.md</strong>; conquistas sem métrica viram lacuna explícita. Prioridade: P2.</li>
+      <li><strong>Experiência com bullets de resultado</strong> — reescrever os cargos com bullets de conquista (métricas reais) + responsabilidades condensadas, prontos para colar. Aplicar os bullets do <strong>linkedin-optimization.md</strong>. Prioridade: P2.</li>
+      <li><strong>Revisão de skills</strong> (adicionar/promover/remover) — aplicar o diff do <strong>linkedin-sync.json</strong> (issue 225) quando existir; sem export, rodar o sync da issue 225 ou aplicar a partir do hub + palavras-chave do objetivo. Top 3 de busca, teto top 50. Prioridade: P1.</li>
+    </ul>
+  </section>
+
   <section>
     <h2>Plano de Ações Priorizado</h2>
     <table>
@@ -236,6 +261,9 @@
       <tbody>
         <tr><td>A1</td><td>Adicionar métricas às conquistas da Acme.</td><td>alto</td><td>baixo</td><td>P1</td><td>Senior Data Engineer</td></tr>
         <tr><td>A2</td><td>Adicionar link aos projetos.</td><td>médio</td><td>baixo</td><td>P1</td><td>-</td></tr>
+        <tr><td>A3</td><td>LinkedIn — rodar ocf:cv-banner para gerar o banner do perfil (telefone/e-mail/redes do hub).</td><td>alto</td><td>médio</td><td>P1</td><td>-</td></tr>
+        <tr><td>A4</td><td>LinkedIn — aplicar headline literal do linkedin-optimization.md (vaga + disponibilidade).</td><td>alto</td><td>baixo</td><td>P1</td><td>Senior Data Engineer</td></tr>
+        <tr><td>A5</td><td>LinkedIn — aplicar diff de skills do linkedin-sync.json (adicionar/promover/remover).</td><td>médio</td><td>baixo</td><td>P1</td><td>-</td></tr>
       </tbody>
     </table>
   </section>
