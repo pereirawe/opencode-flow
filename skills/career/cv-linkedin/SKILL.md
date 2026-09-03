@@ -168,11 +168,13 @@ variant and indicate the recommended one for the objective.
 
 ### H2 3 — Sobre (About, ≤2600 characters)
 
-LinkedIn about sections are limited to **2600 characters**. Draft ONE about
-text (≤2600 chars — state the length) in the candidate's voice, following the
-proven high-converting structure below. The structure follows the reference
-example pattern; the TEXT is always the candidate's own — never copy anyone
-else's text, only rephrase/highlight what exists in the hub:
+ LinkedIn about sections are limited to **2600 characters**. Draft ONE about
+ text (≤2600 chars — state the length) in the candidate's voice, following the
+ proven high-converting structure below. The drafting base is the hub
+ `summary` (`summary_i18n` when available) — rephrased, never copied verbatim.
+ The structure follows the reference example pattern; the TEXT is always the
+ candidate's own — never copy anyone else's text, only rephrase/highlight what
+ exists in the hub:
 
 1. **Opening hook line** — provocative/positioning first line built from real
    facts (years of experience, scale, results, domain).
