@@ -64,7 +64,13 @@ Section order (H2):
 3. Target job profiles
 4. Market salary (CLT vs PJ)
 5. Context gaps
-6. Prioritized action plan
+6. LinkedIn improvements (`Melhorias no LinkedIn`)
+7. Prioritized action plan
+
+The heading of section 6 is rendered in the report language; the PT form
+`Melhorias no LinkedIn` is canonical for this flow (translate only when the
+report runs in another language, preserving meaning and order) — the same
+rule §3.4 applies to its PT-canonical section names.
 
 Content per section:
 
@@ -87,10 +93,70 @@ Content per section:
 5. **Context gaps** — bullet list of missing information that would increase
    profile context, each with the suggested fix format (e.g. "Reduced X by
    Y%", "add project link", "add formal language level").
-6. **Prioritized action plan** — the canonical action table (Section 4.3),
+6. **LinkedIn improvements (`Melhorias no LinkedIn`)** — actionable,
+   prioritized LinkedIn improvement items integrated into the analysis and
+   **calibrated by the profile objective** (issue #222 —
+   `hub.profile_objective`). The section MUST use the SAME LinkedIn topic
+   taxonomy as the cv-linkedin report (§3.4, issue #223) so the two reports
+   never contradict. Content structure:
+   - **Profile objective echo (first `H3` of the section)** — when
+     `hub.profile_objective` is present, echo it as key/value lines
+     (`Tipo:`, `Objetivo:`, `Cargo/serviço alvo:`, `Contexto:` — the same
+     layout as §3.4) plus the line "Todo o plano de LinkedIn segue este
+     objetivo."; when missing or ambiguous, ask the user ONE quick question
+     (the four `type` options + literal target roles/services) and, if
+     unanswered, DECLARE the assumed objective at the top of the section
+     ("Objetivo assumido para este relatório: ... confirme se não for o
+     caso") — never silently, never founder/CEO positioning for a
+     `job_search` profile. The objective calibrates the items: `job_search`
+     → literal headline with the target role name(s) + availability;
+     `services_sales` → the offered services by name + an offer banner;
+     `connections` / `personal_branding` → identity/niche wording per the
+     §3.4 objective reference.
+   - **Five topic items** (one actionable, prioritized item per topic —
+     bullets, each with the artifact/output to produce):
+     - **Banner do perfil** (issue 224) — evaluate/create the profile banner
+       via the `ocf:cv-banner` flow: 4:1 banner carrying the hub's phone,
+       e-mail, social links and a short impact phrase, respecting the
+       profile-photo safe zone. Contact data absent from the hub is omitted,
+       never invented.
+     - **Headline** — apply a LITERAL headline (≤220 chars) naming the
+       target role(s)/service(s) verbatim (job titles for `job_search`,
+       offered services for `services_sales`).
+     - **Sobre (About)** — restructure the about section with logros/
+       achievements (hook → value logic → ✔ achievement bullets with real
+       metrics → objective-aligned CTA), ≤2600 chars.
+     - **Experiência** — rewrite the experience roles with result bullets
+       (achievement bullets with hub metrics + condensed responsibilities),
+       ready to paste into the LinkedIn role description; metric-less
+       achievements are flagged as gaps, never filled.
+     - **Skills** — add/promote/remove review against the REAL LinkedIn
+       skills (top-3 search promote, top-50 display cap).
+   - **Artifact references, never duplication** — each item references the
+     output that carries the ready content: run `ocf:cv-banner` (banner);
+     apply the literal headline / Sobre / experience bullets from
+     `linkedin-optimization.md` (issue #223 / `ocf:cv-linkedin` output) or
+     run `ocf:cv-linkedin` when that file does not exist yet; for Skills,
+      cite the issue-225 `linkedin-sync.json`
+      `sections.skills.recommendations[]` diff (add/promote/remove —
+      `add_to_linkedin`/`promote_on_linkedin`/`remove_from_linkedin`) when the
+      sync exists AND carries skills recommendations (an export without
+      `Skills.csv` has `skills.available: false` and no recommendations) and,
+      without it, recommend running the issue-225 sync
+     (`scripts/cv/linkedin-sync.py` + `cv-linkedin-sync` skill) or applying
+     from the hub + objective keywords. `profile-analysis.md` is an internal
+     analysis artifact (§5): it RECOMMENDS the LinkedIn actions and never
+     carries copy-paste text meant for the profile, so the §3.4/§5 marker ban
+     of the shareable `linkedin-optimization.md` is untouched.
+7. **Prioritized action plan** — the canonical action table (Section 4.3),
    grouped by category (fill hub gaps, strengthen weak sections, close
-   target-job gaps, positioning) — `H3` group headings or an ordered
-   grouping of rows.
+   target-job gaps, positioning, **LinkedIn**) — `H3` group headings or an
+   ordered grouping of rows. Every LinkedIn improvement item of section 6
+   MUST also appear here as an action row with Impact/Effort/Priority and the
+   artifact/output to produce (e.g. "rodar `ocf:cv-banner`", "aplicar
+   headline do `linkedin-optimization.md`", "aplicar diff de skills do
+   `linkedin-sync.json`" / "rodar o sync da issue 225") — referencing the
+   cv-linkedin/cv-banner outputs instead of duplicating their text.
 
 ### 3.2 `gap-analysis.md` (cv-tailor)
 
@@ -494,3 +560,4 @@ complex merges, no nested layouts.
 - [ ] HTML render follows the template + cv-design.md design language
 - [ ] `[INFERIDO]` NEVER in shareable resume artifacts (`check-inference.sh`)
 - [ ] `linkedin-optimization.md`: no `[INFERIDO]`/“inferido”, objective declared or assumed explicitly at the top, six H2 sections in the §3.4 order
+- [ ] `profile-analysis.md`: H2 `Melhorias no LinkedIn` present, calibrated by the objective (echoed when in the hub; asked or explicitly assumed when absent — never founder/CEO for `job_search`), five topics matching the §3.4 taxonomy, items mirrored in the action-plan table with artifact references (`ocf:cv-banner` / `linkedin-optimization.md` / `linkedin-sync.json`)

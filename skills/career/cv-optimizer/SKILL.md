@@ -1,13 +1,14 @@
 ---
 name: cv-optimizer
-description: Analyze and optimize a candidate's profile from hub.json — general qualifications, profile score (0-100 per section + global), target job profiles, CLT vs PJ market salary ranges ([INFERIDO] bands), context gaps, and a prioritized action plan. Use when you need to analyze and improve a candidate's profile (command ocf:cv-optimize). Career sector.
+description: Analyze and optimize a candidate's profile from hub.json — general qualifications, profile score (0-100 per section + global), target job profiles, CLT vs PJ market salary ranges ([INFERIDO] bands), context gaps, integrated objective-calibrated LinkedIn improvements (banner, headline literal, Sobre com logros, experiência com bullets, revisão de skills — consistent with cv-linkedin, referencing ocf:cv-banner / linkedin-optimization.md / linkedin-sync.json) and a prioritized action plan. Use when you need to analyze and improve a candidate's profile (command ocf:cv-optimize). Career sector.
 ---
 
 # CV Optimizer — profile analysis and improvement plan
 
 Analyzes the candidate's `hub.json` (built by `cv-hub`) and produces an
 actionable report with profile score, target job profiles, market salary
-ranges and a prioritized action plan. The goal is to **improve the profile
+ranges, an integrated objective-calibrated **"Melhorias no LinkedIn"** plan
+(issue #226) and a prioritized action plan. The goal is to **improve the profile
 substantially** before generating tailored resumes (`cv-tailor`).
 
 ## Prerequisite
@@ -15,6 +16,34 @@ substantially** before generating tailored resumes (`cv-tailor`).
 A valid `~/career/<candidate-name>/hub.json` (validated by
 `python3 $SCRIPTS_DIR/cv/validate.py`). If it does not exist, the `ocf:cv-hub`
 flow must run first (the `ocf:cv-optimize` command already handles this).
+
+## LinkedIn context (optional inputs, consumed when present)
+
+The report's "Melhorias no LinkedIn" section consumes — when present next to
+the hub in `~/career/<candidate-name>/` — the outputs of the LinkedIn flow
+(issues #222/#223/#224/#225). All are optional: their absence never blocks the
+analysis, it only changes what the section recommends:
+
+- `hub.profile_objective` (issue #222) — the profile objective that
+  calibrates every LinkedIn action (`type` in {`job_search`, `connections`,
+  `services_sales`, `personal_branding`} + optional `target_role`/`note`).
+  Absent/ambiguous → ask the user ONE quick question (four type options +
+  literal target roles/services) or, if unanswered, DECLARE the assumed
+  objective at the top of the section — never silently, never founder/CEO for
+  a `job_search` profile.
+- `linkedin-optimization.md` (issue #223 / `ocf:cv-linkedin`) — the ready
+  literal headline/Sobre/experience/skills copy. REFERENCE it — never
+  duplicate its text into `profile-analysis.md`.
+- `linkedin-sync.json` (issue #225 — `scripts/cv/linkedin-sync.py` +
+  `cv-linkedin-sync` skill) — the real-LinkedIn skills diff
+  (`sections.skills.recommendations[]`, emitted only when the export has a
+  `Skills.csv`; an export without it reports `skills.available: false` and no
+  recommendations). Absent/without recommendations → recommend running the
+  issue-225 sync or applying from the hub + objective keywords.
+- `ocf:cv-banner` (issue #224) — the planned banner command referenced as the
+  artifact to run for the banner item; issue #224 is NOT implemented in this
+  config version — never invent its output contract, just reference the
+  command.
 
 ## Output
 
@@ -50,7 +79,9 @@ Canonical section order (H2) in `profile-analysis.md`:
 3. **Target job profiles**
 4. **Market salary (CLT vs PJ)**
 5. **Context gaps**
-6. **Prioritized action plan**
+6. **Melhorias no LinkedIn** (LinkedIn improvements — §7 of the analysis
+   protocol below; heading rendered in the report language, PT form canonical)
+7. **Prioritized action plan**
 
 Rules (per `standards/cv-analysis.md`):
 
@@ -250,7 +281,83 @@ impact of the profile:
 - Summary without differentiators/positioning
 - Entirely missing sections (projects, certifications, languages)
 
-### 7. Prioritized action plan
+### 7. LinkedIn improvements (integrated, objective-calibrated)
+
+Produce the H2 section **"Melhorias no LinkedIn"** — the LinkedIn improvement
+plan integrated into the analysis (issue #226). The section uses the SAME
+topic taxonomy as the cv-linkedin report (`linkedin-optimization.md`, issue
+#223) — banner do perfil, headline literal, Sobre com logros, experiência com
+bullets de resultado, revisão de skills — so the two reports never
+contradict.
+
+**Objective first (never silently).** Read `hub.profile_objective` (issue
+#222): `type` in {`job_search`, `connections`, `services_sales`,
+`personal_branding`} + optional `target_role`/`note`.
+
+- Present and clear → the section opens with an H3 **Objetivo do perfil**
+  echoing it (key/value lines `Tipo:`/`Objetivo:`/`Cargo/serviço alvo:`/
+  `Contexto:` + "Todo o plano de LinkedIn segue este objetivo.") and the
+  items are calibrated by it:
+  - `job_search` → headline literal com o nome da vaga + disponibilidade;
+    Sobre CTA de disponibilidade; skills priorizadas para a busca.
+  - `services_sales` → serviços pelo nome + banner de oferta; Sobre CTA de
+    contato/orçamento.
+  - `connections` / `personal_branding` → wording de identidade/niche
+    conforme a referência de objetivo do cv-linkedin.
+- Missing or ambiguous → ask the user ONE quick question (four type options +
+  literal target roles/services). If they do not answer, open the section
+  with an explicit declaration — "Objetivo assumido para este relatório:
+  `<type>` como `<cargo/serviço>` — confirme se não for o caso." — choosing
+  the assumed type from hub evidence (`professional_title`, summary,
+  experience: salaried-career hubs default to `job_search` with the literal
+  target role; service-selling hubs to `services_sales`). Never silently,
+  **never founder/CEO positioning for a `job_search` profile**.
+
+**Five topic items (actionable + prioritized).** One item per topic, each a
+bullet with the action, the artifact/output to produce and a priority (P1/P2/
+P3, consistent with the action-plan rules):
+
+1. **Banner do perfil** (issue 224) — avaliar/criar o banner via
+   `ocf:cv-banner` (planejado — issue 224 não implementada nesta versão;
+   referencie o comando como o artefato a rodar, sem inventar o contrato de
+   saída). O banner carrega telefone/e-mail/redes sociais/frase curta de
+   impacto REAIS do hub (`personal_info`) e respeita a zona segura da foto de
+   perfil (canto inferior esquerdo + banda central legível no mobile).
+   Contatos ausentes do hub são omitidos — nunca inventados.
+2. **Headline literal** — aplicar headline ≤220 chars com os nomes LITERAIS
+   das vagas/serviços (job_search → título da vaga + disponibilidade;
+   services_sales → serviços). Referencie as variantes prontas do
+   `linkedin-optimization.md`; sem esse arquivo, a ação é "rodar
+   `ocf:cv-linkedin`" para gerá-lo.
+3. **Sobre estruturado com logros** (issue 223) — reestruturar o Sobre
+   (≤2600 chars): hook → lógica de valor → bullets ✔ de conquistas com
+   métricas reais (`ação → resultado quantificado`) → CTA alinhado ao
+   objetivo. Referencie o rascunho do `linkedin-optimization.md`; conquistas
+   sem métrica no hub → lacuna explícita, nunca número inventado.
+4. **Experiência com bullets de resultado** (issue 223) — reescrever os
+   cargos com bullets de resultado (conquistas com métricas + responsabilidades
+   condensadas) prontos para colar no campo de descrição do LinkedIn.
+   Referencie os bullets do `linkedin-optimization.md`; sem métrica → gap.
+5. **Revisão de skills** (adicionar/promover/remover — issue 225/223) — vs a
+   lista REAL de skills do LinkedIn: quando existir `linkedin-sync.json` E o
+   sync trouxer recomendações de skills (`sections.skills.recommendations[]`
+   presente — um export sem `Skills.csv` tem `skills.available: false` e sem
+   recomendações), cite o diff (`add_to_linkedin` /
+   `promote_on_linkedin` / `remove_from_linkedin`) com os totais
+   adicionar/promover/remover; sem export/sync ou sem recomendações no JSON →
+   recomendar rodar o sync da issue 225 (`scripts/cv/linkedin-sync.py` + skill
+   `cv-linkedin-sync`) ou aplicar a partir do hub + keywords do objetivo.
+   Respeitar o top-3 de busca e o teto top-50 de exibição do LinkedIn. Nunca
+   inventar a lista real.
+
+**Reference, never duplicate.** `profile-analysis.md` is an internal analysis
+artifact: `[INFERIDO]` markers are allowed inline here (§5). The section only
+RECOMMENDS the LinkedIn actions and references the copy-paste-ready outputs
+(`linkedin-optimization.md`, `ocf:cv-banner`, `linkedin-sync.json`) — it never
+writes the literal headline/Sobre/bullets itself, so the `[INFERIDO]` ban of
+the shareable `linkedin-optimization.md` is never violated.
+
+### 8. Prioritized action plan
 
 **Output table** — the report's action plan MUST be the canonical table of
 `standards/cv-analysis.md` §4.3:
@@ -267,7 +374,17 @@ impact of the profile:
 - **Target profile** — which job profile the action serves (`-` when general)
 
 Group rows by category: fill hub gaps, strengthen weak sections, close
-target-job gaps (courses/certifications/languages), positioning.
+target-job gaps (courses/certifications/languages), positioning, **LinkedIn**.
+
+**LinkedIn category rows.** Every LinkedIn improvement item of section 7
+(§ "Melhorias no LinkedIn") MUST also appear here as an action row, with
+Impact/Effort/Priority and the artifact/output to produce in the Action cell
+(e.g. "LinkedIn — rodar `ocf:cv-banner` para gerar o banner do perfil",
+"LinkedIn — aplicar headline literal do `linkedin-optimization.md` (vaga +
+disponibilidade)", "LinkedIn — aplicar diff de skills do `linkedin-sync.json`
+(adicionar/promover/remover)" or "rodar o sync da issue 225"). The rows
+reference the cv-linkedin/cv-banner outputs — they never duplicate their
+text.
 
 ## Hard rules
 
@@ -288,6 +405,19 @@ target-job gaps (courses/certifications/languages), positioning.
 9. Report language = the user's communication language (session locale or
    explicit user instruction); English is the fallback — per
    `standards/cv-analysis.md` §1.
+10. **LinkedIn taxonomy consistency (issue #226):** the five LinkedIn topics
+    of the "Melhorias no LinkedIn" section (banner do perfil, headline
+    literal, Sobre com logros, experiência com bullets, revisão de skills)
+    MUST be the SAME topics of the cv-linkedin report (#223) — same labels,
+    same semantics, never contradicting. Reference the outputs
+    (`ocf:cv-banner`, `linkedin-optimization.md`, `linkedin-sync.json`)
+    instead of duplicating their copy-paste content.
+11. **Objective first (issue #222):** echo `hub.profile_objective` when
+    present and calibrate the LinkedIn actions by it (`job_search` → headline
+    literal com vaga + disponibilidade; `services_sales` → serviços + banner
+    de oferta). Absent/ambiguous → ask one quick question or DECLARE the
+    assumed objective at the top of the section — never silently, NEVER
+    founder/CEO positioning for a `job_search` profile.
 
 ## tasks.json (optional)
 
