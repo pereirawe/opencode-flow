@@ -60,32 +60,51 @@ issues only. See `standards/issues.md` for the full contract.
 
 ### 24. `pre_commit.sh` não sincroniza trailers de status com `known_issues.md`
 
-- Status: backlog
+- Status: ready
+- Ready: 2026-08-31T18:48
 - Type: bug
 - Severity: high
 - Report: opencode
 - Base branch: main
-- Reviewers: 1
+- Reviewers: 1 (devops)
 - Remote: -
 - PR: #93
 - Location: scripts/pre_commit.sh:36-61, standards/commits.md
 - Description: standards/commits.md documenta que trailers (Status:, Closes) sincronizam automaticamente com known_issues.md via pre_commit.sh, mas o script apenas detecta e loga os trailers — nunca modifica o arquivo de issues.
 - Impact: Sincronização automática documentada não existe. Usuários/agentes precisam atualizar known_issues.md manualmente após cada commit.
+- Acceptance criteria:
+    1. `pre_commit.sh` atualiza `known_issues.md` com o trailer `Status:` do commit, eliminando edição manual pós-commit.
+    2. Trailer `Closes: #<id>` reflete o fechamento/resolução da issue no `known_issues.md`.
+    3. Hook é idempotente e não corrompe o arquivo em execuções repetidas; na ausência de trailers faz exit 0 (sem regressão).
+- Tests:
+    1. Commit com trailer `Status: in-progress` em issue #X → entrada de #X em known_issues.md passa a `Status: in-progress` após o hook.
+    2. Commit com `Closes: #X` → entrada de #X marcada como resolvida/fechada no known_issues.md.
+    3. Hook executa no pre-commit e faz exit 0 quando não há trailers (sem quebra de fluxo).
+    4. Execução repetida do hook não duplica nem corrompe as entradas existentes.
 - Suggested fix: Implementar atualização real de status em known_issues.md no pre_commit.sh, ou remover a alegação da documentação.
 
 ### 25. Status `open` no ciclo de vida é inatingível — nunca setado por scripts
 
-- Status: backlog
+- Status: ready
+- Ready: 2026-08-31T18:48
 - Type: bug
 - Severity: medium
 - Report: opencode
 - Base branch: main
-- Reviewers: 1
+- Reviewers: 1 (devops)
 - Remote: -
 - PR: #93
 - Location: scripts/promote.sh, scripts/create_issue.sh, workflow.md, standards/issues.md
 - Description: O ciclo de vida documentado é backlog→ready→open→in-progress, mas promote.sh transiciona backlog→ready e ready→in-progress sem nunca passar por open. create_issue.sh mantém status como ready. Nenhum script ou agente seta Status: open.
 - Impact: Estado open é inatingível. Código que referencia Status: open (maintain.sh, pre_commit.sh) é dead logic. Diagrama de lifecycle é enganoso.
+- Acceptance criteria:
+    1. `create_issue.sh` define `Status: open` na criação remota com sucesso, OU `open` é removido de workflow.md/standards/issues.md/maintain.sh/pre_commit.sh.
+    2. Nenhum código morto referencia `Status: open` (sem dead logic).
+    3. `promote.sh` transiciona estados sem pular ilegalmente estágios documentados.
+- Tests:
+    1. `create_issue.sh` cria issue remota → status local passa a `open` (ou open removido do ciclo de vida e fluxo continua consistente).
+    2. `grep -rn "Status: open" scripts/ standards/ workflow.md` → 0 referências após a correção.
+    3. `promote.sh` executa backlog→ready→in-progress sem erro e sem estado órfão.
 - Suggested fix: Remover open do ciclo de vida ou fazer create_issue.sh transicionar ready→open ao criar remote com sucesso.
 
 ### 28. `close_issue.sh` fecha issue remota sem verificar merge do PR para status não-`in-publish`
@@ -121,27 +140,35 @@ issues only. See `standards/issues.md` for the full contract.
 
 ### 29. IDs duplicados de issue em `resolved_issues.md`
 
-- Status: backlog
+- Status: ready
+- Ready: 2026-08-31T18:48
 - Type: bug
 - Severity: medium
 - Report: opencode
 - Base branch: main
-- Reviewers: 1
+- Reviewers: 1 (devops)
 - Remote: -
 - PR: #93
 - Location: resolved_issues.md:17-25, resolved_issues.md:44-51
 - Description: Duas entradas em resolved_issues.md têm o mesmo ID `### 7.` — uma para "Melhorar ocf:init" e outra para "Workflow de revisão externa". close_issue.sh nunca verifica duplicatas antes de append.
 - Impact: IDs não únicos no arquivo de resolução. Confusão ao referenciar issues resolvidas por ID.
+- Acceptance criteria:
+    1. `close_issue.sh` verifica ID existente em resolved_issues.md antes do append e recusa ou aplica sufixo em colisão.
+    2. resolved_issues.md mantém entradas `### <id>.` únicas.
+- Tests:
+    1. Fechar issue cujo ID já existe em resolved_issues.md → script detecta duplicata e alerta/aplica sufixo (sem duplicar silenciosamente).
+    2. Dois fechamentos consecutivos de issues distintas → IDs únicos preservados.
 - Suggested fix: Verificar se o ID já existe em resolved_issues.md antes de fazer append; alertar ou usar sufixo.
 
 ### 30. Código morto: sentinelas awk `/^### Status/ {exit}` nas scripts de issue
 
-- Status: backlog
+- Status: ready
+- Ready: 2026-08-31T18:48
 - Type: chore
 - Severity: low
 - Report: opencode
 - Base branch: main
-- Reviewers: 1
+- Reviewers: 1 (devops)
 - Remote: -
 - PR: #93
 - Location: scripts/promote.sh:25, scripts/create_issue.sh:21, scripts/close_issue.sh:20
@@ -151,27 +178,37 @@ issues only. See `standards/issues.md` for the full contract.
 
 ### 31. `import_claude_skill.sh` escreve `opencode.json` sem validação atômica
 
-- Status: backlog
+- Status: ready
+- Ready: 2026-08-31T18:48
 - Type: bug
 - Severity: medium
 - Report: opencode
 - Base branch: main
-- Reviewers: 1
+- Reviewers: 1 (devops)
 - Remote: -
 - PR: #93
 - Location: scripts/import_claude_skill.sh:30-42
 - Description: O script lê e escreve opencode.json com json.dump sem validação, sem write atômico, sem preservar formatação original, e com `2>/dev/null` suprimindo erros.
 - Impact: Se a escrita for interrompida, a configuração do opencode pode ser corrompida.
+- Acceptance criteria:
+    1. Escrita usa temp file + rename atômico (sem corrupção se interrompida).
+    2. JSON validado antes de escrever; erros de validação/escrita são expostos (sem `2>/dev/null` em falhas críticas).
+    3. Indentação/formatação original de opencode.json preservada.
+- Tests:
+    1. Escrita interrompida (simular crash em meio ao write) → opencode.json permanece válido/inalterado (atomicidade).
+    2. Entrada JSON inválida → script falha sem escrever arquivo corrompido.
+    3. Escrita bem-sucedida → indentação original preservada (diff mínimo).
 - Suggested fix: Usar write atômico (temp file + rename). Validar JSON antes de escrever. Preservar indentação original. Remover supressão de erro.
 
 ### 32. Scripts shell sem cobertura de testes automatizados
 
-- Status: backlog
+- Status: ready
+- Ready: 2026-08-31T18:48
 - Type: chore
 - Severity: medium
 - Report: opencode
 - Base branch: main
-- Reviewers: 1
+- Reviewers: 1 (devops)
 - Remote: -
 - PR: #93
 - Location: scripts/\*.sh (12 scripts, 0 testes)
@@ -181,32 +218,46 @@ issues only. See `standards/issues.md` for the full contract.
 
 ### 33. `promote.sh` ignora silenciosamente falhas de `git fetch`
 
-- Status: backlog
+- Status: ready
+- Ready: 2026-08-31T18:48
 - Type: bug
 - Severity: medium
 - Report: opencode
 - Base branch: main
-- Reviewers: 1
+- Reviewers: 1 (devops)
 - Remote: -
 - PR: #93
 - Location: scripts/promote.sh:162
 - Description: `git fetch origin "$BASE_BRANCH" 2>/dev/null || git fetch origin 2>/dev/null || true` — erros de rede, autenticação ou remote inexistente são completamente suprimidos sem warning.
 - Impact: Desenvolvedores podem trabalhar em branch stale sem saber que o remote está inacessível. Possíveis conflitos de merge depois.
+- Acceptance criteria:
+    1. `promote.sh` loga warning quando `git fetch` falha, em vez de silenciar com `2>/dev/null || true`.
+    2. Desenvolvedor é alertado sobre risco de branch stale.
+- Tests:
+    1. Falha de rede durante `git fetch` → warning é registrado (não suprimido).
+    2. `git fetch` bem-sucedido → sem warning.
 - Suggested fix: Logar warning quando fetch falhar. Substituir `2>/dev/null` por `2>&1` para visibilidade.
 
 ### 35. `sync_github_issues.sh`: detecção de estado de issue GitLab frágil e sem fechamento automático
 
-- Status: backlog
+- Status: ready
+- Ready: 2026-08-31T18:48
 - Type: bug
 - Severity: low
 - Report: opencode
 - Base branch: main
-- Reviewers: 1
+- Reviewers: 1 (devops)
 - Remote: -
 - PR: #93
 - Location: scripts/sync_github_issues.sh:92-93
 - Description: Detecção de estado no GitLab usa `glab issue view | head -5 | grep -i state` — frágil e dependente de formatação. Além disso, o branch GitLab nunca chama `SHOULD_CLOSE=true` para status resolved (linhas 91-94 faltam a lógica de fechamento).
 - Impact: Issues GitLab em status resolved nunca são fechadas automaticamente pelo sync. Detecção quebra com mudanças de versão do glab.
+- Acceptance criteria:
+    1. Issues GitLab em estado resolved são auto-fechadas pelo sync (SHOULD_CLOSE=true).
+    2. Detecção de estado não depende mais de `head -5 | grep -i state` frágil.
+- Tests:
+    1. Issue GitLab em resolved → sync define SHOULD_CLOSE=true e fecha o remote.
+    2. Detecção de estado via `glab issue view --json state` retorna estado correto (robusto a mudanças de versão).
 - Suggested fix: Usar `glab issue view --json state --jq '.state'` se suportado. Adicionar lógica de close para GitLab resolved.
 
 ### 37. Delegar `ocf:develop` para router e agentes Go/Python
@@ -308,15 +359,15 @@ issues only. See `standards/issues.md` for the full contract.
 
 ### 76. Mandatory `Tests:` field missing across career-bundle issues (#66-#72) — incomplete-spec discovery gap
 
-- Status: backlog
+- Status: ready
 - Opened: 2026-08-15
-- Ready: -
+- Ready: 2026-08-31T18:48
 - Started: -
 - Type: chore
 - Severity: medium
 - Report: opencode
 - Base branch: main
-- Reviewers: 0 ()
+- Reviewers: 1 (devops)
 - Remote: -
 - PR: #93
 - Location: known_issues.md (issues #66, #67, #68, #69, #70, #71, #72), standards/issues.md, workflow.md
@@ -336,9 +387,9 @@ issues only. See `standards/issues.md` for the full contract.
 
 ### 77. cv-cover-letter ainda carrega o padrão curl -L (SSRF) — follow-up do #72 D5
 
-- Status: backlog
+- Status: ready
 - Opened: 2026-08-15
-- Ready: -
+- Ready: 2026-08-31T18:48
 - Started: -
 - Type: bug
 - Severity: medium
@@ -534,3 +585,46 @@ issues only. See `standards/issues.md` for the full contract.
   5. `grep agnostic agents/development/develop-router.md agents/development/devs/REGISTRY.md` → fallback registrado
 - Suggested fix: criar os 7 arquivos de agente copiando a estrutura de `devs/golang.md`/`devs/python.md` e adaptando a worldview, defaults e skill routing por stack; atualizar REGISTRY.md com as entradas e detecção; atualizar develop-router.md (fallback → agnostic) e agents/development/README.md. Esforço ~6-8h.
 
+### 223. Video script agent family in English: modular subagents + honest maintenance wrapper
+
+- Status: in-progress
+- Type: feat
+- Severity: medium
+- Priority: medium
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 1 (runtime)
+- Remote: -
+- Location: agents/marketing/video-script-writer.md, agents/marketing/video-script-seo.md, agents/marketing/video-script-thumbnail.md, agents/marketing/video-script-variations.md (NOVOS), agents/README.md, scripts/video-agent.sh (NOVO)
+- Description: Agents and skills are always authored in English (repo convention) and respond in the user/project language. Modularize the Codetomika video script agent: the main writer agent is authored in English (preserving the CEO persona, per-format structure, equipment constraint), three specialized subagents (SEO, thumbnail, hook variations) carry real operational content and are delegated to and referenced by the writer, and scripts/video-agent.sh becomes an honest read-only maintenance/validation utility for the agent family (no fake translation, no empty `touch`).
+- Impact: English-authored, modular video agent family with delegation; subagents discoverable and cross-referenced; a real validation utility prevents broken/orphaned agents from being committed.
+- Business rules: 1. Agent/skill files are authored in English; all user-facing output follows the user/project language. 2. Subagents live under agents/marketing, are listed in agents/README.md and referenced by the main agent, which delegates `seo`/`thumb`/`variations` to them. 3. Subagents never invent brand facts — they receive topic, segment and language from the writer. 4. scripts/video-agent.sh is read-only and idempotent (validate frontmatter + writer→subagent references), sourced from config.sh — it never translates, overwrites or creates files.
+- Acceptance criteria: 1. The four agent files exist under agents/marketing, authored in English, each with valid frontmatter (mode: subagent). 2. The writer delegates to and references the three subagents; all four are listed in agents/README.md. 3. `scripts/video-agent.sh check` exits 0 and scripts/video-agent.sh --help exits 0. 4. Known SEO facts in the writer (title/description/tags rules) match current platform behavior.
+- Tests:
+1. scripts/video-agent.sh check → exit 0 (PASS) when all four agents are valid and referenced.
+2. scripts/video-agent.sh --help → exit 0; scripts/video-agent.sh bogus → exit 2.
+3. grep -n "^mode: subagent" agents/marketing/video-script-*.md → presente nos 4 arquivos.
+4. grep -n "video-script-seo|video-script-thumbnail|video-script-variations" agents/marketing/video-script-writer.md agents/README.md → referências presentes no writer e no README.
+5. Remover uma referência do writer e rodar scripts/video-agent.sh check → exit 2 (FAIL de subagente órfão).
+- Suggested fix: Delivered in this batch (renumbered from a duplicate #36; #222 kept free for the global committer-check register).
+
+### 222. committer-check.sh: gate de segurança lê relatório errado/superseded e falha em detectar veredito de bloqueio — falso PASS/FAIL
+
+- Status: ready
+- Type: bug
+- Severity: high
+- Priority: high
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 1 (devops)
+- Remote: -
+- Location: scripts/committer-check.sh (bloco security, ~linhas 71-100)
+- Description: O gate de segurança do committer tem dois defeitos: (1) seleção do relatório por `ls -1 ... | head -1` (ordem lexicográfica) pode ler um relatório superseded (ex.: original REQUEST_CHANGES quando existe `-recheck` aprovado, ou o inverso); (2) a lógica de veredito dependia de vocabulário frágil (`refus`/`unresolved critical|high`), deixando passar relatórios reais com `**Verdict: REQUEST_CHANGES** — 3 critical + 3 high findings block approval` (falso PASS demonstrado com relatório real do repo). Além disso o fallback legado `security-*.md` sem escopo por issue reproduzia a classe do bug #222 do projeto vizzupy (relatório de outra issue). Fix entregue: seleção issue-scoped por mtime mais recente (`security-issue-<id>-*` → `security-<id>-*`), sem fallback amplo, e parse de veredito ancorado na ÚLTIMA seção `Verdict` com janela limitada (vocabulário: refus/request changes/block approval/denied/gate does not pass/minimum required fixes/unresolved critical|high), exigindo aprovação explícita.
+- Impact: Gate de segurança que libera `in-publish`: falso PASS libera issue com relatório de rejeição vigente; falso FAIL bloqueia entrega com relatório aprovado. Corrigido nesta rodada.
+- Business rules: none
+- Acceptance criteria: 1. Issue com relatório REQUEST_CHANGES vigente → gate FAIL (não vai a in-publish). 2. Issue com relatório aprovado e um REFUSED superseded anterior → gate PASS lendo o relatório mais recente. 3. Nenhum relatório scoped → gate FAIL sem usar relatório de outra issue.
+- Tests:
+1. reviews/ com `security-issue-1-*` REQUEST_CHANGES (mtime antigo) + `security-issue-1-recheck-*` APPROVE (mtime novo) → committer-check.sh 1 → PASS (último relatório).
+2. Único relatório `security-issue-1-*` com `**Verdict: REQUEST_CHANGES** — 3 critical + 3 high findings block approval` → FAIL.
+3. Sem relatório `security-issue-1-*`/`security-1-*` no diretório (mas com `security-git-cred-cache-*` REFUSED de outra issue) → FAIL 'no issue-scoped report found' (sem fallback cruzado).
+- Suggested fix: Delivered in this batch (commit fix + registro).

@@ -12,3 +12,12 @@ reviews/*.md
 hive/
 roster-backups/
 roster.json
+
+# opencode runtime/generated artifacts (never versioned)
+.opencode/preflight/
+.opencode/test-cache/
+.opencode/design-outputs/
+# Spikes keep their versioned markdown deliverables (issue #74); only transient
+# scratch files inside are ignored.
+.opencode/spikes/*
+!.opencode/spikes/*.md
