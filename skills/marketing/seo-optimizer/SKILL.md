@@ -1,6 +1,6 @@
 ---
 name: SEO Optimizer
-description: Search Engine Optimization specialist for content strategy, technical SEO, keyword research, and ranking improvements. Use when optimizing website content, improving search rankings, conducting keyword analysis, or implementing SEO best practices. Expert in on-page SEO, meta tags, schema markup, and Core Web Vitals.
+description: Search Engine Optimization specialist for content strategy, technical SEO, keyword research, ranking improvements, and social sharing previews. Use when optimizing website content, improving search rankings, conducting keyword analysis, implementing SEO best practices, auditing or fixing Open Graph / social sharing meta (og:image, og:description, Twitter Cards, image_src), making link previews work on Facebook, WhatsApp, LinkedIn, Twitter/X, or designing og:image cards. Expert in on-page SEO, meta tags, schema markup, and Core Web Vitals.
 ---
 
 # SEO Optimizer
@@ -299,6 +299,309 @@ Learn more about [advanced React patterns](/guides/react-patterns)
 or check out our [useState hook tutorial](/tutorials/usestate-guide).
 ```
 
+## Social Sharing & Open Graph (og:image compatibility)
+
+The Open Graph tags are what Facebook, WhatsApp, LinkedIn, Telegram and
+Twitter/X read when a link is pasted. A site can rank perfectly and still show
+a broken/empty link preview if these are wrong. Treat them as a first-class,
+explicit contract.
+
+### Head meta blueprint (all sharing platforms)
+
+```html
+<!-- Primary SEO -->
+<title>Brand — Compelling keyword phrase (≤ 60 chars)</title>
+<meta name="description" content="150–160 chars, compelling, CTA." />
+<link rel="canonical" href="https://example.com/" />
+<meta name="robots" content="index, follow" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<!-- Open Graph -->
+<meta property="og:site_name" content="Brand" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Brand — Compelling headline (≤ 60 chars)" />
+<meta property="og:description" content="Self-contained, informative; ~80–200 chars (platforms truncate at different lengths)." />
+<meta property="og:url" content="https://example.com/" />   <!-- ALWAYS absolute + canonical -->
+<meta property="og:locale" content="en_US" />
+<meta property="og:image" content="https://example.com/og-image.jpeg" />          <!-- ALWAYS absolute -->
+<meta property="og:image:secure_url" content="https://example.com/og-image.jpeg" />
+<meta property="og:image:type" content="image/jpeg" />
+<meta property="og:image:width" content="1200" />            <!-- MUST equal real pixels -->
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Descriptive alt of the card content." />
+
+<!-- Legacy <link rel="image_src"> (kept for compatibility; NOT read by WhatsApp,
+     which uses the Facebook crawler and og: tags) -->
+<link rel="image_src" href="https://example.com/og-image.jpeg" />
+
+<!-- Twitter / X -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="…same as og:title…" />
+<meta name="twitter:description" content="…same as og:description…" />
+<meta name="twitter:image" content="https://example.com/og-image.jpeg" />         <!-- absolute -->
+
+<!-- Structured data (see Technical SEO) -->
+<script type="application/ld+json">
+  { "@context": "https://schema.org", "@type": "Organization",
+    "name": "Brand", "url": "https://example.com/",
+    "logo": "https://example.com/og-image.jpeg" }
+</script>
+```
+
+### og:image hard rules (learned from production failures)
+
+- **URL must be absolute** (`https://host/path.jpg`). Facebook's Sharing
+  Debugger rejects relative values (`/og-image.jpg`) with *"The property
+  'og:image' of the URL '…' provided is not valid"*. Never ship a relative
+  og:image/twitter:image/image_src.
+- **`og:image:width`/`height` are optional** (Meta documents them as such — the
+  crawler can render without them). When declared they MUST equal the real
+  pixel dimensions; a wrong value makes scrapers re-download/mis-render.
+- Add `og:image:type` (`image/jpeg`/`image/png` — the only formats reliably
+  supported by social scrapers; WebP is not) and `og:image:secure_url` when the
+  site is served over HTTPS.
+- The image file must be publicly reachable: HTTP 200, correct `Content-Type`,
+  served over HTTPS, not blocked by `robots.txt` or a login wall. Keep the file
+  small (target < ~300 KB, well below 5 MB) — Meta publishes no hard ceiling,
+  but X documents a 5 MB limit for `twitter:image`; oversized files fail or get
+  downscaled on several platforms.
+- Keep the file extension consistent with the real encoding (a `.jpeg` that is
+  actually a PNG fails).
+- Reference the same absolute file in JSON-LD (`logo`/`image`) so all systems
+  agree.
+
+### og:image asset spec (1200×630, 1.91:1)
+
+- Canvas exactly **1200×630**, JPG sRGB (PNG master kept alongside for reuse).
+- **No baked-in rounded corners** — platforms clip corners themselves; only
+  imagery may sit at the edges.
+- **Safe zones**: keep every critical element (logo, headline, ticker) within
+  ~90 px of the left/right and ~60 px of the top/bottom. Nothing essential in
+  the right ~200 px or bottom ~40 px (WhatsApp/LinkedIn crop/truncate there).
+- Readable at preview scale: LinkedIn renders ~400 px wide, WhatsApp ~280 px.
+  Headline ≥ 15:1 contrast on dark; small text ≥ 6:1 (WCAG AA).
+- Target < 300 KB; avoid heavy full-width gradients (JPG banding) — use a flat
+  base + subtle radial glows.
+- Regenerate whenever the design/identity changes.
+
+### Copy length (descriptions)
+
+- `og:description` and `twitter:description`: self-contained and informative.
+  Platforms truncate at different lengths (LinkedIn shows ~100 chars when it
+  falls back to `meta name="description"`, Facebook ~200) — there is no
+  official minimum, so put the key information in the first ~80–200 chars.
+- `name="description"`: classic SEO 150–160 chars.
+- `og:title`/`title`: ≤ 60 chars, keyword + brand.
+
+### Validation & cache-refresh workflow
+
+| Platform | Validator | Refresh tool |
+|---|---|---|
+| Facebook / WhatsApp | developers.facebook.com/tools/debug | "Scrape Again" (same Meta crawler also feeds WhatsApp) |
+| LinkedIn | linkedin.com/post-inspector | "Inspect" |
+| Twitter/X | no public validator (X retired cards.twitter.com/validator) | paste URL in the X composer to preview; or check via opengraph.xyz / metatags.io |
+
+- WhatsApp has **no official cache-clear**. Previews are cached per exact URL:
+  share `https://host/?v=2` (any new query param) to force a fresh scrape, and
+  avoid sharing URLs with `#fragment`s when testing.
+- After any meta/og change, re-run the validators — old previews persist until
+  recrawled.
+
+### Common failure matrix
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| "URL no válida" on og:image | Relative `og:image` URL | Use absolute URL |
+| Preview shows old image | Platform cache | Re-scrape / `?v=2` cache-buster |
+| Image not shown at all | og:image missing/inaccessible/too big | Absolute URL, 200 + correct content-type, < 5 MB |
+| LinkedIn "og:description too short" | og:description missing/weak | Write ~80–200 self-contained chars (LinkedIn truncates; no official min) |
+| Distorted/cropped preview | width/height mismatch | Set tags to real pixel size |
+| Wrong mime/extension | file format ≠ extension | Export/rename correctly (JPEG data in .jpg/.jpeg) |
+| No preview in any chat | page served only JS-rendered | Put meta in server HTML, not client JS |
+
+## AI Crawlers, llms.txt, robots.txt & Sitemaps (modern SEO)
+
+Search is no longer only Google: LLMs and AI assistants (ChatGPT, Perplexity,
+Claude, Gemini, Bing Copilot) ingest the site directly. Treat **crawlability by
+AI agents**, an **llms.txt map**, a **lean robots.txt policy** and a **clean
+sitemap** as first-class deliverables.
+
+### 1. robots.txt & AI crawler policy
+
+| User-agent | What it does | Typical stance |
+|---|---|---|
+| `Googlebot` / `Bingbot` | Classic search | Allow |
+| `GPTBot` | OpenAI web crawling + training | Allow (search/training) or disallow |
+| `OAI-SearchBot` | OpenAI/ChatGPT search results | Allow (visibility) |
+| `ClaudeBot`, `Claude-User`, `Claude-SearchBot` | Anthropic | Allow search (`Claude-SearchBot`/`Claude-User`); disallow `ClaudeBot` to opt out of training |
+| `PerplexityBot` | Perplexity | Allow (visibility) |
+| `Google-Extended` | Google AI training/tuning opt-out | Disallow to opt out of training |
+| `Applebot-Extended` | Apple AI | Disallow to opt out |
+| `CCBot` (Common Crawl), `Amazonbot`, `bytespider`, `Meta-ExternalAgent`, `omgili` | Bulk/third-party crawlers | Usually disallow (noisy) |
+
+Rules:
+- robots.txt only needs to list agents you **diverge** on; `User-agent: *`
+  covers the rest. Matching is by **specificity, not order** (RFC 9309): each
+  crawler uses the group whose user-agent most specifically identifies it — a
+  `Googlebot` group beats `*` regardless of position. Within a group, the rule
+  with the longest-matching path wins (`Allow` wins ties). Listing specific
+  agents before the catch-all is a readability convention, not what decides
+  the winner.
+- Decide deliberately: allow search-oriented agents (`OAI-SearchBot`,
+  `Claude-SearchBot`, `PerplexityBot`) to stay visible in AI answers; block
+  only the training/aggregator crawlers you do not want, e.g. `CCBot`,
+  `Amazonbot`, `GPTBot` (optional), `Google-Extended`, `Applebot-Extended`.
+- **Never block** assets the og/social scraper needs: keep
+  `facebookexternalhit`/`Twitterbot`/`LinkedInbot` allowed and make sure
+  `og-image` files aren't under a `Disallow`.
+- Keep `/llms.txt` allowed for every agent.
+- `Sitemap:` line must be an absolute URL and live at the bottom of the file.
+
+```txt
+# Search engines + AI search assistants: allowed
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+# Training / aggregator crawlers: explicitly blocked
+User-agent: CCBot
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+# Everything else (incl. GPTBot, ClaudeBot): allowed to crawl pages but kept
+# out of parameterized URLs
+User-agent: *
+Allow: /llms.txt
+Disallow: /*?*
+
+# Sitemap
+Sitemap: https://example.com/sitemap.xml
+```
+
+Caveat: robots.txt is advisory, not enforced by all bots; keep sensitive pages
+behind auth, not just robots.
+
+### 2. llms.txt (llmstxt.org standard)
+
+A plain-text, high-signal map of the site that LLMs read first. Serve it at
+`/llms.txt` (`text/plain`). Format:
+
+```text
+# Brand Name
+
+> One-line positioning.
+
+2–4 short paragraphs of factual, verifiable summary (people, offer, proof,
+geo/scope). Keep it tight — the model reads this before visiting pages.
+
+## Services
+- [Service one](https://example.com/services/one)
+- [Service two](https://example.com/services/two)
+
+## Industries
+- [Industry A](https://example.com/industries/a)
+
+## Optional
+- [Full documentation](https://example.com/docs)
+```
+
+Guidelines:
+- H1 (`#`) = brand; `##` = sections; one level deep is enough.
+- `##` sections hold **link lists** (`[name](url)`) to canonical pages. Contact
+  details, address or email belong in the intro summary paragraphs (plain text,
+  no heading), not as bare text under a heading.
+- Bullet links to the **most useful canonical pages first**, with descriptive
+  anchor text. No `#fragment` links, no tracking params, absolute HTTPS URLs.
+- Prefer concise factual statements over marketing puffery (models cite them).
+- The conventional secondary-information block is named **`## Optional`** (spec
+  v2); a separate `llms-full.txt` can hold long documentation.
+- Caveat: per Google's own guidance (2026) llms.txt does **not** affect Google
+  Search ranking/visibility — it serves third-party AI assistants/agents. Do
+  not overpromise it as an SEO lever.
+- Keep it in sync with real content; re-export after redesigns (same care as
+  og:image).
+
+### 3. Sitemaps
+
+- Include only canonical, `200` pages. **Never** list URLs with
+  `#fragments`/anchors (share links like `/#top` do not belong in a sitemap)
+  or pure parameter variants.
+- Absolute `https` URLs; `<lastmod>` as ISO 8601 (`2026-08-12` or full
+  `T`-timestamp) and update it whenever the page changes.
+- `<changefreq>`/`<priority>` are informational for Google — optional.
+- Limits: ≤ 50,000 URLs and ≤ 50 MB per file; use a sitemap index beyond that.
+- Reference it in `robots.txt` (absolute) and submit it in Google Search
+  Console + Bing Webmaster Tools.
+- Multilingual: use `<xhtml:link rel="alternate" hreflang="…">` inside each
+  `<url>` (and/or `hreflang` link tags in the page `<head>`), always paired
+  with a matching `hreflang="x-default"`.
+
+```xml
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://example.com/</loc>
+    <lastmod>2026-08-12</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://example.com/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://example.com/es/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://example.com/" />
+  </url>
+</urlset>
+```
+
+### 4. AI search / GEO visibility trends
+
+- Serve content in **static/server-rendered HTML**; many AI crawlers do not run
+  JS. Meta/OG that only exists after hydration is invisible to them.
+- Put the primary topic and a direct answer in the first ~100 words; use clean
+  `h1 → h2/h3` hierarchy; answer Q&A-shaped queries explicitly (GEO /
+  featured-snippet friendly).
+- Add `Organization`/`WebSite` structured data. `FAQPage`/`HowTo` no longer
+  produce Google rich results (HowTo removed 2023; FAQ removed 2026) — if used
+  at all, treat them as semantic data only, and put the Q&A as visible HTML
+  text right after the heading rather than relying on the schema.
+- Keep descriptive, unique title/description and strong internal links.
+- Avoid heavy client-rendering walls, interstitial overlays and paywalls for
+  crawlers.
+
+### 5. hreflang (missing on many multilingual sites)
+
+For sites with language/region variants, add in `<head>`:
+
+```html
+<link rel="alternate" hreflang="en" href="https://example.com/" />
+<link rel="alternate" hreflang="es" href="https://example.com/es/" />
+<link rel="alternate" hreflang="x-default" href="https://example.com/" />
+```
+
+Rules: reciprocal on every variant, one canonical per language, `x-default`
+points to the fallback, and the sitemap alternates mirror the `<head>` tags.
+
 ## SEO Content Checklist
 
 **Before Publishing:**
@@ -315,7 +618,9 @@ or check out our [useState hook tutorial](/tutorials/usestate-guide).
 - [ ] Page speed optimized (< 3s load time)
 - [ ] No broken links
 - [ ] Canonical tag set correctly
-- [ ] Social sharing meta tags (Open Graph, Twitter Card)
+- [ ] og:image absolute URL + secure_url + type (jpeg/png); width/height equal the real file when declared
+- [ ] og:description / twitter:description self-contained (~80–200 chars, key info first)
+- [ ] og:image validated with no warnings on Facebook Debugger / LinkedIn Inspector
 
 ## Advanced SEO Strategies
 
