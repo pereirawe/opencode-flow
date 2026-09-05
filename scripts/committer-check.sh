@@ -13,6 +13,35 @@ source "$(dirname "$0")/config.sh"
 #            2 = a hard gate failed (do NOT set in-publish);
 #            3 = usage/parse error.
 
+# security_report_blocks <report> — returns 0 (ok) when the security report
+# approves, 1 (block) when it refuses approval. The verdict is read from the
+# LAST verdict anchor (`## Verdict` section or `**Verdict:**` header) with a
+# bounded window, so quoted/archived earlier REFUSED rounds inside a final
+# APPROVED report are never mistaken for the current verdict.
+security_report_blocks() {
+  local report="$1" anchor text
+  anchor=$(awk '
+    /^#+[[:space:]]*Verdict/ {l=NR}
+    /\*\*Verdict\*\*/ {l=NR}
+    END{print l+0}
+  ' "$report")
+  if [[ "$anchor" -gt 0 ]]; then
+    text=$(awk -v s="$anchor" 'NR>=s{print; if (NR>s && /^#{1,3}[[:space:]]/){exit}}' "$report")
+  else
+    text=$(cat "$report")
+  fi
+  text=$(printf '%s' "$text" | sed -E \
+    's/no unresolved (critical|high)[^.]*\.//gi; s/(does ?not|do ?not|doesn.?t|not) block ?approval[^.]*\./DOES_NOT_BLOCK_APPROVAL./gi')
+  if printf '%s' "$text" | grep -qiE \
+    'refus|request ?[-_ ]?changes|changes requested|denied|block ?approval|not approved|does+ ?not ?pass|gate does not|minimum required fixes|unresolved (critical|high)'; then
+    return 0
+  fi
+  # Only explicit approval clears the gate; an unverifiable report is treated
+  # as blocking (never assume approval from silence).
+  printf '%s' "$text" | grep -qiE 'APPROVED|APPROVE|PASS|SATISFIED' && return 1
+  return 0
+}
+
 ID=${1:-}
 if [[ -z "$ID" ]]; then
   echo "Usage: committer-check.sh <id>"
@@ -69,12 +98,19 @@ if [[ "$TYPE" == "feat" ]]; then
 fi
 
 if printf '%s' "$REVIEWERS" | grep -qi 'security'; then
-  REPORT=$(ls -1 "$PROJECT_ISSUES_DIR"/reviews/security-*.md 2>/dev/null | head -1 || true)
+  # Prefer issue-scoped reports, most recent by mtime (handles -recheck/-rereview
+  # superseding the original verdict). No broad legacy fallback: that was the
+  # #222 false-GATE-FAIL (report of another issue picked via `ls | head -1`).
+  REPORT=""
+  for pattern in "security-issue-${ID}-" "security-${ID}-"; do
+    REPORT=$(ls -1t "$PROJECT_ISSUES_DIR"/reviews/${pattern}*.md 2>/dev/null | head -1 || true)
+    [[ -n "$REPORT" ]] && break
+  done
   if [[ -z "$REPORT" ]]; then
-    echo "GATE: FAIL — security reviewer profile set but no report found"
+    echo "GATE: FAIL — security reviewer profile set but no issue-scoped report found (expected reviews/security-issue-${ID}-*.md)"
     FAIL=1
-  elif grep -qi 'refuse\|unresolved critical\|unresolved high' "$REPORT"; then
-    echo "GATE: FAIL — security report refuses approval (unresolved critical/high)"
+  elif security_report_blocks "$REPORT"; then
+    echo "GATE: FAIL — security report refuses approval ($REPORT)"
     FAIL=1
   else
     echo "Security review: report present and approved ($REPORT)"
