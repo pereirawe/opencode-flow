@@ -84,6 +84,10 @@ layout, architecture, implementation, and quality into dedicated agents. See
 | `planning` | Campaign and GTM planning |
 | `customer-research` | ICP, personas, surveys, insight synthesis |
 | `video` | Video scripts, storyboarding, AI video production |
+| `video-script-writer` | Codetomika CEO video script director — persona, format structure, SEO, equipment-constrained production |
+| `video-script-seo` | YouTube titles/descriptions/tags + thumbnail concept on the CEO voice |
+| `video-script-thumbnail` | Low-budget phone thumbnail briefs (expression, ≤4-word text, palette) |
+| `video-script-variations` | Hook variations + per-format outlines with why-it-works analysis |
 | `competitors` | Competitive intelligence and positioning |
 | `ab-testing` | Experiment design and statistical analysis |
 | `launch` | Product launch strategy and distribution |
