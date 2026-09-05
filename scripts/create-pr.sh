@@ -65,8 +65,16 @@ EOF
 
 PR=""
 if [[ "$REMOTE_URL" == *"github.com"* ]]; then
-  PR=$(gh pr create --title "$PR_TITLE" --body "$BODY" --base "$BASE" --json number --jq '.number' 2>/dev/null) \
-    || { echo "create-pr: gh pr create failed"; exit 1; }
+  # gh < 2.52 não suporta --json em pr create — tenta JSON first e faz
+  # fallback para parse da URL /pull/<n> (compatível com todas as versões).
+  if gh pr create --help 2>/dev/null | grep -q -- '--json'; then
+    PR=$(gh pr create --title "$PR_TITLE" --body "$BODY" --base "$BASE" --json number --jq '.number' 2>/dev/null) \
+      || { echo "create-pr: gh pr create failed"; exit 1; }
+  else
+    URL=$(gh pr create --title "$PR_TITLE" --body "$BODY" --base "$BASE" 2>/dev/null) \
+      || { echo "create-pr: gh pr create failed"; exit 1; }
+    PR=$(printf '%s' "$URL" | grep -oE '[0-9]+$' | tail -1 || true)
+  fi
 elif [[ "$REMOTE_URL" == *"gitlab"* ]]; then
   URL=$(glab mr create --title "$PR_TITLE" --description "$BODY" --target-branch "$BASE" 2>/dev/null) \
     || { echo "create-pr: glab mr create failed"; exit 1; }
