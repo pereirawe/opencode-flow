@@ -628,3 +628,29 @@ issues only. See `standards/issues.md` for the full contract.
 2. Único relatório `security-issue-1-*` com `**Verdict: REQUEST_CHANGES** — 3 critical + 3 high findings block approval` → FAIL.
 3. Sem relatório `security-issue-1-*`/`security-1-*` no diretório (mas com `security-git-cred-cache-*` REFUSED de outra issue) → FAIL 'no issue-scoped report found' (sem fallback cruzado).
 - Suggested fix: Delivered in this batch (commit fix + registro).
+
+### 224. issue-lint.sh SIGPIPE crash (exit 141) al parsear campos multilinea grandes bajo pipefail
+- Status: ready
+- Type: bug
+- Severity: medium
+- Priority: high
+
+- Report: discovery agent (issue 72, revanca)
+- Base branch: main
+- Reviewers: 1 (backend)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: ~/.config/opencode/scripts/issue-lint.sh:34-41 (field()/val() con head -1 bajo set -o pipefail de la linea 2)
+- Description: val() ejecuta: field CAMPO | head -1 | sed ... (linea 41). Con un campo multilinea grande (p. ej. el bloque - Business rules: de una entry feat canonica con 13+ reglas), awk sigue escribiendo al pipe cuando head -1 ya leyo su primera linea y salio; el write posterior recibe EPIPE -> SIGPIPE -> awk muere y, bajo set -euo pipefail (linea 2), el script entero aborta con exit 141 (128+13) SIN emitir veredicto lint. Deterministico con bloques grandes: observado al validar la issue 72 del proyecto revanca (Business rules de ~14 lineas): issue-lint.sh 72 --strict devuelve 141 sin salida stdout. Issues con campos cortos (67/69) no lo disparan; el bug depende del tamano del bloque, no del contenido.
+
+Impacto: el gate canonico de lint (obligatorio en discovery y en el Committer gate) crashea silenciosamente en las entries mas grandes y complejas, dejando la validacion sin veredicto (ni PASS ni FAIL).
+
+Fix sugerido: en val(), reemplazar head -1 por sed -n 1p (drena el pipe completo, misma semantica de primera linea) o anadir drenaje explicito tras head.
+- Impact: El gate canonico de lint (obligatorio en discovery y en el Committer gate) crashea silenciosamente en las entries mas grandes y complejas, dejando la validacion sin veredicto (ni PASS ni FAIL).
+- Business rules: none
+- Acceptance criteria: 1. La entry del bug se valida con issue-lint.sh tras aplicar el fix en val() (sed -n 1p en lugar de head -1) y devuelve PASS (exit 0). 2. Entries cortas/canonica (chore/doc/bug lean) y legacy se comportan igual que antes (sin regresion). 3. Nota: el auto-id de append-issue.sh (linea 67) asigna ultima entry fisica +1, no max(id)+1 — con ids fisicamente desordenados puede colisionar (registrar como mejora del tooling si reaparece).
+- Tests: 1. issue-lint.sh ID sobre una entry con Business rules multilinea grande (13+ lineas) -> exit 0 PASS (sin crash 141) tras reemplazar head -1 por sed -n 1p en val().
+2. issue-lint.sh ID sobre una entry corta/canonica (chore/doc o bug lean) -> comportamiento identico al actual (exit 0 o 2 segun schema).
+3. val() con campos de una sola linea en entries legacy -> mismo primer valor que head -1 (equivalencia de semantica entre sed -n 1p y head -1).
+- Suggested fix: -
