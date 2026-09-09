@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 225. Gerar carrossel LinkedIn→PDF: agente+skill+script pesquisa o tema na web e produz deck 1080×1080 (imagem IA ou fallback prompts-only)
+- Resolved: 2026-09-09T14:24
+- Durations: backlog=- waiting=- dev=1h review=0h qa=0h publish=0h total=14h
+- Severity: medium
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #160
+- Summary: Pedido do usuário — -
+
 ### 227. Conversores determinísticos md / mermaid / excalidraw → HTML/PDF/JPEG (sem LLM, offline; depende da #226)
 - Resolved: 2026-09-09T13:26
 - Durations: backlog=- waiting=- dev=0h review=0h qa=1h publish=0h total=13h
