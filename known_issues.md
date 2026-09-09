@@ -699,56 +699,13 @@ Open question registrada (v2, não bloqueia): o Tech Lead propôs que, sem model
 6. Varredura dos artefatos de saída por trecho/forma de EACHLABS_API_KEY → nenhuma ocorrência (chave só no env/header HTTP).
 - Suggested fix: -
 
-### 226. Núcleo HTML→PDF genérico: promover scripts/cv/pdf.sh a scripts/shared/html-to-pdf.sh (wrapper backward-compat no career)
+### 227. Conversores determinísticos md / mermaid / excalidraw → HTML/PDF/JPEG (sem LLM, offline; depende da #226)
 - Status: in-publish
 - Opened: 2026-09-09
-- Started: 2026-09-09T01:06
-- In review: 2026-09-09T11:35
-- In QA: 2026-09-09T11:44
-- In publish: 2026-09-09T11:52
-- Type: feat
-- Severity: medium
-- Priority: medium
-
-- Report: william_pereira
-- Base branch: main
-- Reviewers: 2 (runtime, devops)
-- Remote: #156
-- Jira: -
-- PR: #157
-- Location: Criados: scripts/shared/ (dir novo), scripts/shared/html-to-pdf.sh (corpo promovido via git mv de scripts/cv/pdf.sh; mensagens e Usage internos renomeados para o nome novo; chmod +x), scripts/tests/test_html_to_pdf.sh (novo; cobertura do shared direto + asserts estruturais do wrapper); Modificados: scripts/cv/pdf.sh (reescrito como wrapper fino delegante; chmod +x), agents/career/cv-tailor.md:11, agents/career/cv-cover-letter.md:11, agents/career/cv-optimizer.md:14 (permission.bash: regra paralela de allow por caminho exato para o shared), skills/career/cv-pdf/SKILL.md:10-14 (doc mínima); Intocados (verificado no discovery): scripts/tests/test_cv.sh, skills/career/cv-*.md, commands/ocf:cv-*.md, standards/cv-*.md, opencode.json
-- Description: Pedido do usuário: o script scripts/cv/pdf.sh é útil em muitos lugares além do setor career e deve ser PROMOVIDO a helper genérico/compartilhado (recriado de forma genérica), sem quebrar os consumidores atuais do career.
-Arquitetura decidida no discovery (loop feat-full): criar scripts/shared/html-to-pdf.sh (diretório compartilhado novo, mesmo contrato/CLI/exit codes do pdf.sh atual: gate de encoding iconv UTF-8 + NUL antes de renderizar, cria dir de saída ausente, realpath, URL file:// percent-encoded byte-a-byte com LC_ALL=C, Chrome headless --print-to-pdf --no-pdf-header-footer, fallback LibreOffice --headless --convert-to pdf com guarda de same-file, exit 0/1/2, zero artefato parcial); scripts/cv/pdf.sh vira wrapper fino backward-compatible que delega ao shared repassando o exit code. Nenhum consumidor career muda a chamada. O motor será usado por consumidores futuros (#225 carrossel, #227 conversores) sem acoplar a career.
-Open questions resolvidas no discovery (sem resíduo): mecanismo de permissão = regra paralela por caminho exato nos 3 agent files career (o wrapper NÃO precisa de allow nova para a chamada interna ao shared, pois subprocesso dentro do processo do wrapper não passa pelo permission system); local da cobertura nova de teste = novo scripts/tests/test_html_to_pdf.sh (run_all.sh faz auto-discovery de test_*.sh); scripts/README.md fora do escopo (subdiretórios não são indexados individualmente); nenhum consumidor atual faz parse de stdout/stderr do pdf.sh (rename interno seguro; linha de sucesso PDF generated mantida como contrato de stdout).
-- Impact: Remove o acoplamento do conversor HTML→PDF ao domínio career: um mecanismo endurecido e testado (gate de encoding, percent-encoding byte-a-byte, fallback Chrome→LibreOffice, zero artefato parcial) passa a ser reutilizável por qualquer setor/fluxo do config (#225 carrossel, #227 conversores md/mermaid/excalidraw) em vez de ser recriado com risco. Promoção estrutural de risco baixo: contrato, testes existentes e chamadas career preservados; ganho de reuso imediato com suíte verde e permissão de execução coberta.
-- Business rules: 1. Contrato idêntico no shared: scripts/shared/html-to-pdf.sh expõe a MESMA CLI <input.html> <output.pdf> [chrome|libreoffice] e os mesmos exit codes 0 (sucesso) / 1 (falha runtime ou sem engine) / 2 (uso ou input inválido) do pdf.sh atual; gate de encoding (iconv UTF-8 + detecção de NUL) roda ANTES de qualquer render; dir de saída ausente é criado antes do realpath; URL file:// percent-encoded byte-a-byte (LC_ALL=C); Chrome headless --print-to-pdf --no-pdf-header-footer; fallback LibreOffice --headless --convert-to pdf com guarda de same-file; sucesso só confirmado com arquivo não-vazio.
-2. Nome genérico sem vocabulário de cv: nome do script, mensagens, Usage e comentários internos referem-se a HTML→PDF genérico; a linha de sucesso PDF generated: é mantida no shared (stdout estável de contrato para consumidores futuros).
-3. Promoção via git mv de scripts/cv/pdf.sh para scripts/shared/html-to-pdf.sh (preserva histórico; chmod +x) — sem cópia+remoção.
-4. Wrapper fino backward-compat: scripts/cv/pdf.sh resolve o próprio dir via BASH_SOURCE e delega todos os argumentos ao shared repassando o exit code; nenhuma lógica de gate/encoding/file_url/fallback é recopiada no wrapper.
-5. Backward-compat total: todos os consumidores career atuais (skills cv-tailor, cv-cover-letter, cv-optimizer, cv-linkedin-banner, cv-pdf doc, commands ocf:cv-*, agents/career, standards/cv-*.md) continuam chamando scripts/cv/pdf.sh SEM nenhuma mudança de chamada; saída, mensagens e exit codes idênticos.
-6. Permissões/bash-allow: regra paralela por caminho exato *SCRIPTS_DIR/shared/html-to-pdf.sh*: allow adicionada nos 3 agent files que já permitem o wrapper (agents/career/cv-tailor.md, cv-cover-letter.md, cv-optimizer.md); sem wildcard de diretório largo (mínimo privilégio); opencode.json NÃO muda; a chamada interna do shared pelo wrapper não exige allow nova (subprocesso interno não passa pelo permission system).
-7. Zero artefato parcial: nenhum caminho de falha (encoding inválido, engine ausente, render vazio, input inexistente) deixa PDF truncado/incompleto no destino.
-8. Testes existentes intocados: a seção pdf.sh de scripts/tests/test_cv.sh continua passando SEM alteração de assertivas (cada chamada exercita a delegação do wrapper); nenhuma string de comando validada em teste/skill é alterada.
-9. Cobertura nova do shared: novo scripts/tests/test_html_to_pdf.sh exercita o shared DIRETO e o wrapper, com prova estrutural de zero duplicação (wrapper contém a delegação ao shared e NÃO contém função de render); cenário com Chrome real segue guard de skip (sem Chrome -> skip claro); gate de encoding e engines ausentes rodam sempre (sem engine).
-10. Determinístico e offline: sem LLM, sem rede, sem estado externo; mesmo padrão de asserts/mocks do test_cv.sh.
-11. Doc mínima: skills/career/cv-pdf/SKILL.md ganha nota curta — núcleo compartilhado em scripts/shared/html-to-pdf.sh e cv/pdf.sh como wrapper compatível — sem reescrever o contrato nem strings validadas por testes.
-12. Sem mudança funcional para career: engines, flags, ordem de fallback e formato de saída inalterados; é relocação + wrapper + permissões + testes + doc.
-13. Validação final via make test-scripts (run_all.sh auto-descobre test_*.sh), não via test-runner (repo sem runner detectável); smoke manual do wrapper com Chrome real quando disponível.
-- Acceptance criteria: 1. scripts/shared/html-to-pdf.sh existe com CLI, exit codes e comportamento idênticos ao contrato atual e sem vocabulário de cv em nome/mensagens/comentários.
-2. scripts/cv/pdf.sh é wrapper que delega integralmente ao shared (sem lógica duplicada) e todos os consumidores career existentes funcionam sem mudança de chamada.
-3. Os arquivos de permissão dos agents career (cv-tailor, cv-cover-letter, cv-optimizer) cobrem o novo caminho shared com regra paralela por caminho exato.
-4. Suíte verde via make test-scripts: seção pdf.sh existente do test_cv.sh inalterada + test_html_to_pdf.sh verde (shared direto + asserts estruturais do wrapper).
-5. Nenhum caminho de falha (encoding, engine ausente, render vazio) deixa artefato parcial no destino.
-6. skills/career/cv-pdf/SKILL.md documenta a existência do caminho compartilhado e o papel de wrapper do cv/pdf.sh.
-- Tests: 1. Executar o shared DIRETO (scripts/shared/html-to-pdf.sh) com HTML UTF-8 válido e caminho de saída não-ASCII (ex.: saida/currículo.pdf), engine chrome -> PDF não-vazio criado e exit 0; repetir com input inexistente -> exit 2 e nenhum arquivo criado.
-2. Rodar a seção pdf.sh existente de scripts/tests/test_cv.sh contra o wrapper scripts/cv/pdf.sh -> todas as assertivas atuais passam inalteradas (exit 0/1/2, dir de saída ausente, caminho não-ASCII, fallback LibreOffice mockado).
-3. Input com NUL byte ou sequência UTF-8 inválida no shared (direto) -> exit diferente de 0 com mensagem de encoding clara e nenhum artefato PDF no destino.
-4. Engines ausentes (PATH mock sem chrome/libreoffice) -> exit 1 com erro de engine indisponível e nenhum artefato parcial.
-5. Assert estrutural em test_html_to_pdf.sh: o wrapper contém a delegação ao shared (referência a html-to-pdf.sh) e NÃO contém função de render (prova mecânica de zero duplicação de lógica).
-- Suggested fix: -
-
-### 227. Conversores determinísticos md / mermaid / excalidraw → HTML/PDF/JPEG (sem LLM, offline; depende da #226)
-- Status: ready
+- Started: 2026-09-09T11:55
+- In review: 2026-09-09T12:23
+- In QA: 2026-09-09T12:42
+- In publish: 2026-09-09T13:24
 - Type: feat
 - Severity: medium
 - Priority: medium
@@ -756,19 +713,19 @@ Open questions resolvidas no discovery (sem resíduo): mecanismo de permissão =
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 2 (frontend, runtime)
-- Remote: -
+- Remote: #158
 - Jira: -
-- PR: -
+- PR: #159
 - Location: Criados (nenhum arquivo modificado): scripts/shared/convert-lib.sh (NOVO; lib comum sourced: contrato exit 0/1/2, --check, gate UTF-8/NUL, file_url, atomicidade/zero artefato parcial; sourcing interno não exige allow própria), scripts/shared/convert-md.sh (NOVO, chmod +x), scripts/shared/convert-md.py (NOVO; renderizador md python3 stdlib), scripts/shared/convert-mermaid.sh (NOVO, chmod +x), scripts/shared/convert-excalidraw.sh (NOVO, chmod +x), scripts/shared/convert-excalidraw.py (NOVO; renderizador excalidraw python3 stdlib), scripts/shared/assets/ (NOVO), scripts/shared/assets/mermaid.min.js (NOVO; vendored pinado, download único na implementação), scripts/shared/assets/mermaid.min.js.sha256 (NOVO; checksum SHA-256 + metadados versão/URL origem/licença MIT), scripts/tests/test_convert_md.sh (NOVO), scripts/tests/test_convert_mermaid.sh (NOVO), scripts/tests/test_convert_excalidraw.sh (NOVO). Doc do contrato nos cabeçalhos dos próprios scripts (padrão pdf.sh/#226); sem skill nova e sem allows de agents nesta issue (sem consumidor concreto hoje; quando surgir, allow por caminho exato do .sh de topo). Diretório scripts/shared/ é o mesmo criado pela #226.
 - Description: Pedido do usuário: capacidade de converter (1) .md e (2) .mermaid para HTML e PDF; e (3) .excalidraw para HTML, PDF e imagem JPEG — TUDO SEM LLM, com código puro/determinístico (nenhuma chamada a modelo). Utilitários genéricos reutilizáveis (docs, diagramas, carrosséis futuros), não um fluxo de marketing.
 DEPENDE DA #226 (motor compartilhado scripts/shared/html-to-pdf.sh): toda saída PDF delega a esse motor — nunca duplicar render de PDF; gate de promoção: implementar apenas após a #226 land na main (precedente de dependency gate do repo).
 Arquitetura decidida no discovery (feat-full com escalada CTO): família de sub-scripts em scripts/shared/ (convert-md.sh, convert-mermaid.sh, convert-excalidraw.sh) + lib comum sourced convert-lib.sh (contrato exit 0/1/2, --check, gate UTF-8/NUL, file_url, zero artefato parcial); HTML é SEMPRE artefato intermediário gerado e preservado (fonte rastreável; alimenta o html-to-pdf da #226); md renderizado por implementação própria em python3 stdlib (HTML cru do input sempre escapado; construções fora do subconjunto viram texto literal escapado com exit 0; imagens locais como data-URI até 512 KiB — acima: warning + src cru preservado; URLs remotas nunca baixadas); mermaid via vendoring pinado scripts/shared/assets/mermaid.min.js + checksum SHA-256 versionado (node/npm ausentes no ambiente; zero fetch em runtime), render offline via Chrome headless sobre harness local com o diagrama escapado como dado (nunca como <script> executável) e SVG extraído validado (não-vazio, contém <svg>); excalidraw (JSON elements v1/v2) renderizado por renderizador determinístico próprio (python3 stdlib) do subconjunto v1 — rectangle/diamond/ellipse/line/arrow/freedraw/text/image-frame (dataURI pass-through), posição/ângulos/strokeColor/backgroundColor/fillStyle/roughness aproximados e canvas de fundo; elemento fora do escopo -> warning em stderr SEM abortar (exit 0); JSON fora do schema -> exit 2; JPEG via Chrome headless screenshot do HTML intermediário -> PNG -> Pillow (presente, 10.2.0) com fallback convert/cjpeg; nenhum disponível -> --check exit 1 antes de criar arquivo; dimensão = canvas original; composição sobre fundo branco (JPEG não tem alpha) + qualidade fixa 90 para determinismo.
-Open questions registradas (não bloqueiam): (1) subconjunto markdown exato a fechar na implementação (lista fechada registrada para doc/testes de borda); (2) dimensão do canvas excalidraw quando não há viewport declarado no JSON — usar bounding box dos elementos como fallback?; (3) determinismo byte-a-byte do raster JPEG garantido no mesmo ambiente/engine fixo (SVG/HTML têm hash estável entre execuções).
+Open questions RESOLVIDAS na implementação: (1) subconjunto markdown fechado registrado no cabeçalho do convert-md.py — headings ATX, parágrafos, listas ul/ol c/ aninhamento básico, code fenced c/ lang, blockquote, tabelas GFM pipe, links, negrito/itálico, code spans, escapes, HR; HTML cru sempre escapado (BR 8); (2) canvas excalidraw sem viewport declarado = bounding box dos elementos + padding 20px, mínimo 100x100 (implementado e testado — JPEG 360x270 do fixture); (3) determinismo JPEG confirmado no mesmo ambiente/engine fixo (Chrome headless screenshot + Pillow q90; HTML/SVG byte-a-byte testado). Asset mermaid vendored v11.17.2 (jsDelivr, MIT): scripts/shared/assets/mermaid.min.js (3.572.661 bytes) + sidecar .sha256 — SHA-256 581ed7d74bd9048d0e3a91363927d72ef22942d7722546b27f7cc29e35390eb8.
 - Impact: Conversão de formato 100% determinística, offline e sem custo de LLM para documentação e diagramas (md, mermaid, excalidraw) diretamente no config, no padrão endurecido da #226. Habilita consumidores futuros (doc para HTML/PDF, diagramas mermaid/excalidraw em HTML/PDF/JPEG, carrosséis da #225, assets JPEG) sem depender de serviço externo nem de modelo, com HTML intermediário rastreável e contrato de erro/segurança consistente com o restante do repositório.
 - Business rules: 1. Determinístico, offline e sem LLM (invariante de família): nenhuma chamada a modelo, nenhum fetch em runtime, nenhum serviço externo; mesma entrada -> saída com hash estável (SVG/HTML byte-a-byte entre execuções; raster JPEG determinístico no mesmo ambiente/engine fixo).
 2. HTML é SEMPRE artefato intermediário gerado e preservado em qualquer conversão (md, mermaid, excalidraw); nunca se pula o HTML para chegar ao PDF; o intermediário é a fonte rastreável.
 3. PDF exclusivamente via motor compartilhado da #226 (scripts/shared/html-to-pdf.sh): nenhum sub-script chama Chrome --print-to-pdf diretamente nem recopia fallback LibreOffice; #227 DEPENDE da #226 — implementar apenas após a #226 land na main (gate de promoção); base main.
-4. Formato de saída derivado da extensão do output: convert-md.sh <in.md> <out.{html|pdf|jpeg}>; convert-mermaid.sh <in.mmd> <out.{svg|html|pdf|jpeg}> (html = harness preservado); convert-excalidraw.sh <in.json> <out.{svg|html|jpeg|pdf}>; formato não suportado ou argumentos inválidos -> exit 2.
+4. Formato de saída derivado da extensão do output: convert-md.sh <in.md> <out.{html|pdf}>; convert-mermaid.sh <in.mmd> <out.{svg|html|pdf}> (html = harness preservado); convert-excalidraw.sh <in.json> <out.{svg|html|jpeg|pdf}> (JPEG apenas para excalidraw, conforme Descrição/AC 1 e BR 12 — raster sobre canvas branco); formato não suportado ou argumentos inválidos -> exit 2.
 5. Contrato de erro padrão do repo: exit 0 = sucesso; exit 1 = falha de conversão/runtime ou dependência ausente; exit 2 = uso ou input inválido (arquivo inexistente, JSON quebrado, argumentos inválidos); mensagens claras em stderr; zero artefato parcial (escrita em arquivo temporário + rename atômico; nenhum caminho de falha deixa saída truncada no destino).
 6. Gate de encoding/input: inputs passam por validação UTF-8/NUL antes de qualquer processamento (padrão iconv da #226); input com NUL byte ou sequência inválida -> exit 2 sem criar artefato.
 7. --check preflight: antes de criar QUALQUER arquivo, valida dependências (Chrome headless, python3, asset mermaid + checksum, conversor PNG->JPEG quando aplicável); dependência ausente -> exit 1 listando o que falta, sem criar nada.
@@ -792,3 +749,34 @@ Open questions registradas (não bloqueiam): (1) subconjunto markdown exato a fe
 5. Execução offline comprova ZERO chamadas de rede/LLM (sem modelo, sem fetch); --check com conversor PNG->JPEG ausente (sem Pillow e sem convert/cjpeg) -> exit 1 listando dependências faltantes ANTES de criar qualquer arquivo.
 - Suggested fix: -
 - Dependencies: #226 (motor compartilhado scripts/shared/html-to-pdf.sh — toda saída PDF delega a ele; gate de promoção: implementar após a #226 land na main)
+
+### 228. Subagentes do pipeline desperdiçam tempo narrando restrições de bash deny-all (discovery/develop)
+- Status: ready
+- Type: chore
+- Severity: low
+- Priority: medium
+
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 1 (qa)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: AGENTS.md; agents/development/discovery.md; agents/development/developer.md; agents/development/committer.md; agents/development/publish-requester.md
+- Description: Ao rodar /ocf:discovery e /ocf:develop, os subagentes do pipeline (especialmente o orquestrador discovery com bash "*": deny + só scripts/*.sh, e o developer com bash "*": deny + git *) tentam comandos fora da allowlist (ls, cat, find, awk, git status etc.), recebem o deny do permission system e emitem raciocínio verboso NARRANDO a restrição (ex.: "The bash deny-all pattern blocks most commands. Only scripts/*.sh * is allowed. Let me use the dedicated tools (read, glob, grep) instead") em vez de apenas trocar de ferramenta em silêncio. Isso é token/time 100% evitável em TODA execução de discovery/develop.
+
+Fix decidido com o usuário (opção 'também ampliar allowlists'):
+1. Adicionar seção de 'disciplina de ferramentas' em AGENTS.md (global) + nos prompts dos agentes do pipeline com bash restrito: qual ferramenta usar para cada operação (read/glob/grep para arquivos, git para VCS, scripts/*.sh para passos canônicos) e PROIBIÇÃO de narrar/explicar restrições de permissão — trocar de ferramenta silenciosamente e continuar.
+2. Ampliar allowlists bash read-only dos agentes discovery e developer (e demais do pipeline com deny-all: committer, publish-requester) para reduzir os denies em origem: comandos read-only comuns (ls, cat, find, head, tail, wc, rg, git status/log/diff/checkout/branch — já coberto por git * no developer) SEM jamais permitir comandos destrutivos ou de escrita (mantidos os denies explícitos de rm -rf, force-push, reset --hard, clean -f, branch -D, mkfs, dd, chmod -R 777, chown -R, shutdown/reboot da lista global em opencode.json permission.bash).
+3. Nenhum enfraquecimento do modelo de segurança: os denies globais (~21 padrões destrutivos) e os denies por agente (opencode.json, aibot-repos.json, state/**, ~/.ssh/**, .opencode/cache/**) continuam vigentes.
+- Impact: Tempo e tokens desperdiçados em toda execução de discovery e develop nos subagentes do pipeline; com o fix, os subagentes usam a ferramenta certa na primeira tentativa e param de narrar restrições, acelerando o pipeline sem reduzir segurança.
+- Business rules: 1. A permissão bash dos agentes pode ser AMPLIADA apenas com comandos read-only de inspeção (ls, cat, find, head, tail, wc, rg, git status/log/diff) — nunca comandos de escrita fora dos scripts canônicos; os ~21 padrões destrutivos globais (rm -rf /, force-push, reset --hard, clean -f, branch -D, mkfs, dd, chmod -R 777, chown -R, shutdown, reboot, curl|sh) permanecem DENY em qualquer circunstância.
+2. Os denies de edit/read por agente (opencode.json, aibot-repos.json, scripts/aibot-watcher.sh, state/**, ~/.ssh/**, .opencode/cache/**) não são alterados.
+3. A seção de disciplina de ferramentas proíbe narrar/explicar denies de permissão no output dos subagentes: o agente troca silenciosamente para a ferramenta correta (read/glob/grep para arquivos, git para VCS, scripts/*.sh para passos canônicos) e continua o fluxo sem emitir raciocínio sobre a restrição.
+4. A mudança é puramente de prompts/permissões de config — nenhum script de pipeline é alterado, nenhum contrato de exit code muda.
+- Acceptance criteria: 1. AGENTS.md contém a seção de disciplina de ferramentas com o mapeamento read/glob/grep + git + scripts e a proibição de narrar denies.
+2. Os prompts dos agentes discovery e developer (e demais do pipeline com deny-all, quando aplicável) referenciam a disciplina sem narrativa longa.
+3. discovery.md/developer.md têm allowlist bash ampliada com comandos read-only de inspeção e continuam negando os padrões destrutivos globais e os denies por agente.
+4. issue-lint --strict 228 passa.
+- Tests: -
+- Suggested fix: -

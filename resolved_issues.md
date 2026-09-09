@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 226. Núcleo HTML→PDF genérico: promover scripts/cv/pdf.sh a scripts/shared/html-to-pdf.sh (wrapper backward-compat no career)
+- Resolved: 2026-09-09T11:55
+- Durations: backlog=- waiting=- dev=10h review=0h qa=0h publish=0h total=12h
+- Severity: medium
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #156
+- Summary: Pedido do usuário — -
+
 ### 219. cv-ats-score §3.2 section enumeration missing "Áreas de Atuação" (follow-up from #216)
 - Resolved: 2026-08-24
 - Durations: backlog=0d waiting=0d dev=0d review=- qa=- publish=0d total=0d
