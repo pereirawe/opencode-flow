@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 227. Conversores determinísticos md / mermaid / excalidraw → HTML/PDF/JPEG (sem LLM, offline; depende da #226)
+- Resolved: 2026-09-09T13:26
+- Durations: backlog=- waiting=- dev=0h review=0h qa=1h publish=0h total=13h
+- Severity: medium
+- Type: feat
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #158
+- Summary: Pedido do usuário — -
+
 ### 226. Núcleo HTML→PDF genérico: promover scripts/cv/pdf.sh a scripts/shared/html-to-pdf.sh (wrapper backward-compat no career)
 - Resolved: 2026-09-09T11:55
 - Durations: backlog=- waiting=- dev=10h review=0h qa=0h publish=0h total=12h
