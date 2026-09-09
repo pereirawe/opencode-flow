@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "linkedin-carousel-person-v1",
+  "title": "LinkedIn carousel publisher identity",
+  "description": "Identidade do publicador do carrossel LinkedIn, fornecida pelo projeto alvo em docs/assets/person.json. schema e name são obrigatórios; headline, handle, cta_text e logo_path são opcionais (ausência → omitir/sinalizar, nunca inventar). handle, quando presente, DEVE casar ^in/[A-Za-z0-9._-]+$ (sem barra inicial).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "name"],
+  "properties": {
+    "schema": {
+      "const": "linkedin-carousel-person-v1",
+      "type": "string"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Nome do publicador — obrigatório; nunca inventado."
+    },
+    "headline": {
+      "type": "string",
+      "description": "Headline profissional (opcional)."
+    },
+    "handle": {
+      "type": "string",
+      "pattern": "^in/[A-Za-z0-9._-]+$",
+      "description": "Handle do LinkedIn sem barra inicial (ex.: in/william-pereira)."
+    },
+    "cta_text": {
+      "type": "string",
+      "description": "Texto do CTA final (opcional; default quando ausente: 'Salve este post' no idioma do usuário)."
+    },
+    "logo_path": {
+      "type": "string",
+      "description": "Caminho do logo relativo a docs/assets/ (ou absoluto). Quando presente, o arquivo deve ser uma imagem válida (magic-byte)."
+    }
+  }
+}

@@ -20,6 +20,7 @@ These commands are available in the assistant.
 | `ocf:build-ui` | Orchestrate the 4-pass greenfield design pipeline (art-director → ui-architect → ui-implementer → ui-critic) with deterministic output files |
 | `ocf:audit-ui` | Orchestrate the audit/refactor pipeline for existing codebases (ui-auditor → ui-refactor-planner, optionally → build pipeline) |
 | `ocf:bump-version` | Calculate version bump, update changelog, commit, tag, and publish to main |
+| `ocf:linkedin-carousel <tema> [<direção>]` | Generate a LinkedIn carousel deck (1080×1080 slides → deck.pdf) from a researched topic — runs inside the target project, preflight `person.json`/logo, web research with saved sources, canonical `deck.json` spec, each::sense art + deterministic Chrome typography/logo (prompts-only fallback without the key); outputs under `docs/carousel/<slug>/`; nothing is published |
 
 ## Command Definition Rule
 
