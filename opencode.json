@@ -355,5 +355,8 @@
     "paths": [
       "~/.config/opencode/vendor"
     ]
-  }
+  },
+  "plugin": [
+    "@tarquinen/opencode-dcp@latest"
+  ]
 }

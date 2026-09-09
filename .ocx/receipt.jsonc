@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "root": "/home/william_pereira/.config/opencode",
+  "installed": {
+    "https://registry.kdco.dev::kdco/kdco-primitives@sha256:b108360e94fdc5e70eabd338460361fef61c6bb1f2301461027e395402885ba4": {
+      "registryUrl": "https://registry.kdco.dev",
+      "registryName": "kdco",
+      "name": "kdco-primitives",
+      "revision": "sha256:b108360e94fdc5e70eabd338460361fef61c6bb1f2301461027e395402885ba4",
+      "hash": "b108360e94fdc5e70eabd338460361fef61c6bb1f2301461027e395402885ba4",
+      "files": [
+        {
+          "path": "plugins/kdco-primitives/get-project-id.ts",
+          "hash": "2bdcb8e839171e8a9ddff36f7b9c28c90fae972cb395cec38f8d3e85cfd66ad9"
+        },
+        {
+          "path": "plugins/kdco-primitives/with-timeout.ts",
+          "hash": "3c582e3e89f5d0de8230122ef0fea2066b3ebff3d77579515cef251628439527"
+        },
+        {
+          "path": "plugins/kdco-primitives/log-warn.ts",
+          "hash": "7ed7eb195fd4d67cbee8057ae35593b92693e1e5e84012fcf5402a14df071311"
+        },
+        {
+          "path": "plugins/kdco-primitives/types.ts",
+          "hash": "4471c8d97b16e06906f3446e89e01c4a436130a42e5fa6c31f107e63f3b42666"
+        },
+        {
+          "path": "plugins/kdco-primitives/mutex.ts",
+          "hash": "4caacfd38bb4b971c356ed9dbfb4dcc10634a83a39c51e724852325d84be941e"
+        },
+        {
+          "path": "plugins/kdco-primitives/shell.ts",
+          "hash": "9941f4f642c10f04795304a7657111b2cd10ec066b08f0e0866ae87de5160669"
+        },
+        {
+          "path": "plugins/kdco-primitives/temp.ts",
+          "hash": "b66983f2a747d87fb84dcdaa3ed88e5da2e8e46c8151e98f74e76755148f7e08"
+        },
+        {
+          "path": "plugins/kdco-primitives/cmux.ts",
+          "hash": "58d066e118a3ca75b1541d65b586ed3b846b42860ac08cfe302232a6a5ceac7b"
+        },
+        {
+          "path": "plugins/kdco-primitives/terminal-detect.ts",
+          "hash": "523435085e8fc31883a6a702e70fd9ba82c5d799026d0f04be890c84dbab6b41"
+        },
+        {
+          "path": "plugins/kdco-primitives/index.ts",
+          "hash": "2c7a1609f214b7e1bd427ef5d14f615dbfee7b021962b7b28f4cc7c83c701578"
+        }
+      ],
+      "installedAt": "2026-09-09T19:14:16.121Z"
+    },
+    "https://registry.kdco.dev::kdco/worktree@sha256:6d98be243a836bc6c226db68780dd6a812599157f8f485509c4a0fccf9a10e62": {
+      "registryUrl": "https://registry.kdco.dev",
+      "registryName": "kdco",
+      "name": "worktree",
+      "revision": "sha256:6d98be243a836bc6c226db68780dd6a812599157f8f485509c4a0fccf9a10e62",
+      "hash": "6d98be243a836bc6c226db68780dd6a812599157f8f485509c4a0fccf9a10e62",
+      "files": [
+        {
+          "path": "plugins/worktree.ts",
+          "hash": "5961cdf971c88ba36a53973fa2bc7b5aa1a1369d425703b578143ed75891a0e4"
+        },
+        {
+          "path": "plugins/worktree/state.ts",
+          "hash": "4bcf9b53a8389938f59ae43e15387e9f90ca970c2ccfb4d7fd78513aebcd2eb7"
+        },
+        {
+          "path": "plugins/worktree/terminal.ts",
+          "hash": "42d25da12f908c74edaae7845074a757868c83a0401e1c5b6d888359a0db92f0"
+        },
+        {
+          "path": "plugins/worktree/launch-context.ts",
+          "hash": "48c7151fd7ea0bd141e40c7a0e8a685d804bd8ab8aaba1dfed00ec2ebae13b48"
+        }
+      ],
+      "installedAt": "2026-09-09T19:14:09.634Z"
+    },
+    "https://registry.kdco.dev::kdco/notify@sha256:baea288a71422c02de7d34ef61cd34febb41d81a2f73f0ee10a49ea671048914": {
+      "registryUrl": "https://registry.kdco.dev",
+      "registryName": "kdco",
+      "name": "notify",
+      "revision": "sha256:baea288a71422c02de7d34ef61cd34febb41d81a2f73f0ee10a49ea671048914",
+      "hash": "baea288a71422c02de7d34ef61cd34febb41d81a2f73f0ee10a49ea671048914",
+      "files": [
+        {
+          "path": "plugins/notify.ts",
+          "hash": "4ef3f353565c306cfcfe2b3008a5c74a0c5c8ea0a8a2d3440b2cb15642d64172"
+        },
+        {
+          "path": "plugins/notify/backend.ts",
+          "hash": "f2c9218ff6ceb4a19c67158e26275773a02e80260a21741fbcc603bc4e3e0662"
+        },
+        {
+          "path": "plugins/notify/cmux.ts",
+          "hash": "be18c871fc705084363a225f1ce133a51c16ea5ca7915154f03d481188c01a71"
+        },
+        {
+          "path": "plugins/notify/status.ts",
+          "hash": "15135b94e74cbe8c97ed46fd6d6051f1bffaa39986ec58ca1e2887271eb0c671"
+        },
+        {
+          "path": "plugins/notify/title.ts",
+          "hash": "2909871433a30ae49aad240068f9d350ebe90333dda799a45d022be6d2fd1559"
+        }
+      ],
+      "installedAt": "2026-09-09T19:14:16.122Z"
+    }
+  }
+}
