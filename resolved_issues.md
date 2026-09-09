@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 222. committer-check.sh: gate de segurança lê relatório errado/superseded e falha em detectar veredito de bloqueio — falso PASS/FAIL
+- Resolved: 2026-09-09T16:02
+- Durations: backlog=- waiting=- dev=0h review=0h qa=0h publish=0h total=16h
+- Severity: high
+- Type: bug
+- Report: william_pereira
+- Reviewers: 1
+- Remote: #166
+- Summary: O gate de segurança do committer tem dois defeitos — Delivered in this batch (commit fix + registro).
+
 ### 224. issue-lint.sh SIGPIPE crash (exit 141) al parsear campos multilinea grandes bajo pipefail
 - Resolved: 2026-09-09T15:24
 - Durations: backlog=- waiting=- dev=0h review=0h qa=0h publish=0h total=15h
