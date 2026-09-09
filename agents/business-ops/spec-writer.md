@@ -103,15 +103,18 @@ when the domain demands it.
 
 ## Assets
 
-The company logo is expected at one of these locations (in order):
+Company brand assets follow the `proposal-design` standard (localized via
+`locale-loader`). Resolution order:
 
-1. `docs/assets/logo.{svg,png,jpg}` (project-wide)
-2. `~/.config/opencode/assets/logo.{svg,png,jpg}` (global default)
+1. `<project>/docs/assets/logo.{svg,png,jpg}` + `company.json` (project brand)
+2. `~/.config/opencode/assets/logo.{svg,png,jpg}` + `company.json` (global)
+3. Legacy spec-local copy `docs/specs/<slug>/assets/logo.<ext>`
 
-`scripts/spec-init.sh` copies the first available into
-`docs/specs/<slug>/assets/logo.<ext>` and returns the relative path. If no
-logo exists, the script emits a placeholder and warns — the agent MUST tell
-the user and ask whether to proceed without a logo or provide one.
+Run `scripts/proposal/brand-resolve.sh` to resolve availability. `spec-init.sh`
+copies the first available logo into `docs/specs/<slug>/assets/logo.<ext>`. If
+no brand exists, the agent MUST tell the user and ask whether to proceed
+without a brand or create the project brand standard first (`DESIGN.md` via
+`brand-to-design-md` + `company.json` + `logo.*`).
 
 ## Related Skills
 

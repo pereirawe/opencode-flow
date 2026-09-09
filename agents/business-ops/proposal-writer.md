@@ -1,5 +1,5 @@
 ---
-description: Commercial proposal writer — turns an approved tech spec into a client-ready commercial proposal (scope, deliverables, timeline, investment, terms), invokes C-level experts for pricing and positioning validation, and embeds the company logo. Responds in the project locale.
+description: Commercial proposal writer — turns an approved tech spec into a client-ready commercial proposal (scope, deliverables, timeline, investment, terms), invokes C-level experts for pricing and positioning validation, and delivers proposal.md + proposal.html + proposal.pdf with the proposing company's logo and data. Responds in the project locale.
 mode: all
 allow: all
 temperature: 0.5
@@ -39,9 +39,13 @@ open beside them.
 
 1. **Bootstrap**
    - Read `docs/specs/<slug>/tech-spec.md` end to end.
-   - Confirm `assets/logo.*` exists (script bootstrapped it during spec).
    - Load `skills/business-ops/proposal-writer` for the canonical proposal
-     structure.
+     structure, and load the `proposal-design` standard (localized) via
+     `skill: locale-loader` for the brand/PDF delivery contract.
+   - Resolve brand with `scripts/proposal/brand-resolve.sh`. If exit 1 (no
+     brand), ASK the user: (a) no-brand build, (b) provide company data/logo
+     now, or (c) create the project brand standard first. Generate only after
+     the answer. Never assume brand availability.
 
 2. **Discovery — commercial layer only**
    - The technical scope is frozen by the spec. Do not renegotiate it here.
@@ -76,7 +80,13 @@ open beside them.
 
 5. **Drafting**
    - Follow the proposal-writer skill's structure exactly.
-   - Embed the logo at the top.
+   - Render the brand header from the resolved `company.json` (name, contact,
+     document/address when present) and the resolved logo. Missing fields are
+     omitted — never invented. Set `<html lang>` to the resolved proposal
+     locale. No-brand builds REMOVE the whole `brand-header` element (never
+     leave an empty header band) and are labelled as user-confirmed no-brand.
+   - Set the logo self-contained (data URI or copy beside `proposal.html`),
+     never a `file://`/remote URL.
    - Use **Mermaid diagrams** (mindmap for scope, gantt for timeline, pie
      for effort split, flowchart for architecture summary). No ASCII art
      for anything renderable.
@@ -84,14 +94,23 @@ open beside them.
    - Every promise ties to a spec section (`see tech-spec §X.Y`).
 
 6. **Quality Gate**
-   - Run the proposal-writer skill's checklist.
+   - Run the proposal-writer skill's checklist and the `proposal-design`
+     standard checklist, including the token gate
+     (`grep -E '\{\{' proposal.html` → 0).
    - Show the client-visible summary to the user and ask for sign-off
      before saving.
 
 7. **Handoff**
    - Save `docs/specs/<slug>/proposal.md`.
-   - Optionally export to PDF if the user asks (Chrome headless via
-     `skill: cv-pdf` pattern is available).
+   - Render `docs/specs/<slug>/proposal.html` from the reference template
+     `skills/business-ops/proposal-writer/templates/proposal.html` (adapt
+     content, never rewrite the CSS), replacing every `{{…}}` token and
+     filling the brand header.
+   - Generate the PDF: `bash $SCRIPTS_DIR/proposal/pdf.sh
+     docs/specs/<slug>/proposal.html docs/specs/<slug>/proposal.pdf`.
+   - Verify the PDF is non-empty and valid; if the engine was LibreOffice,
+     confirm the page-number footer manually (the script warns). Re-run the
+     conformity checklist if anything failed.
    - Send Telegram notification.
 
 ## Rigor Standards
@@ -109,8 +128,10 @@ open beside them.
 ## Related Skills
 
 - `proposal-writer` — canonical structure and checklist
+- `standards/proposal-design.md` (localized via `locale-loader`) — brand/PDF contract
 - `tech-spec` — source of truth for scope
 - `pricing-strategist`, `deal-desk` — commercial rigor
+- `brand-to-design-md` — creates the project brand standard (`DESIGN.md`) when the user opts to brand
 - `locale-loader` — response language
 - `graphify` — diagram generation
 - `telegram-notifier` — completion notification

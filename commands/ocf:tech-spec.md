@@ -1,5 +1,5 @@
 ---
-description: Author a rigorous technical specification for a project. Delegates to the business-ops/spec-writer agent, which bootstraps the workspace, runs structured discovery, invokes C-level experts as needed, and produces docs/specs/<slug>/tech-spec.md with an embedded company logo.
+description: Author a rigorous technical specification for a project. Delegates to the business-ops/spec-writer agent, which bootstraps the workspace, runs structured discovery, invokes C-level experts as needed, and produces docs/specs/<slug>/tech-spec.md with the company brand (logo per standards/proposal-design.md).
 agent: business-ops/spec-writer
 ---
 

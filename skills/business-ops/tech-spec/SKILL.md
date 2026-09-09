@@ -16,7 +16,7 @@ order. Never delete a section — write `N/A — <reason>` when it doesn't
 apply.
 
 ```
-![Logo](./assets/logo.<ext>)
+![Logo](./assets/logo.<ext>)  <!-- brand logo copied by spec-init.sh; see standards/proposal-design.md §3 -->
 
 # <Project Name> — Technical Specification
 
