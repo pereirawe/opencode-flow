@@ -13,6 +13,12 @@ Converts a resume HTML file into an A4 PDF, ready for ATS and submission.
 bash $SCRIPTS_DIR/cv/pdf.sh <input.html> <output.pdf> [chrome|libreoffice]
 ```
 
+> Nota (issue #226): o motor HTML→PDF é compartilhado — o núcleo vive em
+> `scripts/shared/html-to-pdf.sh` (mesmo contrato/CLI/exit codes) e
+> `scripts/cv/pdf.sh` é um wrapper backward-compatível que delega a ele. O
+> caminho do career segue funcionando inalterado; qualquer consumidor de
+> qualquer setor pode chamar o núcleo compartilhado diretamente.
+
 - `<input.html>` — the resume's HTML file (must contain `@page` CSS for A4).
 - `<output.pdf>` — destination PDF path.
 - Optional engine: `chrome` (default) or `libreoffice` (forces the fallback).

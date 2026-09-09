@@ -12,6 +12,7 @@ permission:
     "python3 *": allow
     "*SCRIPTS_DIR/cv/validate.py*": allow
     "*SCRIPTS_DIR/cv/pdf.sh*": allow
+    "*SCRIPTS_DIR/shared/html-to-pdf.sh*": allow
     "ls *": allow
     "mkdir -p *": allow
   read: allow
