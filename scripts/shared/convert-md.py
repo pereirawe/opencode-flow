@@ -227,7 +227,6 @@ def _render_items(items, k, base_indent, md_dir):
         if k + 1 < len(items) and items[k + 1][0] > indent:
             sub, k = _render_items(items, k + 1, items[k + 1][0], md_dir)
             content.append(sub)
-            continue
         out.append("<li>%s</li>" % "".join(content))
         k += 1
     return "<%s>%s</%s>" % (tag, "".join(out), tag), k
@@ -348,6 +347,8 @@ def render(md_text, md_dir):
 
 
 DOC_CSS = """\
+@page { size: A4; margin: 15mm; }
+@media print { body { max-width: 100%; margin: 0; padding: 0; } }
 body { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
        max-width: 860px; margin: 2em auto; padding: 0 1em; color: #1f2328;
        line-height: 1.55; }

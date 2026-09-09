@@ -348,7 +348,7 @@ def main(argv):
         "<!DOCTYPE html>\n"
         '<html lang="en"><head><meta charset="utf-8">\n'
         "<title>%s</title>\n"
-        "<style>body{margin:0;background:#fff}svg{display:block}</style>\n"
+        "<style>@page{size:A4;margin:15mm}body{margin:0;background:#fff}svg{display:block}</style>\n"
         "</head><body>\n%s\n</body></html>\n"
     ) % (esc_txt(stem), svg)
     try:

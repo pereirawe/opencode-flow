@@ -124,6 +124,7 @@ python3 -c 'import html,sys; sys.stdout.write(html.escape(sys.stdin.read(), quot
   printf '%s\n' '<!DOCTYPE html>'
   printf '%s\n' '<html lang="en"><head><meta charset="utf-8">'
   printf '%s\n' '<style>'
+  printf '%s\n' '  @page { size: A4; margin: 15mm; }'
   printf '%s\n' '  body { margin: 0; background: #fff; }'
   printf '%s\n' '  .mermaid { display: flex; justify-content: center; padding: 16px; }'
   printf '%s\n' '  svg { max-width: 100%; height: auto; }'
@@ -198,6 +199,7 @@ fi
   printf '%s\n' '<html lang="en"><head><meta charset="utf-8">'
   printf '%s\n' "<title>${STEM}</title>"
   printf '%s\n' '<style>'
+  printf '%s\n' '  @page { size: A4; margin: 15mm; }'
   printf '%s\n' '  body { margin: 0; background: #fff; }'
   printf '%s\n' '  .mermaid { display: flex; justify-content: center; padding: 16px; }'
   printf '%s\n' '  svg { max-width: 100%; height: auto; }'
