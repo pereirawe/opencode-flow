@@ -700,10 +700,12 @@ Open question registrada (v2, não bloqueia): o Tech Lead propôs que, sem model
 - Suggested fix: -
 
 ### 227. Conversores determinísticos md / mermaid / excalidraw → HTML/PDF/JPEG (sem LLM, offline; depende da #226)
-- Status: in-review
+- Status: in-publish
 - Opened: 2026-09-09
 - Started: 2026-09-09T11:55
 - In review: 2026-09-09T12:23
+- In QA: 2026-09-09T12:42
+- In publish: 2026-09-09T13:24
 - Type: feat
 - Severity: medium
 - Priority: medium
