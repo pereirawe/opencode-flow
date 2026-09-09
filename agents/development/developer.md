@@ -14,6 +14,16 @@ permission:
   bash:
     "*": deny
     "git *": allow
+    "ls *": allow
+    "cat *": allow
+    "find *": allow
+    "head *": allow
+    "tail *": allow
+    "wc *": allow
+    "rg *": allow
+    "find * -delete*": deny
+    "find * -exec*": deny
+    "find * -ok*": deny
     "*scripts/git-cred-cache.sh *": allow
     "*scripts/test-runner.sh *": allow
     "*scripts/transition.sh *": allow
@@ -24,6 +34,12 @@ permission:
     "git branch -D *": deny
 ---
 Implement features according to specifications.
+
+## Tool discipline (bash-restricted)
+
+Follow the global `AGENTS.md` tool discipline: files via `read`/`glob`/`grep`,
+VCS via `git *`, canonical steps via `scripts/*.sh`. When a bash command is
+denied, switch silently to the correct tool — never narrate permission denials.
 
 Responsibilities:
 - Write production code following project conventions

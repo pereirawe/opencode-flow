@@ -656,7 +656,12 @@ Fix sugerido: en val(), reemplazar head -1 por sed -n 1p (drena el pipe completo
 - Suggested fix: -
 
 ### 228. Subagentes do pipeline desperdiçam tempo narrando restrições de bash deny-all (discovery/develop)
-- Status: ready
+- Status: in-publish
+- Opened: 2026-09-09
+- Started: 2026-09-09T14:29
+- In review: 2026-09-09T14:36
+- In QA: 2026-09-09T14:40
+- In publish: 2026-09-09T14:44
 - Type: chore
 - Severity: low
 - Priority: medium
@@ -664,9 +669,9 @@ Fix sugerido: en val(), reemplazar head -1 por sed -n 1p (drena el pipe completo
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 1 (qa)
-- Remote: -
+- Remote: #162
 - Jira: -
-- PR: -
+- PR: #163
 - Location: AGENTS.md; agents/development/discovery.md; agents/development/developer.md; agents/development/committer.md; agents/development/publish-requester.md
 - Description: Ao rodar /ocf:discovery e /ocf:develop, os subagentes do pipeline (especialmente o orquestrador discovery com bash "*": deny + só scripts/*.sh, e o developer com bash "*": deny + git *) tentam comandos fora da allowlist (ls, cat, find, awk, git status etc.), recebem o deny do permission system e emitem raciocínio verboso NARRANDO a restrição (ex.: "The bash deny-all pattern blocks most commands. Only scripts/*.sh * is allowed. Let me use the dedicated tools (read, glob, grep) instead") em vez de apenas trocar de ferramenta em silêncio. Isso é token/time 100% evitável em TODA execução de discovery/develop.
 

@@ -13,6 +13,16 @@ permission:
   bash:
     "*": deny
     "scripts/*.sh *": allow
+    "ls *": allow
+    "cat *": allow
+    "find *": allow
+    "head *": allow
+    "tail *": allow
+    "wc *": allow
+    "rg *": allow
+    "find * -delete*": deny
+    "find * -exec*": deny
+    "find * -ok*": deny
 ---
 
 Orchestrate discovery from idea to a tracked, linted issue. The output is a
@@ -36,6 +46,12 @@ Pick ONE loop from `- Type:` + `- Severity:`:
 Bugs are resolved **faster** (fewer agents, no TL/CTO/QA-agent) but with a
 **higher quality bar** (expedite mandates 2 reviewers + lint-strict + security
 when relevant). Feats keep the full depth.
+
+## Tool discipline (bash-restricted)
+
+Follow the global `AGENTS.md` tool discipline: files via `read`/`glob`/`grep`,
+VCS via `git *`, canonical steps via `scripts/*.sh`. When a bash command is
+denied, switch silently to the correct tool — never narrate permission denials.
 
 ## Common contract (every loop)
 

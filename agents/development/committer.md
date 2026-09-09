@@ -8,6 +8,16 @@ permission:
     "git *": allow
     "gh *": allow
     "glab *": allow
+    "ls *": allow
+    "cat *": allow
+    "find *": allow
+    "head *": allow
+    "tail *": allow
+    "wc *": allow
+    "rg *": allow
+    "find * -delete*": deny
+    "find * -exec*": deny
+    "find * -ok*": deny
     "*scripts/test-runner.sh *": allow
     "*scripts/transition.sh *": allow
     "git push --force*": deny
@@ -20,6 +30,12 @@ permission:
     ".opencode/cache/**": "deny"
 ---
 Verify that the pipeline gates are satisfied before MR creation.
+
+## Tool discipline (bash-restricted)
+
+Follow the global `AGENTS.md` tool discipline: files via `read`/`glob`/`grep`,
+VCS via `git *`, canonical steps via `scripts/*.sh`. When a bash command is
+denied, switch silently to the correct tool — never narrate permission denials.
 
 Responsibilities:
 - Check that senior review was completed (review output files exist)
