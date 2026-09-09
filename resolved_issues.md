@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 228. Subagentes do pipeline desperdiçam tempo narrando restrições de bash deny-all (discovery/develop)
+- Resolved: 2026-09-09T14:45
+- Durations: backlog=- waiting=- dev=0h review=0h qa=0h publish=0h total=15h
+- Severity: low
+- Type: chore
+- Report: william_pereira
+- Reviewers: 1
+- Remote: #162
+- Summary: Ao rodar /ocf:discovery e /ocf:develop, os subagentes do pipeline (especialmente o orquestrador discovery com bash "*" — -
+
 ### 225. Gerar carrossel LinkedIn→PDF: agente+skill+script pesquisa o tema na web e produz deck 1080×1080 (imagem IA ou fallback prompts-only)
 - Resolved: 2026-09-09T14:24
 - Durations: backlog=- waiting=- dev=1h review=0h qa=0h publish=0h total=14h
