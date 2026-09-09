@@ -610,14 +610,20 @@ issues only. See `standards/issues.md` for the full contract.
 
 ### 222. committer-check.sh: gate de segurança lê relatório errado/superseded e falha em detectar veredito de bloqueio — falso PASS/FAIL
 
-- Status: ready
+- Status: in-publish
+- Opened: 2026-09-09
+- Started: 2026-09-09T15:25
+- In review: 2026-09-09T15:39
+- In QA: 2026-09-09T15:48
+- In publish: 2026-09-09T15:56
+- PR: #167
 - Type: bug
 - Severity: high
 - Priority: high
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 1 (devops)
-- Remote: -
+- Remote: #166
 - Location: scripts/committer-check.sh (bloco security, ~linhas 71-100)
 - Description: O gate de segurança do committer tem dois defeitos: (1) seleção do relatório por `ls -1 ... | head -1` (ordem lexicográfica) pode ler um relatório superseded (ex.: original REQUEST_CHANGES quando existe `-recheck` aprovado, ou o inverso); (2) a lógica de veredito dependia de vocabulário frágil (`refus`/`unresolved critical|high`), deixando passar relatórios reais com `**Verdict: REQUEST_CHANGES** — 3 critical + 3 high findings block approval` (falso PASS demonstrado com relatório real do repo). Além disso o fallback legado `security-*.md` sem escopo por issue reproduzia a classe do bug #222 do projeto vizzupy (relatório de outra issue). Fix entregue: seleção issue-scoped por mtime mais recente (`security-issue-<id>-*` → `security-<id>-*`), sem fallback amplo, e parse de veredito ancorado na ÚLTIMA seção `Verdict` com janela limitada (vocabulário: refus/request changes/block approval/denied/gate does not pass/minimum required fixes/unresolved critical|high), exigindo aprovação explícita.
 - Impact: Gate de segurança que libera `in-publish`: falso PASS libera issue com relatório de rejeição vigente; falso FAIL bloqueia entrega com relatório aprovado. Corrigido nesta rodada.
@@ -628,4 +634,5 @@ issues only. See `standards/issues.md` for the full contract.
 2. Único relatório `security-issue-1-*` com `**Verdict: REQUEST_CHANGES** — 3 critical + 3 high findings block approval` → FAIL.
 3. Sem relatório `security-issue-1-*`/`security-1-*` no diretório (mas com `security-git-cred-cache-*` REFUSED de outra issue) → FAIL 'no issue-scoped report found' (sem fallback cruzado).
 - Suggested fix: Delivered in this batch (commit fix + registro).
+- Tests delivered: scripts/tests/test_committer_check.sh — Tests 1-3 cobertos (14 asserts PASS via test-runner, 2026-09-09).
 
