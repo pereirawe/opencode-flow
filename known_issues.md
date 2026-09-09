@@ -642,7 +642,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 2 (backend, ux-ui)
 - Remote: -
 - Jira: -
-- PR: -
+- PR: #155
 - Location:
     - skills/business-ops/proposal-writer/SKILL.md (canonical structure; hoje só Markdown, logo referenciado de docs/specs/<slug>/assets/)
     - agents/business-ops/proposal-writer.md (PDF "opcional"; precondição logo já presente)
