@@ -616,6 +616,7 @@ issues only. See `standards/issues.md` for the full contract.
 - In review: 2026-09-09T15:39
 - In QA: 2026-09-09T15:48
 - In publish: 2026-09-09T15:56
+- PR: #167
 - Type: bug
 - Severity: high
 - Priority: high
