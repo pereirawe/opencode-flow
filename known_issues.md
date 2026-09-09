@@ -645,7 +645,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 1 (backend)
 - Remote: #164
 - Jira: -
-- PR: -
+- PR: #165
 - Location: ~/.config/opencode/scripts/issue-lint.sh:34-41 (field()/val() con head -1 bajo set -o pipefail de la linea 2)
 - Description: val() ejecuta: field CAMPO | head -1 | sed ... (linea 41). Con un campo multilinea grande (p. ej. el bloque - Business rules: de una entry feat canonica con 13+ reglas), awk sigue escribiendo al pipe cuando head -1 ya leyo su primera linea y salio; el write posterior recibe EPIPE -> SIGPIPE -> awk muere y, bajo set -euo pipefail (linea 2), el script entero aborta con exit 141 (128+13) SIN emitir veredicto lint. Deterministico con bloques grandes: observado al validar la issue 72 del proyecto revanca (Business rules de ~14 lineas): issue-lint.sh 72 --strict devuelve 141 sin salida stdout. Issues con campos cortos (67/69) no lo disparan; el bug depende del tamano del bloque, no del contenido.
 
