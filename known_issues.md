@@ -656,7 +656,12 @@ Fix sugerido: en val(), reemplazar head -1 por sed -n 1p (drena el pipe completo
 - Suggested fix: -
 
 ### 225. Gerar carrossel LinkedIn→PDF: agente+skill+script pesquisa o tema na web e produz deck 1080×1080 (imagem IA ou fallback prompts-only)
-- Status: ready
+- Status: in-publish
+- Opened: 2026-09-09
+- Started: 2026-09-09T13:27
+- In review: 2026-09-09T14:04
+- In QA: 2026-09-09T14:15
+- In publish: 2026-09-09T14:23
 - Type: feat
 - Severity: medium
 - Priority: medium
@@ -664,7 +669,7 @@ Fix sugerido: en val(), reemplazar head -1 por sed -n 1p (drena el pipe completo
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 2 (frontend, runtime)
-- Remote: -
+- Remote: #160
 - Jira: -
 - PR: -
 - Location: skills/marketing/linkedin-carousel/SKILL.md, skills/marketing/linkedin-carousel/person.schema.json, agents/marketing/linkedin-carousel.md, commands/ocf:linkedin-carousel.md, scripts/marketing/carousel-gen.sh, scripts/marketing/slide-compose.sh, scripts/marketing/carousel-pdf.sh, scripts/marketing/person-validate.py (NOVOS); opencode.json (registro do command), commands/README.md (índice)
@@ -698,6 +703,7 @@ Open question registrada (v2, não bloqueia): o Tech Lead propôs que, sem model
 5. Conferência deck vs research/: cada afirmação factual de cada slide mapeada a ≥1 fonte salva com URL+data; slide sem mapeamento → falha (nada fabricado); person.json sem CTA/handle → campo omitido e sinalizado, nunca inventado.
 6. Varredura dos artefatos de saída por trecho/forma de EACHLABS_API_KEY → nenhuma ocorrência (chave só no env/header HTTP).
 - Suggested fix: -
+- Follow-ups (senior review, não-bloqueantes): FRONTEND (7): R1 `<html lang="pt">` fixo em slide-compose.sh — não segue o locale do deck (textos seguem o usuário, só o atributo lang é fixo); R2 contraste do CTA (#E63946 + branco ≈ 4.17:1) abaixo de AA 4.5:1 — texto grande 40px bold, abaixo do limiar de texto grande mas não ideal; R3 colisão logo (canto inferior direito) × rodapé em textos longos (logo fixo em bottom:44px right:48px; rodapé pode encostar); R4 fontes Inter/Space Grotesk não embarcadas — fallback silencioso para system-ui quando ausentes no host; R5 overflow truncado silencioso (`overflow:hidden` no body) — texto excedente é cortado sem aviso; R6 menores (espaçamentos, uso de `rgba` no rodapé). RUNTIME (4): R1 key_check imprime "Refusing to run." no fallback prompts-only com exit 0 — mensagem de erro sem exit de erro confunde (chave ausente/malformada → prompts-only é o contrato BR 7, mas o texto sugere abort); R2 chave malformada (espaço/<8 chars) degrada silenciosamente para prompts-only via key_present sem aviso claro da causa; R3 `"rm -f *": allow` sem escopo de diretório no agent (deny-all default + allow amplo — mitigado por *SCRIPTS_DIR/marketing/* e listas explícitas, mas amplo); R4 robustez menor (tratamento de rede/timeout não testado E2E real, dependência de Chrome local). Nenhum bloqueante; registrados para o próximo ciclo de discovery.
 
 ### 228. Subagentes do pipeline desperdiçam tempo narrando restrições de bash deny-all (discovery/develop)
 - Status: ready
