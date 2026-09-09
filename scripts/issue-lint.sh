@@ -38,7 +38,12 @@ field() { # <fieldname>
     cap {print}
   '
 }
-val() { field "$1" | head -1 | sed 's/^[[:space:]]*//'; }
+# sed -n 1p (issue #224): same first-line semantics as head -1, but it drains
+# the full pipe — under `set -o pipefail` (line 2) a large multi-line field
+# (e.g. a feat entry with 13+ Business rules) would make head exit early,
+# the awk producer in field() hits EPIPE → SIGPIPE → dies, and the whole
+# script aborts with exit 141 without emitting a verdict.
+val() { field "$1" | sed -n 1p | sed 's/^[[:space:]]*//'; }
 
 TYPE=$(val "Type")
 STATUS=$(val "Status")
