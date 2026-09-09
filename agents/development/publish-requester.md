@@ -8,6 +8,16 @@ permission:
     "git *": allow
     "gh *": allow
     "glab *": allow
+    "ls *": allow
+    "cat *": allow
+    "find *": allow
+    "head *": allow
+    "tail *": allow
+    "wc *": allow
+    "rg *": allow
+    "find * -delete*": deny
+    "find * -exec*": deny
+    "find * -ok*": deny
     "git push --force*": deny
     "git push -f*": deny
     "git reset --hard*": deny
@@ -18,6 +28,12 @@ permission:
     ".opencode/cache/**": "deny"
 ---
 Create and manage merge/pull requests.
+
+## Tool discipline (bash-restricted)
+
+Follow the global `AGENTS.md` tool discipline: files via `read`/`glob`/`grep`,
+VCS via `git *`, canonical steps via `scripts/*.sh`. When a bash command is
+denied, switch silently to the correct tool — never narrate permission denials.
 
 Preconditions:
 1. Committer gate passed — `Status: in-publish` in `known_issues.md`

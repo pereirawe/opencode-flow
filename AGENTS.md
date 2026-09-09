@@ -112,6 +112,30 @@ QA → corrections → committer gate → MR) **without user confirmation.**
 Only gaps found during discovery (missing business rules, ambiguous specs)
 generate questions — everything else flows continuously.
 
+## Tool Discipline (bash-restricted subagents)
+
+Pipeline subagents with restricted bash (deny-all allowlists) MUST follow this
+discipline — it saves tokens and avoids narrating permission restrictions:
+
+**Use the right tool on the first try:**
+- **Files** (read, search, list): use the dedicated tools — `read`, `glob`,
+  `grep`. Do NOT attempt bash `ls`/`cat`/`find`/`head`/`tail`/`wc`/`rg` when
+  the dedicated tools cover the operation.
+- **Version control**: use `git *` (status, log, diff, checkout, branch, etc.)
+  for VCS operations.
+- **Canonical pipeline steps**: use `scripts/*.sh` (append-issue, issue-lint,
+  transition, test-runner, committer-check, promote, create-pr, etc.) — never
+  reimplement them ad hoc.
+- **Anything else**: prefer the scripted/dedicated path; never attempt
+  write/destructive commands outside the allowlist.
+
+**PROHIBITED — never narrate permission denials:** when a bash command is
+denied by the permission system, switch silently to the correct tool and
+continue the flow. Do NOT emit reasoning explaining the restriction (e.g.
+"The bash deny-all pattern blocks most commands... Let me use the dedicated
+tools instead"). Denials are expected behavior, not events worth reporting —
+one silent tool switch, no commentary, no apology.
+
 ## Commit Convention
 
 Every commit MUST follow `standards/commits.md`:

@@ -656,7 +656,12 @@ Fix sugerido: en val(), reemplazar head -1 por sed -n 1p (drena el pipe completo
 - Suggested fix: -
 
 ### 228. Subagentes do pipeline desperdiçam tempo narrando restrições de bash deny-all (discovery/develop)
-- Status: ready
+- Status: in-publish
+- Opened: 2026-09-09
+- Started: 2026-09-09T14:29
+- In review: 2026-09-09T14:36
+- In QA: 2026-09-09T14:40
+- In publish: 2026-09-09T14:44
 - Type: chore
 - Severity: low
 - Priority: medium
@@ -664,7 +669,7 @@ Fix sugerido: en val(), reemplazar head -1 por sed -n 1p (drena el pipe completo
 - Report: william_pereira
 - Base branch: main
 - Reviewers: 1 (qa)
-- Remote: -
+- Remote: #162
 - Jira: -
 - PR: -
 - Location: AGENTS.md; agents/development/discovery.md; agents/development/developer.md; agents/development/committer.md; agents/development/publish-requester.md
