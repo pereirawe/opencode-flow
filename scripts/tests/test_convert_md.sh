@@ -23,6 +23,7 @@ A paragraph with **bold**, *italic* and `code`.
 - item one
 - item two
   - nested item
+- item three
 
 1. first
 2. second
@@ -90,6 +91,7 @@ assert_contains "$TMP/out.html" "<ol>" "ordered list rendered"
 assert_contains "$TMP/out.html" "item one" "list item one rendered"
 assert_contains "$TMP/out.html" "item two" "list item two rendered (parent preserved)"
 assert_contains "$TMP/out.html" "nested item" "nested list item rendered (no content loss)"
+assert_contains "$TMP/out.html" "item three" "sibling item after a nested list rendered (Q1 regression)"
 assert_contains "$TMP/out.html" "<blockquote>" "blockquote rendered"
 assert_contains "$TMP/out.html" 'class="language-python"' "fenced code keeps the language"
 assert_contains "$TMP/out.html" "<table>" "GFM pipe table rendered"

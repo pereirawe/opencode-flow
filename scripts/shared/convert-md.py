@@ -227,6 +227,8 @@ def _render_items(items, k, base_indent, md_dir):
         if k + 1 < len(items) and items[k + 1][0] > indent:
             sub, k = _render_items(items, k + 1, items[k + 1][0], md_dir)
             content.append(sub)
+            out.append("<li>%s</li>" % "".join(content))
+            continue
         out.append("<li>%s</li>" % "".join(content))
         k += 1
     return "<%s>%s</%s>" % (tag, "".join(out), tag), k
