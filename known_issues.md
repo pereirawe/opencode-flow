@@ -629,6 +629,52 @@ issues only. See `standards/issues.md` for the full contract.
 3. Sem relatório `security-issue-1-*`/`security-1-*` no diretório (mas com `security-git-cred-cache-*` REFUSED de outra issue) → FAIL 'no issue-scoped report found' (sem fallback cruzado).
 - Suggested fix: Delivered in this batch (commit fix + registro).
 
+### 225. Standard de proposta comercial com marca + PDF (logo e dados da empresa que emite)
+
+- Status: in-progress
+- Opened: 2026-09-08
+- Type: feat
+- Severity: high
+- Priority: high
+
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (backend, ux-ui)
+- Remote: -
+- Jira: -
+- PR: -
+- Location:
+    - skills/business-ops/proposal-writer/SKILL.md (canonical structure; hoje só Markdown, logo referenciado de docs/specs/<slug>/assets/)
+    - agents/business-ops/proposal-writer.md (PDF "opcional"; precondição logo já presente)
+    - agents/business-ops/spec-writer.md + skills/business-ops/tech-spec/SKILL.md (mesma convenção de logo)
+    - commands/ocf:proposal.md + commands/ocf:tech-spec.md (pré-condições de asset)
+    - scripts/spec-init.sh (resolve logo de docs/assets → fallback global ~/.config/opencode/assets)
+    - (referência de mecanismo HTML→PDF: scripts/cv/pdf.sh + skills/career/cv-pdf + standards/cv-design.md)
+- Description: O fluxo atual de proposta (ocf:proposal → proposal-writer) gera apenas proposal.md e depende de um logo já copiado em docs/specs/<slug>/assets/. O usuário pede que o standard de criação de proposta (a) tenha saída PDF com imagem (logo) e dados da empresa emissora, (b) resolva os assets de marca preferencialmente em /docs/assets do projeto onde o fluxo é invocado (docs/assets/company.json + docs/assets/logo.*), com fallback global ~/.config/opencode/assets/, e (c) quando a marca não existir no projeto, o agent pergunte sempre se quer gerar sem marca ou, com marca, crie o standard da marca no projeto (company.json + DESIGN.md + logo) antes de gerar a proposta. Desenho confirmado: standard dedicado (standards/proposal-design.md EN + traduções standards/pt e standards/es), template HTML A4 próprio, script scripts/proposal/pdf.sh reusando o mecanismo de scripts/cv/pdf.sh, e atualização do fluxo proposal-writer/spec-writer/spec-init/commands para consumir a marca resolvida.
+- Impact: Propostas hoje são só MD sem identidade da empresa emissora confiável e sem PDF para assinatura; assets de marca espalhados (docs/specs/<slug>/assets) dificultam reuso por projeto e exigem o logo antes de começar. Este standard torna a saída entregável (PDF com logo + dados), centraliza assets por projeto em /docs/assets e torna o fluxo sem-marca explícito via pergunta.
+- Business rules:
+    1. Resolução de marca por ordem: (1) docs/assets/company.json + docs/assets/logo.* do projeto invocado; (2) ~/.config/opencode/assets/company.json + logo (fallback global). Nunca inventar logo nem dados — se ausentes, perguntar.
+    2. Se não houver marca no projeto, o agent pergunta SEMPRE ao usuário: (a) gerar sem marca, (b) fornecer dados/logo agora (grava em docs/assets/), ou (c) criar o standard da marca no projeto (company.json + DESIGN.md via skill brand-to-design-md + logo) antes de gerar. Não assume nem silencia.
+    3. Saída padrão: proposal.md (fonte) + proposal.html (render) + proposal.pdf (via scripts/proposal/pdf.sh, Chrome headless + fallback LibreOffice). O HTML/PDF segue standards/proposal-design.md e o template A4 de referência skills/business-ops/proposal-writer/templates/proposal.html — nunca CSS do zero.
+    4. O cabeçalho do documento inclui logo + dados da empresa emissora vindos de company.json (nome, contato, documento/CNPJ-RIF quando informado); campos ausentes do company.json são omitidos, nunca inventados.
+    5. standards/proposal-design.md é escrito em inglês (originais em standards/) com traduções standards/pt e standards/es; originais EN nunca são editados nas traduções.
+    6. Os assets ficam em /docs/assets do projeto onde o fluxo é invocado (convenção já usada por spec-init.sh); docs/specs/<slug>/assets deixa de ser a fonte primária (mantido por compat).
+    7. Mermaid do proposal.md continua suportado como fonte; o HTML/PDF renderiza conteúdo equivalente sem depender de Mermaid runtime (diagramas opcionais como imagem estática ou tabelas).
+- Acceptance criteria:
+    1. standards/proposal-design.md (EN) + standards/pt/proposal-design.md + standards/es/proposal-design.md existem e são listados no standards/README.md (+ pt/es README).
+    2. scripts/proposal/pdf.sh gera um PDF A4 a partir do HTML de proposta (Chrome headless; fallback LibreOffice) e valida não-vazio/encoding, no padrão de scripts/cv/pdf.sh.
+    3. Template de referência skills/business-ops/proposal-writer/templates/proposal.html renderiza header com logo + dados de company.json, corpo de seções e rodapé, com @page A4 e estilos de impressão.
+    4. Fluxo ocf:proposal com marca presente em docs/assets → proposal.md + proposal.html + proposal.pdf com logo e dados da empresa emissora.
+    5. Fluxo ocf:proposal SEM marca no projeto → agent pergunta (sem marca / fornecer dados agora / criar standard da marca) e só gera após decisão.
+    6. spec-init.sh e o proposal-writer usam a resolução company.json/logo por docs/assets (fallback global), mantendo compat com docs/specs/<slug>/assets.
+- Tests:
+    1. Rodar scripts/proposal/pdf.sh sobre um proposal.html com @page A4 (marca presente) -> PDF não-vazio e válido (Chrome; se ausente, fallback LibreOffice).
+    2. Invocar o fluxo de proposta em projeto com docs/assets/company.json + logo -> proposta final contém header com logo + dados da emissora (assert via grep no HTML/PDF de texto).
+    3. Invocar o fluxo em projeto SEM marca -> o agent pergunta (sem marca/fornecer/criar) e não gera arquivo antes da resposta (assert de pergunta + ausência de saída).
+    4. grep dos standards/pt e standards/es por seções-chave do proposal-design.md EN -> traduções presentes e coerentes.
+    5. make test-scripts -> verde (scripts/tests) sem regressão.
+- Suggested fix: -
+
 ### 224. issue-lint.sh SIGPIPE crash (exit 141) al parsear campos multilinea grandes bajo pipefail
 - Status: ready
 - Type: bug

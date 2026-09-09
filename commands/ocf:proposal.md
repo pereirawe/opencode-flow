@@ -1,5 +1,5 @@
 ---
-description: Author a client-ready commercial proposal from an approved tech spec. Delegates to the business-ops/proposal-writer agent, which reads docs/specs/<slug>/tech-spec.md, runs commercial discovery, invokes C-level experts on pricing and positioning, and produces docs/specs/<slug>/proposal.md.
+description: Author a client-ready commercial proposal from an approved tech spec. Delegates to the business-ops/proposal-writer agent, which reads docs/specs/<slug>/tech-spec.md, runs commercial discovery, invokes C-level experts on pricing and positioning, and produces proposal.md + proposal.html + proposal.pdf with the company brand header.
 agent: business-ops/proposal-writer
 ---
 
@@ -23,7 +23,8 @@ Example:
 
 - `docs/specs/<slug>/tech-spec.md` exists and is marked
   `Status: approved` with at least one C-level sign-off.
-- Logo asset is in place under `docs/specs/<slug>/assets/`.
+- Brand resolved via `scripts/proposal/brand-resolve.sh` OR the user explicitly
+  chose a no-brand build (the agent asks when no brand is found).
 
 ## What happens
 
@@ -38,4 +39,7 @@ Example:
 4. It derives effort and price with visible math, drafts the proposal with
    Mermaid diagrams (mindmap, gantt, pie), runs the quality checklist, and
    asks for explicit sign-off before saving.
-5. Output: `docs/specs/<slug>/proposal.md`.
+5. Outputs: `docs/specs/<slug>/proposal.md` (source), `proposal.html`
+   (from the reference template) and `proposal.pdf` (via
+   `scripts/proposal/pdf.sh`), with the company logo + data header per
+   `standards/proposal-design.md`.

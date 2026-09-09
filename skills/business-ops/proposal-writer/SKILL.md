@@ -11,14 +11,39 @@ and sign — grounded in an approved technical specification.
 ## Preconditions
 
 - `docs/specs/<slug>/tech-spec.md` exists and is in `Status: approved`.
-- Logo asset is in place at `docs/specs/<slug>/assets/logo.<ext>`.
+- Brand resolution ran via `scripts/proposal/brand-resolve.sh` (see the
+  `proposal-design` standard below) OR the user explicitly chose a no-brand
+  build. Never assume brand availability.
 - The user has confirmed client identity, budget envelope, and timeline.
+
+## Brand & PDF delivery (mandatory — see `standards/proposal-design.md`)
+
+1. Resolve brand assets with `scripts/proposal/brand-resolve.sh [--project-dir
+   <dir>]` (project `docs/assets/company.json` + `logo.*` → global
+   `~/.config/opencode/assets/` → legacy spec copy). It prints `logo=`,
+   `company_json=`, `source=`, `brand=`.
+2. If NO brand (`exit 1`), ASK the user (never assume): (a) generate without
+   brand, (b) provide company data/logo now (saved to `<project>/docs/assets/`),
+   or (c) create the brand standard first (`DESIGN.md` via `brand-to-design-md`
+   + `company.json` + `logo.*`). Generate only after the answer.
+3. The final delivery MUST have three outputs from one source
+   `docs/specs/<slug>/proposal.md`:
+   - `proposal.md` (markdown source, Mermaid allowed)
+   - `proposal.html` — rendered from the reference template
+     `skills/business-ops/proposal-writer/templates/proposal.html` (never CSS
+     from scratch), brand header filled from `company.json` + logo
+   - `proposal.pdf` — via `scripts/proposal/pdf.sh proposal.html proposal.pdf`
+     (Chrome headless, LibreOffice fallback)
+4. Run the `proposal-design` standard checklist before delivering the PDF.
 
 ## Canonical Structure
 
 ```
-![Logo](./assets/logo.<ext>)
-
+<!-- Brand header: logo + company data resolved via brand-resolve.sh
+     (docs/assets/company.json + logo.*). Rendered in proposal.html/pdf;
+     in the .md source, reference the resolved logo relatively when it lives
+     under docs/assets — from docs/specs/<slug>/proposal.md the path is
+     ../../assets/logo.png (or ./assets/logo.png for the spec-local copy). -->
 # Commercial Proposal — <Project Name>
 
 - Version: <semver>
@@ -127,7 +152,13 @@ Use them deliberately. Mixing them erodes trust.
 - [ ] Change request process is defined
 - [ ] Risks are named with mitigations and owners
 - [ ] Valid-until date is set (typically 30–60 days)
-- [ ] Logo embedded at the top
+- [ ] Brand resolved via `brand-resolve.sh`; no-brand build is explicit and user-confirmed
+- [ ] `proposal.md` + `proposal.html` + `proposal.pdf` delivered; HTML from the reference template; PDF via `scripts/proposal/pdf.sh`
+- [ ] Header shows logo + company name + contact from `company.json` (missing fields omitted, never invented); single-asset/no-brand headers follow the standard §3.8
+- [ ] `<html lang>` set to the resolved proposal locale
+- [ ] Zero unrendered template tokens in `proposal.html` (`grep -E '\{\{' proposal.html` → 0)
+- [ ] Logo self-contained (data URI or relative copy) — no `file://`/remote logo
+- [ ] No remote fonts/network dependency in HTML/PDF; page-number footer present (LibreOffice output checked manually)
 - [ ] No internal jargon, no agent names, no code identifiers
 - [ ] Locale-correct prose
 

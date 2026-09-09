@@ -10,3 +10,4 @@ Convenciones y patrones de todo el proyecto.
 | `pr-template.md` | Plantilla de pull request |
 | `code-review.md` | Guías de revisión de código |
 | `test-env.md` | Entorno de pruebas — pines de versión, rangos del manifest, sync guard, contrato de warnings |
+| `proposal-design.md` | Contrato de marca/PDF de propuesta comercial — assets de la empresa (`company.json` + logo en `docs/assets/`), salida HTML/PDF A4, gate de pregunta sin-marca |

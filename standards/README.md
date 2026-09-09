@@ -15,6 +15,7 @@ Project-wide conventions and patterns shared across all sectors.
 | `resolved-issue.md` | Resolved issue archive format |
 | `test-env.md` | Test environment — version pins, manifest ranges, sync guard, warning contract |
 | `design-pipeline.md` | Design pipeline output conventions, session management, and pipeline stages (build-ui/audit-ui) |
+| `proposal-design.md` | Commercial proposal brand/PDF contract — company assets (`company.json` + logo in `docs/assets/`), A4 HTML/PDF output, no-brand ask gate |
 
 ## Sector Agents
 

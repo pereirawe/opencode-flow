@@ -13,6 +13,8 @@
 #   1) $PWD/docs/assets/logo.{svg,png,jpg,jpeg,webp}
 #   2) ~/.config/opencode/assets/logo.{svg,png,jpg,jpeg,webp}
 #
+# Brand/company.json resolution for proposals is handled by
+# scripts/proposal/brand-resolve.sh — see standards/proposal-design.md §3.
 # If no logo is found, writes a placeholder text file and exits 0 with a
 # warning — the agent decides how to proceed.
 
