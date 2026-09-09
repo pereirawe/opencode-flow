@@ -9,6 +9,7 @@ permission:
   bash:
     "*": deny
     "*SCRIPTS_DIR/cv/pdf.sh*": allow
+    "*SCRIPTS_DIR/shared/html-to-pdf.sh*": allow
     "*SCRIPTS_DIR/cv/validate.py*": allow
     "*SCRIPTS_DIR/cv/check-inference.sh*": allow
     "python3 *": allow
