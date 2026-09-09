@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 224. issue-lint.sh SIGPIPE crash (exit 141) al parsear campos multilinea grandes bajo pipefail
+- Resolved: 2026-09-09T15:24
+- Durations: backlog=- waiting=- dev=0h review=0h qa=0h publish=0h total=15h
+- Severity: medium
+- Type: bug
+- Report: discovery agent (issue 72, revanca)
+- Reviewers: 1
+- Remote: #164
+- Summary: val() ejecuta — -
+
 ### 228. Subagentes do pipeline desperdiçam tempo narrando restrições de bash deny-all (discovery/develop)
 - Resolved: 2026-09-09T14:45
 - Durations: backlog=- waiting=- dev=0h review=0h qa=0h publish=0h total=15h
