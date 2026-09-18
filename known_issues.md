@@ -610,10 +610,12 @@ issues only. See `standards/issues.md` for the full contract.
 
 
 ### 233. chore(agents): remove deprecated delivery and develop-router
-- Status: in-progress
+- Status: in-publish
 - Opened: 2026-09-18
 - Ready: 2026-09-18T12:04
 - Started: 2026-09-18T12:04
+- In review: 2026-09-18T12:16
+- In publish: 2026-09-18T12:25
 - Type: chore
 - Severity: low
 - Priority: medium
@@ -623,7 +625,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 1 (backend)
 - Remote: #172
 - Jira: -
-- PR: -
+- PR: #173
 - Location: agents/development/delivery.md, agents/development/develop-router.md, AGENTS.md, workflow.md, commands/
 - Description: `AGENTS.md` and `workflow.md` explicitly state that `delivery.md` and `develop-router.md` are DEPRECATED (workflow.md: 'The delivery agent and develop-router are legacy'). Their continued presence in `agents/development/` adds noise, cost to agent discovery, and confuses new commands. Remove both files and prune any residual references outside historical archives (resolved_issues.md is preserved as history).
 - Impact: Reduces agent-discovery surface. Eliminates ambiguity for new contributors and for the model when routing. Small token saving during any tool that enumerates agents. No functional change to `/ocf:develop`, `/ocf:develop-full`, `/ocf:delivery` (the last one becomes explicitly unsupported).
@@ -641,6 +643,7 @@ no-refs-active: rg -l 'develop-router|agents/development/delivery' AGENTS.md wor
 historical-preserved: rg -l 'delivery agent|develop-router' resolved_issues.md decisions.md returns matches → history intact.
 opencode-json-clean: rg 'delivery|develop-router' opencode.json returns no matches (or file does not list them as agents).
 - Suggested fix: -
+- Notes: Reviewer backend re-review APPROVED (fix 16ca457 restored committer gate + create-pr in both develop templates). committer-check.sh 233 FAILs only on mechanical 'Tests cache: MISSING' (same exception as #231/#232 — repo has no detectable runner; package.json lacks a 'test' script → __npm-no-test__ → --check exit 3 before reading cache). Real suite bash scripts/tests/run_all.sh: only test_timestamps.sh fails (pre-existing, tracked as #238). issue-lint.sh 233 --strict PASS. Exception documented without blocking.
 
 ### 234. chore(qa): tighten quality-analyst permissions with bash allowlist and scoped edit
 - Status: backlog
