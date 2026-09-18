@@ -609,36 +609,6 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: Delivered in this batch (renumbered from a duplicate #36; #222 kept free for the global committer-check register).
 
 
-### 238. bug(scripts): test_timestamps.sh date mock misses T%H:%M format
-- Status: in-publish
-- Opened: 2026-09-18
-- Ready: 2026-09-18T14:20
-- Started: 2026-09-18T14:20
-- In review: 2026-09-18T14:57
-- In publish: 2026-09-18T15:05
-- Type: bug
-- Severity: high
-- Priority: high
-
-- Flow: lean
-- Report: model
-- Base branch: main
-- Reviewers: 2 (backend, qa)
-- Remote: #184
-- Jira: -
-- PR: #185
-- Location: scripts/tests/test_timestamps.sh
-- Description: test_timestamps.sh mocka o binario date via PATH apenas para o formato +%Y-%m-%d, delegando o resto ao date real. Porem promote.sh (linhas 105,181), transition.sh (linha 68) e close_issue.sh (linha 125) usam date +%Y-%m-%dT%H:%M. O mock nao intercepta o formato com T%H:%M, delega ao date real e retorna a data atual em vez de FAKE_TODAY (2026-08-14). Resultado: 9 subtestes (t01,t02,t04,t06,t14-t17,t21,t22,t25) falham. Falha pre-existente desde bc32be1 (Aug 19). A suite scripts/tests/run_all.sh roda 26 arquivos; test_timestamps.sh e o unico que falha.
-- Impact: Suite de testes do proprio config global fica vermelha (25/26 passam). O gate de testes do committer (test-runner.sh --check) nao e afetado diretamente (o repo nao tem runner detectavel), mas qualquer rodada de make test-scripts reporta falha, atrapalhando a confianca na suite e o monitoramento de regressoes.
-- Business rules: none
-- Acceptance criteria: Rodar bash scripts/tests/run_all.sh retorna exit 0 quando FAKE_TODAY e respeitado.
-O mock de date em test_timestamps.sh intercepta tanto +%Y-%m-%d quanto +%Y-%m-%dT%H:%M.
-Nenhum teste de timestamp depende de data real do sistema.
-- Tests: run suite with fake date +%Y-%m-%dT%H:%M → mock returns FAKE_TODAY (no real date)
-run suite with fake date +%Y-%m-%d → mock returns FAKE_TODAY
-run full run_all.sh → exit 0 (all 26 suites pass)
-- Suggested fix: -
-
 ### 240. chore(scripts): committer-check.sh does not actually invoke issue-lint.sh --strict — reconcile gate ownership after #235
 - Status: backlog
 - Type: chore
