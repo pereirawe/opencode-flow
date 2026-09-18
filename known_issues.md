@@ -609,8 +609,13 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: Delivered in this batch (renumbered from a duplicate #36; #222 kept free for the global committer-check register).
 
 
-### 224. chore(agents): restrict senior-reviewers bash to allowlist
-- Status: backlog
+### 231. chore(agents): restrict senior-reviewers bash to allowlist
+- Status: in-publish
+- Opened: 2026-09-18
+- Ready: 2026-09-18T11:24
+- Started: 2026-09-18T11:24
+- In review: 2026-09-18T11:32
+- In publish: 2026-09-18T11:53
 - Type: chore
 - Severity: medium
 - Priority: high
@@ -618,12 +623,12 @@ issues only. See `standards/issues.md` for the full contract.
 - Report: model
 - Base branch: main
 - Reviewers: 2 (backend, security)
-- Remote: -
+- Remote: #168
 - Jira: -
 - PR: -
 - Location: agents/development/senior-reviewers/*.md, agents/development/senior-reviewers/README.md
 - Description: Senior reviewer agents currently declare `bash: allow` without an allowlist, so they can invoke any shell command — including `go test ./...`, `pytest`, or full test suites — bypassing the cache-aware `scripts/test-runner.sh`. This is the most likely root cause of the review phase becoming slow and token-heavy: reviewers re-run suites the developer already cached, and every reviewer duplicates the cost in parallel. Restrict bash to an allowlist mirroring `committer.md` (git, ls/cat/find/head/tail/wc/rg, date, echo, preflight.sh, issue-lint.sh, test-runner.sh --check/--status ONLY) and keep edit deny except `.opencode/known_issues.md` and `.opencode/reviews/**`. Explicitly deny `scripts/test-runner.sh --run*`, `git reset --hard*`, `git push --force*`, `git branch -D*`, `rm -rf*`.
-- Impact: Directly reduces tokens per review pass (est. 40-60% together with review-preflight in issue #226). Guarantees reviewers never re-execute a suite the developer already cached. Removes the class of accidents where a reviewer runs `go test ./...` on a large repo. Non-blocking: security profile keeps its OWASP delegation config untouched.
+- Impact: Directly reduces tokens per review pass (est. 40-60% together with review-preflight in issue #237). Guarantees reviewers never re-execute a suite the developer already cached. Removes the class of accidents where a reviewer runs `go test ./...` on a large repo. Non-blocking: security profile keeps its OWASP delegation config untouched.
 - Business rules: 1. Every file under `agents/development/senior-reviewers/*.md` (10 profiles: backend, data, devops, frontend, mobile, performance, qa, runtime, security, ux-ui) MUST declare a `permission` block with `bash` deny-all + explicit allowlist and `edit: deny` except the two allowed paths.
 2. Allowlist MUST include: `git *`, `ls *`, `cat *`, `find *`, `head *`, `tail *`, `wc *`, `rg *`, `date`, `echo *`, `scripts/preflight.sh *`, `scripts/issue-lint.sh *`, `scripts/test-runner.sh --check*`, `scripts/test-runner.sh --status*`.
 3. Denies MUST include: `scripts/test-runner.sh --run*`, `git reset --hard*`, `git push --force*`, `git branch -D*`, `rm -rf*`.
@@ -639,8 +644,9 @@ deny-run: grep -q 'test-runner.sh --run.*deny' agents/development/senior-reviewe
 allowlist-present: yq eval '.permission.bash | keys | length' agents/development/senior-reviewers/data.md > 5 → allowlist populated.
 security-intact: rg 'development/security-owasp' agents/development/senior-reviewers/security.md returns match → delegation preserved.
 - Suggested fix: -
+- Notes: committer gate exception documented 2026-09-18 — 'Tests cache: MISSING' is a mechanical FAIL on this config repo because test-runner.sh detect_runner has no runner here (package.json has no 'test' script → __npm-no-test__ → --check exits 3 before reading any cache). Real suite `bash scripts/tests/run_all.sh` was run as evidence: 25/26 suites pass; sole failure is pre-existing test_timestamps.sh (date mock misses T%H:%M format) → registered as issue #238. Findings reported without blocking per workflow.md. Security gate: PASS via reviews/security-issue-231-2026-09-18-1155.md.
 
-### 225. chore(agents): block --run in reviewers and remove redundant test-runner in committer
+### 232. chore(agents): block --run in reviewers and remove redundant test-runner in committer
 - Status: backlog
 - Type: chore
 - Severity: medium
@@ -654,7 +660,7 @@ security-intact: rg 'development/security-owasp' agents/development/senior-revie
 - PR: -
 - Location: agents/development/senior-reviewers/README.md, agents/development/committer.md
 - Description: The senior-reviewers README does not explicitly forbid `scripts/test-runner.sh --run`, and `committer.md` invokes `test-runner.sh --check` even though `scripts/committer-check.sh` already verifies tests via --check. This is a redundant call in the committer allowlist that also enlarges its bash surface. Reinforce the reviewer discipline textually AND rely on the committer-check.sh verdict as the single source of truth for the test gate at commit time.
-- Impact: Removes a redundant invocation from committer runs (small token saving, cleaner boundary). Documents the reviewer discipline reinforced mechanically in issue #224. Reduces committer bash surface: `scripts/test-runner.sh *` no longer needed in the allowlist.
+- Impact: Removes a redundant invocation from committer runs (small token saving, cleaner boundary). Documents the reviewer discipline reinforced mechanically in issue #231. Reduces committer bash surface: `scripts/test-runner.sh *` no longer needed in the allowlist.
 - Business rules: 1. `senior-reviewers/README.md` MUST state, in the Test protocol section, that reviewers NEVER execute `scripts/test-runner.sh --run` and that `--check` PASS + a report from committer-check are the only paths to trust the test result.
 2. `agents/development/committer.md` MUST NOT contain instructions to run `test-runner.sh` independently; it MUST rely exclusively on the verdict emitted by `scripts/committer-check.sh`.
 3. `scripts/test-runner.sh *` MUST be removed from the committer bash allowlist (kept only in the developer agent).
@@ -668,7 +674,7 @@ committer-no-runner: rg -c 'test-runner' agents/development/committer.md returns
 committer-check-intact: bash scripts/committer-check.sh -h or --help does not error → script contract preserved.
 - Suggested fix: -
 
-### 226. chore(agents): remove deprecated delivery and develop-router
+### 233. chore(agents): remove deprecated delivery and develop-router
 - Status: backlog
 - Type: chore
 - Severity: low
@@ -698,7 +704,7 @@ historical-preserved: rg -l 'delivery agent|develop-router' resolved_issues.md d
 opencode-json-clean: rg 'delivery|develop-router' opencode.json returns no matches (or file does not list them as agents).
 - Suggested fix: -
 
-### 227. chore(qa): tighten quality-analyst permissions with bash allowlist and scoped edit
+### 234. chore(qa): tighten quality-analyst permissions with bash allowlist and scoped edit
 - Status: backlog
 - Type: chore
 - Severity: low
@@ -711,13 +717,13 @@ opencode-json-clean: rg 'delivery|develop-router' opencode.json returns no match
 - Jira: -
 - PR: -
 - Location: agents/development/quality-analyst.md
-- Description: `quality-analyst.md` declares `bash: allow` AND `edit: allow` without restrictions. The QA agent should only read the issue, verify Tests floor, run `scripts/test-runner.sh --check` (never --run), and transition status. It should not have blanket edit or blanket bash. Apply the same allowlist pattern used for senior reviewers (see issue #224) and restrict edit to `.opencode/known_issues.md` and `.opencode/reviews/**`.
+- Description: `quality-analyst.md` declares `bash: allow` AND `edit: allow` without restrictions. The QA agent should only read the issue, verify Tests floor, run `scripts/test-runner.sh --check` (never --run), and transition status. It should not have blanket edit or blanket bash. Apply the same allowlist pattern used for senior reviewers (see issue #231) and restrict edit to `.opencode/known_issues.md` and `.opencode/reviews/**`.
 - Impact: Consistency with senior-reviewers (same discipline). Removes accidental edit surface (QA cannot silently modify source). Removes the possibility of QA running arbitrary commands or full suites. Non-functional: current QA workflow only needs the allowlisted commands.
 - Business rules: 1. `quality-analyst.md` `bash` MUST be deny-all with allowlist: `git *`, `ls *`, `cat *`, `find *`, `head *`, `tail *`, `wc *`, `rg *`, `date`, `echo *`, `scripts/preflight.sh *`, `scripts/issue-lint.sh *`, `scripts/test-runner.sh --check*`, `scripts/test-runner.sh --status*`, `scripts/transition.sh *`, `scripts/append-issue.sh *`.
 2. `bash` MUST explicitly deny `scripts/test-runner.sh --run*`, `git reset --hard*`, `git push --force*`, `git branch -D*`, `rm -rf*`.
 3. `edit` MUST be `*: deny` with allow for `.opencode/known_issues.md` and `.opencode/reviews/**`.
 4. Existing QA responsibilities (Tests floor validation, incomplete-spec tagging, pre-development validation, post-review validation, transition to in-qa) remain unchanged.
-- Acceptance criteria: - `quality-analyst.md` permission block matches the pattern from issue #224.
+- Acceptance criteria: - `quality-analyst.md` permission block matches the pattern from issue #231.
 - `rg 'bash: allow$' agents/development/quality-analyst.md` returns nothing.
 - QA post-review workflow still runs `test-runner.sh --check` and `transition.sh <id> in-qa` end-to-end.
 - Tests: no-allow: rg 'bash: allow$|edit: allow$' agents/development/quality-analyst.md returns no matches → no blanket permission.
@@ -725,7 +731,7 @@ deny-run: rg 'test-runner.sh --run.*deny' agents/development/quality-analyst.md 
 transition-allowed: rg 'transition.sh' agents/development/quality-analyst.md returns match → transition still allowlisted.
 - Suggested fix: -
 
-### 228. chore(scripts): drop redundant issue-lint --strict from develop-full orchestrator
+### 235. chore(scripts): drop redundant issue-lint --strict from develop-full orchestrator
 - Status: backlog
 - Type: chore
 - Severity: low
@@ -752,7 +758,7 @@ committer-still-lints: rg 'issue-lint.sh --strict' scripts/committer-check.sh re
 lint-failure-blocks: an issue missing Business rules for a feat still blocks committer-check.sh (existing behavior).
 - Suggested fix: -
 
-### 229. feat(standards): split code-review.md into per-profile standards under standards/code-review/
+### 236. feat(standards): split code-review.md into per-profile standards under standards/code-review/
 - Status: ready
 - Type: feat
 - Severity: medium
@@ -787,7 +793,7 @@ structure-per-file: each `standards/code-review/<profile>.md` contains the requi
 index-shape: `standards/code-review.md` has ≤30 lines AND lists the 11 profiles as links → verified with `wc -l` and grep for the 11 profile filenames.
 - Suggested fix: -
 
-### 230. feat(scripts): add review-preflight.sh to inject scoped context into parallel reviewers
+### 237. feat(scripts): add review-preflight.sh to inject scoped context into parallel reviewers
 - Status: ready
 - Type: feat
 - Severity: medium
@@ -825,4 +831,29 @@ Proposed: add scripts/review-preflight.sh <issue-id> <profile> that produces .op
 run script with valid id+profile+backend Go diff → generated md contains only .go files under Files affected (filtered)
 run script with mismatched profile (frontend diff, backend profile) → generated md contains TRIVIAL: marker
 run script when known_issues.md is missing → exit 2 with clear error (no crash, no traceback)
+- Suggested fix: -
+
+### 238. bug(scripts): test_timestamps.sh date mock misses T%H:%M format
+- Status: backlog
+- Type: bug
+- Severity: high
+- Priority: high
+
+- Flow: lean
+- Report: model
+- Base branch: main
+- Reviewers: 2 (backend, qa)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: scripts/tests/test_timestamps.sh
+- Description: test_timestamps.sh mocka o binario date via PATH apenas para o formato +%Y-%m-%d, delegando o resto ao date real. Porem promote.sh (linhas 105,181), transition.sh (linha 68) e close_issue.sh (linha 125) usam date +%Y-%m-%dT%H:%M. O mock nao intercepta o formato com T%H:%M, delega ao date real e retorna a data atual em vez de FAKE_TODAY (2026-08-14). Resultado: 9 subtestes (t01,t02,t04,t06,t14-t17,t21,t22,t25) falham. Falha pre-existente desde bc32be1 (Aug 19). A suite scripts/tests/run_all.sh roda 26 arquivos; test_timestamps.sh e o unico que falha.
+- Impact: Suite de testes do proprio config global fica vermelha (25/26 passam). O gate de testes do committer (test-runner.sh --check) nao e afetado diretamente (o repo nao tem runner detectavel), mas qualquer rodada de make test-scripts reporta falha, atrapalhando a confianca na suite e o monitoramento de regressoes.
+- Business rules: none
+- Acceptance criteria: Rodar bash scripts/tests/run_all.sh retorna exit 0 quando FAKE_TODAY e respeitado.
+O mock de date em test_timestamps.sh intercepta tanto +%Y-%m-%d quanto +%Y-%m-%dT%H:%M.
+Nenhum teste de timestamp depende de data real do sistema.
+- Tests: run suite with fake date +%Y-%m-%dT%H:%M → mock returns FAKE_TODAY (no real date)
+run suite with fake date +%Y-%m-%d → mock returns FAKE_TODAY
+run full run_all.sh → exit 0 (all 26 suites pass)
 - Suggested fix: -
