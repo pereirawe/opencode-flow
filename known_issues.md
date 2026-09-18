@@ -668,7 +668,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 1 (backend)
 - Remote: #186
 - Jira: -
-- PR: -
+- PR: #188
 - Location: scripts/openwa-notify.sh, skills/shared/openwa-notifier/SKILL.md, .opencode/openwa.env, .opencode/.gitignore
 - Description: Create a WhatsApp notification service using the OpenWA API as an alternative to the existing Telegram notifier (scripts/telegram-notify.sh). Mirrors the telegram-notify.sh pattern: a bash script scripts/openwa-notify.sh that POSTs a text message to the OpenWA send-text endpoint using credentials from .opencode/openwa.env, plus a skills/shared/openwa-notifier skill documenting usage. Credentials live in .opencode/openwa.env (gitignored) with OPENWA_BASE_URL, OPENWA_SESSION_ID, OPENWA_API_KEY and OPENWA_CHAT_ID.
 - Impact: Enables WhatsApp-based notifications alongside Telegram for task completion and user-input-needed events, using the same skills/shared pattern and credential-manifest conventions.
