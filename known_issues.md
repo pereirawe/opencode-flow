@@ -610,10 +610,12 @@ issues only. See `standards/issues.md` for the full contract.
 
 
 ### 238. bug(scripts): test_timestamps.sh date mock misses T%H:%M format
-- Status: in-progress
+- Status: in-publish
 - Opened: 2026-09-18
 - Ready: 2026-09-18T14:20
 - Started: 2026-09-18T14:20
+- In review: 2026-09-18T14:57
+- In publish: 2026-09-18T15:05
 - Type: bug
 - Severity: high
 - Priority: high
