@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 233. chore(agents): remove deprecated delivery and develop-router
+- Resolved: 2026-09-18T12:26
+- Durations: backlog=12h waiting=0h dev=0h review=- qa=- publish=0h total=12h
+- Severity: low
+- Type: chore
+- Report: model
+- Reviewers: 1
+- Remote: #172
+- Summary: `AGENTS.md` and `workflow.md` explicitly state that `delivery.md` and `develop-router.md` are DEPRECATED (workflow.md — -
+
 ### 232. chore(agents): block --run in reviewers and remove redundant test-runner in committer
 - Resolved: 2026-09-18T12:03
 - Durations: backlog=12h waiting=0h dev=0h review=- qa=- publish=0h total=12h
