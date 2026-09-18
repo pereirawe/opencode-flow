@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 234. chore(qa): tighten quality-analyst permissions with bash allowlist and scoped edit
+- Resolved: 2026-09-18T12:35
+- Durations: backlog=12h waiting=0h dev=0h review=- qa=- publish=0h total=13h
+- Severity: low
+- Type: chore
+- Report: model
+- Reviewers: 1
+- Remote: #174
+- Summary: `quality-analyst.md` declares `bash — -
+
 ### 233. chore(agents): remove deprecated delivery and develop-router
 - Resolved: 2026-09-18T12:26
 - Durations: backlog=12h waiting=0h dev=0h review=- qa=- publish=0h total=12h
