@@ -610,7 +610,9 @@ issues only. See `standards/issues.md` for the full contract.
 
 
 ### 236. feat(standards): split code-review.md into per-profile standards under standards/code-review/
-- Status: ready
+- Status: in-progress
+- Opened: 2026-09-18
+- Started: 2026-09-18T12:50
 - Type: feat
 - Severity: medium
 - Priority: high
@@ -618,7 +620,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Report: model
 - Base branch: main
 - Reviewers: 2 (backend, ux-ui)
-- Remote: -
+- Remote: #178
 - Jira: -
 - PR: -
 - Location: standards/code-review.md, standards/code-review/, agents/development/senior-reviewers/*.md
