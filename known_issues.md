@@ -651,7 +651,7 @@ run full run_all.sh → exit 0 (all 26 suites pass)
 - Reviewers: 1 (backend)
 - Remote: #182
 - Jira: -
-- PR: -
+- PR: #183
 - Location: scripts/committer-check.sh, scripts/test-runner.sh
 - Description: committer-check.sh line ~85 calls test-runner.sh --check unconditionally and FAILs when no valid test cache exists. In repos without a detectable runner (e.g. this opencode config repo: package.json without a 'test' script -> __npm-no-test__ -> detect_runner fails before any cache read), the gate fails mechanically on EVERY issue regardless of change type, forcing a documented workaround each time (issues #231, #232, #239). Introduce a 'no test surface' branch so chore/doc issues and runner-less repos do not block on an impossible cache.
 - Impact: Removes recurring mechanical FAIL on runner-less repos; eliminates repeated - Notes: exception documentation; keeps the gate strict where a runner exists. Registered from pattern detection across issues #231 and #232.
