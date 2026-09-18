@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 242. feat(scripts): WhatsApp notification service (OpenWA) as Telegram alternative
+- Resolved: 2026-09-18T20:53
+- Durations: backlog=21h waiting=0h dev=0h review=0h qa=0h publish=0h total=21h
+- Severity: medium
+- Type: feat
+- Report: model
+- Reviewers: 1
+- Remote: #186
+- Summary: Create a WhatsApp notification service using the OpenWA API as an alternative to the existing Telegram notifier (scripts/telegram-notify.sh). Mirrors the telegram-notify.sh pattern — -
+
 ### 238. bug(scripts): test_timestamps.sh date mock misses T%H:%M format
 - Resolved: 2026-09-18T15:05
 - Durations: backlog=14h waiting=0h dev=1h review=- qa=- publish=0h total=15h
