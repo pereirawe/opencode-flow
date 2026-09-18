@@ -624,7 +624,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 2 (backend, ux-ui)
 - Remote: #178
 - Jira: -
-- PR: -
+- PR: #179
 - Location: standards/code-review.md, standards/code-review/, agents/development/senior-reviewers/*.md
 - Description: Today `standards/code-review.md` (41 lines) is a generic 8-item checklist that serves ALL profiles (backend, frontend, data, security, runtime, devops, performance, ux-ui, qa, mobile, auth). Reviewers of each profile must decide alone what to prioritize, without domain-specific guidance. Result: inconsistent review across profiles, wasted tokens re-deriving priorities, and risk of missing critical domain checks (e.g. N+1 on backend, WCAG contrast on ux-ui, race conditions in auth). Split the monolith into 11 per-profile standards under `standards/code-review/`, keep the root file as a short index, and wire every senior-reviewer agent to load its profile-specific standard via the locale-loader skill (same mechanic already used for the current `code-review.md`).
 - Impact: Reviewers become inconsistent: each interprets the generic checklist their own way.
