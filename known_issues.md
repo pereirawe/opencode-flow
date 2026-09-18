@@ -609,36 +609,6 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: Delivered in this batch (renumbered from a duplicate #36; #222 kept free for the global committer-check register).
 
 
-### 238. bug(scripts): test_timestamps.sh date mock misses T%H:%M format
-- Status: in-publish
-- Opened: 2026-09-18
-- Ready: 2026-09-18T14:20
-- Started: 2026-09-18T14:20
-- In review: 2026-09-18T14:57
-- In publish: 2026-09-18T15:05
-- Type: bug
-- Severity: high
-- Priority: high
-
-- Flow: lean
-- Report: model
-- Base branch: main
-- Reviewers: 2 (backend, qa)
-- Remote: #184
-- Jira: -
-- PR: #185
-- Location: scripts/tests/test_timestamps.sh
-- Description: test_timestamps.sh mocka o binario date via PATH apenas para o formato +%Y-%m-%d, delegando o resto ao date real. Porem promote.sh (linhas 105,181), transition.sh (linha 68) e close_issue.sh (linha 125) usam date +%Y-%m-%dT%H:%M. O mock nao intercepta o formato com T%H:%M, delega ao date real e retorna a data atual em vez de FAKE_TODAY (2026-08-14). Resultado: 9 subtestes (t01,t02,t04,t06,t14-t17,t21,t22,t25) falham. Falha pre-existente desde bc32be1 (Aug 19). A suite scripts/tests/run_all.sh roda 26 arquivos; test_timestamps.sh e o unico que falha.
-- Impact: Suite de testes do proprio config global fica vermelha (25/26 passam). O gate de testes do committer (test-runner.sh --check) nao e afetado diretamente (o repo nao tem runner detectavel), mas qualquer rodada de make test-scripts reporta falha, atrapalhando a confianca na suite e o monitoramento de regressoes.
-- Business rules: none
-- Acceptance criteria: Rodar bash scripts/tests/run_all.sh retorna exit 0 quando FAKE_TODAY e respeitado.
-O mock de date em test_timestamps.sh intercepta tanto +%Y-%m-%d quanto +%Y-%m-%dT%H:%M.
-Nenhum teste de timestamp depende de data real do sistema.
-- Tests: run suite with fake date +%Y-%m-%dT%H:%M → mock returns FAKE_TODAY (no real date)
-run suite with fake date +%Y-%m-%d → mock returns FAKE_TODAY
-run full run_all.sh → exit 0 (all 26 suites pass)
-- Suggested fix: -
-
 ### 240. chore(scripts): committer-check.sh does not actually invoke issue-lint.sh --strict — reconcile gate ownership after #235
 - Status: backlog
 - Type: chore
@@ -680,3 +650,39 @@ run full run_all.sh → exit 0 (all 26 suites pass)
 - Acceptance criteria: - bash scripts/tests/run_all.sh passes test_git_cred_cache.sh (no 'missing test-runner allow' failure).
 - Tests: -
 - Suggested fix: Remove the committer leg of the test-runner/transition allow loop in test_git_cred_cache.sh (keep developer), mirroring #232's removal; or restore the allow in committer.md if the committer agent's duties require direct test-runner access.
+
+### 242. feat(scripts): WhatsApp notification service (OpenWA) as Telegram alternative
+- Status: in-publish
+- Opened: 2026-09-18
+- Ready: 2026-09-18T20:33
+- Started: 2026-09-18T20:33
+- In review: 2026-09-18T20:37
+- In QA: 2026-09-18T20:45
+- In publish: 2026-09-18T20:46
+- Type: feat
+- Severity: medium
+- Priority: medium
+
+- Report: model
+- Base branch: main
+- Reviewers: 1 (backend)
+- Remote: #186
+- Jira: -
+- PR: #188
+- Location: scripts/openwa-notify.sh, skills/shared/openwa-notifier/SKILL.md, .opencode/openwa.env, .opencode/.gitignore
+- Description: Create a WhatsApp notification service using the OpenWA API as an alternative to the existing Telegram notifier (scripts/telegram-notify.sh). Mirrors the telegram-notify.sh pattern: a bash script scripts/openwa-notify.sh that POSTs a text message to the OpenWA send-text endpoint using credentials from .opencode/openwa.env, plus a skills/shared/openwa-notifier skill documenting usage. Credentials live in .opencode/openwa.env (gitignored) with OPENWA_BASE_URL, OPENWA_SESSION_ID, OPENWA_API_KEY and OPENWA_CHAT_ID.
+- Impact: Enables WhatsApp-based notifications alongside Telegram for task completion and user-input-needed events, using the same skills/shared pattern and credential-manifest conventions.
+- Business rules: 1. The script MUST be self-contained bash (set -euo pipefail) that loads credentials from .opencode/openwa.env (project) then ~/.config/opencode/.opencode/openwa.env (global), then env-var overrides (OPENWA_BASE_URL/OPENWA_SESSION_ID/OPENWA_API_KEY/OPENWA_CHAT_ID).
+2. When OPENWA_API_KEY, OPENWA_SESSION_ID or OPENWA_BASE_URL is missing, the script MUST fail with a clear error to stderr and exit 1 (fail gracefully, never hang).
+3. The chatId is REQUIRED — when missing, fail with a clear error and exit 1. When chatId is provided but the API returns a non-2xx/error payload, the script MUST print the API error and exit 1.
+4. The message can come from argv or stdin (pipe support), like telegram-notify.sh.
+5. Credentials MUST NOT be logged or echoed; only the destination chatId (no secrets) may be printed to stderr on success.
+- Acceptance criteria: - scripts/openwa-notify.sh exists, executable, mirrors telegram-notify.sh's flag/message handling.
+- .opencode/openwa.env is created with the user's OpenWA credentials and gitignored.
+- skills/shared/openwa-notifier/SKILL.md documents usage, credentials precedence and when to notify.
+- Running scripts/openwa-notify.sh with valid credentials sends a WhatsApp message to the configured chatId and exits 0.
+- Tests:
+    1. bash scripts/openwa-notify.sh without .opencode/openwa.env (no creds) → exits 1 with 'OPENWA_* not set' error to stderr.
+    2. bash scripts/openwa-notify.sh --title T 'msg' with mocked curl returning ok:true → exits 0 and prints success to stderr.
+    3. bash scripts/openwa-notify.sh --title T 'msg' with mocked curl returning HTTP 400 → exits 1 and prints the API error.
+- Suggested fix: -
