@@ -625,7 +625,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 1 (backend)
 - Remote: #176
 - Jira: -
-- PR: -
+- PR: #177
 - Location: commands/ocf:develop-full.md
 - Description: `scripts/committer-check.sh` already invokes `issue-lint.sh --strict` as part of the commit gate. `commands/ocf:develop-full.md` also documents/invokes a separate `issue-lint.sh --strict` call before the committer step, which runs the same validation twice per issue. Keep the lint inside committer-check.sh (the natural gatekeeper) and remove the redundant call from the develop-full flow.
 - Impact: Small token/CPU saving per pipeline run. Cleaner ownership: schema linting belongs to the committer gate, not to the orchestrator. Zero regression: committer-check.sh continues to enforce lint on every commit attempt.
