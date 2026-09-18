@@ -625,7 +625,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 1 (backend)
 - Remote: #170
 - Jira: -
-- PR: -
+- PR: #171
 - Location: agents/development/senior-reviewers/README.md, agents/development/committer.md
 - Description: The senior-reviewers README does not explicitly forbid `scripts/test-runner.sh --run`, and `committer.md` invokes `test-runner.sh --check` even though `scripts/committer-check.sh` already verifies tests via --check. This is a redundant call in the committer allowlist that also enlarges its bash surface. Reinforce the reviewer discipline textually AND rely on the committer-check.sh verdict as the single source of truth for the test gate at commit time.
 - Impact: Removes a redundant invocation from committer runs (small token saving, cleaner boundary). Documents the reviewer discipline reinforced mechanically in issue #231. Reduces committer bash surface: `scripts/test-runner.sh *` no longer needed in the allowlist.
