@@ -610,7 +610,11 @@ issues only. See `standards/issues.md` for the full contract.
 
 
 ### 237. feat(scripts): add review-preflight.sh to inject scoped context into parallel reviewers
-- Status: ready
+- Status: in-publish
+- Opened: 2026-09-18
+- Started: 2026-09-18T13:08
+- In review: 2026-09-18T13:40
+- In publish: 2026-09-18T13:57
 - Type: feat
 - Severity: medium
 - Priority: high
@@ -618,9 +622,9 @@ issues only. See `standards/issues.md` for the full contract.
 - Report: model
 - Base branch: main
 - Reviewers: 2 (backend, devops)
-- Remote: -
+- Remote: #180
 - Jira: -
-- PR: -
+- PR: #181
 - Location: scripts/review-preflight.sh, commands/ocf:develop-full.md, commands/ocf:develop.md, agents/development/senior-reviewers/README.md
 - Description: Senior-reviewers run in parallel with zero injected issue context — they only receive the orchestrator prompt. Each reviewer re-explores the entire codebase (aggressive glob, grep, read) and tries to infer scope by re-reading known_issues.md from scratch. Cost: high tokens and shallow reviews that stray outside the diff scope. preflight.sh serves only the developer; there is no equivalent for the review phase.
 Proposed: add scripts/review-preflight.sh <issue-id> <profile> that produces .opencode/preflight/review-<id>-<profile>.md — a scoped, profile-filtered context file consumed by each reviewer before it starts. Orchestrators (ocf:develop, ocf:develop-full) run it once per profile between the developer's in-review transition and the parallel Task() dispatch.
@@ -648,6 +652,7 @@ run script with valid id+profile+backend Go diff → generated md contains only 
 run script with mismatched profile (frontend diff, backend profile) → generated md contains TRIVIAL: marker
 run script when known_issues.md is missing → exit 2 with clear error (no crash, no traceback)
 - Suggested fix: -
+- Notes: Reviewers backend + devops both APPROVED (first pass CHANGES_REQUESTED on F1: acceptance extraction truncated to 1/6; fix cda8a14 terminates awk blocks only on field labels `^- [A-Za-z][A-Za-z ]*:` or `^### `, applied to Business rules/Acceptance/Tests; re-review APPROVED with all 6 ACs present in generated file). committer-check.sh 237 FAILs only on mechanical "Tests cache: MISSING" (same exception as #231-#236 — repo has no detectable runner). issue-lint.sh 237 --strict PASS. Exception documented without blocking.
 
 ### 238. bug(scripts): test_timestamps.sh date mock misses T%H:%M format
 - Status: backlog

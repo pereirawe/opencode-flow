@@ -47,15 +47,20 @@ auto-created via `create_issue.sh` if missing.
 4. **Warm current**: `scripts/preflight.sh <id>`.
 5. **Pick dev agent**: `LANG=$(scripts/detect-lang.sh [location])`.
 6. **Implement**: `Task(<devagent>)` → tests → self-review → `transition.sh <id> in-review`.
-7. **Parallel senior review**: one `Task(development/senior-reviewers/<profile>)`
+7. **Review preflight (per profile)**: read `- Reviewers:` (`<n> (profiles)`).
+   For EACH profile, run `scripts/review-preflight.sh <id> <profile>` — a fast
+   sequential loop of N calls that writes
+   `.opencode/preflight/review-<id>-<profile>.md` (scoped, profile-filtered
+   context for the reviewer). Only then dispatch the reviewers (next step).
+8. **Parallel senior review**: one `Task(development/senior-reviewers/<profile>)`
    per profile, in a single message. All approve; else fix+re-review loop.
-8. **Gate**: `scripts/committer-check.sh <id>` → PASS ⇒ `transition.sh <id>
+9. **Gate**: `scripts/committer-check.sh <id>` → PASS ⇒ `transition.sh <id>
    in-publish`. FAIL ⇒ STOP + notify.
-9. **Create MR**: `scripts/create-pr.sh <id>` (sets `- PR: #<n>`).
-10. **Report "esperando merge manual"**: do NOT merge/close. Issue stays
+10. **Create MR**: `scripts/create-pr.sh <id>` (sets `- PR: #<n>`).
+11. **Report "esperando merge manual"**: do NOT merge/close. Issue stays
     `in-publish`, MR OPEN.
-11. **Return to base**: `git checkout <base>` + `git pull` (base has no change).
-12. **Repeat** for the next issue.
+12. **Return to base**: `git checkout <base>` + `git pull` (base has no change).
+13. **Repeat** for the next issue.
 
 Closing/archiving after manual merge: `/ocf:check-pr <id>` (or Close Requester).
 
