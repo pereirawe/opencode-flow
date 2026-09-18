@@ -610,7 +610,12 @@ issues only. See `standards/issues.md` for the full contract.
 
 
 ### 232. chore(agents): block --run in reviewers and remove redundant test-runner in committer
-- Status: backlog
+- Status: in-publish
+- Opened: 2026-09-18
+- Ready: 2026-09-18T11:58
+- Started: 2026-09-18T11:58
+- In review: 2026-09-18T11:59
+- In publish: 2026-09-18T12:02
 - Type: chore
 - Severity: medium
 - Priority: high
@@ -618,9 +623,9 @@ issues only. See `standards/issues.md` for the full contract.
 - Report: model
 - Base branch: main
 - Reviewers: 1 (backend)
-- Remote: -
+- Remote: #170
 - Jira: -
-- PR: -
+- PR: #171
 - Location: agents/development/senior-reviewers/README.md, agents/development/committer.md
 - Description: The senior-reviewers README does not explicitly forbid `scripts/test-runner.sh --run`, and `committer.md` invokes `test-runner.sh --check` even though `scripts/committer-check.sh` already verifies tests via --check. This is a redundant call in the committer allowlist that also enlarges its bash surface. Reinforce the reviewer discipline textually AND rely on the committer-check.sh verdict as the single source of truth for the test gate at commit time.
 - Impact: Removes a redundant invocation from committer runs (small token saving, cleaner boundary). Documents the reviewer discipline reinforced mechanically in issue #231. Reduces committer bash surface: `scripts/test-runner.sh *` no longer needed in the allowlist.
@@ -635,6 +640,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Tests: reviewer-forbidden: rg -n 'NEVER.*test-runner.*--run' agents/development/senior-reviewers/README.md returns match → discipline documented.
 committer-no-runner: rg -c 'test-runner' agents/development/committer.md returns 0 → committer does not invoke it.
 committer-check-intact: bash scripts/committer-check.sh -h or --help does not error → script contract preserved.
+- Notes: Reviewer backend APPROVED (all 4 BR + 4 AC). committer-check.sh VERDICT FAIL exclusively on 'Tests cache: MISSING' — mechanical limitation: repo has no detectable test runner (package.json without 'test' script → __npm-no-test__ → --check exit 3 before reading cache), same exception as issue #231. issue-lint.sh 232 --strict PASS. Exception documented without blocking per workflow.md (committer reports findings without blocking). Pattern registered as new issue #239.
 - Suggested fix: -
 
 ### 233. chore(agents): remove deprecated delivery and develop-router
@@ -819,4 +825,35 @@ Nenhum teste de timestamp depende de data real do sistema.
 - Tests: run suite with fake date +%Y-%m-%dT%H:%M → mock returns FAKE_TODAY (no real date)
 run suite with fake date +%Y-%m-%d → mock returns FAKE_TODAY
 run full run_all.sh → exit 0 (all 26 suites pass)
+- Suggested fix: -
+
+### 239. chore(scripts): make committer-check test-cache gate no-op when no runner detected
+- Status: backlog
+- Type: chore
+- Severity: medium
+- Priority: high
+
+- Flow: lean
+- Report: model
+- Base branch: main
+- Reviewers: 1 (backend)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: scripts/committer-check.sh, scripts/test-runner.sh
+- Description: committer-check.sh line ~85 calls test-runner.sh --check unconditionally and FAILs when no valid test cache exists. In repos without a detectable runner (e.g. this opencode config repo: package.json without a 'test' script -> __npm-no-test__ -> detect_runner fails before any cache read), the gate fails mechanically on EVERY issue regardless of change type, forcing a documented workaround each time (issues #231, #232, #239). Introduce a 'no test surface' branch so chore/doc issues and runner-less repos do not block on an impossible cache.
+- Impact: Removes recurring mechanical FAIL on runner-less repos; eliminates repeated - Notes: exception documentation; keeps the gate strict where a runner exists. Registered from pattern detection across issues #231 and #232.
+- Business rules: 1. test-runner.sh --run in a repo where detect_runner returns 'no runner' MUST exit 0 (no-op) instead of 2/3, OR committer-check.sh MUST detect 'no test surface' and skip the test-cache gate.
+2. When a runner exists, behavior is UNCHANGED: --check exit 0 on fresh passing cache, 3 otherwise; committer-check FAILs on missing cache.
+3. committer-check.sh MUST emit an explicit informational line when the test gate is skipped ('Tests: no test surface (skipped)').
+4. issue-lint.sh, promote.sh, transition.sh and other scripts are NOT affected.
+5. Both changes are additive; existing PASS/FAIL semantics for repos WITH a runner are preserved.
+- Acceptance criteria: - test-runner.sh --run in a runner-less dir exits 0 (no-op) with info message.
+- test-runner.sh --run in a dir with a runner still behaves as before (runs tests or reuses fresh cache).
+- committer-check.sh in a runner-less repo: VERDICT PASS with 'Tests: no test surface (skipped)' line, not FAIL.
+- committer-check.sh in a repo with a runner and stale cache: still VERDICT FAIL.
+- Tests: noop-runnerless: cd /tmp && scripts/test-runner.sh --run → exit 0 with 'no test surface' message
+noop-check: cd /tmp && scripts/test-runner.sh --check → exit 0 (skipped, no longer 3)
+runner-unchanged: in repo with go.mod/package.json-test → --run still executes suite and caches
+committer-skip: scripts/committer-check.sh <id> on runner-less repo → VERDICT PASS + 'no test surface' line
 - Suggested fix: -
