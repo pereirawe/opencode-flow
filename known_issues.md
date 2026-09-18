@@ -610,9 +610,10 @@ issues only. See `standards/issues.md` for the full contract.
 
 
 ### 236. feat(standards): split code-review.md into per-profile standards under standards/code-review/
-- Status: in-progress
+- Status: in-review
 - Opened: 2026-09-18
 - Started: 2026-09-18T12:50
+- In review: 2026-09-18T13:02
 - Type: feat
 - Severity: medium
 - Priority: high
