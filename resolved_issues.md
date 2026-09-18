@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 236. feat(standards): split code-review.md into per-profile standards under standards/code-review/
+- Resolved: 2026-09-18T13:08
+- Durations: backlog=- waiting=- dev=0h review=- qa=- publish=0h total=13h
+- Severity: medium
+- Type: feat
+- Report: model
+- Reviewers: 2
+- Remote: #178
+- Summary: Today `standards/code-review.md` (41 lines) is a generic 8-item checklist that serves ALL profiles (backend, frontend, data, security, runtime, devops, performance, ux-ui, qa, mobile, auth). Reviewers of each profile must decide alone what to prioritize, without domain-specific guidance. Result — -
+
 ### 235. chore(scripts): drop redundant issue-lint --strict from develop-full orchestrator
 - Resolved: 2026-09-18T12:49
 - Durations: backlog=13h waiting=0h dev=0h review=- qa=- publish=0h total=13h
