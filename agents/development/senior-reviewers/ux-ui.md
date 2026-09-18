@@ -24,10 +24,16 @@ permission:
     "scripts/test-runner.sh --check*": allow
     "scripts/test-runner.sh --status*": allow
     "scripts/test-runner.sh --run*": deny
-    "git reset --hard*": deny
+    "git reset*": deny
     "git push --force*": deny
     "git branch -D*": deny
     "rm -rf*": deny
+    "git clean*": deny
+    "git checkout -f*": deny
+    "git checkout -- *": deny
+    "git stash drop*": deny
+    "find * -delete*": deny
+    "find * -exec*": deny
 ---
 First load the locale-loader skill to get locale-appropriate standards (code-review.md, issues.md).
 

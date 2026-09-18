@@ -33,6 +33,9 @@ Senior reviewers run with a **DENY-ALL + allowlist** bash permission model:
   `head *`, `tail *`, `wc *`, `rg *`, `date *`, `echo *`, plus the scoped
   scripts (`scripts/preflight.sh`, `scripts/issue-lint.sh`, and the test runner
   with `--check`/`--status` only).
+- `echo` is allowed EXCLUSIVELY for terminal status output — never with a
+  redirect (`>`, `>>`) to write files; file writing goes through the `edit:`
+  allowlist (`.opencode/known_issues.md`, `.opencode/reviews/**`).
 - **NEVER run the test runner with `--run`** — reviewers only consume the test
   cache via `--check`/`--status`; re-running the suite is the Developer's job.
 - Edit access is restricted to `.opencode/known_issues.md` and
