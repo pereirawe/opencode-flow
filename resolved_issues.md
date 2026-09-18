@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 232. chore(agents): block --run in reviewers and remove redundant test-runner in committer
+- Resolved: 2026-09-18T12:03
+- Durations: backlog=12h waiting=0h dev=0h review=- qa=- publish=0h total=12h
+- Severity: medium
+- Type: chore
+- Report: model
+- Reviewers: 1
+- Remote: #170
+- Summary: The senior-reviewers README does not explicitly forbid `scripts/test-runner.sh --run`, and `committer.md` invokes `test-runner.sh --check` even though `scripts/committer-check.sh` already verifies tests via --check. This is a redundant call in the committer allowlist that also enlarges its bash surface. Reinforce the reviewer discipline textually AND rely on the committer-check.sh verdict as the single source of truth for the test gate at commit time. — -
+
 ### 231. chore(agents): restrict senior-reviewers bash to allowlist
 - Resolved: 2026-09-18T11:55
 - Durations: backlog=11h waiting=0h dev=0h review=- qa=- publish=0h total=12h
