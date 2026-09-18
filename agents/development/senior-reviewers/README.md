@@ -12,11 +12,11 @@ before corrections are applied and the Publish Requester creates the MR.
 
 All senior reviewers must:
 - Verify acceptance criteria defined in the issue are met
-- Confirm tests were written and pass — prefer `scripts/test-runner.sh --check`
-  (via the `test-runner` skill): a fresh cache confirms the suite passed for
-  the current code without re-running it. Only re-run when the cache is stale
-  or you need a domain-specific test (use `--run -- <filter>`). Never re-run an
-  unchanged suite.
+- Confirm tests were written and pass — reviewers NEVER run
+  `scripts/test-runner.sh --run`; the only trusted paths for test results are
+  `scripts/test-runner.sh --check` returning PASS on a fresh cache and the
+  verdict emitted by `scripts/committer-check.sh`. Never re-run an unchanged
+  suite.
 - Register any new issues found in `known_issues.md`
 - Ensure `known_issues.md` status reflects current state
 - Distinguish bugs from missing business rules:
@@ -38,6 +38,8 @@ Senior reviewers run with a **DENY-ALL + allowlist** bash permission model:
   allowlist (`.opencode/known_issues.md`, `.opencode/reviews/**`).
 - **NEVER run the test runner with `--run`** — reviewers only consume the test
   cache via `--check`/`--status`; re-running the suite is the Developer's job.
+  `--check` PASS plus the committer-check report are the only paths to trust
+  test results.
 - Edit access is restricted to `.opencode/known_issues.md` and
   `.opencode/reviews/**` — everything else is denied.
 - Broad codebase re-exploration is prohibited: use only `git diff`/`ls`/`cat`/

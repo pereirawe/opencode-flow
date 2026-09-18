@@ -18,7 +18,6 @@ permission:
     "find * -delete*": deny
     "find * -exec*": deny
     "find * -ok*": deny
-    "*scripts/test-runner.sh *": allow
     "*scripts/transition.sh *": allow
     "git push --force*": deny
     "git push -f*": deny
@@ -42,9 +41,6 @@ Responsibilities:
 - Confirm all identified issues from senior review have been addressed
 - For feature issues (`feat` type), verify `Business rules:` field is populated
   in the issue entry — report if missing but do not block
-- Verify tests pass — via `scripts/test-runner.sh --check` (the `test-runner`
-  skill): a fresh cache OR a recent successful `--run` satisfies the "Tests
-  passing" gate. Never re-run an unchanged suite.
 - Ensure `known_issues.md` reflects any new findings
 - For issues whose `- Reviewers:` includes the `security` profile, verify the
   security review gate: the `security` senior review must be approved, with no
