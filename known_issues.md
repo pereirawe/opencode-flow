@@ -610,10 +610,12 @@ issues only. See `standards/issues.md` for the full contract.
 
 
 ### 234. chore(qa): tighten quality-analyst permissions with bash allowlist and scoped edit
-- Status: in-progress
+- Status: in-publish
 - Opened: 2026-09-18
 - Ready: 2026-09-18T12:30
 - Started: 2026-09-18T12:30
+- In review: 2026-09-18T12:32
+- In publish: 2026-09-18T12:35
 - Type: chore
 - Severity: low
 - Priority: medium
@@ -638,6 +640,7 @@ issues only. See `standards/issues.md` for the full contract.
 deny-run: rg 'test-runner.sh --run.*deny' agents/development/quality-analyst.md returns match → --run denied.
 transition-allowed: rg 'transition.sh' agents/development/quality-analyst.md returns match → transition still allowlisted.
 - Suggested fix: -
+- Notes: Reviewer backend APPROVED. committer-check.sh 234 FAILs only on mechanical "Tests cache: MISSING" (same exception as #231/#232/#233 — repo has no detectable runner; package.json lacks a test script → __npm-no-test__ → --check exit 3 before reading cache). Structural tests (no-allow, deny-run, transition-allowed) all PASS. issue-lint.sh 234 --strict PASS. Exception documented without blocking.
 
 ### 235. chore(scripts): drop redundant issue-lint --strict from develop-full orchestrator
 - Status: backlog
