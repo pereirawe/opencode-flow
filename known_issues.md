@@ -610,7 +610,10 @@ issues only. See `standards/issues.md` for the full contract.
 
 
 ### 234. chore(qa): tighten quality-analyst permissions with bash allowlist and scoped edit
-- Status: backlog
+- Status: in-progress
+- Opened: 2026-09-18
+- Ready: 2026-09-18T12:30
+- Started: 2026-09-18T12:30
 - Type: chore
 - Severity: low
 - Priority: medium
@@ -618,7 +621,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Report: model
 - Base branch: main
 - Reviewers: 1 (backend)
-- Remote: -
+- Remote: #174
 - Jira: -
 - PR: -
 - Location: agents/development/quality-analyst.md
