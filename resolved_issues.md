@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 238. bug(scripts): test_timestamps.sh date mock misses T%H:%M format
+- Resolved: 2026-09-18T15:05
+- Durations: backlog=14h waiting=0h dev=1h review=- qa=- publish=0h total=15h
+- Severity: high
+- Type: bug
+- Report: model
+- Reviewers: 2
+- Remote: #184
+- Summary: test_timestamps.sh mocka o binario date via PATH apenas para o formato +%Y-%m-%d, delegando o resto ao date real. Porem promote.sh (linhas 105,181), transition.sh (linha 68) e close_issue.sh (linha 125) usam date +%Y-%m-%dT%H:%M. O mock nao intercepta o formato com T%H:%M, delega ao date real e retorna a data atual em vez de FAKE_TODAY (2026-08-14). Resultado — -
+
 ### 239. chore(scripts): make committer-check test-cache gate no-op when no runner detected
 - Resolved: 2026-09-18T14:19
 - Durations: backlog=14h waiting=0h dev=0h review=- qa=- publish=0h total=14h
