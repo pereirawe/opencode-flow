@@ -1,7 +1,6 @@
 ---
 description: Technical specification writer — refines raw ideas into rigorous tech specs through structured discovery, invokes C-level experts (CTO, CMO, CFO, COO), and produces markdown specs with embedded company logo assets. Responds in the project locale.
 mode: all
-allow: all
 temperature: 0.4
 tools:
   write: true

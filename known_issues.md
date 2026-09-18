@@ -608,3 +608,221 @@ issues only. See `standards/issues.md` for the full contract.
 5. Remover uma referência do writer e rodar scripts/video-agent.sh check → exit 2 (FAIL de subagente órfão).
 - Suggested fix: Delivered in this batch (renumbered from a duplicate #36; #222 kept free for the global committer-check register).
 
+
+### 224. chore(agents): restrict senior-reviewers bash to allowlist
+- Status: backlog
+- Type: chore
+- Severity: medium
+- Priority: high
+
+- Report: model
+- Base branch: main
+- Reviewers: 2 (backend, security)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: agents/development/senior-reviewers/*.md, agents/development/senior-reviewers/README.md
+- Description: Senior reviewer agents currently declare `bash: allow` without an allowlist, so they can invoke any shell command — including `go test ./...`, `pytest`, or full test suites — bypassing the cache-aware `scripts/test-runner.sh`. This is the most likely root cause of the review phase becoming slow and token-heavy: reviewers re-run suites the developer already cached, and every reviewer duplicates the cost in parallel. Restrict bash to an allowlist mirroring `committer.md` (git, ls/cat/find/head/tail/wc/rg, date, echo, preflight.sh, issue-lint.sh, test-runner.sh --check/--status ONLY) and keep edit deny except `.opencode/known_issues.md` and `.opencode/reviews/**`. Explicitly deny `scripts/test-runner.sh --run*`, `git reset --hard*`, `git push --force*`, `git branch -D*`, `rm -rf*`.
+- Impact: Directly reduces tokens per review pass (est. 40-60% together with review-preflight in issue #226). Guarantees reviewers never re-execute a suite the developer already cached. Removes the class of accidents where a reviewer runs `go test ./...` on a large repo. Non-blocking: security profile keeps its OWASP delegation config untouched.
+- Business rules: 1. Every file under `agents/development/senior-reviewers/*.md` (10 profiles: backend, data, devops, frontend, mobile, performance, qa, runtime, security, ux-ui) MUST declare a `permission` block with `bash` deny-all + explicit allowlist and `edit: deny` except the two allowed paths.
+2. Allowlist MUST include: `git *`, `ls *`, `cat *`, `find *`, `head *`, `tail *`, `wc *`, `rg *`, `date`, `echo *`, `scripts/preflight.sh *`, `scripts/issue-lint.sh *`, `scripts/test-runner.sh --check*`, `scripts/test-runner.sh --status*`.
+3. Denies MUST include: `scripts/test-runner.sh --run*`, `git reset --hard*`, `git push --force*`, `git branch -D*`, `rm -rf*`.
+4. Edit MUST be `*: deny` with allow only for `.opencode/known_issues.md` and `.opencode/reviews/**`.
+5. `security.md` keeps its task-delegation config to `development/security-owasp` and MUST NOT be regressed; only harmonize its bash/edit blocks with the same allowlist pattern if any drift is detected.
+6. `senior-reviewers/README.md` documents the new discipline: reviewers NEVER call `test-runner.sh --run`, only `--check` / `--status`.
+- Acceptance criteria: - All 10 senior-reviewer agent files declare the allowlist and denies above.
+- `senior-reviewers/README.md` updated with the new discipline.
+- `grep -l 'bash: allow' agents/development/senior-reviewers/*.md` returns empty (no unrestricted bash left).
+- Existing security delegation to `development/security-owasp` still works end-to-end.
+- Tests: no-allow: rg 'bash: allow$' agents/development/senior-reviewers/*.md returns no matches → reviewers no longer have blanket bash.
+deny-run: grep -q 'test-runner.sh --run.*deny' agents/development/senior-reviewers/backend.md returns 0 → --run is explicitly denied.
+allowlist-present: yq eval '.permission.bash | keys | length' agents/development/senior-reviewers/data.md > 5 → allowlist populated.
+security-intact: rg 'development/security-owasp' agents/development/senior-reviewers/security.md returns match → delegation preserved.
+- Suggested fix: -
+
+### 225. chore(agents): block --run in reviewers and remove redundant test-runner in committer
+- Status: backlog
+- Type: chore
+- Severity: medium
+- Priority: high
+
+- Report: model
+- Base branch: main
+- Reviewers: 1 (backend)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: agents/development/senior-reviewers/README.md, agents/development/committer.md
+- Description: The senior-reviewers README does not explicitly forbid `scripts/test-runner.sh --run`, and `committer.md` invokes `test-runner.sh --check` even though `scripts/committer-check.sh` already verifies tests via --check. This is a redundant call in the committer allowlist that also enlarges its bash surface. Reinforce the reviewer discipline textually AND rely on the committer-check.sh verdict as the single source of truth for the test gate at commit time.
+- Impact: Removes a redundant invocation from committer runs (small token saving, cleaner boundary). Documents the reviewer discipline reinforced mechanically in issue #224. Reduces committer bash surface: `scripts/test-runner.sh *` no longer needed in the allowlist.
+- Business rules: 1. `senior-reviewers/README.md` MUST state, in the Test protocol section, that reviewers NEVER execute `scripts/test-runner.sh --run` and that `--check` PASS + a report from committer-check are the only paths to trust the test result.
+2. `agents/development/committer.md` MUST NOT contain instructions to run `test-runner.sh` independently; it MUST rely exclusively on the verdict emitted by `scripts/committer-check.sh`.
+3. `scripts/test-runner.sh *` MUST be removed from the committer bash allowlist (kept only in the developer agent).
+4. No script or agent behavior changes for existing PASS/FAIL semantics of committer-check.sh.
+- Acceptance criteria: - README section explicitly forbids reviewer `--run`.
+- committer.md contains no reference to invoking test-runner (only to reading committer-check verdict).
+- committer.md bash allowlist no longer includes test-runner entries.
+- `scripts/committer-check.sh` still verifies tests via --check (unchanged).
+- Tests: reviewer-forbidden: rg -n 'NEVER.*test-runner.*--run' agents/development/senior-reviewers/README.md returns match → discipline documented.
+committer-no-runner: rg -c 'test-runner' agents/development/committer.md returns 0 → committer does not invoke it.
+committer-check-intact: bash scripts/committer-check.sh -h or --help does not error → script contract preserved.
+- Suggested fix: -
+
+### 226. chore(agents): remove deprecated delivery and develop-router
+- Status: backlog
+- Type: chore
+- Severity: low
+- Priority: medium
+
+- Report: model
+- Base branch: main
+- Reviewers: 1 (backend)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: agents/development/delivery.md, agents/development/develop-router.md, AGENTS.md, workflow.md, commands/
+- Description: `AGENTS.md` and `workflow.md` explicitly state that `delivery.md` and `develop-router.md` are DEPRECATED (workflow.md: 'The delivery agent and develop-router are legacy'). Their continued presence in `agents/development/` adds noise, cost to agent discovery, and confuses new commands. Remove both files and prune any residual references outside historical archives (resolved_issues.md is preserved as history).
+- Impact: Reduces agent-discovery surface. Eliminates ambiguity for new contributors and for the model when routing. Small token saving during any tool that enumerates agents. No functional change to `/ocf:develop`, `/ocf:develop-full`, `/ocf:delivery` (the last one becomes explicitly unsupported).
+- Business rules: 1. `agents/development/delivery.md` and `agents/development/develop-router.md` MUST be deleted.
+2. `AGENTS.md`, `workflow.md`, `README.md` (root and agents/development/) MUST have references to those agents removed EXCEPT when the reference is historical (resolved_issues.md, decisions.md ADRs) — those are preserved unchanged.
+3. Command docs under `commands/` MUST NOT reference the deprecated agents anymore.
+4. If `/ocf:delivery` command doc still exists and depends on the delivery agent, either the command doc is updated to route via scripts (same engine as develop-full) OR the command doc is deleted with the deprecated agents.
+5. `opencode.json` MUST NOT list the removed agents.
+- Acceptance criteria: - `rg -n 'delivery\.md|develop-router\.md' AGENTS.md workflow.md commands/ agents/` returns no matches.
+- `agents/development/delivery.md` and `agents/development/develop-router.md` no longer exist.
+- `/ocf:develop` and `/ocf:develop-full` behavior unchanged (documented flat design preserved).
+- No test regressions in existing scripts.
+- Tests: no-files: test ! -f agents/development/delivery.md && test ! -f agents/development/develop-router.md → both removed.
+no-refs-active: rg -l 'develop-router|agents/development/delivery' AGENTS.md workflow.md commands/ agents/ returns no matches → refs cleaned.
+historical-preserved: rg -l 'delivery agent|develop-router' resolved_issues.md decisions.md returns matches → history intact.
+opencode-json-clean: rg 'delivery|develop-router' opencode.json returns no matches (or file does not list them as agents).
+- Suggested fix: -
+
+### 227. chore(qa): tighten quality-analyst permissions with bash allowlist and scoped edit
+- Status: backlog
+- Type: chore
+- Severity: low
+- Priority: medium
+
+- Report: model
+- Base branch: main
+- Reviewers: 1 (backend)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: agents/development/quality-analyst.md
+- Description: `quality-analyst.md` declares `bash: allow` AND `edit: allow` without restrictions. The QA agent should only read the issue, verify Tests floor, run `scripts/test-runner.sh --check` (never --run), and transition status. It should not have blanket edit or blanket bash. Apply the same allowlist pattern used for senior reviewers (see issue #224) and restrict edit to `.opencode/known_issues.md` and `.opencode/reviews/**`.
+- Impact: Consistency with senior-reviewers (same discipline). Removes accidental edit surface (QA cannot silently modify source). Removes the possibility of QA running arbitrary commands or full suites. Non-functional: current QA workflow only needs the allowlisted commands.
+- Business rules: 1. `quality-analyst.md` `bash` MUST be deny-all with allowlist: `git *`, `ls *`, `cat *`, `find *`, `head *`, `tail *`, `wc *`, `rg *`, `date`, `echo *`, `scripts/preflight.sh *`, `scripts/issue-lint.sh *`, `scripts/test-runner.sh --check*`, `scripts/test-runner.sh --status*`, `scripts/transition.sh *`, `scripts/append-issue.sh *`.
+2. `bash` MUST explicitly deny `scripts/test-runner.sh --run*`, `git reset --hard*`, `git push --force*`, `git branch -D*`, `rm -rf*`.
+3. `edit` MUST be `*: deny` with allow for `.opencode/known_issues.md` and `.opencode/reviews/**`.
+4. Existing QA responsibilities (Tests floor validation, incomplete-spec tagging, pre-development validation, post-review validation, transition to in-qa) remain unchanged.
+- Acceptance criteria: - `quality-analyst.md` permission block matches the pattern from issue #224.
+- `rg 'bash: allow$' agents/development/quality-analyst.md` returns nothing.
+- QA post-review workflow still runs `test-runner.sh --check` and `transition.sh <id> in-qa` end-to-end.
+- Tests: no-allow: rg 'bash: allow$|edit: allow$' agents/development/quality-analyst.md returns no matches → no blanket permission.
+deny-run: rg 'test-runner.sh --run.*deny' agents/development/quality-analyst.md returns match → --run denied.
+transition-allowed: rg 'transition.sh' agents/development/quality-analyst.md returns match → transition still allowlisted.
+- Suggested fix: -
+
+### 228. chore(scripts): drop redundant issue-lint --strict from develop-full orchestrator
+- Status: backlog
+- Type: chore
+- Severity: low
+- Priority: medium
+
+- Report: model
+- Base branch: main
+- Reviewers: 1 (backend)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: commands/ocf:develop-full.md
+- Description: `scripts/committer-check.sh` already invokes `issue-lint.sh --strict` as part of the commit gate. `commands/ocf:develop-full.md` also documents/invokes a separate `issue-lint.sh --strict` call before the committer step, which runs the same validation twice per issue. Keep the lint inside committer-check.sh (the natural gatekeeper) and remove the redundant call from the develop-full flow.
+- Impact: Small token/CPU saving per pipeline run. Cleaner ownership: schema linting belongs to the committer gate, not to the orchestrator. Zero regression: committer-check.sh continues to enforce lint on every commit attempt.
+- Business rules: 1. `commands/ocf:develop-full.md` MUST NOT contain a standalone `issue-lint.sh --strict` step outside of committer-check.
+2. The gate ownership MUST remain in `scripts/committer-check.sh` — it MUST continue to call `issue-lint.sh --strict` internally.
+3. `/ocf:develop` (manual-merge variant) MUST follow the same rule.
+4. Discovery-time linting (append-issue.sh's post-append lint) is out of scope and remains unchanged.
+- Acceptance criteria: - `rg -n 'issue-lint.sh --strict' commands/ocf:develop-full.md commands/ocf:develop.md` returns no matches.
+- `rg -n 'issue-lint.sh --strict' scripts/committer-check.sh` still returns a match (unchanged).
+- Running `/ocf:develop-full` on a lint-invalid issue still fails at the committer gate.
+- Tests: no-redundant-lint: rg 'issue-lint.sh --strict' commands/ocf:develop-full.md commands/ocf:develop.md returns no matches → orchestrator is clean.
+committer-still-lints: rg 'issue-lint.sh --strict' scripts/committer-check.sh returns match → gate preserved.
+lint-failure-blocks: an issue missing Business rules for a feat still blocks committer-check.sh (existing behavior).
+- Suggested fix: -
+
+### 229. feat(standards): split code-review.md into per-profile standards under standards/code-review/
+- Status: ready
+- Type: feat
+- Severity: medium
+- Priority: high
+
+- Report: model
+- Base branch: main
+- Reviewers: 2 (backend, ux-ui)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: standards/code-review.md, standards/code-review/, agents/development/senior-reviewers/*.md
+- Description: Today `standards/code-review.md` (41 lines) is a generic 8-item checklist that serves ALL profiles (backend, frontend, data, security, runtime, devops, performance, ux-ui, qa, mobile, auth). Reviewers of each profile must decide alone what to prioritize, without domain-specific guidance. Result: inconsistent review across profiles, wasted tokens re-deriving priorities, and risk of missing critical domain checks (e.g. N+1 on backend, WCAG contrast on ux-ui, race conditions in auth). Split the monolith into 11 per-profile standards under `standards/code-review/`, keep the root file as a short index, and wire every senior-reviewer agent to load its profile-specific standard via the locale-loader skill (same mechanic already used for the current `code-review.md`).
+- Impact: Reviewers become inconsistent: each interprets the generic checklist their own way.
+Lack of per-profile guidance leads to superficial reviews (wrong focus) → more correction rounds → more tokens.
+Reported symptom: review phase stalling.
+No clear link between profile and available skills (`skills/development/security/*`, `skills/development/go/*`, etc.).
+- Business rules: 1. Create directory `standards/code-review/` with 11 files, one per profile: `backend.md`, `data.md`, `frontend.md`, `security.md`, `runtime.md`, `devops.md`, `performance.md`, `ux-ui.md`, `qa.md`, `mobile.md`, `auth.md`. All in English (source of truth per repo standard — pt/es translations are lazy).
+2. Each file has an identical minimum structure: (a) 1 short paragraph of profile scope; (b) checklist of 5-10 practical bullets SPECIFIC to the domain; (c) a 3-column table `Symptom | Classification (bug/incomplete-spec/edge case) | Action`; (d) a `Related skills` section listing repo skills by path (e.g. backend → `skills/development/go/go-api-design`, `skills/development/python/flask-api-design`).
+3. `standards/code-review.md` is reduced to a short index (title + intro paragraph + list of links to the 11 files + transverse rule bug vs incomplete-spec). Max 30 lines.
+4. Each `agents/development/senior-reviewers/<profile>.md` (backend, data, frontend, security, runtime, devops, performance, ux-ui, qa, mobile) is updated to include the explicit instruction: "Load `standards/code-review/<profile>.md` via locale-loader skill before reviewing" (uses the same mechanic that already loads `standards/code-review.md`). Auth does not yet have `senior-reviewers/auth.md` — if it does not exist, do not create it (out of scope of this issue); document in Notes.
+5. The `auth.md` under `standards/code-review/` is created anyway, for future use and for consumption by `senior-reviewers/security.md` when applicable.
+6. No file in `pt/` or `es/` is created in this issue (repo lazy translation standard).
+7. Checklist content must be practical, not philosophical. E.g. backend includes "check N+1 in queries", "HTTP errors consistent with contract", "idempotency in POST/PUT with side effects", etc. Frontend includes "loading/error/empty states present", "keyboard/screen reader accessibility", "hydration mismatch in SSR". Security includes references to OWASP Top 10 and ASVS.
+- Acceptance criteria: - 11 files created in `standards/code-review/` following the minimum structure.
+- `standards/code-review.md` rewritten as an index ≤30 lines.
+- 10 files under `senior-reviewers/*.md` (excluding README and security which already delegates via OWASP) updated with the directive to load the profile standard.
+- No file created in `pt/` or `es/`.
+- `grep -r "standards/code-review/backend" agents/development/senior-reviewers/backend.md` returns a match.
+- Tests: count-of-standards: `ls standards/code-review/*.md | wc -l` → returns 11 (one file per profile).
+structure-per-file: each `standards/code-review/<profile>.md` contains the required sections (scope paragraph, checklist ≥5 bullets, 3-column table, Related skills) → verified by grep for headings/table separators.
+index-shape: `standards/code-review.md` has ≤30 lines AND lists the 11 profiles as links → verified with `wc -l` and grep for the 11 profile filenames.
+- Suggested fix: -
+
+### 230. feat(scripts): add review-preflight.sh to inject scoped context into parallel reviewers
+- Status: ready
+- Type: feat
+- Severity: medium
+- Priority: high
+
+- Report: model
+- Base branch: main
+- Reviewers: 2 (backend, devops)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: scripts/review-preflight.sh, commands/ocf:develop-full.md, commands/ocf:develop.md, agents/development/senior-reviewers/README.md
+- Description: Senior-reviewers run in parallel with zero injected issue context — they only receive the orchestrator prompt. Each reviewer re-explores the entire codebase (aggressive glob, grep, read) and tries to infer scope by re-reading known_issues.md from scratch. Cost: high tokens and shallow reviews that stray outside the diff scope. preflight.sh serves only the developer; there is no equivalent for the review phase.
+Proposed: add scripts/review-preflight.sh <issue-id> <profile> that produces .opencode/preflight/review-<id>-<profile>.md — a scoped, profile-filtered context file consumed by each reviewer before it starts. Orchestrators (ocf:develop, ocf:develop-full) run it once per profile between the developer's in-review transition and the parallel Task() dispatch.
+- Impact: - Reviewers waste tokens re-exploring the tree from scratch (root cause reported by the user: pipelines feel stuck in the review phase).
+- Reviewers end up inspecting files outside the PR diff scope (drift).
+- No consistent audit trail of what each reviewer actually looked at.
+- Review phase inflated end-to-end — user-visible latency + higher cost per issue.
+- Business rules: 1. New script scripts/review-preflight.sh receives TWO positional args: <issue-id> and <profile> (backend|frontend|data|security|runtime|devops|performance|ux-ui|qa|mobile|auth). Missing or invalid args → exit 2 with usage.
+2. The script writes .opencode/preflight/review-<issue-id>-<profile>.md (same folder used by scripts/preflight.sh for the developer). Overwrite is idempotent. The directory MUST be created if absent.
+3. The generated file contains, in this exact order: header with issue id/title/type/severity/priority; Business rules block extracted from known_issues.md; Acceptance block; Tests block; git diff --stat of the current branch against the issue's Base branch; Files affected (filtered) — the subset of the diff paths that match the profile's file globs.
+4. Profile→file-globs mapping is a constant embedded in the script — backend=**/*.go **/*.py **/*.rb **/handlers/** **/controllers/**; frontend=**/*.tsx **/*.jsx **/*.vue **/*.css **/*.scss; data=**/*.sql migrations/** schemas/**; security=auth/** middleware/** **/security/** .env* Dockerfile; runtime=Dockerfile* docker-compose* .github/workflows/** deploy/** k8s/**; devops=.github/** ci/** scripts/** Makefile; performance=**/*.go **/*.py **/*.tsx cache/** perf/**; ux-ui=**/*.tsx **/*.jsx **/*.html **/*.css; qa=**/*_test.* tests/** spec/**; mobile=**/*.swift **/*.kt android/** ios/**; auth=auth/** **/auth/** middleware/**.
+5. If after filtering NO diff file matches the profile → the generated file MUST include the marker line: TRIVIAL: no files matching profile <profile> in this diff — reviewer may approve without deep read.
+6. The script MUST NEVER call test-runner.sh --run. It MAY call scripts/test-runner.sh --check and report the resulting exit code as text (Test cache: fresh (PASS) | Test cache: stale/absent (exit 3)), but MUST NOT interpret nor re-run tests.
+7. commands/ocf:develop-full.md and commands/ocf:develop.md are updated: between the phase "developer completes + transition in-review" and the phase "dispatch senior reviewers in parallel", the orchestrator MUST run scripts/review-preflight.sh <id> <profile> ONCE PER PROFILE (a fast sequential loop of N calls) BEFORE dispatching the N reviewer Task() calls in parallel.
+8. agents/development/senior-reviewers/README.md documents: reviewer MUST read .opencode/preflight/review-<id>-<profile>.md FIRST; if the TRIVIAL: marker is present, reviewer MAY approve without extensive glob/grep; otherwise reviewer focuses on the Files affected (filtered) list and MAY read other files only when strictly needed to understand context.
+9. The script MUST NOT modify known_issues.md, MUST NOT run destructive git commands, MUST NOT call scripts/transition.sh.
+- Acceptance criteria: - bash scripts/review-preflight.sh 999 backend (with issue 999 absent) → exit 2 and a clear error message.
+- bash scripts/review-preflight.sh <real-id> backend generates the .md file containing every documented section in the correct order.
+- Running on a branch whose diff only touches frontend files with profile=backend → generated file contains the TRIVIAL: marker.
+- Running on a branch whose diff only touches .go files with profile=backend → only the .go files appear under Files affected (filtered).
+- commands/ocf:develop-full.md and commands/ocf:develop.md contain an explicit block describing the review-preflight call happening before the parallel reviewer dispatch.
+- agents/development/senior-reviewers/README.md explicitly documents the preflight consumption contract (read first; honor TRIVIAL:; focus on filtered files).
+- Tests: run script with missing args → exit 2 with usage line
+run script with valid id+profile+backend Go diff → generated md contains only .go files under Files affected (filtered)
+run script with mismatched profile (frontend diff, backend profile) → generated md contains TRIVIAL: marker
+run script when known_issues.md is missing → exit 2 with clear error (no crash, no traceback)
+- Suggested fix: -

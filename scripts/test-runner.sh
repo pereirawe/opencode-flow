@@ -139,6 +139,30 @@ bootstrap_env() {
       if [[ ! -d node_modules ]]; then
         log "WARNING: node_modules not found — run 'npm install' before tests."
       fi
+      # nvm bootstrap: node/npm are frequently installed via nvm but absent from
+      # PATH in non-interactive shells — activate an installed Node version so
+      # `npm test` resolves (environment bootstrap, not a gate). We set PATH
+      # directly instead of `nvm use --lts`, which calls `exit 1` internally
+      # under `set -euo pipefail` in non-interactive shells.
+      if ! command -v npm >/dev/null 2>&1; then
+        if [[ -d "$HOME/.nvm/versions/node" ]]; then
+          local nvm_bins=""
+          nvm_bins="$(ls -d "$HOME/.nvm"/versions/node/v*/bin 2>/dev/null | sort -V)"
+          # Prefer the Node 22 line (matches previous pipeline runs); fall back
+          # to the newest installed version.
+          local nvm_bin=""
+          nvm_bin="$(printf '%s\n' "$nvm_bins" | grep '/v22\.' | tail -1)"
+          [[ -n "$nvm_bin" ]] || nvm_bin="$(printf '%s\n' "$nvm_bins" | tail -1)"
+          if [[ -n "$nvm_bin" && -x "$nvm_bin/node" ]]; then
+            export PATH="$nvm_bin:$PATH"
+            log "node/npm bootstrapped from nvm: $(node --version 2>/dev/null || echo unknown)"
+          else
+            log_err "WARNING: nvm has no installed Node version — tests may fail (nvm install 22)."
+          fi
+        else
+          log_err "WARNING: npm not found in PATH and nvm is not available — tests may fail (install Node, e.g. via nvm)."
+        fi
+      fi
       ;;
     pytest|poetry)
       if [[ ! -x ".venv/bin/pytest" && ! -x "venv/bin/pytest" ]] && \

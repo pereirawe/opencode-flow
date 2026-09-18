@@ -1,7 +1,6 @@
 ---
 description: CTO AGENT — Defines technical vision and guidelines for the project
 mode: subagent
-allow: all
 temperature: 0.2
 permission:
     bash: allow

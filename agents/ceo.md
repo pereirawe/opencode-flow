@@ -1,7 +1,6 @@
 ---
 description: CEO agent — orchestrates cross-sector strategy, planning, and execution across all business sectors like marketing, sales, BI, finance, commercial, business-ops, and development
 mode: all
-allow: all
 temperature: 0.6
 tools:
   write: true

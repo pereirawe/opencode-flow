@@ -1,7 +1,6 @@
 ---
 description: CTO — technical vision, architecture strategy, engineering leadership, technology decisions
 mode: all
-allow: all
 temperature: 0.5
 tools:
   write: true

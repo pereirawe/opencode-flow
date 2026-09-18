@@ -1,7 +1,6 @@
 ---
 description: CMO — marketing strategy, brand, demand generation, growth, GTM, customer intelligence
 mode: all
-allow: all
 temperature: 0.7
 tools:
   write: true

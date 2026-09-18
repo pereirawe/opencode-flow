@@ -1,7 +1,6 @@
 ---
 description: Commercial proposal writer — turns an approved tech spec into a client-ready commercial proposal (scope, deliverables, timeline, investment, terms), invokes C-level experts for pricing and positioning validation, and embeds the company logo. Responds in the project locale.
 mode: all
-allow: all
 temperature: 0.5
 tools:
   write: true
