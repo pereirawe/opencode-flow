@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 237. feat(scripts): add review-preflight.sh to inject scoped context into parallel reviewers
+- Resolved: 2026-09-18T13:58
+- Durations: backlog=- waiting=- dev=1h review=- qa=- publish=0h total=14h
+- Severity: medium
+- Type: feat
+- Report: model
+- Reviewers: 2
+- Remote: #180
+- Summary: Senior-reviewers run in parallel with zero injected issue context — they only receive the orchestrator prompt. Each reviewer re-explores the entire codebase (aggressive glob, grep, read) and tries to infer scope by re-reading known_issues.md from scratch. Cost — -
+
 ### 236. feat(standards): split code-review.md into per-profile standards under standards/code-review/
 - Resolved: 2026-09-18T13:08
 - Durations: backlog=- waiting=- dev=0h review=- qa=- publish=0h total=13h
