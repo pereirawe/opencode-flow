@@ -45,6 +45,23 @@ Senior reviewers run with a **DENY-ALL + allowlist** bash permission model:
 - Broad codebase re-exploration is prohibited: use only `git diff`/`ls`/`cat`/
   `find`/`rg` within the review scope.
 
+## Review preflight (read first)
+
+Before reviewers are dispatched, the pipeline runs
+`scripts/review-preflight.sh <id> <profile>` once per profile, producing
+`.opencode/preflight/review-<id>-<profile>.md` — a scoped, profile-filtered
+context file. Reviewers MUST:
+
+- Read `.opencode/preflight/review-<id>-<profile>.md` FIRST — before any
+  glob/grep/re-exploration of the codebase.
+- Honor the `TRIVIAL:` marker: when the file contains
+  `TRIVIAL: no files matching profile <profile> in this diff — reviewer may
+  approve without deep read.`, the reviewer MAY approve without extensive
+  glob/grep.
+- Otherwise focus on the **Files affected (filtered)** list — the subset of
+  the diff matching the profile's globs — and MAY read other files only when
+  strictly needed to understand context.
+
 ## Roles
 
 | Agent | Focus |

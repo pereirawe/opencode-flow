@@ -56,20 +56,25 @@ Missing data handled gracefully: `Base branch:` → git default; `Reviewers:` �
 6. **Implement**: `Task(<devagent>)` — implement per business rules, write
    tests via `test-runner` skill, self-review, `transition.sh <id> in-review`.
    No pausing.
-7. **Parallel senior review**: read `- Reviewers:` (`<n> (profiles)`). Launch
+7. **Review preflight (per profile)**: read `- Reviewers:` (`<n> (profiles)`).
+   For EACH profile, run `scripts/review-preflight.sh <id> <profile>` — a fast
+   sequential loop of N calls that writes
+   `.opencode/preflight/review-<id>-<profile>.md` (scoped, profile-filtered
+   context for the reviewer). Only then dispatch the reviewers (next step).
+8. **Parallel senior review**: read `- Reviewers:` (`<n> (profiles)`). Launch
    **one `Task(development/senior-reviewers/<profile>)` per profile in a SINGLE
    message** for true parallelism. All must approve. On issues → `Task(<devagent>)`
    fixes, then re-review (loop within this step).
-8. **Quality + committer gate**: run `scripts/committer-check.sh <id>` — the
+9. **Quality + committer gate**: run `scripts/committer-check.sh <id>` — the
    single gate. Must PASS → `transition.sh <id> in-publish`. On FAIL → STOP
    the list, notify (do not auto-merge).
-9. **Create MR**: `scripts/create-pr.sh <id>` (builds body from issue fields,
-   sets `- PR: #<n>`).
-10. **Merge + archive**: `OCF_CLOSE_COMMENT=1 scripts/merge-and-close.sh <id>`
+10. **Create MR**: `scripts/create-pr.sh <id>` (builds body from issue fields,
+    sets `- PR: #<n>`).
+11. **Merge + archive**: `OCF_CLOSE_COMMENT=1 scripts/merge-and-close.sh <id>`
     (merges MR, returns to base + pull, archives via `close_issue.sh`).
-11. **Warm next**: if there is a next ID, `scripts/preflight.sh <next-id>` now
+12. **Warm next**: if there is a next ID, `scripts/preflight.sh <next-id>` now
     (clean base) so the next developer starts warm.
-12. **Repeat** for the next issue.
+13. **Repeat** for the next issue.
 
 ### Telegram Notifications
 
