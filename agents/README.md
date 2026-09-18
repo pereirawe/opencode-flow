@@ -22,14 +22,12 @@ The `ceo` agent orchestrates cross-sector execution.
 | Agent | Function |
 |-------|----------|
 | `discovery` | Orchestrates discovery pipeline (PO -> CTO -> Tech Lead -> PO -> QA -> PM) |
-| `delivery` | Orchestrates delivery pipeline (PM -> Developer -> Review -> QA -> Committer -> Publish -> Close) |
 | `cto` | Technical vision and guidelines |
 | `product-owner` | Priorities and user stories |
 | `product-manager` | Roadmap, prioritization, and metrics-driven decisions |
 | `project-manager` | Coordination and task assignment |
 | `quality-analyst` | Quality standards and testability |
 | `developer` | Feature implementation (auto-proceeds to senior review) |
-| `develop-router` | Routes `/ocf:develop` / `/ocf:develop-full` to language-specific subagents |
 | `sre` | Site reliability, observability, incident response, SLOs |
 | `technical-writer` | API docs, developer portals, SDK guides, release notes |
 | `committer` | Pre-MR gatekeeper |

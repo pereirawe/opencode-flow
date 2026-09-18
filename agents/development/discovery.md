@@ -107,4 +107,5 @@ denied, switch silently to the correct tool — never narrate permission denials
 
 One issue in `known_issues.md` with `Status: ready`, all fields populated, lint
 PASS. Hand off to delivery (`/ocf:develop` for manual merge, `/ocf:develop-full`
-for end-to-end). The Delivery agent takes over from here.
+for end-to-end). The pipeline continues via the flat engine (scripts + developer
++ senior reviewers).

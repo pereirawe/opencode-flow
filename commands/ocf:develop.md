@@ -9,10 +9,11 @@ creation**, automatically. No confirmation, no pausing. The command **stops
 after the MR is created**: it does NOT merge, does NOT close/archive. The MR is
 left OPEN for a human review/merge.
 
-**Design:** same flattened engine as `/ocf:develop-full` — no `delivery`
-orchestrator, no `develop-router`. `scripts/detect-lang.sh` picks the dev
-agent; agents appear only for judgment (developer + parallel senior reviewers).
-Mechanical steps (promote, preflight, committer gate, create-pr) are scripts.
+**Design:** same flattened engine as `/ocf:develop-full` — the pipeline runs
+directly via scripts, with no orchestrator agent. `scripts/detect-lang.sh` picks
+the dev agent; agents appear only for judgment (developer + parallel senior
+reviewers). Mechanical steps (promote, preflight, committer gate, create-pr) are
+scripts.
 
 At least ONE issue ID required. Multiple IDs separated by spaces/commas/dashes;
 deduplicated, processed sequentially. One Telegram notification after the LAST.

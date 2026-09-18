@@ -220,10 +220,10 @@ QA-agent pass. PM and remote creation are deferred to promotion.
 
 ### Delivery — flattened engine (develop / develop-full)
 
-There is **no `delivery` orchestrator and no `develop-router`** in the critical
-path. The command drives scripts directly; `scripts/detect-lang.sh` replaces the
-router. Agents appear only for implementation (developer) and parallel domain
-review (senior reviewers).
+There is **no orchestrator agent** in the critical path. The command drives
+scripts directly; `scripts/detect-lang.sh` picks the dev agent. Agents appear
+only for implementation (developer) and parallel domain review (senior
+reviewers).
 
 ```mermaid
 flowchart LR
