@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 239. chore(scripts): make committer-check test-cache gate no-op when no runner detected
+- Resolved: 2026-09-18T14:19
+- Durations: backlog=14h waiting=0h dev=0h review=- qa=- publish=0h total=14h
+- Severity: medium
+- Type: chore
+- Report: model
+- Reviewers: 1
+- Remote: #182
+- Summary: committer-check.sh line ~85 calls test-runner.sh --check unconditionally and FAILs when no valid test cache exists. In repos without a detectable runner (e.g. this opencode config repo — -
+
 ### 237. feat(scripts): add review-preflight.sh to inject scoped context into parallel reviewers
 - Resolved: 2026-09-18T13:58
 - Durations: backlog=- waiting=- dev=1h review=- qa=- publish=0h total=14h
