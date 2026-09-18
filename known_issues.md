@@ -610,7 +610,10 @@ issues only. See `standards/issues.md` for the full contract.
 
 
 ### 232. chore(agents): block --run in reviewers and remove redundant test-runner in committer
-- Status: backlog
+- Status: in-progress
+- Opened: 2026-09-18
+- Ready: 2026-09-18T11:58
+- Started: 2026-09-18T11:58
 - Type: chore
 - Severity: medium
 - Priority: high
@@ -618,7 +621,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Report: model
 - Base branch: main
 - Reviewers: 1 (backend)
-- Remote: -
+- Remote: #170
 - Jira: -
 - PR: -
 - Location: agents/development/senior-reviewers/README.md, agents/development/committer.md
