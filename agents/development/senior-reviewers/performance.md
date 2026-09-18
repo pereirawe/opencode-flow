@@ -35,7 +35,7 @@ permission:
     "find * -delete*": deny
     "find * -exec*": deny
 ---
-First load the locale-loader skill to get locale-appropriate standards (code-review.md, issues.md).
+First load the locale-loader skill to get locale-appropriate standards (issues.md). Load `standards/code-review/performance.md` via locale-loader skill before reviewing.
 
 Review performance aspects of the code.
 

@@ -610,7 +610,11 @@ issues only. See `standards/issues.md` for the full contract.
 
 
 ### 236. feat(standards): split code-review.md into per-profile standards under standards/code-review/
-- Status: ready
+- Status: in-publish
+- Opened: 2026-09-18
+- Started: 2026-09-18T12:50
+- In review: 2026-09-18T13:02
+- In publish: 2026-09-18T13:07
 - Type: feat
 - Severity: medium
 - Priority: high
@@ -618,9 +622,9 @@ issues only. See `standards/issues.md` for the full contract.
 - Report: model
 - Base branch: main
 - Reviewers: 2 (backend, ux-ui)
-- Remote: -
+- Remote: #178
 - Jira: -
-- PR: -
+- PR: #179
 - Location: standards/code-review.md, standards/code-review/, agents/development/senior-reviewers/*.md
 - Description: Today `standards/code-review.md` (41 lines) is a generic 8-item checklist that serves ALL profiles (backend, frontend, data, security, runtime, devops, performance, ux-ui, qa, mobile, auth). Reviewers of each profile must decide alone what to prioritize, without domain-specific guidance. Result: inconsistent review across profiles, wasted tokens re-deriving priorities, and risk of missing critical domain checks (e.g. N+1 on backend, WCAG contrast on ux-ui, race conditions in auth). Split the monolith into 11 per-profile standards under `standards/code-review/`, keep the root file as a short index, and wire every senior-reviewer agent to load its profile-specific standard via the locale-loader skill (same mechanic already used for the current `code-review.md`).
 - Impact: Reviewers become inconsistent: each interprets the generic checklist their own way.
@@ -643,6 +647,7 @@ No clear link between profile and available skills (`skills/development/security
 structure-per-file: each `standards/code-review/<profile>.md` contains the required sections (scope paragraph, checklist ≥5 bullets, 3-column table, Related skills) → verified by grep for headings/table separators.
 index-shape: `standards/code-review.md` has ≤30 lines AND lists the 11 profiles as links → verified with `wc -l` and grep for the 11 profile filenames.
 - Suggested fix: -
+- Notes: `agents/development/senior-reviewers/auth.md` does not exist and was NOT created (out of scope per BR 4). The `standards/code-review/auth.md` standard is created anyway (BR 5) for future use and for consumption by `senior-reviewers/security.md` when applicable. No pt/es translations created (BR 6). Reviewers backend + ux-ui both APPROVED (7/7 BRs, 5/5 ACs, 3/3 structural tests; security-owasp delegation preserved in security.md). committer-check.sh 236 FAILs only on mechanical "Tests cache: MISSING" (same repo-wide exception — no detectable runner; package.json has no test script → __npm-no-test__ → --check exit 3 before reading cache). issue-lint.sh 236 --strict PASS. Exception documented without blocking.
 
 ### 237. feat(scripts): add review-preflight.sh to inject scoped context into parallel reviewers
 - Status: ready
