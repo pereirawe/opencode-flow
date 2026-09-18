@@ -635,7 +635,10 @@ run full run_all.sh → exit 0 (all 26 suites pass)
 - Suggested fix: -
 
 ### 239. chore(scripts): make committer-check test-cache gate no-op when no runner detected
-- Status: backlog
+- Status: in-progress
+- Opened: 2026-09-18
+- Ready: 2026-09-18T13:59
+- Started: 2026-09-18T13:59
 - Type: chore
 - Severity: medium
 - Priority: high
@@ -644,7 +647,7 @@ run full run_all.sh → exit 0 (all 26 suites pass)
 - Report: model
 - Base branch: main
 - Reviewers: 1 (backend)
-- Remote: -
+- Remote: #182
 - Jira: -
 - PR: -
 - Location: scripts/committer-check.sh, scripts/test-runner.sh
