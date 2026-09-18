@@ -132,22 +132,27 @@ rc=$(cd "$nogit" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run >/dev/null 2>&1;
 assert_eq "0" "$rc" "--run without git exits 0 (content fallback)"
 assert_contains <(cd "$nogit" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --status 2>&1) "git repo:     no" "--status without git stays coherent"
 
-# --- 9. environment diagnostics: runner missing ---
+# --- 9. no test surface: runner missing → no-op (issue #239) ---
 empty="$TMP/empty"
 mkdir -p "$empty"
 out=$(cd "$empty" && bash "$SCRIPT" --run 2>&1 || true)
-assert_contains <(printf '%s' "$out") "no test runner detected" "missing runner produces a clear diagnostic"
+assert_contains <(printf '%s' "$out") "no test surface" "missing runner produces a clear no-test-surface diagnostic"
 rc=$(cd "$empty" && bash "$SCRIPT" --run >/dev/null 2>&1; echo $?)
-assert_eq "2" "$rc" "--run without a runner exits 2 (cannot run, not a test failure)"
+assert_eq "0" "$rc" "--run without a runner exits 0 (no-op, no test surface)"
 rc=$(cd "$empty" && bash "$SCRIPT" --check >/dev/null 2>&1; echo $?)
-assert_eq "3" "$rc" "--check without a runner exits 3"
+assert_eq "0" "$rc" "--check without a runner exits 0 (skipped, no test surface)"
 
-# --- 10. package.json without a test script → diagnosed, no silent failure ---
+# --- 10. package.json without a test script → no-op (issue #239) ---
 noproj="$TMP/nopkgtest"
 mkdir -p "$noproj"
 printf '{"dependencies":{}}\n' > "$noproj/package.json"
 out=$(cd "$noproj" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run 2>&1 || true)
+assert_contains <(printf '%s' "$out") "no test surface" "package.json without a test script is a no-test-surface no-op"
 assert_contains <(printf '%s' "$out") "no 'test' script" "package.json without a test script is diagnosed"
+rc=$(cd "$noproj" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run >/dev/null 2>&1; echo $?)
+assert_eq "0" "$rc" "--run with package.json but no test script exits 0 (no-op)"
+rc=$(cd "$noproj" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --check >/dev/null 2>&1; echo $?)
+assert_eq "0" "$rc" "--check with package.json but no test script exits 0 (skipped)"
 
 # --- 11. filter (--run -- <args>) does NOT touch the shared cache (B1) ---
 reset_mock
