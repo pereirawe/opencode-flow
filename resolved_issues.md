@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 231. chore(agents): restrict senior-reviewers bash to allowlist
+- Resolved: 2026-09-18T11:55
+- Durations: backlog=11h waiting=0h dev=0h review=- qa=- publish=0h total=12h
+- Severity: medium
+- Type: chore
+- Report: model
+- Reviewers: 2
+- Remote: #168
+- Summary: Senior reviewer agents currently declare `bash — -
+
 ### 222. committer-check.sh: gate de segurança lê relatório errado/superseded e falha em detectar veredito de bloqueio — falso PASS/FAIL
 - Resolved: 2026-09-09T16:02
 - Durations: backlog=- waiting=- dev=0h review=0h qa=0h publish=0h total=16h
