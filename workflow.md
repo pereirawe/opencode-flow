@@ -191,8 +191,8 @@ The user merges the MR manually.
 
 **Exception — `/ocf:develop-full` (end-to-end) and `/ocf:develop` (up to MR)**:
 Both commands drive the pipeline **directly via scripts** — there is no
-`delivery` orchestrator agent and no `develop-router` agent in the critical
-path. The engine is: `promote.sh` → `preflight.sh` → `detect-lang.sh` picks the
+orchestrator agent in the critical path. The engine is: `promote.sh` →
+`preflight.sh` → `detect-lang.sh` picks the
 dev agent → developer implements + tests → **senior reviewers run in parallel**
 (one `Task` per profile, issued in a single message) → `committer-check.sh` +
 `issue-lint.sh --strict` gate → `create-pr.sh` builds the MR →
@@ -208,9 +208,11 @@ mechanical is scripted, which is faster and cheaper.
   is delegated to `ocf:check-pr` / the Close Requester after the user merges
   manually.
 
-The `delivery` agent and `develop-router` are **legacy** (manual-merge
-`/ocf:delivery` path only). Loop differentiation (bug vs feat, expedite vs lean)
-is defined in § Loop Profiles above and selected during discovery.
+The `delivery` orchestrator agent was **removed** (issue #233); `/ocf:delivery`
+is no longer supported — use `/ocf:develop` or `/ocf:develop-full`. Language
+routing is handled by `scripts/detect-lang.sh`. Loop differentiation (bug vs
+feat, expedite vs lean) is defined in § Loop Profiles above and selected during
+discovery.
 
 ### Remote Entry Point: `aibot-watcher` (issue #39)
 
@@ -236,7 +238,7 @@ feeds the continuous pipeline from remote issue comments:
    patterns: rm -rf, force-push, reset --hard, clean -f, branch -D, mkfs, dd,
    curl|sh, chmod -R 777, chown -R, shutdown/reboot) binding the main/command
    session and every agent WITHOUT its own bash config (`developer`, `devs/*`)
-    - agent-level granular bash (`aibot`, `develop-router`: catch-all deny +
+    - agent-level granular bash (`aibot`: catch-all deny +
       scoped allows + explicit destructive-git denies after `git *: allow`) +
       EDIT denies on security-critical files (opencode.json, aibot-repos.json,
       aibot-watcher.sh, state/**, ~/.ssh/**) ordered so the deny is the LAST
@@ -249,8 +251,7 @@ triggers) performs the merge once review and QA approve, then closes the
 remote issue and archives locally as part of its own end-to-end flow —
 bounded polling for the merge it initiated is confined to that command, never
 to the watcher. The Close Requester and `ocf:check-pr` remain the paths for
-closing issues merged through `ocf:delivery` (step 12) or merged manually
-after an `ocf:develop` run.
+closing issues merged manually after an `ocf:develop` run.
 
 ### Agent Pipeline
 
@@ -324,14 +325,18 @@ Two meta-agents orchestrate the pipeline phases:
 - Ensures all required fields (Base branch, Reviewers, Remote) are populated
 - Output: issue in `known_issues.md` with status `ready`
 
-**Delivery Agent** (`agents/development/delivery.md`):
+**Delivery (flat engine)** — the `delivery` orchestrator agent was removed
+(issue #233); the delivery pipeline runs directly via scripts:
 
-- Orchestrates phases 6-12: PM -> Developer -> Senior Review -> QA -> Committer -> Publish -> Close
+- `/ocf:develop` — runs phases 6-11 up to MR creation (manual merge)
+- `/ocf:develop-full` — runs phases 6-12 end-to-end (auto-merge + archive)
+- Engine: `promote.sh` → `preflight.sh` → `detect-lang.sh` → developer →
+  parallel senior reviewers → `committer-check.sh` + `issue-lint.sh --strict`
+  → `create-pr.sh` → (`merge-and-close.sh` for develop-full)
 - Executes automatically without user confirmation after promotion
-- Handles the complete lifecycle from feature branch to merged MR
-- Post-merge: triggers Close Requester to archive the issue
 
-Use `ocf:discovery` to start the discovery pipeline and `ocf:delivery` to execute the delivery pipeline.
+Use `ocf:discovery` to start the discovery pipeline and `ocf:develop` /
+`ocf:develop-full` to execute the delivery pipeline.
 
 ### Career Sector (resume optimization)
 

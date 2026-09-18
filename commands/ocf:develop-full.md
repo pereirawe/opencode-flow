@@ -10,12 +10,11 @@ pausing. After the MR is created the pipeline **auto-merges**, returns to the
 base branch, and closes/archives the issue.
 
 **Design:** this command drives the pipeline directly. There is NO
-`delivery` orchestrator agent and NO `develop-router` agent in the critical
-path — `scripts/detect-lang.sh` replaces the router, and the merge/close is
-`scripts/merge-and-close.sh`. Agents appear only where judgment is needed:
-the **developer** (implementation) and the **senior reviewers** (parallel
-domain review). This cuts the old 6+N agent chain to 1+N and removes
-mechanical roundtrips.
+orchestrator agent in the critical path — `scripts/detect-lang.sh` picks the
+dev agent, and the merge/close is `scripts/merge-and-close.sh`. Agents appear
+only where judgment is needed: the **developer** (implementation) and the
+**senior reviewers** (parallel domain review). This cuts the old 6+N agent
+chain to 1+N and removes mechanical roundtrips.
 
 At least ONE issue ID is required. Multiple IDs may be separated by spaces,
 commas, or dashes; deduplicated (order preserved), processed sequentially. A

@@ -6,9 +6,9 @@ hidden: true
 
 Source of truth for `/ocf:develop` / `/ocf:develop-full` language routing.
 
-`develop-router` reads this file to decide which specialized `development/devs/*` agent
-should implement an issue. If no entry matches, it must fall back to
-`developer`.
+`scripts/detect-lang.sh` mirrors this file's matching rules to decide which
+specialized `development/devs/*` agent should implement an issue. If no entry
+matches, it falls back to `developer`.
 
 ## Matching Order
 
