@@ -645,6 +645,7 @@ No clear link between profile and available skills (`skills/development/security
 structure-per-file: each `standards/code-review/<profile>.md` contains the required sections (scope paragraph, checklist ≥5 bullets, 3-column table, Related skills) → verified by grep for headings/table separators.
 index-shape: `standards/code-review.md` has ≤30 lines AND lists the 11 profiles as links → verified with `wc -l` and grep for the 11 profile filenames.
 - Suggested fix: -
+- Notes: `agents/development/senior-reviewers/auth.md` does not exist and was NOT created (out of scope per BR 4). The `standards/code-review/auth.md` standard is created anyway (BR 5) for future use and for consumption by `senior-reviewers/security.md` when applicable. No pt/es translations created (BR 6).
 
 ### 237. feat(scripts): add review-preflight.sh to inject scoped context into parallel reviewers
 - Status: ready

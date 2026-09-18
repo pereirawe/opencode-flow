@@ -6,7 +6,7 @@ permission:
   bash: allow
   edit: deny
 ---
-First load the locale-loader skill to get locale-appropriate standards (code-review.md, issues.md).
+First load the locale-loader skill to get locale-appropriate standards (issues.md). Load `standards/code-review/security.md` via locale-loader skill before reviewing.
 
 This profile is the `security` reviewer entry point. For any security review,
 audit, or vulnerability consultation, delegate to the OWASP specialist agent
