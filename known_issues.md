@@ -609,7 +609,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: Delivered in this batch (renumbered from a duplicate #36; #222 kept free for the global committer-check register).
 
 
-### 224. chore(agents): restrict senior-reviewers bash to allowlist
+### 231. chore(agents): restrict senior-reviewers bash to allowlist
 - Status: backlog
 - Type: chore
 - Severity: medium
@@ -623,7 +623,7 @@ issues only. See `standards/issues.md` for the full contract.
 - PR: -
 - Location: agents/development/senior-reviewers/*.md, agents/development/senior-reviewers/README.md
 - Description: Senior reviewer agents currently declare `bash: allow` without an allowlist, so they can invoke any shell command — including `go test ./...`, `pytest`, or full test suites — bypassing the cache-aware `scripts/test-runner.sh`. This is the most likely root cause of the review phase becoming slow and token-heavy: reviewers re-run suites the developer already cached, and every reviewer duplicates the cost in parallel. Restrict bash to an allowlist mirroring `committer.md` (git, ls/cat/find/head/tail/wc/rg, date, echo, preflight.sh, issue-lint.sh, test-runner.sh --check/--status ONLY) and keep edit deny except `.opencode/known_issues.md` and `.opencode/reviews/**`. Explicitly deny `scripts/test-runner.sh --run*`, `git reset --hard*`, `git push --force*`, `git branch -D*`, `rm -rf*`.
-- Impact: Directly reduces tokens per review pass (est. 40-60% together with review-preflight in issue #226). Guarantees reviewers never re-execute a suite the developer already cached. Removes the class of accidents where a reviewer runs `go test ./...` on a large repo. Non-blocking: security profile keeps its OWASP delegation config untouched.
+- Impact: Directly reduces tokens per review pass (est. 40-60% together with review-preflight in issue #237). Guarantees reviewers never re-execute a suite the developer already cached. Removes the class of accidents where a reviewer runs `go test ./...` on a large repo. Non-blocking: security profile keeps its OWASP delegation config untouched.
 - Business rules: 1. Every file under `agents/development/senior-reviewers/*.md` (10 profiles: backend, data, devops, frontend, mobile, performance, qa, runtime, security, ux-ui) MUST declare a `permission` block with `bash` deny-all + explicit allowlist and `edit: deny` except the two allowed paths.
 2. Allowlist MUST include: `git *`, `ls *`, `cat *`, `find *`, `head *`, `tail *`, `wc *`, `rg *`, `date`, `echo *`, `scripts/preflight.sh *`, `scripts/issue-lint.sh *`, `scripts/test-runner.sh --check*`, `scripts/test-runner.sh --status*`.
 3. Denies MUST include: `scripts/test-runner.sh --run*`, `git reset --hard*`, `git push --force*`, `git branch -D*`, `rm -rf*`.
@@ -640,7 +640,7 @@ allowlist-present: yq eval '.permission.bash | keys | length' agents/development
 security-intact: rg 'development/security-owasp' agents/development/senior-reviewers/security.md returns match → delegation preserved.
 - Suggested fix: -
 
-### 225. chore(agents): block --run in reviewers and remove redundant test-runner in committer
+### 232. chore(agents): block --run in reviewers and remove redundant test-runner in committer
 - Status: backlog
 - Type: chore
 - Severity: medium
@@ -654,7 +654,7 @@ security-intact: rg 'development/security-owasp' agents/development/senior-revie
 - PR: -
 - Location: agents/development/senior-reviewers/README.md, agents/development/committer.md
 - Description: The senior-reviewers README does not explicitly forbid `scripts/test-runner.sh --run`, and `committer.md` invokes `test-runner.sh --check` even though `scripts/committer-check.sh` already verifies tests via --check. This is a redundant call in the committer allowlist that also enlarges its bash surface. Reinforce the reviewer discipline textually AND rely on the committer-check.sh verdict as the single source of truth for the test gate at commit time.
-- Impact: Removes a redundant invocation from committer runs (small token saving, cleaner boundary). Documents the reviewer discipline reinforced mechanically in issue #224. Reduces committer bash surface: `scripts/test-runner.sh *` no longer needed in the allowlist.
+- Impact: Removes a redundant invocation from committer runs (small token saving, cleaner boundary). Documents the reviewer discipline reinforced mechanically in issue #231. Reduces committer bash surface: `scripts/test-runner.sh *` no longer needed in the allowlist.
 - Business rules: 1. `senior-reviewers/README.md` MUST state, in the Test protocol section, that reviewers NEVER execute `scripts/test-runner.sh --run` and that `--check` PASS + a report from committer-check are the only paths to trust the test result.
 2. `agents/development/committer.md` MUST NOT contain instructions to run `test-runner.sh` independently; it MUST rely exclusively on the verdict emitted by `scripts/committer-check.sh`.
 3. `scripts/test-runner.sh *` MUST be removed from the committer bash allowlist (kept only in the developer agent).
@@ -668,7 +668,7 @@ committer-no-runner: rg -c 'test-runner' agents/development/committer.md returns
 committer-check-intact: bash scripts/committer-check.sh -h or --help does not error → script contract preserved.
 - Suggested fix: -
 
-### 226. chore(agents): remove deprecated delivery and develop-router
+### 233. chore(agents): remove deprecated delivery and develop-router
 - Status: backlog
 - Type: chore
 - Severity: low
@@ -698,7 +698,7 @@ historical-preserved: rg -l 'delivery agent|develop-router' resolved_issues.md d
 opencode-json-clean: rg 'delivery|develop-router' opencode.json returns no matches (or file does not list them as agents).
 - Suggested fix: -
 
-### 227. chore(qa): tighten quality-analyst permissions with bash allowlist and scoped edit
+### 234. chore(qa): tighten quality-analyst permissions with bash allowlist and scoped edit
 - Status: backlog
 - Type: chore
 - Severity: low
@@ -711,13 +711,13 @@ opencode-json-clean: rg 'delivery|develop-router' opencode.json returns no match
 - Jira: -
 - PR: -
 - Location: agents/development/quality-analyst.md
-- Description: `quality-analyst.md` declares `bash: allow` AND `edit: allow` without restrictions. The QA agent should only read the issue, verify Tests floor, run `scripts/test-runner.sh --check` (never --run), and transition status. It should not have blanket edit or blanket bash. Apply the same allowlist pattern used for senior reviewers (see issue #224) and restrict edit to `.opencode/known_issues.md` and `.opencode/reviews/**`.
+- Description: `quality-analyst.md` declares `bash: allow` AND `edit: allow` without restrictions. The QA agent should only read the issue, verify Tests floor, run `scripts/test-runner.sh --check` (never --run), and transition status. It should not have blanket edit or blanket bash. Apply the same allowlist pattern used for senior reviewers (see issue #231) and restrict edit to `.opencode/known_issues.md` and `.opencode/reviews/**`.
 - Impact: Consistency with senior-reviewers (same discipline). Removes accidental edit surface (QA cannot silently modify source). Removes the possibility of QA running arbitrary commands or full suites. Non-functional: current QA workflow only needs the allowlisted commands.
 - Business rules: 1. `quality-analyst.md` `bash` MUST be deny-all with allowlist: `git *`, `ls *`, `cat *`, `find *`, `head *`, `tail *`, `wc *`, `rg *`, `date`, `echo *`, `scripts/preflight.sh *`, `scripts/issue-lint.sh *`, `scripts/test-runner.sh --check*`, `scripts/test-runner.sh --status*`, `scripts/transition.sh *`, `scripts/append-issue.sh *`.
 2. `bash` MUST explicitly deny `scripts/test-runner.sh --run*`, `git reset --hard*`, `git push --force*`, `git branch -D*`, `rm -rf*`.
 3. `edit` MUST be `*: deny` with allow for `.opencode/known_issues.md` and `.opencode/reviews/**`.
 4. Existing QA responsibilities (Tests floor validation, incomplete-spec tagging, pre-development validation, post-review validation, transition to in-qa) remain unchanged.
-- Acceptance criteria: - `quality-analyst.md` permission block matches the pattern from issue #224.
+- Acceptance criteria: - `quality-analyst.md` permission block matches the pattern from issue #231.
 - `rg 'bash: allow$' agents/development/quality-analyst.md` returns nothing.
 - QA post-review workflow still runs `test-runner.sh --check` and `transition.sh <id> in-qa` end-to-end.
 - Tests: no-allow: rg 'bash: allow$|edit: allow$' agents/development/quality-analyst.md returns no matches → no blanket permission.
@@ -725,7 +725,7 @@ deny-run: rg 'test-runner.sh --run.*deny' agents/development/quality-analyst.md 
 transition-allowed: rg 'transition.sh' agents/development/quality-analyst.md returns match → transition still allowlisted.
 - Suggested fix: -
 
-### 228. chore(scripts): drop redundant issue-lint --strict from develop-full orchestrator
+### 235. chore(scripts): drop redundant issue-lint --strict from develop-full orchestrator
 - Status: backlog
 - Type: chore
 - Severity: low
@@ -752,7 +752,7 @@ committer-still-lints: rg 'issue-lint.sh --strict' scripts/committer-check.sh re
 lint-failure-blocks: an issue missing Business rules for a feat still blocks committer-check.sh (existing behavior).
 - Suggested fix: -
 
-### 229. feat(standards): split code-review.md into per-profile standards under standards/code-review/
+### 236. feat(standards): split code-review.md into per-profile standards under standards/code-review/
 - Status: ready
 - Type: feat
 - Severity: medium
@@ -787,7 +787,7 @@ structure-per-file: each `standards/code-review/<profile>.md` contains the requi
 index-shape: `standards/code-review.md` has ≤30 lines AND lists the 11 profiles as links → verified with `wc -l` and grep for the 11 profile filenames.
 - Suggested fix: -
 
-### 230. feat(scripts): add review-preflight.sh to inject scoped context into parallel reviewers
+### 237. feat(scripts): add review-preflight.sh to inject scoped context into parallel reviewers
 - Status: ready
 - Type: feat
 - Severity: medium
