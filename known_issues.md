@@ -610,7 +610,9 @@ issues only. See `standards/issues.md` for the full contract.
 
 
 ### 237. feat(scripts): add review-preflight.sh to inject scoped context into parallel reviewers
-- Status: ready
+- Status: in-progress
+- Opened: 2026-09-18
+- Started: 2026-09-18T13:08
 - Type: feat
 - Severity: medium
 - Priority: high
@@ -618,7 +620,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Report: model
 - Base branch: main
 - Reviewers: 2 (backend, devops)
-- Remote: -
+- Remote: #180
 - Jira: -
 - PR: -
 - Location: scripts/review-preflight.sh, commands/ocf:develop-full.md, commands/ocf:develop.md, agents/development/senior-reviewers/README.md
