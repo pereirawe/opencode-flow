@@ -635,7 +635,12 @@ run full run_all.sh → exit 0 (all 26 suites pass)
 - Suggested fix: -
 
 ### 239. chore(scripts): make committer-check test-cache gate no-op when no runner detected
-- Status: backlog
+- Status: in-publish
+- Opened: 2026-09-18
+- Ready: 2026-09-18T13:59
+- Started: 2026-09-18T13:59
+- In review: 2026-09-18T14:10
+- In publish: 2026-09-18T14:19
 - Type: chore
 - Severity: medium
 - Priority: high
@@ -644,9 +649,9 @@ run full run_all.sh → exit 0 (all 26 suites pass)
 - Report: model
 - Base branch: main
 - Reviewers: 1 (backend)
-- Remote: -
+- Remote: #182
 - Jira: -
-- PR: -
+- PR: #183
 - Location: scripts/committer-check.sh, scripts/test-runner.sh
 - Description: committer-check.sh line ~85 calls test-runner.sh --check unconditionally and FAILs when no valid test cache exists. In repos without a detectable runner (e.g. this opencode config repo: package.json without a 'test' script -> __npm-no-test__ -> detect_runner fails before any cache read), the gate fails mechanically on EVERY issue regardless of change type, forcing a documented workaround each time (issues #231, #232, #239). Introduce a 'no test surface' branch so chore/doc issues and runner-less repos do not block on an impossible cache.
 - Impact: Removes recurring mechanical FAIL on runner-less repos; eliminates repeated - Notes: exception documentation; keeps the gate strict where a runner exists. Registered from pattern detection across issues #231 and #232.
@@ -685,3 +690,24 @@ committer-skip: scripts/committer-check.sh <id> on runner-less repo → VERDICT 
 - Acceptance criteria: - The command docs and the actual gate behavior agree on where issue-lint runs.
 - Tests: -
 - Suggested fix: Add `"$SCRIPTS_DIR/issue-lint.sh" "$ID" --strict` to committer-check.sh's gate checks (mirroring append-issue.sh's post-append lint pattern), then remove the standalone lint from the opencode.json template gate step; or, alternatively, revert the #235 doc wording to reference the template gate.
+
+### 241. chore(scripts): test_git_cred_cache.sh asserts committer.md keeps the test-runner allow that #232 removed
+- Status: backlog
+- Type: chore
+- Severity: low
+- Priority: low
+
+- Report: model
+- Base branch: main
+- Reviewers: 1 (backend)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: scripts/tests/test_git_cred_cache.sh, agents/development/committer.md
+- Description: Issue #232 (8050c96) removed the `"*scripts/test-runner.sh *": allow` rule from agents/development/committer.md (redundant test-runner call in the committer allowlist — committer-check.sh is the single test-gate source of truth), but scripts/tests/test_git_cred_cache.sh line ~321 still asserts `committer.md: test-runner allow kept` for both developer and committer. The suite fails on main: `FAIL - committer.md: missing test-runner allow` (114 passed, 1 failed). Pre-existing since #232; discovered while running scripts/tests/run_all.sh for #239 (the #239 change does not touch either file).
+- Impact: scripts/tests/run_all.sh exits 1 on main even without #239; the assertion contradicts the #232 intent (committer relies on committer-check.sh, not direct test-runner access).
+- Business rules: 1. Decide the intended contract: either restore the test-runner allow in committer.md (if the committer agent still needs direct test-runner.sh access) or drop the committer leg of the test-runner/transition allow loop in test_git_cred_cache.sh (aligning the test with #232's removal).
+2. The suite must exit 0 on main once the mismatch is resolved.
+- Acceptance criteria: - bash scripts/tests/run_all.sh passes test_git_cred_cache.sh (no 'missing test-runner allow' failure).
+- Tests: -
+- Suggested fix: Remove the committer leg of the test-runner/transition allow loop in test_git_cred_cache.sh (keep developer), mirroring #232's removal; or restore the allow in committer.md if the committer agent's duties require direct test-runner access.

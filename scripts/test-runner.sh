@@ -7,8 +7,11 @@
 # → committer).
 #
 # Modes:
-#   --check            exit 0 + report path when a fresh cache exists; exit 3 otherwise
-#   --run              run the suite (or reuse a fresh cache), print summary + exit code
+#   --check            exit 0 + report path when a fresh cache exists; exit 3 otherwise;
+#                      exit 0 (no-op) when there is no test surface (no runner detected,
+#                      or a runner marker without a runnable test script) — issue #239
+#   --run              run the suite (or reuse a fresh cache), print summary + exit code;
+#                      exit 0 (no-op) when there is no test surface — issue #239
 #   --status           human-readable state of the cache and fingerprint
 #
 # The cache is an optimization, never a blocker: when there is no valid cache
@@ -89,6 +92,27 @@ detect_runner() {
     fi
   else
     echo ""
+  fi
+}
+
+# no_test_surface <runner> — 0 when there is no runnable test surface: either
+# no runner was detected at all (empty), or a runner marker was found but it
+# has no runnable test script (__npm-no-test__). Issue #239: such repos must
+# no-op (exit 0) instead of failing the test-cache gate on an impossible run.
+no_test_surface() {
+  local r="$1"
+  [[ -z "$r" || "$r" == "__npm-no-test__" ]]
+}
+
+# no_test_surface_msg <runner> — informational message for the no-op path.
+# Always contains the literal 'no test surface' marker so callers (e.g.
+# committer-check.sh) can distinguish "skipped" from "missing cache".
+no_test_surface_msg() {
+  local r="$1"
+  if [[ "$r" == "__npm-no-test__" ]]; then
+    log "no test surface — package.json has no 'test' script (no-op, nothing to run)"
+  else
+    log "no test surface — no test runner detected (no-op, nothing to run)"
   fi
 }
 
@@ -523,22 +547,12 @@ cache_exit_code() {
 
 # --- modes -------------------------------------------------------------------
 
-runner_name() {
-  local r
-  r="$(detect_runner)"
-  if [[ "$r" == "__npm-no-test__" ]]; then
-    log_err "package.json found but no 'test' script defined — nothing to run (exit 3)"
-    return 1
-  fi
-  printf '%s' "$r"
-}
-
 cmd_check() {
   local runner
-  runner="$(runner_name)" || exit 3
-  if [[ -z "$runner" ]]; then
-    log "no test runner detected (no go.mod/Cargo.toml/package.json/pyproject.toml/requirements.txt)"
-    exit 3
+  runner="$(detect_runner)"
+  if no_test_surface "$runner"; then
+    no_test_surface_msg "$runner"
+    exit 0
   fi
   local fp
   fp="$(compute_fingerprint)"
@@ -553,11 +567,10 @@ cmd_check() {
 
 cmd_run() {
   local runner
-  runner="$(runner_name)" || { log "fallback: run the project's tests directly and use the result."; exit 2; }
-  if [[ -z "$runner" ]]; then
-    log "no test runner detected (no go.mod/Cargo.toml/package.json/pyproject.toml/requirements.txt)"
-    log "fallback: run the project's tests directly and use the result."
-    exit 2
+  runner="$(detect_runner)"
+  if no_test_surface "$runner"; then
+    no_test_surface_msg "$runner"
+    exit 0
   fi
 
   local cmd

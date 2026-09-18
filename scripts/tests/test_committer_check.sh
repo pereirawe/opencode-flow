@@ -165,4 +165,25 @@ assert_contains "$RUN_OUT" "no issue-scoped report found" "t03: no issue-scoped 
 assert_not_contains "$RUN_OUT" "security-git-cred-cache" "t03: other issue's report NOT used as fallback"
 assert_contains "$RUN_OUT" "VERDICT: FAIL" "t03: overall verdict FAIL"
 
+# ===========================================================================
+# t04 — runner-less repo: the test-cache gate is SKIPPED, not failed (#239).
+# Before the fix, committer-check.sh FAILed mechanically on every issue in a
+# repo without a detectable runner (no test surface) — the gate must now pass
+# with an explicit 'Tests: no test surface (skipped)' line and NO cache.
+# ===========================================================================
+t4="$TMP/t4"
+make_issue "$t4"
+rm -f "$t4/requirements.txt"   # drop the runner marker -> no test surface
+{
+  printf '# Security Review — issue 1\n\n'
+  printf '**Verdict: APPROVED** — no findings\n\n'
+} > "$t4/.opencode/reviews/security-issue-1-approved.md"
+touch -d "2026-09-09 10:00:00" "$t4/.opencode/reviews/security-issue-1-approved.md"
+# NOTE: no seed_test_cache — the gate must pass WITHOUT any cache
+
+rc=$(run_check "$t4" 1)
+assert_eq "0" "$rc" "t04: runner-less repo passes the gate (exit 0)"
+assert_contains "$RUN_OUT" "Tests: no test surface (skipped)" "t04: skip line emitted"
+assert_contains "$RUN_OUT" "VERDICT: PASS" "t04: overall verdict PASS"
+
 t_finish

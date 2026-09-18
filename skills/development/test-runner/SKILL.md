@@ -14,8 +14,10 @@ standardizes environment diagnostics.
 ## Protocol
 
 ```bash
-scripts/test-runner.sh --check    # fresh cache? exit 0 + report path; otherwise exit 3
-scripts/test-runner.sh --run      # runs the suite (or reuses a fresh cache), prints summary + exit code
+scripts/test-runner.sh --check    # fresh cache? exit 0 + report path; otherwise exit 3;
+                                  # exit 0 (no-op) when there is no test surface (issue #239)
+scripts/test-runner.sh --run      # runs the suite (or reuses a fresh cache), prints summary + exit code;
+                                  # exit 0 (no-op) when there is no test surface (issue #239)
 scripts/test-runner.sh --status   # readable runner/cache/fingerprint state
 ```
 
@@ -37,10 +39,15 @@ Additional args after `--` are passed to the test command
    cache: they actually execute and do not affect the "suite passed" signal
    that check/committer/pre_commit consume.
 6. **Exit codes** of `--run`: `0` = suite passed; `1` = suite failed; `2` =
-   cannot run (no runner/suite) — treat `2` as "no tests", not as a failure.
-   The full report is in `.opencode/test-cache/<branch>-<runner>.log`.
+   cannot run (runner detected but the test tool is missing, e.g. pytest not
+   installed) — treat `2` as "no tests", not as a failure. **No test surface**
+   (no runner detected, or `package.json` without a `test` script) is a
+   **no-op**: `--run` and `--check` both exit `0` with a
+   `no test surface` message — nothing to run, never a gate failure (issue
+   #239). The full report is in `.opencode/test-cache/<branch>-<runner>.log`.
 7. **`--check`** exits 0 only when there is a fresh cache AND the last run
-   passed (`exit_code=0`). A fresh cache from a failed suite → exit 3.
+   passed (`exit_code=0`), or when there is no test surface (no-op, issue
+   #239). A fresh cache from a failed suite → exit 3.
 8. **Report the environment version.** Every test report MUST include a
    `Version:` field sourced from `--status` (or the `.result` metadata), so
    later pipeline stages never re-ask which version ran the suite.
@@ -58,7 +65,9 @@ The runner verifies the runtime against `.opencode/env-manifest.md`:
   hint.
 - **Warning-only**: environment checks never change exit codes `0/1/2/3`;
   `--status` always exits 0. A missing `node`/`python3` or a missing/malformed
-  manifest produces an informative warning, never a failure.
+  manifest produces an informative warning, never a failure. The no-test-surface
+  no-op (exit 0, issue #239) is the ONLY exit-code change from the environment/
+  detection layer.
 - **Sync guard**: `.nvmrc` ↔ `.node-version` ↔ manifest pin mismatches emit a
   consistency warning (pin must satisfy `pin ⊆ range`).
 - **Drift**: cached `.result` versions ≠ current environment → drift warning
@@ -96,6 +105,6 @@ the cache and forces re-execution.
 ## Fallback
 
 Without a git repo, the runner uses a content-based fingerprint (still
-functional). Without a detected runner, the runner diagnoses clearly and the
-agent should run the project tests directly, reporting the result for its own
-use.
+functional). Without a detected runner (no test surface), the runner no-ops
+with a `no test surface` message and exit 0 (issue #239) — there is nothing to
+run; the agent reports the no-op instead of a test result.

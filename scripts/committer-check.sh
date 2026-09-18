@@ -81,11 +81,20 @@ if [[ "$STATUS" != "in-review" && "$STATUS" != "in-qa" ]]; then
   FAIL=1
 fi
 
-echo -n "Tests cache: "
-if "$SCRIPTS_DIR/test-runner.sh" --check >/dev/null 2>&1; then
-  echo "PASS (fresh cache)"
+# Test-cache gate (issue #239): in a repo with no test surface (no runner
+# detected, or a runner marker without a runnable test script) test-runner
+# --check exits 0 with a 'no test surface' marker — the gate is SKIPPED, not
+# failed. With a real runner, --check exits 0 only on a fresh passing cache
+# (PASS) and 3 otherwise (MISSING → FAIL).
+TEST_OUT="$("$SCRIPTS_DIR/test-runner.sh" --check 2>&1)" && TEST_RC=0 || TEST_RC=$?
+if [[ "$TEST_RC" -eq 0 ]]; then
+  if printf '%s' "$TEST_OUT" | grep -q 'no test surface'; then
+    echo "Tests: no test surface (skipped)"
+  else
+    echo "Tests cache: PASS (fresh cache)"
+  fi
 else
-  echo "MISSING — run test-runner --run before publish"
+  echo "Tests cache: MISSING — run test-runner --run before publish"
   FAIL=1
 fi
 
