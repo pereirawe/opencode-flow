@@ -34,17 +34,20 @@ export FAKE_TODAY
 
 # --- mocks -----------------------------------------------------------------
 
-# mock date: fixed "today" for `date +%Y-%m-%d`; delegates everything else
-# (e.g. `TZ=UTC date -d "$d" +%s`) to the real date binary so the scripts'
-# UTC-anchored duration math is exercised for real (t21).
+# mock date: fixed "today" for `date +%Y-%m-%d` and `date +%Y-%m-%dT%H:%M`
+# (the latter used by promote.sh/transition.sh/close_issue.sh to stamp
+# lifecycle timestamps); delegates everything else (e.g. `TZ=UTC date -d "$d"
+# +%s`) to the real date binary so the scripts' UTC-anchored duration math is
+# exercised for real (t21).
 MOCK_DATE="$TMP/mock-date"; mkdir -p "$MOCK_DATE"
 cat > "$MOCK_DATE/date" <<'EOF'
 #!/usr/bin/env bash
 REAL=/usr/bin/date; [[ -x "$REAL" ]] || REAL=/bin/date
-if [[ "$1" == "+%Y-%m-%d" ]]; then
-  echo "${FAKE_TODAY:-2026-08-14}"
-  exit 0
-fi
+case "$1" in
+  "+%Y-%m-%d"|"+%Y-%m-%dT%H:%M")
+    echo "${FAKE_TODAY:-2026-08-14}"
+    exit 0 ;;
+esac
 exec "$REAL" "$@"
 EOF
 chmod +x "$MOCK_DATE/date"
@@ -323,13 +326,13 @@ assert_contains "$fix/.opencode/resolved_issues.md" \
   "t16: start>end component renders '-' (backlog), others computed"
 
 # ===========================================================================
-# t17 — diff == 0 renders "0d"
+# t17 — diff == 0 renders "0h" (close_issue.sh aedac58: sub-day → hours)
 # ===========================================================================
 fix="$TMP/t17"; make_fixture "$fix" in-publish "#42" "#9" 2026-08-14 2026-08-14 2026-08-14
 pipe_confirm "$fix" "s" >/dev/null
 assert_contains "$fix/.opencode/resolved_issues.md" \
-  "- Durations: backlog=0d waiting=0d dev=0d review=- qa=- publish=- total=0d" \
-  "t17: zero-day differences render 0d"
+  "- Durations: backlog=0h waiting=0h dev=0h review=- qa=- publish=- total=0h" \
+  "t17: zero-day differences render 0h"
 
 # ===========================================================================
 # t18 — ALL dates missing → literal `- Durations: -`
@@ -477,7 +480,7 @@ sed -i 's/^- PR: -/- PR: #9/' "$f"
 rc=$(pipe_confirm "$fix" "s")
 assert_eq "0" "$rc" "t25: close exit 0"
 assert_contains "$fix/.opencode/resolved_issues.md" "- Resolved: $FAKE_TODAY" "t25: Resolved in archive"
-assert_contains "$fix/.opencode/resolved_issues.md" "- Durations: backlog=0d waiting=0d dev=0d review=- qa=- publish=- total=0d" "t25: durations computed (same-day lifecycle)"
+assert_contains "$fix/.opencode/resolved_issues.md" "- Durations: backlog=0h waiting=0h dev=0h review=- qa=- publish=- total=0h" "t25: durations computed (same-day lifecycle)"
 assert_contains "$GH_LOG" "issue close 42" "t25: remote closed exactly once"
 assert_eq "1" "$(grep -cE '^### 1\.' "$fix/.opencode/resolved_issues.md")" "t25: exactly one archive entry"
 assert_not_contains "$fix/.opencode/known_issues.md" "### 1." "t25: tracker entry removed"
