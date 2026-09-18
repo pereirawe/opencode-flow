@@ -609,39 +609,6 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: Delivered in this batch (renumbered from a duplicate #36; #222 kept free for the global committer-check register).
 
 
-### 235. chore(scripts): drop redundant issue-lint --strict from develop-full orchestrator
-- Status: in-publish
-- Opened: 2026-09-18
-- Ready: 2026-09-18T12:36
-- Started: 2026-09-18T12:37
-- In review: 2026-09-18T12:43
-- In publish: 2026-09-18T12:49
-- Type: chore
-- Severity: low
-- Priority: medium
-
-- Report: model
-- Base branch: main
-- Reviewers: 1 (backend)
-- Remote: #176
-- Jira: -
-- PR: #177
-- Location: commands/ocf:develop-full.md
-- Description: `scripts/committer-check.sh` already invokes `issue-lint.sh --strict` as part of the commit gate. `commands/ocf:develop-full.md` also documents/invokes a separate `issue-lint.sh --strict` call before the committer step, which runs the same validation twice per issue. Keep the lint inside committer-check.sh (the natural gatekeeper) and remove the redundant call from the develop-full flow.
-- Impact: Small token/CPU saving per pipeline run. Cleaner ownership: schema linting belongs to the committer gate, not to the orchestrator. Zero regression: committer-check.sh continues to enforce lint on every commit attempt.
-- Business rules: 1. `commands/ocf:develop-full.md` MUST NOT contain a standalone `issue-lint.sh --strict` step outside of committer-check.
-2. The gate ownership MUST remain in `scripts/committer-check.sh` — it MUST continue to call `issue-lint.sh --strict` internally.
-3. `/ocf:develop` (manual-merge variant) MUST follow the same rule.
-4. Discovery-time linting (append-issue.sh's post-append lint) is out of scope and remains unchanged.
-- Acceptance criteria: - `rg -n 'issue-lint.sh --strict' commands/ocf:develop-full.md commands/ocf:develop.md` returns no matches.
-- `rg -n 'issue-lint.sh --strict' scripts/committer-check.sh` still returns a match (unchanged).
-- Running `/ocf:develop-full` on a lint-invalid issue still fails at the committer gate.
-- Tests: no-redundant-lint: rg 'issue-lint.sh --strict' commands/ocf:develop-full.md commands/ocf:develop.md returns no matches → orchestrator is clean.
-committer-still-lints: rg 'issue-lint.sh --strict' scripts/committer-check.sh returns match → gate preserved.
-lint-failure-blocks: an issue missing Business rules for a feat still blocks committer-check.sh (existing behavior).
-- Suggested fix: -
-- Notes: Reviewer backend APPROVED. committer-check.sh 235 FAILs only on mechanical "Tests cache: MISSING" (same exception as #231/#232/#234 — repo has no detectable runner). issue-lint.sh 235 --strict PASS. Discovery gap: issue premise was factually wrong — scripts/committer-check.sh never invoked issue-lint.sh --strict (pickaxe empty); the standalone lint call in command docs was removed, lint preserved via opencode.json runtime template; gap registered as #240.
-
 ### 236. feat(standards): split code-review.md into per-profile standards under standards/code-review/
 - Status: ready
 - Type: feat

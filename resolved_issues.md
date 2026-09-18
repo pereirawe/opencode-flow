@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 235. chore(scripts): drop redundant issue-lint --strict from develop-full orchestrator
+- Resolved: 2026-09-18T12:49
+- Durations: backlog=13h waiting=0h dev=0h review=- qa=- publish=0h total=13h
+- Severity: low
+- Type: chore
+- Report: model
+- Reviewers: 1
+- Remote: #176
+- Summary: `scripts/committer-check.sh` already invokes `issue-lint.sh --strict` as part of the commit gate. `commands/ocf:develop-full.md` also documents/invokes a separate `issue-lint.sh --strict` call before the committer step, which runs the same validation twice per issue. Keep the lint inside committer-check.sh (the natural gatekeeper) and remove the redundant call from the develop-full flow. — -
+
 ### 234. chore(qa): tighten quality-analyst permissions with bash allowlist and scoped edit
 - Resolved: 2026-09-18T12:35
 - Durations: backlog=12h waiting=0h dev=0h review=- qa=- publish=0h total=13h
