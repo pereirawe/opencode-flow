@@ -102,20 +102,24 @@ BASE_BRANCH=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Base branch:/ {print $2
 BASE_BRANCH=${BASE_BRANCH:-main}
 [[ "$BASE_BRANCH" == "-" ]] && BASE_BRANCH="main"
 
-# Multi-line block extraction: from the field line until the next "- " field.
+# Multi-line block extraction: from the field line until the next field-label
+# marker ("- Label:" — a "- " prefix followed by a capitalized label and colon)
+# or the end-of-entry "### " line. Bulleted continuation lines (e.g. each
+# acceptance criterion "- bash ...") are RETAINED because they do not match the
+# label marker; only canonical tracker field labels terminate the block.
 BUSRULES=$(printf '%s\n' "$SECTION" | awk '
   /^- Business rules:/ {found=1; sub(/^- Business rules:[[:space:]]*/, ""); print; next}
-  found && /^- / {exit}
+  found && (/^- [A-Za-z][A-Za-z ]*:/ || /^### /) {exit}
   found {print}
 ')
 ACCEPT=$(printf '%s\n' "$SECTION" | awk '
   /^- Acceptance criteria:/ {found=1; sub(/^- Acceptance criteria:[[:space:]]*/, ""); print; next}
-  found && /^- / {exit}
+  found && (/^- [A-Za-z][A-Za-z ]*:/ || /^### /) {exit}
   found {print}
 ')
 TESTS=$(printf '%s\n' "$SECTION" | awk '
   /^- Tests:/ {found=1; sub(/^- Tests:[[:space:]]*/, ""); print; next}
-  found && /^- / {exit}
+  found && (/^- [A-Za-z][A-Za-z ]*:/ || /^### /) {exit}
   found {print}
 ')
 
