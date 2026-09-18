@@ -610,10 +610,12 @@ issues only. See `standards/issues.md` for the full contract.
 
 
 ### 235. chore(scripts): drop redundant issue-lint --strict from develop-full orchestrator
-- Status: in-progress
+- Status: in-publish
 - Opened: 2026-09-18
 - Ready: 2026-09-18T12:36
 - Started: 2026-09-18T12:37
+- In review: 2026-09-18T12:43
+- In publish: 2026-09-18T12:49
 - Type: chore
 - Severity: low
 - Priority: medium
@@ -638,6 +640,7 @@ issues only. See `standards/issues.md` for the full contract.
 committer-still-lints: rg 'issue-lint.sh --strict' scripts/committer-check.sh returns match → gate preserved.
 lint-failure-blocks: an issue missing Business rules for a feat still blocks committer-check.sh (existing behavior).
 - Suggested fix: -
+- Notes: Reviewer backend APPROVED. committer-check.sh 235 FAILs only on mechanical "Tests cache: MISSING" (same exception as #231/#232/#234 — repo has no detectable runner). issue-lint.sh 235 --strict PASS. Discovery gap: issue premise was factually wrong — scripts/committer-check.sh never invoked issue-lint.sh --strict (pickaxe empty); the standalone lint call in command docs was removed, lint preserved via opencode.json runtime template; gap registered as #240.
 
 ### 236. feat(standards): split code-review.md into per-profile standards under standards/code-review/
 - Status: ready
