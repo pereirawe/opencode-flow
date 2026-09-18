@@ -610,7 +610,10 @@ issues only. See `standards/issues.md` for the full contract.
 
 
 ### 233. chore(agents): remove deprecated delivery and develop-router
-- Status: backlog
+- Status: in-progress
+- Opened: 2026-09-18
+- Ready: 2026-09-18T12:04
+- Started: 2026-09-18T12:04
 - Type: chore
 - Severity: low
 - Priority: medium
@@ -618,7 +621,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Report: model
 - Base branch: main
 - Reviewers: 1 (backend)
-- Remote: -
+- Remote: #172
 - Jira: -
 - PR: -
 - Location: agents/development/delivery.md, agents/development/develop-router.md, AGENTS.md, workflow.md, commands/
