@@ -610,9 +610,10 @@ issues only. See `standards/issues.md` for the full contract.
 
 
 ### 237. feat(scripts): add review-preflight.sh to inject scoped context into parallel reviewers
-- Status: in-progress
+- Status: in-review
 - Opened: 2026-09-18
 - Started: 2026-09-18T13:08
+- In review: 2026-09-18T13:40
 - Type: feat
 - Severity: medium
 - Priority: high
