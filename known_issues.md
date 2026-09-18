@@ -610,7 +610,10 @@ issues only. See `standards/issues.md` for the full contract.
 
 
 ### 235. chore(scripts): drop redundant issue-lint --strict from develop-full orchestrator
-- Status: backlog
+- Status: in-progress
+- Opened: 2026-09-18
+- Ready: 2026-09-18T12:36
+- Started: 2026-09-18T12:37
 - Type: chore
 - Severity: low
 - Priority: medium
@@ -618,7 +621,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Report: model
 - Base branch: main
 - Reviewers: 1 (backend)
-- Remote: -
+- Remote: #176
 - Jira: -
 - PR: -
 - Location: commands/ocf:develop-full.md
