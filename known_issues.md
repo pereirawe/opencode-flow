@@ -610,7 +610,12 @@ issues only. See `standards/issues.md` for the full contract.
 
 
 ### 235. chore(scripts): drop redundant issue-lint --strict from develop-full orchestrator
-- Status: backlog
+- Status: in-publish
+- Opened: 2026-09-18
+- Ready: 2026-09-18T12:36
+- Started: 2026-09-18T12:37
+- In review: 2026-09-18T12:43
+- In publish: 2026-09-18T12:49
 - Type: chore
 - Severity: low
 - Priority: medium
@@ -618,9 +623,9 @@ issues only. See `standards/issues.md` for the full contract.
 - Report: model
 - Base branch: main
 - Reviewers: 1 (backend)
-- Remote: -
+- Remote: #176
 - Jira: -
-- PR: -
+- PR: #177
 - Location: commands/ocf:develop-full.md
 - Description: `scripts/committer-check.sh` already invokes `issue-lint.sh --strict` as part of the commit gate. `commands/ocf:develop-full.md` also documents/invokes a separate `issue-lint.sh --strict` call before the committer step, which runs the same validation twice per issue. Keep the lint inside committer-check.sh (the natural gatekeeper) and remove the redundant call from the develop-full flow.
 - Impact: Small token/CPU saving per pipeline run. Cleaner ownership: schema linting belongs to the committer gate, not to the orchestrator. Zero regression: committer-check.sh continues to enforce lint on every commit attempt.
@@ -635,6 +640,7 @@ issues only. See `standards/issues.md` for the full contract.
 committer-still-lints: rg 'issue-lint.sh --strict' scripts/committer-check.sh returns match → gate preserved.
 lint-failure-blocks: an issue missing Business rules for a feat still blocks committer-check.sh (existing behavior).
 - Suggested fix: -
+- Notes: Reviewer backend APPROVED. committer-check.sh 235 FAILs only on mechanical "Tests cache: MISSING" (same exception as #231/#232/#234 — repo has no detectable runner). issue-lint.sh 235 --strict PASS. Discovery gap: issue premise was factually wrong — scripts/committer-check.sh never invoked issue-lint.sh --strict (pickaxe empty); the standalone lint call in command docs was removed, lint preserved via opencode.json runtime template; gap registered as #240.
 
 ### 236. feat(standards): split code-review.md into per-profile standards under standards/code-review/
 - Status: ready
@@ -766,3 +772,24 @@ noop-check: cd /tmp && scripts/test-runner.sh --check → exit 0 (skipped, no lo
 runner-unchanged: in repo with go.mod/package.json-test → --run still executes suite and caches
 committer-skip: scripts/committer-check.sh <id> on runner-less repo → VERDICT PASS + 'no test surface' line
 - Suggested fix: -
+
+### 240. chore(scripts): committer-check.sh does not actually invoke issue-lint.sh --strict — reconcile gate ownership after #235
+- Status: backlog
+- Type: chore
+- Severity: low
+- Priority: low
+
+- Report: model
+- Base branch: main
+- Reviewers: 1 (backend)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: scripts/committer-check.sh, commands/ocf:develop-full.md, commands/ocf:develop.md
+- Description: Issue #235 removed the standalone `issue-lint.sh --strict` step from the develop-full/develop command docs on the premise that `scripts/committer-check.sh` already invokes the lint internally as part of the commit gate. That premise is FALSE: `git log --all -S 'issue-lint' -- scripts/committer-check.sh` returns nothing — the script has never referenced issue-lint in any branch. After #235 the docs present committer-check.sh as the single gate, but the script does not lint; the lint actually runs in the opencode.json template gate step (`committer-check.sh <id>` + `issue-lint.sh --strict <id>`), which #235 explicitly left untouched. Acceptance criterion 2 of #235 ('rg issue-lint.sh --strict scripts/committer-check.sh still returns a match') is unsatisfiable as written.
+- Impact: Docs and runtime diverge: the docs claim committer-check.sh is the sole gate while the actual lint gate lives in the opencode.json template. No functional regression (runtime still lints), but the gate ownership is not consolidated as #235 intended.
+- Business rules: 1. Decide the single source of truth for the lint gate: either add the `issue-lint.sh --strict` invocation to committer-check.sh (making the docs true and consolidating the gate) or keep the template gate and reference it explicitly in the command docs.
+2. The lint MUST keep running in the delivery pipeline (runtime template gate) until the decision lands.
+- Acceptance criteria: - The command docs and the actual gate behavior agree on where issue-lint runs.
+- Tests: -
+- Suggested fix: Add `"$SCRIPTS_DIR/issue-lint.sh" "$ID" --strict` to committer-check.sh's gate checks (mirroring append-issue.sh's post-append lint pattern), then remove the standalone lint from the opencode.json template gate step; or, alternatively, revert the #235 doc wording to reference the template gate.

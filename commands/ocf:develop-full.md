@@ -60,9 +60,9 @@ Missing data handled gracefully: `Base branch:` → git default; `Reviewers:` �
    **one `Task(development/senior-reviewers/<profile>)` per profile in a SINGLE
    message** for true parallelism. All must approve. On issues → `Task(<devagent>)`
    fixes, then re-review (loop within this step).
-8. **Quality + committer gate**: run `scripts/committer-check.sh <id>` and
-   `scripts/issue-lint.sh --strict <id>`. Both must PASS → `transition.sh <id>
-   in-publish`. On FAIL → STOP the list, notify (do not auto-merge).
+8. **Quality + committer gate**: run `scripts/committer-check.sh <id>` — the
+   single gate. Must PASS → `transition.sh <id> in-publish`. On FAIL → STOP
+   the list, notify (do not auto-merge).
 9. **Create MR**: `scripts/create-pr.sh <id>` (builds body from issue fields,
    sets `- PR: #<n>`).
 10. **Merge + archive**: `OCF_CLOSE_COMMENT=1 scripts/merge-and-close.sh <id>`
@@ -78,7 +78,7 @@ intermediate notifications. Subagents (developer, reviewers) never notify.
 
 ### Failure Handling
 
-Any failure (not found, refused status, review not approved, committer/lint
+Any failure (not found, refused status, review not approved, committer gate
 FAIL, MR/merge fails) → STOP the list, send ONE failure notification. Already
 merged issues stay resolved; the failed issue keeps its current status.
 
