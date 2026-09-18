@@ -625,7 +625,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 2 (backend, security)
 - Remote: #168
 - Jira: -
-- PR: -
+- PR: #169
 - Location: agents/development/senior-reviewers/*.md, agents/development/senior-reviewers/README.md
 - Description: Senior reviewer agents currently declare `bash: allow` without an allowlist, so they can invoke any shell command — including `go test ./...`, `pytest`, or full test suites — bypassing the cache-aware `scripts/test-runner.sh`. This is the most likely root cause of the review phase becoming slow and token-heavy: reviewers re-run suites the developer already cached, and every reviewer duplicates the cost in parallel. Restrict bash to an allowlist mirroring `committer.md` (git, ls/cat/find/head/tail/wc/rg, date, echo, preflight.sh, issue-lint.sh, test-runner.sh --check/--status ONLY) and keep edit deny except `.opencode/known_issues.md` and `.opencode/reviews/**`. Explicitly deny `scripts/test-runner.sh --run*`, `git reset --hard*`, `git push --force*`, `git branch -D*`, `rm -rf*`.
 - Impact: Directly reduces tokens per review pass (est. 40-60% together with review-preflight in issue #237). Guarantees reviewers never re-execute a suite the developer already cached. Removes the class of accidents where a reviewer runs `go test ./...` on a large repo. Non-blocking: security profile keeps its OWASP delegation config untouched.
