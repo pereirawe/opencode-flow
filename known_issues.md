@@ -625,7 +625,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 1 (backend)
 - Remote: #174
 - Jira: -
-- PR: -
+- PR: #175
 - Location: agents/development/quality-analyst.md
 - Description: `quality-analyst.md` declares `bash: allow` AND `edit: allow` without restrictions. The QA agent should only read the issue, verify Tests floor, run `scripts/test-runner.sh --check` (never --run), and transition status. It should not have blanket edit or blanket bash. Apply the same allowlist pattern used for senior reviewers (see issue #231) and restrict edit to `.opencode/known_issues.md` and `.opencode/reviews/**`.
 - Impact: Consistency with senior-reviewers (same discipline). Removes accidental edit surface (QA cannot silently modify source). Removes the possibility of QA running arbitrary commands or full suites. Non-functional: current QA workflow only needs the allowlisted commands.
