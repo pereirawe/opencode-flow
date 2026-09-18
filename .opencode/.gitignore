@@ -1,4 +1,5 @@
 node_modules
 telegram.env
+openwa.env
 test-cache/
 cache/
