@@ -278,3 +278,20 @@ See `.opencode/README.md` for details.
 ## License
 
 MIT — see [LICENSE](LICENSE).
+### Career (/cv) lean defaults
+
+The career skills under `skills/career/*` now run LEAN by default — one
+deterministic recommendation per section to save tokens and go straight to the
+point. Where applicable, two flags control behavior:
+
+- `expand=on` (or CLI `--expand`) — enables modest expansions (e.g. cv-linkedin
+  increases headline variants up to 3, Featured up to 5, recruiter alerts up to
+  5, DM templates up to 3; cv-tailor suggests placements for up to top‑15
+  missing keywords instead of top‑5).
+- `mode=pas` (or CLI `--mode pas`) — uses PAS (Problema → Agitação → Solução)
+  for About/letter drafting in `cv-linkedin`/`cv-cover-letter`.
+
+All shareable artifacts stay free of `[INFERIDO]`. Objective‑first behavior is
+preserved: if `hub.profile_objective` is missing and the user does not answer a
+single clarification, the assumed objective is declared explicitly at the top of
+the report — never silently.

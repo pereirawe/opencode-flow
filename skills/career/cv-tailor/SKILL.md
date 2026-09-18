@@ -138,13 +138,25 @@ keywords — never against the hub or the job text:
    fall in each resume section (Summary, Experience, Education, Skills,
    Certifications, Projects, Languages, Áreas de Atuação) and rank the
    sections by that count.
-   Record the ranking in `gap-analysis.md` following the canonical coverage
-   table of `standards/cv-analysis.md` §4.7.
+    Record the ranking in `gap-analysis.md` following the canonical coverage
+    table of `standards/cv-analysis.md` §4.7.
 
 These metrics complement the ATS score (`cv-ats-score` skill): the density
 map here is computed at gap-analysis time on the generated resume text; the
 ATS score re-computes its own keyword match on the final PDF. They must not
 be duplicated or replaced by the ATS score.
+
+### Suggestions for natural insertion (lean)
+
+After computing density/coverage, suggest where to naturally insert the
+top‑missing job keywords in the resume, without duplicating literal copy:
+
+- Default: propose placements for the **top 5** missing keywords, one line each
+  naming the target section(s) (e.g. `Resumo`, `Skills`, cargos `X`/`Y`).
+- When `expand=on`: extend suggestions up to **top 15** missing keywords.
+
+These are guidance lines only (no fabricated text), to be applied in a
+subsequent edit or in a new tailored run.
 
 ## Human validation flow for inferences
 

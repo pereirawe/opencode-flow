@@ -76,6 +76,11 @@ só, o texto continua 100% derivado do hub):
 | `connections` | identidade profissional que convida à conversa |
 | `personal_branding` | posicionamento de nicho/pessoal |
 
+Nota: quando o relatório `cv-linkedin` já tiver definido uma headline
+recomendada, a frase curta do banner pode ser destilada dessa headline
+(mantendo o conteúdo 100% derivado do hub), desde que respeite as regras de
+legibilidade e concisão aqui descritas.
+
 ---
 
 ## Geometria, zonas seguras e legibilidade (BR 2)

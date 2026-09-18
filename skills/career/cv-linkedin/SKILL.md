@@ -44,6 +44,15 @@ a valid `~/career/<candidate-name>/hub.json`, validated with
   the sync flow (issue-225 skill/script) or ask for the pasted list — never
   parse the export CSVs here and never scrape linkedin.com.
 
+## Options (lean by default)
+
+This skill is LEAN by default to save tokens and go straight to the point. Two optional flags control expansion and About style:
+
+- `expand=on` — expands certain outputs (headline variants up to 3; Featured up to 5 items; recruiter alerts up to 5; DM templates up to 3). Default OFF (single/condensed outputs).
+- `mode=pas` — drafts the Sobre/About using the PAS framework (Problema → Agitação → Solução) with a clear CTA aligned to the objective. Default OFF (uses the standard structure below).
+
+Unless a flag is explicitly set, the report produces one deterministic recommendation per section.
+
 ## Report language
 
 The report MUST be written in the language the user communicates in.
@@ -147,11 +156,12 @@ não for o caso." — never a silent assumption, never founder/CEO for a
 job_search. When the user answered the quick question, record the confirmed
 objective here.
 
-### H2 2 — Headline (literal, ≤220 characters each)
+### H2 2 — Headline (literal, ≤220 characters)
 
-LinkedIn headlines are limited to **220 characters**. Produce **2–3 variants**
-(each ≤220 chars — count the characters and state the count per variant),
-combining:
+LinkedIn headlines are limited to **220 characters**. By default, produce
+**ONE recommended variant** (≤220 chars — state the character count). When
+`expand=on`, produce up to **3 variants** and indicate the recommended one.
+Construct each variant by combining:
 
 1. the target role/service names **LITERALLY** — `job_search` → the actual
    job titles the profile targets (from `profile_objective.target_role` or
@@ -163,18 +173,19 @@ combining:
 
 The role/service names come verbatim from the hub/job — never paraphrased into
 a generic label. Example shape: `Tech Leader | Laravel/PHP | +120 clientes |
-Liderança de times` — content always real. State the character count for each
-variant and indicate the recommended one for the objective.
+Liderança de times` — content always real. Always state the character count for
+each produced variant.
 
 ### H2 3 — Sobre (About, ≤2600 characters)
 
- LinkedIn about sections are limited to **2600 characters**. Draft ONE about
- text (≤2600 chars — state the length) in the candidate's voice, following the
- proven high-converting structure below. The drafting base is the hub
- `summary` (`summary_i18n` when available) — rephrased, never copied verbatim.
- The structure follows the reference example pattern; the TEXT is always the
- candidate's own — never copy anyone else's text, only rephrase/highlight what
- exists in the hub:
+  LinkedIn about sections are limited to **2600 characters**. Draft **ONE**
+  about text (≤2600 chars — state the length) in the candidate's voice. By
+  default use the standard structure below; when `mode=pas` is set, use the
+  PAS (Problema → Agitação → Solução) variant with a clear CTA aligned to the
+  objective. The drafting base is the hub `summary` (`summary_i18n` when
+  available) — rephrased, never copied verbatim. The TEXT is always the
+  candidate's own — never copy anyone else's text, only rephrase/highlight what
+  exists in the hub:
 
 1. **Opening hook line** — provocative/positioning first line built from real
    facts (years of experience, scale, results, domain).
@@ -204,17 +215,20 @@ rendered in the report language.
 ### H2 4 — Experiência (bullets per role, ready to paste)
 
 For **each relevant role** in the hub (relevant = aligned with the objective
-or recent; the candidate decides what to paste), produce:
+or recent; the candidate decides what to paste), produce a condensed block:
 
 - **Role summary** — `title — company (period)`, from the hub, no invention.
 - **Achievement bullets with metrics** — from the hub's `achievements` for the
   role (rephrased `action → quantified result`); every number exists in the
-  hub or is derived from hub dates.
+  hub or is derived from hub dates. By default, output up to **3** concise
+  bullets per role (most impactful first).
 - **Condensed responsibility bullets** — the role's responsibilities (from the
   hub) condensed into short paste-ready bullets.
 
 All bullets are ready to paste into the LinkedIn role description field
-(plain text lines, no markdown decorations). Hub achievements WITHOUT metrics
+(plain text lines, no markdown decorations). Additionally, when a role has at
+least one measurable outcome, emit a single condensed `XYZ` line
+(`Alcancei X fazendo Y, resultando em Z`). Hub achievements WITHOUT metrics
 → mark explicitly as a gap in a separate line — "adicionar resultado
 quantificado" — NEVER invent a number to fill it. Roles without metrics keep
 responsibility bullets only, with the gap flagged.
@@ -266,11 +280,20 @@ the rationale tied to the objective, and the priority. A simple table
   issue-224 banner flow; never invent contact data absent from the hub).
 - **Seção em destaque (Featured)** — what to feature from the hub (projects
   with links, certifications, real achievements), with a short factual caption
-  suggestion per item.
+  suggestion per item. Default to **3** concrete items; when `expand=on`, up to
+  **5**.
 - **Seções do perfil** — apply the headline, the Sobre text, the experience
   bullets and the skills reordering produced above; complete/adjust profile
   sections that exist in the hub (idiomas, certificações, educação, projetos)
   and list the data gaps found along the way (e.g. metrics to collect).
+
+Additionally, include a condensed recruiter sanity check and outreach aids:
+
+- **Veredito do recrutador (condensado)** — 1–2 lines stating whether a senior
+  recruiter would reach out and why, plus the **top 3** alertas (when
+  `expand=on`, list up to 5). Each alerta points to a concrete fix in this plan.
+- **Mensagens diretas (DMs)** — **2** short, personal, no‑jargon templates to
+  reach recruiters at target companies (when `expand=on`, provide up to 3).
 
 ## Hard rules
 
@@ -292,9 +315,9 @@ the rationale tied to the objective, and the priority. A simple table
 4. **Validate the hub** — `python3 $SCRIPTS_DIR/cv/validate.py hub.json` must
    pass (exit 0) before generating the report.
 5. **Respect LinkedIn's limits** — headline ≤220 chars, Sobre ≤2600 chars,
-   skills top 50 shown (top 3 most visible).
+    skills top 50 shown (top 3 most visible).
 6. **Objective first** — never silently assume an objective; never
-   founder/CEO positioning for a `job_search` candidate.
+    founder/CEO positioning for a `job_search` candidate.
 7. **No sensitive data** — no CPF, full address, bank details.
 
 ## Report

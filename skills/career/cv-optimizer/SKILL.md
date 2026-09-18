@@ -313,9 +313,10 @@ contradict.
   target role; service-selling hubs to `services_sales`). Never silently,
   **never founder/CEO positioning for a `job_search` profile**.
 
-**Five topic items (actionable + prioritized).** One item per topic, each a
-bullet with the action, the artifact/output to produce and a priority (P1/P2/
-P3, consistent with the action-plan rules):
+**Five topic items (actionable + prioritized, lean by default).** One item per
+topic, each a bullet with the action, the artifact/output to produce and a
+priority (P1/P2/P3, consistent with the action-plan rules). Keep outputs
+condensed (single recommendation each) — expansion lives in `cv-linkedin`:
 
 1. **Banner do perfil** (issue 224) — avaliar/criar o banner via
    `ocf:cv-banner` (planejado — issue 224 não implementada nesta versão;
@@ -345,10 +346,16 @@ P3, consistent with the action-plan rules):
    recomendações), cite o diff (`add_to_linkedin` /
    `promote_on_linkedin` / `remove_from_linkedin`) com os totais
    adicionar/promover/remover; sem export/sync ou sem recomendações no JSON →
-   recomendar rodar o sync da issue 225 (`scripts/cv/linkedin-sync.py` + skill
-   `cv-linkedin-sync`) ou aplicar a partir do hub + keywords do objetivo.
-   Respeitar o top-3 de busca e o teto top-50 de exibição do LinkedIn. Nunca
-   inventar a lista real.
+    recomendar rodar o sync da issue 225 (`scripts/cv/linkedin-sync.py` + skill
+    `cv-linkedin-sync`) ou aplicar a partir do hub + keywords do objetivo.
+    Respeitar o top-3 de busca e o teto top-50 de exibição do LinkedIn. Nunca
+    inventar a lista real.
+
+**Recruiter sanity check (condensado).** Abrir a seção com um micro‑veredito do
+recrutador sênior (1–2 linhas) e listar **3** alertas prioritários com a
+respectiva correção (lacuna de métricas, desalinhamento de objetivo, jargão,
+formatação fora do padrão). O detalhamento (até 5) pertence ao
+`linkedin-optimization.md`.
 
 **Reference, never duplicate.** `profile-analysis.md` is an internal analysis
 artifact: `[INFERIDO]` markers are allowed inline here (§5). The section only

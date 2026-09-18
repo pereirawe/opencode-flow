@@ -13,7 +13,7 @@ the single source of truth for every agent and skill.
 | `cv-optimizer` | Analyzes the candidate profile from `hub.json` — profile score (0-100 per section + global), target job profiles, CLT vs PJ market salary ranges, context gaps, a prioritized action plan and an integrated **"Melhorias no LinkedIn"** section (banner, headline, sobre, experiência, skills) calibrated by the profile objective (`profile-analysis.md` + PDF) |
 | `cv-tailor` | Analyzes a job (multi-portal) and generates a job-tailored resume PDF (HTML -> PDF) from the hub, with gap analysis, in the job's language |
 | `cv-cover-letter` | Generates a tailored cover letter PDF for a job from the hub, reusing or building the gap analysis, in the job's language |
-| `cv-linkedin` | Generates an objective-driven LinkedIn action report — confirmed profile objective, literal headline (≤220), structured Sobre with ✔ metric bullets (≤2600), per-role Experiência bullets and an add/promote/remove Skills review (against the real LinkedIn list via `cv-linkedin-sync` or a pasted list) — never scrapes or modifies LinkedIn, nothing fabricated, no `[INFERIDO]` in the shareable file |
+| `cv-linkedin` | Generates an objective-driven LinkedIn action report — confirmed profile objective, literal headline (≤220, 1 variant by default), structured Sobre with ✔ metric bullets (≤2600; `mode=pas` optional), per-role Experiência bullets (≤3/cargo + 1 linha XYZ quando houver métrica), add/promote/remove Skills review (vs real LinkedIn list via `cv-linkedin-sync` or a pasted list), Featured plan (3 itens), recruiter sanity check (3 alertas) and 2 DM templates. `expand=on` increases counts modestly. Never scrapes or modifies LinkedIn; nothing fabricated; no `[INFERIDO]` in the shareable file |
 | `cv-interview-prep` | Generates an interview preparation kit — likely questions, STAR answers mapped to real hub experience, questions to ask, technical topics to review |
 | `cv-ats-score` | Scores the generated resume's ATS compatibility (keyword_match 40%, section_completeness 30%, format_compliance 30%) with actionable recommendations |
 
@@ -46,7 +46,7 @@ the single source of truth for every agent and skill.
 | `ocf:cv-optimize <candidate-directory>` | Analyze the profile and generate the improvement plan (incl. LinkedIn improvements) |
 | `ocf:cv-tailor <candidate-directory> <job>` | Generate a job-tailored resume PDF |
 | `ocf:cv-cover-letter <candidate-directory> <job>` | Generate a tailored cover letter PDF |
-| `ocf:cv-linkedin <candidate-directory> [<job>]` | Generate the objective-driven LinkedIn action report |
+| `ocf:cv-linkedin <candidate-directory> [<job>] [--expand] [--mode pas]` | Generate the objective-driven LinkedIn action report (lean by default). `--expand` enables expanded counts; `--mode pas` uses PAS for About |
 | `ocf:cv-banner <candidate-directory> [direction]` | Generate the LinkedIn profile banner (4:1) via each::sense |
 | `ocf:cv-interview-prep <candidate-directory> <job>` | Generate an interview preparation kit |
 | `ocf:cv-ats-score <candidate-directory> <job-slug>` | Score the generated resume's ATS compatibility |

@@ -165,24 +165,32 @@ structured as:
 2. **Inferences NEVER in the final output** — `[INFERIDO]` is allowed ONLY in
    internal human-review artifacts (hub.json, gap-analysis.md, inferencias
    list), per the `[INFERIDO]` convention of `standards/cv-analysis.md` §5. In
-   the final HTML/PDF (`index.html`/`carta-apresentacao.pdf`) NO `[INFERIDO]`
-   may appear — nor case-insensitive variants (`[inferido]`, `[Inferido]`,
-   the word "inferido"). Inferred content (e.g. an unstated language level, a
-   relevant project by analogy) is omitted, rephrased or approved by the
-   candidate BEFORE generation. Never silently, never in the shareable
-   artifact.
+    the final HTML/PDF (`index.html`/`carta-apresentacao.pdf`) NO `[INFERIDO]`
+    may appear — nor case-insensitive variants (`[inferido]`, `[Inferido]`,
+    the word "inferido"). Inferred content (e.g. an unstated language level, a
+    relevant project by analogy) is omitted, rephrased or approved by the
+    candidate BEFORE generation. Never silently, never in the shareable
+    artifact.
 3. **Job language** — all content of the generated letter follows the job's
    language. Use `summary_i18n` when available; otherwise translate the
    relevant content from the hub (translating existing content is allowed —
    it is not fabrication).
 4. **Contact** — include phone/email/address only if they exist in the hub.
    Sensitive data (CPF, document, bank) never.
-5. **Mandatory design standard** — every letter MUST follow
-   `standards/cv-design.md` (ATS, A4 print/B&W, sober style), starting from
-   the reference template `skills/career/cv-pdf/templates/resume.html` —
-   adapt the content and structure, NEVER write CSS from scratch. Before the
-   PDF, verify conformity (standard checklist: semantic headings, single
-   column, no emoji/Google Fonts, 12–15mm margins, fits one page).
+    5. **Mandatory design standard** — every letter MUST follow
+    `standards/cv-design.md` (ATS, A4 print/B&W, sober style), starting from
+    the reference template `skills/career/cv-pdf/templates/resume.html` —
+    adapt the content and structure, NEVER write CSS from scratch. Before the
+    PDF, verify conformity (standard checklist: semantic headings, single
+    column, no emoji/Google Fonts, 12–15mm margins, fits one page).
+
+## Options (lean by default)
+
+- `mode=pas` — drafts the letter body using the PAS framework (Problema →
+  Agitação → Solução) with a clear CTA aligned to the job/objective. Default
+  OFF emits the standard structure above.
+- Lean output: a single objective letter is produced; there is no multi‑variant
+  generation by default.
 
 ## Output structure
 
