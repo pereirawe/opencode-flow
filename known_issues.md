@@ -610,7 +610,10 @@ issues only. See `standards/issues.md` for the full contract.
 
 
 ### 238. bug(scripts): test_timestamps.sh date mock misses T%H:%M format
-- Status: backlog
+- Status: in-progress
+- Opened: 2026-09-18
+- Ready: 2026-09-18T14:20
+- Started: 2026-09-18T14:20
 - Type: bug
 - Severity: high
 - Priority: high
@@ -619,7 +622,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Report: model
 - Base branch: main
 - Reviewers: 2 (backend, qa)
-- Remote: -
+- Remote: #184
 - Jira: -
 - PR: -
 - Location: scripts/tests/test_timestamps.sh
