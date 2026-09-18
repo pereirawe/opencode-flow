@@ -49,8 +49,8 @@ auto-created via `create_issue.sh` if missing.
 6. **Implement**: `Task(<devagent>)` → tests → self-review → `transition.sh <id> in-review`.
 7. **Parallel senior review**: one `Task(development/senior-reviewers/<profile>)`
    per profile, in a single message. All approve; else fix+re-review loop.
-8. **Gate**: `scripts/committer-check.sh <id>` + `scripts/issue-lint.sh --strict
-   <id>` → PASS ⇒ `transition.sh <id> in-publish`. FAIL ⇒ STOP + notify.
+8. **Gate**: `scripts/committer-check.sh <id>` → PASS ⇒ `transition.sh <id>
+   in-publish`. FAIL ⇒ STOP + notify.
 9. **Create MR**: `scripts/create-pr.sh <id>` (sets `- PR: #<n>`).
 10. **Report "esperando merge manual"**: do NOT merge/close. Issue stays
     `in-publish`, MR OPEN.
