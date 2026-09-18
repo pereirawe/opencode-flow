@@ -610,7 +610,12 @@ issues only. See `standards/issues.md` for the full contract.
 
 
 ### 234. chore(qa): tighten quality-analyst permissions with bash allowlist and scoped edit
-- Status: backlog
+- Status: in-publish
+- Opened: 2026-09-18
+- Ready: 2026-09-18T12:30
+- Started: 2026-09-18T12:30
+- In review: 2026-09-18T12:32
+- In publish: 2026-09-18T12:35
 - Type: chore
 - Severity: low
 - Priority: medium
@@ -618,9 +623,9 @@ issues only. See `standards/issues.md` for the full contract.
 - Report: model
 - Base branch: main
 - Reviewers: 1 (backend)
-- Remote: -
+- Remote: #174
 - Jira: -
-- PR: -
+- PR: #175
 - Location: agents/development/quality-analyst.md
 - Description: `quality-analyst.md` declares `bash: allow` AND `edit: allow` without restrictions. The QA agent should only read the issue, verify Tests floor, run `scripts/test-runner.sh --check` (never --run), and transition status. It should not have blanket edit or blanket bash. Apply the same allowlist pattern used for senior reviewers (see issue #231) and restrict edit to `.opencode/known_issues.md` and `.opencode/reviews/**`.
 - Impact: Consistency with senior-reviewers (same discipline). Removes accidental edit surface (QA cannot silently modify source). Removes the possibility of QA running arbitrary commands or full suites. Non-functional: current QA workflow only needs the allowlisted commands.
@@ -635,6 +640,7 @@ issues only. See `standards/issues.md` for the full contract.
 deny-run: rg 'test-runner.sh --run.*deny' agents/development/quality-analyst.md returns match → --run denied.
 transition-allowed: rg 'transition.sh' agents/development/quality-analyst.md returns match → transition still allowlisted.
 - Suggested fix: -
+- Notes: Reviewer backend APPROVED. committer-check.sh 234 FAILs only on mechanical "Tests cache: MISSING" (same exception as #231/#232/#233 — repo has no detectable runner; package.json lacks a test script → __npm-no-test__ → --check exit 3 before reading cache). Structural tests (no-allow, deny-run, transition-allowed) all PASS. issue-lint.sh 234 --strict PASS. Exception documented without blocking.
 
 ### 235. chore(scripts): drop redundant issue-lint --strict from develop-full orchestrator
 - Status: backlog

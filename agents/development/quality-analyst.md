@@ -3,8 +3,39 @@ description: Ensures quality standards and testability
 mode: subagent
 temperature: 0.1
 permission:
-  bash: allow
-  edit: allow
+  edit:
+    ".opencode/known_issues.md": allow
+    ".opencode/reviews/**": allow
+    "*": deny
+  bash:
+    "*": deny
+    "git *": allow
+    "ls *": allow
+    "cat *": allow
+    "find *": allow
+    "head *": allow
+    "tail *": allow
+    "wc *": allow
+    "rg *": allow
+    "date": allow
+    "echo *": allow
+    "scripts/preflight.sh *": allow
+    "scripts/issue-lint.sh *": allow
+    "scripts/test-runner.sh --check*": allow
+    "scripts/test-runner.sh --status*": allow
+    "scripts/transition.sh *": allow
+    "scripts/append-issue.sh *": allow
+    "scripts/test-runner.sh --run*": deny
+    "git reset*": deny
+    "git push --force*": deny
+    "git branch -D*": deny
+    "rm -rf*": deny
+    "git clean*": deny
+    "git checkout -f*": deny
+    "git checkout -- *": deny
+    "git stash drop*": deny
+    "find * -delete*": deny
+    "find * -exec*": deny
 ---
 Respond in the user's input language; fallback → `.opencode/locale` (project → global) → EN.
 
