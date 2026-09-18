@@ -25,6 +25,21 @@ All senior reviewers must:
     → tag as `incomplete-spec`, do NOT register as bug. The fix is to refine the
     issue through discovery (PO → TL), not to patch code against an incomplete spec
 
+## Bash discipline
+
+Senior reviewers run with a **DENY-ALL + allowlist** bash permission model:
+
+- Only commands on the allowlist may run: `git *`, `ls *`, `cat *`, `find *`,
+  `head *`, `tail *`, `wc *`, `rg *`, `date *`, `echo *`, plus the scoped
+  scripts (`scripts/preflight.sh`, `scripts/issue-lint.sh`, and the test runner
+  with `--check`/`--status` only).
+- **NEVER run the test runner with `--run`** — reviewers only consume the test
+  cache via `--check`/`--status`; re-running the suite is the Developer's job.
+- Edit access is restricted to `.opencode/known_issues.md` and
+  `.opencode/reviews/**` — everything else is denied.
+- Broad codebase re-exploration is prohibited: use only `git diff`/`ls`/`cat`/
+  `find`/`rg` within the review scope.
+
 ## Roles
 
 | Agent | Focus |
