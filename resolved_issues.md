@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 243. chore(scripts): test-runner nvm bootstrap should honor the project's .nvmrc / .node-version pin
+- Resolved: 2026-09-22T18:14
+- Durations: backlog=- waiting=- dev=- review=- qa=- publish=- total=18h
+- Severity: low
+- Type: chore
+- Report: model
+- Reviewers: 1
+- Remote: -
+- Summary: The npm branch of bootstrap_env selects the Node version with a hard-coded heuristic (`ls | sort | grep '/v22\.'`, fallback newest), ignoring the project's .nvmrc/.node-version pin. With pins now the norm (project .nvmrc, sync guard in test-env), the bootstrap should read the pin and pick the installed version that matches it. — Add nvm_pick_bin <nvm_versions_dir> [<pin>] helper; read .nvmrc/.node-version in bootstrap_env and pass the normalized numeric pin; extend test_test_runner.sh with a fake HOME nvm tree (fake node/npm binaries logging which version ran) + a sanitized PATH that hides node/npm.
+
 ### 242. feat(scripts): WhatsApp notification service (OpenWA) as Telegram alternative
 - Resolved: 2026-09-18T20:53
 - Durations: backlog=21h waiting=0h dev=0h review=0h qa=0h publish=0h total=21h
