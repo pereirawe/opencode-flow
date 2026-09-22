@@ -217,6 +217,51 @@ reset_mock
 ( cd "$repo" && PATH="$MOCK_BIN:$PATH" bash "$SCRIPT" --run >/dev/null 2>&1 )
 assert_eq "1" "$(invocations)" "deletion of a file with spaces re-executes (B3)"
 
+# --- 16. nvm bootstrap honors the project's .nvmrc / .node-version pin ---
+# Fake HOME with an nvm tree; fake node/npm binaries record which version ran.
+nvmhome="$TMP/nvmhome"
+nvm_root="$nvmhome/.nvm/versions/node"
+mkdir -p "$nvm_root/v20.20.2/bin" "$nvm_root/v22.21.1/bin" "$nvm_root/v24.16.0/bin"
+for v in v20.20.2 v22.21.1 v24.16.0; do
+  printf '#!/usr/bin/env bash\necho "npm %s called: $*" >> "$MOCK_LOG"\nexit 0\n' "$v" > "$nvm_root/$v/bin/npm"
+  printf '#!/usr/bin/env bash\necho v%s\n' "${v#v}" > "$nvm_root/$v/bin/node"
+  chmod +x "$nvm_root/$v/bin/npm" "$nvm_root/$v/bin/node"
+done
+# PATH without dirs exposing node/npm/npx/corepack → nvm bootstrap must trigger.
+SAFE_PATH=""
+while IFS= read -r d; do
+  [[ -n "$d" ]] || continue
+  [[ -x "$d/node" || -x "$d/npm" || -x "$d/npx" || -x "$d/corepack" ]] && continue
+  SAFE_PATH="${SAFE_PATH:+$SAFE_PATH:}$d"
+done <<< "${PATH//:/$'\n'}"
+
+nvmproj="$TMP/nvmproj"
+mkdir -p "$nvmproj"
+printf '{"scripts":{"test":"echo hi"}}\n' > "$nvmproj/package.json"
+NVM_CACHE="$nvmproj/.opencode/test-cache/nogit-npm.result"
+
+printf '22\n' > "$nvmproj/.nvmrc"
+reset_mock
+rm -f "$NVM_CACHE"
+out=$(cd "$nvmproj" && HOME="$nvmhome" PATH="$SAFE_PATH" bash "$SCRIPT" --run 2>&1 || true)
+assert_eq "1" "$(invocations)" "nvm bootstrap invoked npm exactly once"
+assert_contains "$MOCK_LOG" "npm v22.21.1 called" "line pin 22 (.nvmrc) picks the newest v22 installed"
+assert_contains <(printf '%s' "$out") "bootstrapped from nvm: v22.21.1 (pin: 22)" "bootstrap reports the pinned version"
+
+rm "$nvmproj/.nvmrc"
+reset_mock
+rm -f "$NVM_CACHE"
+out=$(cd "$nvmproj" && HOME="$nvmhome" PATH="$SAFE_PATH" bash "$SCRIPT" --run 2>&1 || true)
+assert_eq "1" "$(invocations)" "no-pin bootstrap invoked npm exactly once"
+assert_contains "$MOCK_LOG" "npm v24.16.0 called" "no pin falls back to the newest installed version"
+
+printf '20\n' > "$nvmproj/.node-version"
+reset_mock
+rm -f "$NVM_CACHE"
+out=$(cd "$nvmproj" && HOME="$nvmhome" PATH="$SAFE_PATH" bash "$SCRIPT" --run 2>&1 || true)
+assert_eq "1" "$(invocations)" ".node-version bootstrap invoked npm exactly once"
+assert_contains "$MOCK_LOG" "npm v20.20.2 called" "line pin 20 (.node-version fallback) picks the v20 line"
+
 # --- 15. filtered run uses a separate log, does not overwrite the suite log (improvement) ---
 reset_mock
 echo "0" > "$MOCK_EXIT_FILE"

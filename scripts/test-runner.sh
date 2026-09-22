@@ -156,6 +156,26 @@ build_command() {
 
 # --- environment bootstrap / diagnostics ------------------------------------
 
+# nvm_pick_bin <nvm_versions_dir> [<pin>] — prints the node bin dir best
+# matching the pin: a full-version pin (22.21.1) prefers an exact installed
+# match; any numeric pin falls back to the newest installed version within the
+# pinned major line (22 → newest v22.x); with no pin the newest installed
+# version is used. Prints nothing when no installed version matches.
+nvm_pick_bin() {
+  local versions_dir="$1" pin="$2" bins="" major="" nvm_bin=""
+  bins="$(ls -d "$versions_dir"/v*/bin 2>/dev/null | sort -V)"
+  [[ -z "$bins" ]] && return 0
+  if [[ -n "$pin" ]]; then
+    major="${pin%%.*}"
+    if [[ "$pin" == *.* ]]; then
+      nvm_bin="$(printf '%s\n' "$bins" | grep -F "/v${pin}/" | tail -1)"
+    fi
+    [[ -n "$nvm_bin" ]] || nvm_bin="$(printf '%s\n' "$bins" | grep -E "/v${major}(\\.|/)" | tail -1)"
+  fi
+  [[ -n "$nvm_bin" ]] || nvm_bin="$(printf '%s\n' "$bins" | tail -1)"
+  printf '%s\n' "$nvm_bin"
+}
+
 bootstrap_env() {
   local runner="$1"
   case "$runner" in
@@ -165,23 +185,31 @@ bootstrap_env() {
       fi
       # nvm bootstrap: node/npm are frequently installed via nvm but absent from
       # PATH in non-interactive shells — activate an installed Node version so
-      # `npm test` resolves (environment bootstrap, not a gate). We set PATH
-      # directly instead of `nvm use --lts`, which calls `exit 1` internally
-      # under `set -euo pipefail` in non-interactive shells.
+      # `npm test` resolves (environment bootstrap, not a gate). The version is
+      # selected from the project pin (.nvmrc, fallback .node-version): a
+      # full-version pin (22.21.1) matches the installed version exactly, a line
+      # pin (22) picks the newest installed within that major, and with no pin
+      # the newest installed version is used. We set PATH directly instead of
+      # `nvm use --lts`, which calls `exit 1` internally under `set -euo
+      # pipefail` in non-interactive shells.
       if ! command -v npm >/dev/null 2>&1; then
         if [[ -d "$HOME/.nvm/versions/node" ]]; then
-          local nvm_bins=""
-          nvm_bins="$(ls -d "$HOME/.nvm"/versions/node/v*/bin 2>/dev/null | sort -V)"
-          # Prefer the Node 22 line (matches previous pipeline runs); fall back
-          # to the newest installed version.
-          local nvm_bin=""
-          nvm_bin="$(printf '%s\n' "$nvm_bins" | grep '/v22\.' | tail -1)"
-          [[ -n "$nvm_bin" ]] || nvm_bin="$(printf '%s\n' "$nvm_bins" | tail -1)"
+          local nvm_pin="" nvm_bin=""
+          for f in .nvmrc .node-version; do
+            if [[ -f "$PROJECT_ROOT/$f" ]]; then
+              nvm_pin="$(tr -d '[:space:]' < "$PROJECT_ROOT/$f")"
+              nvm_pin="${nvm_pin#v}"
+              nvm_pin="${nvm_pin%%-*}"
+              [[ "$nvm_pin" =~ ^[0-9]+(\.[0-9]+)*$ ]] || nvm_pin=""
+              [[ -n "$nvm_pin" ]] && break
+            fi
+          done
+          nvm_bin="$(nvm_pick_bin "$HOME/.nvm/versions/node" "$nvm_pin")"
           if [[ -n "$nvm_bin" && -x "$nvm_bin/node" ]]; then
             export PATH="$nvm_bin:$PATH"
-            log "node/npm bootstrapped from nvm: $(node --version 2>/dev/null || echo unknown)"
+            log "node/npm bootstrapped from nvm: $(node --version 2>/dev/null || echo unknown)${nvm_pin:+ (pin: $nvm_pin)}"
           else
-            log_err "WARNING: nvm has no installed Node version — tests may fail (nvm install 22)."
+            log_err "WARNING: nvm has no installed Node version${nvm_pin:+ matching pin \"$nvm_pin\"} — tests may fail (nvm install ${nvm_pin:-22})."
           fi
         else
           log_err "WARNING: npm not found in PATH and nvm is not available — tests may fail (install Node, e.g. via nvm)."

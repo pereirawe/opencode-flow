@@ -651,3 +651,23 @@ issues only. See `standards/issues.md` for the full contract.
 - Tests: -
 - Suggested fix: Remove the committer leg of the test-runner/transition allow loop in test_git_cred_cache.sh (keep developer), mirroring #232's removal; or restore the allow in committer.md if the committer agent's duties require direct test-runner access.
 
+### 243. chore(scripts): test-runner nvm bootstrap should honor the project's .nvmrc / .node-version pin
+- Status: in-progress
+- Opened: 2026-09-22
+- Type: chore
+- Severity: low
+- Priority: low
+- Report: model
+- Base branch: main
+- Reviewers: 1 (runtime)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: scripts/test-runner.sh (bootstrap_env + new nvm_pick_bin), scripts/tests/test_test_runner.sh (scenario 16)
+- Description: The npm branch of bootstrap_env selects the Node version with a hard-coded heuristic (`ls | sort | grep '/v22\.'`, fallback newest), ignoring the project's .nvmrc/.node-version pin. With pins now the norm (project .nvmrc, sync guard in test-env), the bootstrap should read the pin and pick the installed version that matches it.
+- Impact: Tests may run on a different Node major than the project pins (silent env drift between pipeline runs); the v22 preference was a guess, not a contract.
+- Business rules: 1. Pin resolution order: .nvmrc, then .node-version; only numeric pins (after stripping leading v and prerelease suffix) are honored, non-numeric pins fall through. 2. A full-version pin (22.21.1) prefers an exact installed match; a line pin (22) picks the newest installed within that major; no pin falls back to the newest installed version. 3. Warning-only contract unchanged: bootstrap never blocks, only logs.
+- Acceptance criteria: - bash scripts/tests/run_all.sh passes test_test_runner.sh with scenario 16 (pin-aware nvm bootstrap: .nvmrc line pin, no-pin fallback, .node-version fallback).
+- Tests: -
+- Suggested fix: Add nvm_pick_bin <nvm_versions_dir> [<pin>] helper; read .nvmrc/.node-version in bootstrap_env and pass the normalized numeric pin; extend test_test_runner.sh with a fake HOME nvm tree (fake node/npm binaries logging which version ran) + a sanitized PATH that hides node/npm.
+
