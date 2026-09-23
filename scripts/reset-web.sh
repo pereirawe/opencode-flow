@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# reset-web.sh — stop the opencode web systemd service, clear accumulated
+# reset-web.sh — stop the opencode serve systemd service, clear accumulated
 # session state (the SQLite session DB), and restart it.
 #
 # Safe by design:
