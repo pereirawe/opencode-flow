@@ -24,11 +24,16 @@ Example:
 - `docs/specs/<slug>/tech-spec.md` exists and is marked
   `Status: approved` with at least one C-level sign-off.
 - Logo asset is in place under `docs/specs/<slug>/assets/`.
+- Optional but preferred: `docs/specs/<slug>/proposal-data.json` with the
+  client + issuer identities (name, CNPJ, contacts, website, signatory,
+  logo). When present, it drives the proposal header, signature, logo and
+  footer; when absent, the agent asks the user for identities.
 
 ## What happens
 
 1. The `business-ops/proposal-writer` agent reads the approved tech spec
-   end-to-end.
+   end-to-end, plus `proposal-data.json` (if present) to resolve the
+   **client** and **issuer** identities.
 2. It runs commercial discovery (client profile, budget, timeline, terms,
    sponsorship structure) in question batches.
 3. It invokes C-level agents for pricing (`cfo`,
@@ -36,6 +41,6 @@ Example:
    feasibility (`cto` + `business-ops/capacity-planner`), and legal
    (`commercial/deal-desk`) as needed.
 4. It derives effort and price with visible math, drafts the proposal with
-   Mermaid diagrams (mindmap, gantt, pie), runs the quality checklist, and
+   Mermaid diagrams (flowchart, gantt, pie), runs the quality checklist, and
    asks for explicit sign-off before saving.
 5. Output: `docs/specs/<slug>/proposal.md`.

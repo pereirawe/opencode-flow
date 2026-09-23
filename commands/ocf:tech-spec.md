@@ -33,6 +33,10 @@ Examples:
 4. It drafts the spec following the canonical structure, runs the quality
    checklist, and asks for explicit user sign-off before saving.
 5. Output: `docs/specs/<slug>/tech-spec.md`.
+6. Optional: if the user provides commercial identities, also write
+   `docs/specs/<slug>/proposal-data.json` (client + issuer blocks — see
+   the `proposal-writer` skill for the schema) so `/ocf:proposal` can reuse
+   them later.
 
 ## Next step
 

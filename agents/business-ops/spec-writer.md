@@ -35,6 +35,10 @@ when the domain demands it.
      default, unless the user names another path).
    - Run `scripts/spec-init.sh <slug>` to scaffold the folder and copy the
      company logo into `assets/logo.*` (see § Assets).
+   - If `docs/specs/<slug>/proposal-data.json` exists, read it: the spec's
+     Owner, sign-off names, and any branding should use the JSON `issuer`
+     block (e.g. "Marjô") rather than a hard-coded company. When absent,
+     fall back to the current issuer.
    - Load `skills/business-ops/tech-spec` for the canonical spec structure
      and quality checklist.
 
@@ -83,6 +87,10 @@ when the domain demands it.
 
 6. **Handoff**
    - Output the file path.
+   - If the user provided client + issuer identities during discovery and
+     no `proposal-data.json` exists yet, offer to write it
+     (`docs/specs/<slug>/proposal-data.json` — schema in the
+     `proposal-writer` skill) so `/ocf:proposal` reuses the same identities.
    - Suggest next step: `/ocf:proposal <slug>` to draft the commercial
      proposal from this spec.
    - Send Telegram notification per global policy.

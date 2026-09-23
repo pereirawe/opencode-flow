@@ -14,6 +14,50 @@ and sign — grounded in an approved technical specification.
 - Logo asset is in place at `docs/specs/<slug>/assets/logo.<ext>`.
 - The user has confirmed client identity, budget envelope, and timeline.
 
+## Proposal Data (`proposal-data.json`)
+
+`docs/specs/<slug>/proposal-data.json` is the **single source of truth for
+commercial identities** (client + issuer). If present, it MUST drive the
+header, signature, logo, and footer — do not substitute any other company
+name.
+
+```json
+{
+  "project": { "slug": "...", "title": "...", "doc_dir": "docs/specs/<slug>" },
+  "client":  { "name": "...", "segment": "...", "size": "...", "users": "...",
+               "products": "...", "website": null, "cnpj": null, "contact": null },
+  "issuer":  { "name": "...", "tagline": "...", "cnpj": "...", "website": "...",
+               "email": "...", "phones": ["..."], "whatsapp": "...",
+               "signatory": "...", "founders": [...], "logo": "./assets/logo.png" }
+}
+```
+
+Header block (resolved from JSON):
+
+```
+## <project.title>                     ← verbatim, without client/issuer names
+
+**Para:** <client.name> (<client.size>)   ← client.name VERBATIM from JSON
+**De:** <issuer.signatory> · <issuer.name>
+**Contato:** <issuer.email> · <issuer.phones[0]> (WhatsApp)
+**Site:** <issuer.website>
+**CNPJ:** <issuer.cnpj>
+**Data:** <today>
+**Validade:** <today + validity days>
+```
+
+Signature block resolves from `issuer.signatory`, `issuer.name + tagline`,
+`issuer.website`, `issuer.email` and `issuer.whatsapp`.
+
+Rules:
+- `client.name` is used **verbatim** — never inferred or renamed.
+- The issuer is the JSON issuer (e.g. "Marjô"), **not** Codetomika, when the
+  file exists.
+- Responsibilities, gates and assumptions belong to the **client**; branding,
+  contacts and "why us" belong to the **issuer**. Do not cross them.
+- Missing JSON → ask the user for client/issuer identity and flag
+  `[TO CONFIRM WITH CLIENT]`; never silently assume.
+
 ## Canonical Structure
 
 ```

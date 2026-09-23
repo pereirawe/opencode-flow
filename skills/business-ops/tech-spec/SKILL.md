@@ -25,6 +25,16 @@ apply.
 - Owner: <name>
 - Last updated: <YYYY-MM-DD>
 
+## Issuer and Client Identity (`proposal-data.json`)
+
+If `docs/specs/<slug>/proposal-data.json` exists (schema in the
+`proposal-writer` skill), its `issuer` block is the **company that owns the
+spec** — use it for the `Owner:` header and every `Sign-off` name (e.g.
+"CTO Marjô"), and its `client` block for the client name. When the file is
+absent, use the current company. The logo referenced by the JSON
+(`issuer.logo`) is the one embedded at the top; the spec-writer copies it
+via `scripts/spec-init.sh` into `assets/logo.<ext>`.
+
 ## 1. Context and Problem
 ## 2. Goals and Non-Goals
 ## 3. Users and Personas

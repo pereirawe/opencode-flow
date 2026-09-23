@@ -34,10 +34,57 @@ open beside them.
 2. If `tech-spec.md` is missing or in draft, refuse and suggest
    `/ocf:tech-spec <slug>` first.
 
+## Proposal Data (`proposal-data.json`)
+
+`docs/specs/<slug>/proposal-data.json` carries the commercial identities
+that shape the proposal header, signature, logo, and footer. Read it during
+Bootstrap; fall back to inferred/legacy values when the file is absent.
+
+Schema (all fields optional; missing → fallback):
+
+```json
+{
+  "project": { "slug": "sistema-validades", "title": "...", "doc_dir": "docs/specs/sistema-validades" },
+  "client":  { "name": "...", "segment": "...", "size": "...", "users": "...",
+               "products": "...", "website": null, "cnpj": null, "contact": null },
+  "issuer":  { "name": "...", "tagline": "...", "cnpj": "...", "website": "https://...",
+               "email": "...", "phones": ["..."], "whatsapp": "...",
+               "signatory": "...", "founders": [{ "name": "...", "role": "..." }],
+               "logo": "./assets/logo.png" }
+}
+```
+
+Mapping to the proposal:
+
+| JSON field                | Proposal element                                        |
+| ------------------------- | ------------------------------------------------------- |
+| `project.title`           | Document title (strip client/issuer names from it)      |
+| `project.doc_dir`         | Output directory (`docs/specs/<slug>/proposal.md`)      |
+| `client.name` + `client.size` | "**Para:**" line — use the JSON `client.name` verbatim  |
+| `issuer.signatory`        | Signature name                                          |
+| `issuer.name` + `issuer.tagline` | "**De:**", "Prepared by", "Why <issuer>" sections |
+| `issuer.email`            | "**Contato:**" line                                     |
+| `issuer.phone/whatsapp`   | Contact line (+ label WhatsApp if present)              |
+| `issuer.cnpj`             | "**CNPJ:**" line                                        |
+| `issuer.website`          | "**Site:**" line + signature link                       |
+| `issuer.logo`             | `![Logo](<path>)` at top (asset under `assets/`)        |
+
+Rules:
+- The client is identified by `client.name` **verbatim** from the JSON —
+  never infer or rename (e.g. if the JSON says "Rede de Farmácias", do not
+  write "Marjo" or any other brand).
+- The issuer is the JSON `issuer` block (e.g. "Marjô — marketing, venda &
+  tecnologia"), **not** Codetomika, unless the JSON is absent.
+- Never embed the issuer's branding/contacts anywhere they do not belong
+  (gates, responsibilities, risks and assumptions belong to the client).
+
 ## Operating Loop
 
 1. **Bootstrap**
    - Read `docs/specs/<slug>/tech-spec.md` end to end.
+   - Read `docs/specs/<slug>/proposal-data.json` (if present) and resolve
+     client + issuer identities (see above). Flag missing file as
+     `[TO CONFIRM WITH CLIENT]` and keep working.
    - Confirm `assets/logo.*` exists (script bootstrapped it during spec).
    - Load `skills/business-ops/proposal-writer` for the canonical proposal
      structure.
