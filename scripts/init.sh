@@ -13,10 +13,40 @@ CONFIG_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")/.." && pwd)"
 
 mkdir -p "$TARGET/.opencode"
 
-# Copy template files
-cp -r "$CONFIG_DIR/.opencode/." "$TARGET/.opencode/"
-# Copy standards (prioritization.md, issues.md, etc.) for project-level use
-cp -r "$CONFIG_DIR/standards" "$TARGET/.opencode/standards"
+# Explicit whitelist copy (issue #242): copy ONLY the files a project
+# actually consumes — never blind `cp -r` the whole template dir, which used
+# to leak preflight/, reviews/, node_modules/, skills/, agents/, commands/,
+# adorable-proposal/, package.json/lock, README.md, resolved_issues.md and
+# REAL secrets (telegram.env/openwa.env) into every new project.
+# standards/ is intentionally NOT copied: the LSP flow below reads
+# lsp-catalog.json from $CONFIG_DIR at runtime, and nothing in the generated
+# project references a local standards/ copy.
+for f in AGENTS.md workflow.md opencode.json env-manifest.md .gitignore locale; do
+  if [ -f "$CONFIG_DIR/.opencode/$f" ]; then
+    cp "$CONFIG_DIR/.opencode/$f" "$TARGET/.opencode/$f"
+  else
+    echo "[init] Warning: template $f missing in $CONFIG_DIR/.opencode; skipping" >&2
+  fi
+done
+
+# Safety blocklist (net even after the whitelist): remove template-pollution
+# artifacts that blind `cp -r` runs may have left in the target. Deliberately
+# NOT swept: skills/, agents/, commands/ (legitimate project extension
+# points — we just never copy them) and *.env files (a project-owned
+# telegram.env/openwa.env is user data; init never copies secrets in, and
+# never deletes them out).
+rm -rf "$TARGET/.opencode/node_modules" "$TARGET/.opencode/preflight" \
+  "$TARGET/.opencode/reviews" "$TARGET/.opencode/adorable-proposal" \
+  "$TARGET/.opencode/standards"
+rm -f "$TARGET/.opencode/package.json" "$TARGET/.opencode/package-lock.json" \
+  "$TARGET/.opencode/README.md" "$TARGET/.opencode/resolved_issues.md"
+
+# Project-level issue tracker: create only when absent — never overwrite the
+# project's own tracker on re-runs (idempotency). There is no template source;
+# the skeleton matches the project-tracker header convention.
+if [ ! -f "$TARGET/.opencode/known_issues.md" ]; then
+  printf '## Known Issues\n\nProject-level issue tracker.\nUse `$HOME/.config/opencode/known_issues.md` for opencode config-level issues.\n' > "$TARGET/.opencode/known_issues.md"
+fi
 
 # Write locale file
 echo "$LOCALE" > "$TARGET/.opencode/locale"
@@ -57,7 +87,7 @@ fi
 
 echo "[init] .opencode/ initialized in $TARGET"
 echo "[init] Locale set to: $LOCALE"
-echo "[init] Files include: AGENTS.md, workflow.md, opencode.json, known_issues.md"
+echo "[init] Files include: AGENTS.md, workflow.md, opencode.json, known_issues.md, env-manifest.md, .gitignore, locale (whitelist only; never secrets, node_modules/, preflight/, reviews/, skills/, agents/, commands/, adorable-proposal/, standards/)"
 echo "[init] Project issues go in .opencode/known_issues.md, config issues in ~/.config/opencode/known_issues.md"
 
 # --- LSP / Editor Configuration ---
