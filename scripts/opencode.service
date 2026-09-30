@@ -1,9 +1,9 @@
 [Unit]
-Description=Opencode web
+Description=Opencode server (serve)
 After=network.target
 
 [Service]
-ExecStart=__OPENCODE_BIN__ web --hostname 127.0.0.1 --port 4096
+ExecStart=__OPENCODE_BIN__ serve --hostname 127.0.0.1 --port 4096
 Restart=always
 RestartSec=5
 User=__USER__

@@ -26,6 +26,28 @@ Responsibilities:
 - Detect project languages and suggest VS Code LSP configuration (interactive)
 - Merge LSP settings into `.vscode/settings.json` when approved
 
+Explicit copy criteria (no blind `cp -r`):
+- Whitelist (the ONLY files/dirs init copies into the target `.opencode/`):
+  `AGENTS.md`, `workflow.md`, `opencode.json`, `locale`, `known_issues.md`
+  (created from a skeleton when absent, never overwritten), `env-manifest.md`,
+  `.gitignore` — each copied file-by-file from the global template.
+- NEVER copied: real secrets (`*.env` with values — only `*.env.example`
+  models would be allowed, and the whitelist contains none, so effectively no
+  `.env` at all), `node_modules/`, `preflight/`, `reviews/`, `skills/`,
+  `agents/`, `commands/`, `adorable-proposal/`, `package.json` /
+  `package-lock.json`, `README.md`, `resolved_issues.md`, and the full
+  `standards/` tree (the LSP flow reads `lsp-catalog.json` from the global
+  config at runtime; nothing in the generated project needs a local copy).
+- Safety net: after copying, init sweeps stale template-pollution artifacts
+  from previous blind-copy runs (`node_modules/`, `preflight/`, `reviews/`,
+  `adorable-proposal/`, `standards/`, `package.json`, `package-lock.json`,
+  `README.md`, `resolved_issues.md`). `skills/`, `agents/`, `commands/` and
+  project-owned `*.env` files are preserved — they are legitimate project
+  extension points / user data, init just never copies them in.
+- Idempotent: re-running init re-applies the whitelist + locale +
+  branch/remotes substitution cleanly; the project `known_issues.md` and any
+  project-owned `*.env` are never overwritten or deleted.
+
 Review the generated files. If the project is not a git repository, the Repository Context section will show `<not a git repo>`.
 Verify everything looks correct. The project's `known_issues.md` at `.opencode/known_issues.md` is for project-specific issues;
 global config issues go in `~/.config/opencode/known_issues.md`. Locale is stored in `.opencode/locale` — **not** in `opencode.json`.

@@ -651,3 +651,42 @@ issues only. See `standards/issues.md` for the full contract.
 - Tests: -
 - Suggested fix: Remove the committer leg of the test-runner/transition allow loop in test_git_cred_cache.sh (keep developer), mirroring #232's removal; or restore the allow in committer.md if the committer agent's duties require direct test-runner access.
 
+### 242. init.sh copia .opencode/ inteiro para projetos — preflight/, reviews/, node_modules/ e .env sem critério
+- Status: in-publish
+- Opened: 2026-09-30
+- Started: 2026-09-30T14:11
+- In review: 2026-09-30T14:23
+- In publish: 2026-09-30T14:23
+- Type: bug
+- Severity: high
+- Priority: critical
+- Flow: lean
+- Report: william_pereira
+- Base branch: main
+- Reviewers: 2 (devops, security)
+- Remote: #189
+- Jira: -
+- PR: -
+- Location: scripts/init.sh:14-19, commands/ocf:init.md:21-28, .opencode/ (preflight/, reviews/, node_modules/, skills/, agents/, commands/, adorable-proposal/, telegram.env, openwa.env)
+- Description: O `scripts/init.sh` (linhas 14-19) inicializa projetos com `cp -r "$CONFIG_DIR/.opencode/." "$TARGET/.opencode/"` + `cp -r "$CONFIG_DIR/standards" "$TARGET/.opencode/standards"` — cópia cega de TODO o template, sem whitelist/blocklist nem critério. Vão para o projeto: `preflight/` (3 reviews efêmeros), `reviews/` (17 reviews de segurança/issue datados), `node_modules/` (ex.: zod), `skills/`, `agents/`, `commands/`, `adorable-proposal/`, `package.json`/`package-lock.json`, `README.md`, `resolved_issues.md` e, mais grave, `telegram.env` + `openwa.env` com segredos reais (gitignored no template, mas o `cp -r` copia working-tree, não git). As Responsibilities declaradas em `commands/ocf:init.md` (gerar AGENTS.md, workflow.md, opencode.json, locale, known_issues.md + contexto repo + LSP) não mencionam nenhum desses extras.
+- Impact: Todo projeto inicializado via `ocf:init` nasce poluído com dezenas de arquivos irrelevantes (confusão sobre o que é necessário, workspaces inchados com `node_modules/`); vazamento de credenciais reais (`telegram.env`/`openwa.env`) para workspaces de projeto — vetor de exposição de segredos; divergência entre o documentado (ocf:init.md) e o executado (init.sh).
+- Business rules:
+    1. O init DEVE copiar apenas a whitelist explícita: `AGENTS.md`, `workflow.md`, `opencode.json`, `locale`, `known_issues.md`, `env-manifest.md`, `.gitignore` (whitelist decidida por inspeção do que o projeto realmente consome: overlay AGENTS.md + workflow + config + tracker + range policy do test-runner + ignores).
+    2. O init NUNCA DEVE copiar segredos/credenciais: nenhum `*.env` com valor real vai para o projeto (permitido apenas `*.env.example` como modelo); rede de segurança via blocklist mesmo após a whitelist.
+    3. O init NUNCA DEVE copiar `node_modules/`, `preflight/`, `reviews/`, `skills/`, `agents/`, `commands/`, `adorable-proposal/`, `package.json`/`package-lock.json`, `README.md`, `resolved_issues.md`.
+    4. `standards/` completo NÃO vai para o projeto (o init lê `lsp-catalog.json` do CONFIG_DIR em runtime); se o fluxo LSP exigir presença local, copiar somente `lsp-catalog.json` — a verificar na implementação.
+    5. O comportamento DEVE ser idempotente: rodar 2x no mesmo target não duplica nem corrompe (locale + substituição de branch/remotes reaplicados de forma limpa).
+    6. O critério (whitelist + exclusões) DEVE estar documentado nas Responsibilities de `commands/ocf:init.md` — fim do `cp -r` cego.
+- Acceptance criteria:
+    1. Rodar init em dir vazio → `.opencode/` contém somente a whitelist (BR 1); `preflight/`, `reviews/`, `node_modules/`, `skills/`, `agents/`, `commands/`, `adorable-proposal/` ausentes.
+    2. Nenhum `*.env` com segredo presente no target (apenas `*.env.example` se incluído); `find <target> -name 'node_modules' -o -name '*.env' ! -name '*.env.example'` → 0 (BR 2, 3).
+    3. Fluxos existentes preservados: locale escrito, branch/remotes injetados em AGENTS.md, sugestões LSP exibidas a partir do catálogo global (BR 4, sem regressão).
+    4. Init idempotente: segundo run com exit 0 e conteúdo idêntico, sem duplicação (BR 5).
+    5. `commands/ocf:init.md` documenta o critério explícito de cópia (BR 6).
+- Tests:
+    1. Init em /tmp vazio sem git → `.opencode/` contém só a whitelist; `find .opencode -maxdepth 1 \( -name preflight -o -name reviews -o -name node_modules -o -name skills -o -name agents \)` → 0; AGENTS.md mostra `<not a git repo>`.
+    2. Init em repo git com remote → default branch e remotes injetados em AGENTS.md; nenhum `*.env` real copiado para o target (apenas `*.env.example` se incluído).
+    3. Init 2x no mesmo dir → segundo run exit 0, conteúdo idêntico (diff vazio), sem duplicação ou corrupção de AGENTS.md/locale.
+    4. Init com locale `pt` → `.opencode/locale` contém `pt` e fluxo LSP interativo inalterado (sugestões exibidas, merge em `.vscode/settings.json` só com confirmação).
+- Suggested fix: Trocar o `cp -r` cego (init.sh:17-19) por cópia de whitelist explícita arquivo-a-arquivo + blocklist de segurança (`*.env` real, `node_modules/`) como rede; documentar o critério nas Responsibilities de `commands/ocf:init.md`. Esforço ~1-2h.
+
