@@ -93,6 +93,10 @@ When an initiative spans multiple sectors:
 
 ## Related Skills
 
+- `strategic-brief` — strategic consolidation briefs (GO/NO-GO decision base); runs before tech-spec
+- `tech-spec` — technical specifications derived from an approved strategic brief
+- `proposal-writer` — commercial proposals derived from an approved tech spec
+- Pipeline: `strategic-brief → tech-spec → proposal-writer` (integrated, each runnable standalone)
 - `marketing-plan` — campaign planning
 - `sales-pipeline` — revenue forecasting
 - `financial-reporting` — board materials
