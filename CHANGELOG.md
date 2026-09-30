@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.2.0 (2026-09-30)
+
+- **feat(business-ops): `strategic-brief` skill** — senior-grade strategic
+  consolidation briefs (GO/NO-GO decision base: branding, competitors, sector
+  tasks, investment, opex, EBITDA/break-even/ROI, market scenarios,
+  synthetic-data simulation plans); feeds the
+  `strategic-brief → tech-spec → proposal-writer` pipeline documented in
+  `agents/ceo.md`
+- **bug(scripts): `init.sh` whitelist** — replaces the blind `cp -r` of
+  `.opencode/` with an explicit file whitelist; no more `preflight/`,
+  `reviews/`, `node_modules/`, `standards/` or `*.env` leaking into new
+  projects; criteria documented in `commands/ocf:init.md` + regression test
+  `scripts/tests/test_init.sh` (issue #242, PR #190)
+
 ## 2.1.0 (2026-09-03)
 
 - **feat(career): hub profile objective** — `hub.json` gains the optional
