@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 242. init.sh copia .opencode/ inteiro para projetos — preflight/, reviews/, node_modules/ e .env sem critério
+- Resolved: 2026-09-30T14:26
+- Durations: backlog=- waiting=- dev=0h review=- qa=- publish=0h total=14h
+- Severity: high
+- Type: bug
+- Report: william_pereira
+- Reviewers: 2
+- Remote: #189
+- Summary: O `scripts/init.sh` (linhas 14-19) inicializa projetos com `cp -r "$CONFIG_DIR/.opencode/." "$TARGET/.opencode/"` + `cp -r "$CONFIG_DIR/standards" "$TARGET/.opencode/standards"` — cópia cega de TODO o template, sem whitelist/blocklist nem critério. Vão para o projeto — Trocar o `cp -r` cego (init.sh:17-19) por cópia de whitelist explícita arquivo-a-arquivo + blocklist de segurança (`*.env` real, `node_modules/`) como rede; documentar o critério nas Responsibilities de `commands/ocf:init.md`. Esforço ~1-2h.
+
 ### 243. chore(scripts): test-runner nvm bootstrap should honor the project's .nvmrc / .node-version pin
 - Resolved: 2026-09-22T18:14
 - Durations: backlog=- waiting=- dev=- review=- qa=- publish=- total=18h
