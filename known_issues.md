@@ -651,3 +651,45 @@ issues only. See `standards/issues.md` for the full contract.
 - Tests: -
 - Suggested fix: Remove the committer leg of the test-runner/transition allow loop in test_git_cred_cache.sh (keep developer), mirroring #232's removal; or restore the allow in committer.md if the committer agent's duties require direct test-runner access.
 
+### 244. Loop error review: structured per-loop journal + reviewer agent + global/project issue routing
+
+- Status: in-progress
+- Opened: 2026-10-09
+- Ready: 2026-10-09
+- Started: 2026-10-09
+- Type: feat
+- Severity: medium
+- Priority: high
+- Report: model
+- Base branch: main
+- Reviewers: 2 (backend, devops)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: scripts/loop-journal.sh, scripts/loop-error-triage.sh, scripts/config.sh, scripts/append-issue-global.sh, scripts/aibot-watcher.sh, agents/development/loop-error-reviewer.md, commands/ocf:discovery.md, commands/ocf:develop.md, commands/ocf:develop-full.md, commands/ocf:triage-errors.md, workflow.md, standards/loop-journal.md, scripts/tests/test_loop_journal.sh, scripts/tests/test_loop_error_triage.sh
+- Description: Como mantenedor do pipeline opencode, quero que cada loop de discovery e de delivery registre seus erros em um journal estruturado e que um agente revisor transforme esses erros em issues canônicas no tracker correto (global do opencode ou do projeto onde o loop rodou), para que falhas de execução virem trabalho rastreado automaticamente, sem depender de leitura manual de logs.
+- Impact: Hoje falhas de loop só aparecem em logs ad-hoc (state/aibot/logs/develop-*.log, saída de comando) e artefatos de preflight/review, e nada as converte em issues. O discovery pode terminar com lint FAIL sem registro e o delivery pode falhar no meio sem rastro rastreável. Esta feature fecha o ciclo execução→registro, reduzindo falhas silenciosas e retrabalho.
+- Business rules: 1. Todo loop de discovery e de delivery registra eventos de erro estruturados em um journal por loop (padrão `<workspace>/.opencode/loop-journal/loop-<loop>-<id>.jsonl`) via `scripts/loop-journal.sh append`; cada evento carrega ts, loop, id, phase, severity, scope, location, command, exit_code e message.
+    2. Ao final de cada loop de discovery e de delivery o agente `development/loop-error-reviewer` roda automaticamente, sem confirmação do usuário e sem alterar o desfecho do loop revisado.
+    3. Cada erro acionável é classificado como `global` (config/tooling do opencode: scripts/, agents/, commands/, skills/, standards/, workflow.md, AGENTS.md, opencode.json, Makefile) ou `project` (o workspace onde o loop rodou).
+    4. Issues `global` vão para `~/.config/opencode/known_issues.md`; issues `project` vão para `<workspace>/.opencode/known_issues.md` (fallback `<workspace>/known_issues.md`).
+    5. As issues são criadas automaticamente como entradas canônicas `bug` com Status `backlog` via `scripts/append-issue.sh`, usando o override de tracker `OCF_ISSUES_FILE` (novo) para o destino global; `scripts/append-issue-global.sh` grava no tracker global independentemente do cwd.
+    6. Deduplicação: um erro já representado por issue aberta (mesma location+command) não é refilado; erros abaixo de `--min-severity` (padrão `medium`) são ignorados.
+    7. As duas granularidades rodam: por issue/loop e um passe consolidado do lote sobre todos os journals da execução.
+    8. Não-bloqueante: a revisão nunca muda o status da issue revisada e nunca falha o loop se ela mesma falhar; é best-effort.
+    9. Sem fabricação: apenas erros derivados de entradas de journal viram issues; incerteza é preservada como `backlog` com nota.
+- Acceptance criteria: 1. `scripts/loop-journal.sh` suporta `path|append|list|clear` com saída JSONL sem dependências externas.
+    2. `scripts/loop-error-triage.sh` suporta `--plan` (padrão) e `--apply`, `--min-severity`, e roteia global vs project corretamente; grava um digest de propostas em `.opencode/preflight/`.
+    3. `OCF_ISSUES_FILE` sobrepõe PROJECT_ISSUES_FILE/RESOLVED_FILE em todos os scripts do pipeline quando aponta para um arquivo existente.
+    4. `agents/development/loop-error-reviewer.md` existe e é invocado ao final de `ocf:discovery`, `ocf:develop` e `ocf:develop-full` (por loop + consolidado).
+    5. `commands/ocf:triage-errors.md` permite execução manual.
+    6. `workflow.md` e `standards/loop-journal.md` documentam schema + rubrica de roteamento.
+    7. `bash scripts/tests/run_all.sh` passa incluindo os novos testes; `scripts/issue-lint.sh 244` retorna PASS.
+- Tests: 1. Append de um erro com scope global e outro com scope project no journal → `loop-error-triage.sh --plan` lista ambos com os scopes global/project e o destino global/project correto.
+    2. `loop-error-triage.sh --apply` com erro de path de config (global) → entrada `### <id>.` tipo bug é anexada ao `known_issues.md` global e NÃO ao tracker do projeto.
+    3. `loop-error-triage.sh --apply` a partir do cwd de um projeto alvo com erro project → entrada bug é anexada a `<cwd>/.opencode/known_issues.md` com `- Type: bug` e o `- Location:` original.
+    4. Com `OCF_ISSUES_FILE=<path-global>` exportado, `scripts/append-issue.sh` e `scripts/issue-lint.sh` operam nesse arquivo em vez do tracker do cwd.
+    5. `loop-journal.sh append` seguido de `list` → o evento faz round-trip de todos os campos.
+    6. Reexecutar `--apply` sobre um erro já registrado (mesma location+command) → não cria uma segunda issue (dedup).
+- Suggested fix: Adicionar `scripts/loop-journal.sh` (JSONL append/list/clear) e `scripts/loop-error-triage.sh` (classifica + dedup + roteia para `append-issue.sh`) mais o override `OCF_ISSUES_FILE` em `scripts/config.sh`; implementar o vazio `scripts/append-issue-global.sh`; criar o agente `development/loop-error-reviewer`; ligar o journal + agente nos comandos de discovery/develop/develop-full e no caminho de falha do aibot-watcher; documentar em `standards/loop-journal.md` e `workflow.md`; cobrir com testes bash. Esforço ~6-8h.
+
