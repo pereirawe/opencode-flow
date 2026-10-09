@@ -32,8 +32,14 @@ depth (PO + TL). All loops end with `scripts/append-issue.sh` + `issue-lint.sh`.
    --strict`, and reports the created `id`.
 4. **Verify**: re-run `scripts/issue-lint.sh <id>` on the result; if it fails,
    report the gaps (do not auto-fix — discovery already attempted).
-5. **One Telegram notification** with the outcome (id, type, loop, lint status,
-   `known_issues.md` link).
+5. **Loop error review**: `Task(development/loop-error-reviewer)` with
+   `--loop discovery --id <id>`. It runs `scripts/loop-error-triage.sh --plan`
+   over the loop journal, judges the proposals, and (only for actionable errors)
+   files canonical `bug` entries in the global tracker
+   (`~/.config/opencode/known_issues.md`) or the workspace tracker. Best-effort
+   and non-blocking — it never changes the discovered issue's status.
+6. **One Telegram notification** with the outcome (id, type, loop, lint status,
+   `known_issues.md` link, loop-error-review filed/skipped).
 
 ### Notes
 

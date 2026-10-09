@@ -57,10 +57,14 @@ auto-created via `create_issue.sh` if missing.
 9. **Gate**: `scripts/committer-check.sh <id>` → PASS ⇒ `transition.sh <id>
    in-publish`. FAIL ⇒ STOP + notify.
 10. **Create MR**: `scripts/create-pr.sh <id>` (sets `- PR: #<n>`).
-11. **Report "esperando merge manual"**: do NOT merge/close. Issue stays
+11. **Loop error review (per issue)**: `Task(development/loop-error-reviewer)`
+    with `--loop develop --id <id>` — triages the loop journal and files
+    actionable errors as `bug` in the global or workspace tracker. Non-blocking.
+12. **Report "esperando merge manual"**: do NOT merge/close. Issue stays
     `in-publish`, MR OPEN.
-12. **Return to base**: `git checkout <base>` + `git pull` (base has no change).
-13. **Repeat** for the next issue.
+13. **Return to base**: `git checkout <base>` + `git pull` (base has no change).
+14. **Repeat** for the next issue. After the LAST issue, run one consolidated
+    `Task(development/loop-error-reviewer)` with `--loop batch` before notifying.
 
 Closing/archiving after manual merge: `/ocf:check-pr <id>` (or Close Requester).
 

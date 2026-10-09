@@ -72,9 +72,13 @@ Missing data handled gracefully: `Base branch:` → git default; `Reviewers:` �
     sets `- PR: #<n>`).
 11. **Merge + archive**: `OCF_CLOSE_COMMENT=1 scripts/merge-and-close.sh <id>`
     (merges MR, returns to base + pull, archives via `close_issue.sh`).
-12. **Warm next**: if there is a next ID, `scripts/preflight.sh <next-id>` now
+12. **Loop error review (per issue)**: `Task(development/loop-error-reviewer)`
+    with `--loop develop-full --id <id>` — triages the loop journal and files
+    actionable errors as `bug` in the global or workspace tracker. Non-blocking.
+13. **Warm next**: if there is a next ID, `scripts/preflight.sh <next-id>` now
     (clean base) so the next developer starts warm.
-13. **Repeat** for the next issue.
+14. **Repeat** for the next issue. After the LAST issue, run one consolidated
+    `Task(development/loop-error-reviewer)` with `--loop batch` before notifying.
 
 ### Telegram Notifications
 
