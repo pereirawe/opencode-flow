@@ -705,7 +705,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 2 (devops, security)
 - Remote: #201
 - Jira: -
-- PR: -
+- PR: #202
 - Location: opencode.json, standards/mcp-setup.md, standards/pt/mcp-setup.md, standards/es/mcp-setup.md, standards/mcp-registry.md, .opencode/env-manifest.md, .opencode/.gitignore, scripts/tests/test_mcp_config.sh
 - Description: Follow-up da #248. Provedor decidido: registrar o WhatsApp MCP com @sjawhar/whatsapp-mcp (fork endurecido, servidor stdio via npx) fixado na versao 2.4.1, enabled:false. Usa a API nao-oficial WhatsApp Web (Baileys).
 - Impact: Agentes passam a poder ler/enviar WhatsApp mediante habilitacao explicita e QR; fica documentado o risco de ban e a necessidade de numero dedicado.
