@@ -126,6 +126,19 @@ if printf '%s' "$REVIEWERS" | grep -qi 'security'; then
   fi
 fi
 
+# Formatting check (issue #246) — non-blocking WARN only. Never fails the gate
+# because a project may legitimately have no formatter installed.
+FORMATTER="$SCRIPTS_DIR/format.sh"
+if [[ -x "$FORMATTER" ]]; then
+  if "$FORMATTER" --staged --check >/dev/null 2>&1; then
+    echo "Format: clean (or no formatter/staged files)"
+  else
+    echo "GATE: WARN — formatting changes pending (run scripts/format.sh --staged)"
+  fi
+else
+  echo "Format: format.sh not found (skipped)"
+fi
+
 if [[ "$FAIL" -eq 0 ]]; then
   echo "VERDICT: PASS — safe to transition -> in-publish"
   exit 0

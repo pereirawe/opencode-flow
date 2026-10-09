@@ -4,6 +4,25 @@ source "$(dirname "$0")/config.sh"
 
 echo "[pre-commit] Running checks..."
 
+# Run the project's formatter on staged files (issue #246), then re-stage them
+# so the commit includes the formatted result. Missing formatters are skipped
+# gracefully by format.sh and never block the commit.
+FORMATTER="$(dirname "$0")/format.sh"
+if [[ -x "$FORMATTER" ]]; then
+  STAGED_BEFORE=$(git diff --cached --name-only --diff-filter=ACMR 2>/dev/null || true)
+  if "$FORMATTER" --staged; then
+    if [[ -n "$STAGED_BEFORE" ]]; then
+      while IFS= read -r f; do
+        [[ -n "$f" ]] && git add -- "$f" 2>/dev/null || true
+      done <<< "$STAGED_BEFORE"
+    fi
+  else
+    echo "[pre-commit] formatter reported changes needed (continuing)"
+  fi
+else
+  echo "[pre-commit] format.sh not found — skipping formatting"
+fi
+
 # Run tests via the shared test-runner (cache-aware fingerprint): identical
 # code is never re-tested. Exit codes: 0=pass, 1=test failure, 2=cannot run
 # (no runner/no suite) -> skip gracefully, 3=check: no fresh cache.
