@@ -653,7 +653,9 @@ issues only. See `standards/issues.md` for the full contract.
 
 
 ### 248. Integrar MCP de Gmail (oficial remoto) e preparar WhatsApp (decisão pendente) no opencode.json
-- Status: in-progress
+- Status: in-publish
+- In review: 2026-10-09T12:12
+- In publish: 2026-10-09T12:12
 - Type: feat
 - Severity: medium
 - Priority: high
@@ -661,7 +663,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Report: model
 - Base branch: main
 - Reviewers: 2 (devops, security)
-- Remote: -
+- Remote: #199
 - Jira: -
 - PR: -
 - Location: opencode.json, standards/mcp-registry.md, standards/mcp-setup.md, standards/README.md, standards/pt/mcp-setup.md, standards/es/mcp-setup.md, standards/pt/README.md, standards/es/README.md, .opencode/env-manifest.md, scripts/tests/test_mcp_config.sh
