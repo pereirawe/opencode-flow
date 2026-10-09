@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests for the Gmail MCP registration (#248; WhatsApp deferred to #249).
+# Tests for the MCP registrations (#248 Gmail, #249 WhatsApp).
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -26,7 +26,7 @@ else
 fi
 
 # --- t02..t04: mcp entries ------------------------------------------------
-read -r GMAIL_OK OAUTH_OK NOWHATS <<EOF
+read -r GMAIL_OK OAUTH_OK WHATS_OK <<EOF
 $(python3 - "$CFG" <<'PY'
 import json, sys
 cfg = json.load(open(sys.argv[1]))
@@ -46,9 +46,18 @@ oauth_ok = (
     and isinstance(oauth.get("scope"), str)
     and len(oauth.get("scope", "")) > 0
 )
-# WhatsApp must NOT be registered until a provider decision (#249).
-nowhats = "whatsapp" not in mcp
-print("yes" if gmail_ok else "no", "yes" if oauth_ok else "no", "yes" if nowhats else "no")
+# WhatsApp (#249): local stdio via @sjawhar/whatsapp-mcp, version pinned,
+# state kept under .opencode/whatsapp, disabled by default.
+w = mcp.get("whatsapp", {})
+cmd = w.get("command", []) if isinstance(w.get("command"), list) else []
+whats_ok = (
+    w.get("type") == "local"
+    and w.get("enabled") is False
+    and "@sjawhar/whatsapp-mcp@2.4.1" in cmd
+    and w.get("cwd") == ".opencode/whatsapp"
+    and "latest" not in " ".join(str(x) for x in cmd)
+)
+print("yes" if gmail_ok else "no", "yes" if oauth_ok else "no", "yes" if whats_ok else "no")
 PY
 )
 EOF
@@ -65,10 +74,10 @@ else
   t_fail "mcp.gmail oauth block missing/incomplete (need {env:...} clientId+clientSecret+scope)"
 fi
 
-if [ "$NOWHATS" = "yes" ]; then
-  t_ok "mcp.whatsapp not registered (decision deferred — issue #249)"
+if [ "$WHATS_OK" = "yes" ]; then
+  t_ok "mcp.whatsapp is local, pinned @sjawhar/whatsapp-mcp@2.4.1, cwd .opencode/whatsapp, disabled"
 else
-  t_fail "mcp.whatsapp is registered but no vetted package was chosen"
+  t_fail "mcp.whatsapp missing/invalid (need local, pinned 2.4.1, cwd .opencode/whatsapp, enabled:false)"
 fi
 
 # --- t05: the fictional cloud package is gone from config/registry ----------
@@ -94,5 +103,12 @@ for f in standards/mcp-setup.md standards/pt/mcp-setup.md standards/es/mcp-setup
     t_fail "docs: $f missing"
   fi
 done
+
+# --- t08: WhatsApp state dir is gitignored --------------------------------
+if grep -qx 'whatsapp/' "$REPO/.opencode/.gitignore" 2>/dev/null; then
+  t_ok ".opencode/.gitignore ignores whatsapp/"
+else
+  t_fail ".opencode/.gitignore does not ignore whatsapp/"
+fi
 
 t_finish

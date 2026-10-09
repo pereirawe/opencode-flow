@@ -23,15 +23,21 @@ test-runner: >=1.0
 4. **Reportes** — registrar siempre el campo `Version:` en los reportes de test
    usando la salida de `--status` (o los metadatos del `.result` cacheado).
 
-## MCP servers (Gmail)
+## MCP servers (Gmail / WhatsApp)
 
-`opencode.json` registra `mcp.gmail` (remoto, OAuth, `enabled: false`). Para
-habilitarlo, exporta estas variables (siempre por ambiente, nunca commitear):
+`opencode.json` registra `mcp.gmail` (remoto, OAuth, `enabled: false`) y
+`mcp.whatsapp` (local stdio, `@sjawhar/whatsapp-mcp@2.4.1`, `enabled: false`).
+
+Gmail — para habilitarlo, exporta estas variables (siempre por ambiente, nunca
+commitear):
 
 - `GMAIL_MCP_CLIENT_ID`
 - `GMAIL_MCP_CLIENT_SECRET`
 
 Autentica con `opencode mcp auth gmail`. Google no soporta Dynamic Client
 Registration, así que el cliente OAuth debe pre-registrarse en Google Cloud.
-WhatsApp queda pendiente de decisión (issue #249). Detalles en
-`standards/mcp-setup.md`.
+
+WhatsApp — no necesita variables de entorno: habilita `mcp.whatsapp` y escanea
+el QR (WhatsApp Web/Baileys, no oficial; usa un número dedicado por el riesgo de
+ban). Su estado se guarda en `.opencode/whatsapp/` (ignorado por git). Detalles
+en `standards/mcp-setup.md`.

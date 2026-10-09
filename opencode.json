@@ -16,6 +16,12 @@
                 "scope": "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.compose"
             },
             "enabled": false
+        },
+        "whatsapp": {
+            "type": "local",
+            "command": ["npx", "-y", "@sjawhar/whatsapp-mcp@2.4.1"],
+            "cwd": ".opencode/whatsapp",
+            "enabled": false
         }
     },
     "command": {

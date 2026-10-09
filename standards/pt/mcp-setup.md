@@ -1,4 +1,4 @@
-# Configuração de MCP — Gmail (e WhatsApp pendente)
+# Configuração de MCP — Gmail e WhatsApp
 
 Como habilitar, autenticar e operar os servidores MCP configurados em
 `opencode.json`.
@@ -21,17 +21,16 @@ valor é resolvido em tempo de carga e nunca é gravado no arquivo de config.
 
 ## Servidores registrados
 
-| Servidor | Tipo | Endpoint | Padrão |
-|----------|------|----------|--------|
+| Servidor | Tipo | Endpoint / Comando | Padrão |
+|----------|------|--------------------|--------|
 | `gmail` | remote | `https://gmailmcp.googleapis.com/mcp/v1` | desabilitado |
+| `whatsapp` | local | `npx -y @sjawhar/whatsapp-mcp@2.4.1` | desabilitado |
 
-O servidor é registrado com `enabled: false` de propósito: o OpenCode nunca
-tenta iniciar um servidor cujas credenciais estão ausentes, então o startup
+Os dois servidores são registrados com `enabled: false` de propósito: o OpenCode
+nunca tenta iniciar um servidor cujas credenciais estão ausentes, então o startup
 permanece seguro numa máquina nova. Para habilitar, mude `enabled` para `true` e
 autentique como descrito abaixo. Habilite só o que precisar — todo MCP adiciona
 ferramentas ao contexto do modelo.
-
-O WhatsApp **ainda não está registrado** — veja “WhatsApp (decisão pendente)”.
 
 ## Gmail (remoto oficial, OAuth 2.0)
 
@@ -81,24 +80,47 @@ a config nem os versione.
 > Atenção: este servidor é um developer preview do Google e o fluxo pode mudar.
 > Acompanhe a issue upstream #26195 antes de depender dele em automação.
 
-## WhatsApp (decisão pendente)
+## WhatsApp (local, `@sjawhar/whatsapp-mcp`, não-oficial)
 
-Nenhum MCP de WhatsApp adequado está registrado hoje. O candidato original
-`@fredshred7/whatsapp-mcp-server` **não existe no npm** (o registry retorna 404)
-e foi removido — apontar `npx -y` para um nome inexistente é risco de cadeia de
-suprimentos / typosquatting.
+O `whatsapp` é um servidor **local** stdio: `npx -y @sjawhar/whatsapp-mcp@2.4.1`
+(versão fixada de propósito — nunca `latest`). É um fork endurecido do
+`karlfoster/whatsapp-mcp-2.0` e conecta via **Baileys — a API não-oficial
+WhatsApp Web**, e não a Cloud API oficial da Meta.
 
-As opções levantadas, nenhuma habilitada ainda:
+> ⚠️ **Risco de ban.** O WhatsApp pode banir contas que usam clientes não
+> oficiais. Use um **número dedicado (burner)** — nunca o seu número pessoal.
 
-| Candidato | Transporte | Observações |
-|-----------|------------|-------------|
-| `@sjawhar/whatsapp-mcp` (fixar versão) | stdio | WhatsApp Web (Baileys), **não** é a Cloud API oficial; exige pareamento por QR e número dedicado; o README alerta risco de ban da conta; fork reforçado com proveniência SLSA |
-| `@iflow-mcp/mmarqueti-whatsapp-mcp` | WebSocket (porta) | Espelho comunitário do servidor Cloud API; o transporte WebSocket obrigatório é incompatível com o MCP local stdio do OpenCode |
-| Servidor Cloud API próprio | stdio | Encapsular você mesmo a WhatsApp Cloud API oficial da Meta; mais trabalho, sem dependência de terceiros |
+### 1. Habilitar e parear
 
-Decisão adiada (issue #249 no `known_issues.md`). Quando houver escolha, registre
-sob `mcp` com `enabled: false` e documente as credenciais aqui; nunca versione
-tokens.
+1. Defina `mcp.whatsapp.enabled` como `true`.
+2. Reinicie o OpenCode; na primeira execução o servidor imprime um QR code.
+3. No celular: **WhatsApp → Configurações → Dispositivos conectados → Conectar
+   um dispositivo**.
+4. Verifique o status: `opencode mcp list`.
+
+### 2. Armazenamento e estado
+
+O servidor grava seu estado no diretório de trabalho, definido como
+`.opencode/whatsapp` (`cwd` no `opencode.json`); esse diretório é ignorado pelo
+git via `.opencode/.gitignore`:
+
+| Caminho (em `.opencode/whatsapp/`) | Conteúdo |
+|------------------------------------|----------|
+| `auth_info/` | Credenciais do WhatsApp — **nunca versionar** |
+| `data/` | Banco SQLite (mensagens, chats, contatos) |
+| `store/` | Store de mensagens do Baileys + lock |
+| `uploads/` | Arquivos permitidos no `send_file` |
+| `downloads/` | Mídias baixadas |
+| `contacts/` | Arquivos VCF para importar contatos |
+
+Se perder `auth_info/`, pareie de novo com o QR code.
+
+### 3. Alternativas
+
+Não existe MCP de primeira linha da Meta (WhatsApp Cloud API) que fale stdio;
+a Cloud API oficial exigiria você encapsulá-la num servidor stdio — veja as
+notas em `standards/mcp-registry.md`. Prefira esse caminho se precisar da API
+oficial e não puder aceitar o risco de ban do Baileys.
 
 ## Regras de segurança
 
