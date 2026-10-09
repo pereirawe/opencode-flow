@@ -70,6 +70,14 @@ Status: resolved
 The assistant will:
 1. Ask for the commit type, scope (optional), description, and issue ID
 2. Detect the project's `known_issues.md` and current status
-3. Construct the commit following `standards/commits.md`
-4. Run `git commit` with the structured message
-5. Update `known_issues.md` status based on trailers
+3. Run `scripts/format.sh --staged` and re-stage the formatted files (issue #246)
+4. Construct the commit following `standards/commits.md`
+5. Run `git commit` with the structured message
+6. Update `known_issues.md` status based on trailers
+
+### Formatting
+
+Before committing, `scripts/pre_commit.sh` runs the project's formatter on the
+staged files and re-stages what it changed, so the commit always contains
+formatted code. Detection and modes are documented in
+`standards/formatting.md`. A missing formatter is non-blocking.
