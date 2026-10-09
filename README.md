@@ -324,12 +324,19 @@ append to the loop journal so the Loop Error Review can triage them.
 stateDiagram-v2
   [*] --> backlog
   backlog --> ready
-  ready --> in-progress
-  in-progress --> in-review
-  in-review --> in-progress: correções
-  in-review --> in-qa
-  in-qa --> in-publish
-  in-publish --> resolved
+  ready --> open
+  open --> ip
+  ready --> ip
+  state "in-progress" as ip
+  state "in-review" as ir
+  state "in-qa" as iq
+  state "in-publish" as ipb
+  ip --> ir
+  ir --> ip: correções
+  ir --> iq
+  iq --> ip: correções
+  iq --> ipb
+  ipb --> resolved: MR merged
   resolved --> [*]
 ```
 

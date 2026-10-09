@@ -230,14 +230,18 @@ stateDiagram-v2
   [*] --> backlog
   backlog --> ready
   ready --> open
-  open --> in-progress
-  ready --> in-progress
-  in-progress --> in-review
-  in-review --> in-progress: correções
-  in-review --> in-qa
-  in-qa --> in-progress: correções
-  in-qa --> in-publish
-  in-publish --> resolved: MR merged
+  open --> ip
+  ready --> ip
+  state "in-progress" as ip
+  state "in-review" as ir
+  state "in-qa" as iq
+  state "in-publish" as ipb
+  ip --> ir
+  ir --> ip: correções
+  ir --> iq
+  iq --> ip: correções
+  iq --> ipb
+  ipb --> resolved: MR merged
   resolved --> [*]
 ```
 
