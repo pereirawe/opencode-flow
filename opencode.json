@@ -10,15 +10,10 @@
         "gmail": {
             "type": "remote",
             "url": "https://gmailmcp.googleapis.com/mcp/v1",
-            "enabled": false
-        },
-        "whatsapp": {
-            "type": "local",
-            "command": ["npx", "-y", "@fredshred7/whatsapp-mcp-server"],
-            "environment": {
-                "WHATSAPP_ACCESS_TOKEN": "{env:WHATSAPP_ACCESS_TOKEN}",
-                "WHATSAPP_PHONE_NUMBER_ID": "{env:WHATSAPP_PHONE_NUMBER_ID}",
-                "WHATSAPP_BUSINESS_ACCOUNT_ID": "{env:WHATSAPP_BUSINESS_ACCOUNT_ID}"
+            "oauth": {
+                "clientId": "{env:GMAIL_MCP_CLIENT_ID}",
+                "clientSecret": "{env:GMAIL_MCP_CLIENT_SECRET}",
+                "scope": "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.compose"
             },
             "enabled": false
         }

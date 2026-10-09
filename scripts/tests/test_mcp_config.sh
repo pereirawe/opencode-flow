@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests for the Gmail/WhatsApp MCP registration (#248).
+# Tests for the Gmail MCP registration (#248; WhatsApp deferred to #249).
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -26,29 +26,29 @@ else
 fi
 
 # --- t02..t04: mcp entries ------------------------------------------------
-read -r GMAIL_OK WHATS_OK NOSECRET <<EOF
+read -r GMAIL_OK OAUTH_OK NOWHATS <<EOF
 $(python3 - "$CFG" <<'PY'
 import json, sys
 cfg = json.load(open(sys.argv[1]))
 mcp = cfg.get("mcp", {})
 g = mcp.get("gmail", {})
-w = mcp.get("whatsapp", {})
 gmail_ok = (
     g.get("type") == "remote"
     and "gmailmcp.googleapis.com" in str(g.get("url", ""))
     and g.get("enabled") is False
 )
-cmd = w.get("command", [])
-whats_ok = (
-    w.get("type") == "local"
-    and cmd[:1] == ["npx"]
-    and any("@fredshred7/whatsapp-mcp-server" in c for c in cmd)
-    and w.get("enabled") is False
+# OAuth must be pre-registered (Google has no dynamic client registration),
+# with clientId/clientSecret as {env:...} placeholders.
+oauth = g.get("oauth", {}) if isinstance(g.get("oauth"), dict) else {}
+oauth_ok = (
+    str(oauth.get("clientId", "")).startswith("{env:")
+    and str(oauth.get("clientSecret", "")).startswith("{env:")
+    and isinstance(oauth.get("scope"), str)
+    and len(oauth.get("scope", "")) > 0
 )
-# secrets must be {env:...} placeholders, never literals
-envblob = json.dumps(w.get("environment", {}))
-nosecret = all(v.startswith("{env:") for v in w.get("environment", {}).values()) if w.get("environment") else False
-print("yes" if gmail_ok else "no", "yes" if whats_ok else "no", "yes" if nosecret else "no")
+# WhatsApp must NOT be registered until a provider decision (#249).
+nowhats = "whatsapp" not in mcp
+print("yes" if gmail_ok else "no", "yes" if oauth_ok else "no", "yes" if nowhats else "no")
 PY
 )
 EOF
@@ -59,23 +59,24 @@ else
   t_fail "mcp.gmail missing/invalid (expected remote gmailmcp.googleapis.com, enabled:false)"
 fi
 
-if [ "$WHATS_OK" = "yes" ]; then
-  t_ok "mcp.whatsapp is local npx @fredshred7/whatsapp-mcp-server and disabled"
+if [ "$OAUTH_OK" = "yes" ]; then
+  t_ok "mcp.gmail oauth uses {env:...} clientId/clientSecret and a scope"
 else
-  t_fail "mcp.whatsapp missing/invalid (expected local npx server, enabled:false)"
+  t_fail "mcp.gmail oauth block missing/incomplete (need {env:...} clientId+clientSecret+scope)"
 fi
 
-if [ "$NOSECRET" = "yes" ]; then
-  t_ok "whatsapp environment values are {env:...} placeholders (no secrets)"
+if [ "$NOWHATS" = "yes" ]; then
+  t_ok "mcp.whatsapp not registered (decision deferred — issue #249)"
 else
-  t_fail "whatsapp environment contains a non-placeholder value (possible secret)"
+  t_fail "mcp.whatsapp is registered but no vetted package was chosen"
 fi
 
-# --- t05: no literal secret patterns in the mcp block ----------------------
-if grep -Eq '"(WHATSAPP_ACCESS_TOKEN|WHATSAPP_PHONE_NUMBER_ID|WHATSAPP_BUSINESS_ACCOUNT_ID)":[[:space:]]*"[^"{]' "$CFG"; then
-  t_fail "opencode.json embeds a literal WhatsApp credential"
+# --- t05: the fictional cloud package is gone from config/registry ----------
+# (setup docs may mention it as a removed candidate; the config must not use it)
+if grep -q '@fredshred7/whatsapp-mcp-server' "$CFG" "$REG"; then
+  t_fail "nonexistent @fredshred7/whatsapp-mcp-server still referenced in config"
 else
-  t_ok "no literal WhatsApp credential embedded in opencode.json"
+  t_ok "nonexistent @fredshred7/whatsapp-mcp-server not used in config/registry"
 fi
 
 # --- t06: registry no longer uses the wrong key ----------------------------

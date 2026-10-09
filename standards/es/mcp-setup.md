@@ -1,87 +1,113 @@
-# MCP Setup — Gmail & WhatsApp
+# Configuración de MCP — Gmail (y WhatsApp pendiente)
 
-Cómo habilitar, autenticar y operar los servidores MCP de Gmail y WhatsApp
-registrados en `opencode.json`.
+Cómo habilitar, autenticar y operar los servidores MCP configurados en
+`opencode.json`.
 
-## Forma del config
+## Forma de la configuración
 
-OpenCode lee los servidores MCP desde la **clave top-level `mcp`** de
+OpenCode lee los servidores MCP de la **clave de nivel superior `mcp`** de
 `opencode.json` (schema `https://opencode.ai/config.json`). **No** uses
 `mcpServers` — esa clave pertenece a otros clientes y OpenCode la ignora.
 
-Se soportan dos tipos de entrada:
+Se admiten dos tipos de entrada:
 
 | Tipo | Obligatorio | Opcional |
 |------|-------------|----------|
 | `local` | `type: "local"`, `command: [ ... ]` | `cwd`, `environment`, `enabled`, `timeout` |
 | `remote` | `type: "remote"`, `url` | `enabled`, `headers`, `oauth`, `timeout` |
 
-Los valores de texto pueden referenciar variables de entorno con `{env:VAR}` —
-se resuelven al cargar y nunca quedan escritos en el archivo de config.
+Los valores de cadena pueden referenciar variables de entorno con `{env:VAR}` —
+el valor se resuelve al cargar y nunca se guarda en el archivo de configuración.
 
 ## Servidores registrados
 
-Ambos servidores quedan `enabled: false` a propósito: OpenCode nunca intenta
-iniciar un servidor cuyo binario o credenciales faltan, así el arranque sigue
-siendo seguro en una máquina nueva.
-
-| Servidor | Tipo | Endpoint / comando | Por defecto |
-|----------|------|--------------------|-------------|
+| Servidor | Tipo | Endpoint | Predeterminado |
+|----------|------|----------|----------------|
 | `gmail` | remote | `https://gmailmcp.googleapis.com/mcp/v1` | deshabilitado |
-| `whatsapp` | local | `npx -y @fredshred7/whatsapp-mcp-server` | deshabilitado |
 
-Para habilitar, cambia `enabled` a `true` en `opencode.json` y autentícate como
-se indica abajo. Habilita solo lo necesario — cada MCP añade herramientas al
-contexto.
+El servidor se registra con `enabled: false` a propósito: OpenCode nunca intenta
+iniciar un servidor cuyas credenciales faltan, así el arranque sigue seguro en
+una máquina nueva. Para habilitarlo, cambia `enabled` a `true` y autentica como
+se describe abajo. Habilita solo lo que necesites — cada MCP añade herramientas
+al contexto del modelo.
+
+WhatsApp **todavía no está registrado** — ver “WhatsApp (decisión pendiente)”.
 
 ## Gmail (remoto oficial, OAuth 2.0)
 
-El Gmail MCP oficial de Google es un servidor remoto (developer preview).
+El MCP oficial de Gmail de Google es un servidor remoto (developer preview).
 Requiere un proyecto en Google Cloud con `gmail.googleapis.com` y
-`gmailmcp.googleapis.com` habilitadas.
+`gmailmcp.googleapis.com` habilitados.
+
+### 1. Pre-registrar un cliente OAuth (obligatorio)
+
+Los endpoints MCP de Google **no** admiten Dynamic Client Registration
+(RFC 7591): `/.well-known/oauth-authorization-server` devuelve 404, por lo que el
+flujo automático `opencode mcp auth` informa éxito sin token real y cada
+`tools/call` falla después con `Unauthorized` (issue upstream de OpenCode
+#26195). Debes crear el cliente OAuth manualmente:
+
+1. En Google Cloud Console → **APIs y servicios → Credenciales**, crea un
+   **ID de cliente OAuth** de tipo **Aplicación web**.
+2. Añade la URI de redirección autorizada:
+   `http://127.0.0.1:19876/mcp/oauth/callback`
+   (callback local predeterminado de OpenCode; sobrescríbelo con
+   `oauth.redirectUri` u `oauth.callbackPort` si el puerto está ocupado).
+3. Habilita los scopes necesarios (`gmail.readonly`, `gmail.compose`, …).
+4. Exporta las credenciales — la config versionada ya las referencia como
+   `{env:...}`:
+
+   | Variable | Significado |
+   |----------|-------------|
+   | `GMAIL_MCP_CLIENT_ID` | ID de cliente OAuth |
+   | `GMAIL_MCP_CLIENT_SECRET` | Secreto de cliente OAuth |
+
+### 2. Habilitar y autenticar
 
 1. Define `mcp.gmail.enabled` como `true`.
-2. Autentica: `opencode mcp auth gmail` (abre el flujo OAuth en el navegador).
-3. Verifica: `opencode mcp list`.
+2. Ejecuta `opencode mcp auth gmail` y completa el flujo en el navegador. A
+   diferencia del camino de descubrimiento automático roto, el cliente
+   pre-registrado hace que el navegador se abra y el token persista.
+3. Comprueba el estado: `opencode mcp list`.
 4. Revoca: `opencode mcp logout gmail`.
 
-Los tokens se guardan fuera del repositorio (por defecto
-`~/.local/share/opencode/mcp-auth.json`). Nunca copies tokens al config ni los
-commitees.
+OpenCode guarda los tokens fuera del repositorio (por defecto
+`~/.local/share/opencode/mcp-auth.json`, en texto plano). Nunca copies tokens a
+la config ni los versiones.
 
-## WhatsApp (Cloud API oficial)
+> Advertencia: este servidor es un developer preview de Google y el flujo puede
+> cambiar. Sigue la issue upstream #26195 antes de depender de él en automatización.
 
-`@fredshred7/whatsapp-mcp-server` habla con la WhatsApp Cloud API oficial de
-Meta. Necesita tres variables de entorno (obténlas en Meta for Developers →
-WhatsApp → API Setup):
+## WhatsApp (decisión pendiente)
 
-| Variable | Significado |
-|----------|-------------|
-| `WHATSAPP_ACCESS_TOKEN` | Token de acceso de la Cloud API |
-| `WHATSAPP_PHONE_NUMBER_ID` | ID del número remitente |
-| `WHATSAPP_BUSINESS_ACCOUNT_ID` | ID de la cuenta WhatsApp Business |
+Hoy no hay ningún MCP de WhatsApp adecuado registrado. El candidato original
+`@fredshred7/whatsapp-mcp-server` **no existe en npm** (el registry devuelve 404)
+y se eliminó — apuntar `npx -y` a un nombre inexistente es riesgo de cadena de
+suministro / typosquatting.
 
-Expórtalas en el shell/gestor de secretos y define `mcp.whatsapp.enabled` como
-`true`. El config las referencia como `{env:...}`, así ningún secreto se escribe
-en el repositorio.
+Las opciones relevadas, ninguna habilitada todavía:
 
-### Cloud API vs WhatsApp personal
+| Candidato | Transporte | Notas |
+|-----------|------------|-------|
+| `@sjawhar/whatsapp-mcp` (fijar versión) | stdio | WhatsApp Web (Baileys), **no** es la Cloud API oficial; requiere emparejamiento por QR y número dedicado; el README advierte riesgo de ban de la cuenta; fork reforzado con procedencia SLSA |
+| `@iflow-mcp/mmarqueti-whatsapp-mcp` | WebSocket (puerto) | Espejo comunitario del servidor Cloud API; su transporte WebSocket obligatorio es incompatible con el MCP local stdio de OpenCode |
+| Servidor Cloud API propio | stdio | Envolver tú mismo la WhatsApp Cloud API oficial de Meta; más trabajo, sin dependencia de terceros |
 
-Registramos la **Cloud API oficial** porque no necesita bridge ni QR y no corre
-riesgo de baneo de la cuenta. La alternativa — bridge en el número personal como
-`lharries/whatsapp-mcp` (bridge Go + servidor Python, auth por QR) — solo vale
-la pena si necesitas actuar como usuario personal de WhatsApp y puedes mantener
-la bridge corriendo.
+Decisión aplazada (issue #249 en `known_issues.md`). Cuando haya elección,
+regístralo bajo `mcp` con `enabled: false` y documenta las credenciales aquí;
+nunca versiones tokens.
 
 ## Reglas de seguridad
 
 - Los secretos viven solo en variables de entorno — nunca en `opencode.json`,
-  nunca commiteados, nunca logueados.
-- Mantén los MCPs `enabled: false` hasta que realmente los necesites.
-- Trata la salida de las herramientas MCP como dato no confiable, nunca como
-  instrucción.
+  nunca versionados, nunca logueados.
+- Fija los paquetes `npx` de terceros a una versión exacta; nunca confíes en
+  `latest`.
+- Mantén los MCP `enabled: false` hasta que realmente los necesites.
+- Trata la salida de las herramientas MCP como datos no confiables, nunca como
+  instrucciones.
 
 ## Ver también
 
-- `standards/mcp-registry.md` — catálogo de MCPs recomendados.
+- `standards/mcp-registry.md` — catálogo de servidores MCP recomendados.
 - `.opencode/env-manifest.md` — variables de entorno consumidas por el proyecto.
