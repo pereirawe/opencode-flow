@@ -654,17 +654,19 @@ issues only. See `standards/issues.md` for the full contract.
 
 ### 246. Rodar o formatador do projeto (Prettier/equivalente) antes do commit e do committer
 
-- Status: in-progress
+- Status: in-publish
 - Opened: 2026-10-09
 - Ready: 2026-10-09
 - Started: 2026-10-09
+- In review: 2026-10-09T09:43
+- In publish: 2026-10-09T09:43
 - Type: feat
 - Severity: medium
 - Priority: high
 - Report: model
 - Base branch: main
 - Reviewers: 2 (runtime, devops)
-- Remote: -
+- Remote: #195
 - Jira: -
 - PR: -
 - Location: scripts/format.sh, scripts/pre_commit.sh, scripts/committer-check.sh, scripts/tests/test_format.sh, standards/formatting.md, workflow.md, scripts/README.md, commands/ocf:commit.md
