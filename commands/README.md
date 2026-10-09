@@ -11,6 +11,7 @@ These commands are available in the assistant.
 | `ocf:promote <id>` | Promote backlog item to open + create remote issue |
 | `ocf:develop [id...]` | Run the full task lifecycle up to MR creation for one or more issues (promote → develop → review → QA → MR → wait for manual merge) |
 | `ocf:develop-full [id...]` | Run the full task lifecycle end-to-end for one or more issues (promote → develop → review → QA → MR → auto-merge → archive) |
+| `ocf:triage-errors [--loop <label>]` | Manual loop-error review: triage the structured loop journal and file actionable errors in the global or workspace tracker |
 | `ocf:commit` | Create structured commit with `Status:` trailers |
 | `ocf:sync-issues` | Sync known_issues with remote issue tracker |
 | `ocf:archive-issue <id>` | Archive resolved issue to compact format |

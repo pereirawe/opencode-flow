@@ -23,6 +23,9 @@ Shell helpers for issue lifecycle management.
 | `skill-vendor.sh` | Manage external skills as git clones in `~/.config/opencode/vendor/` (add/update/list/remove) — loaded via `skills.paths`, never copied |
 | `import_claude_skill.sh` | Deprecated shim — delegates to `skill-vendor.sh add` |
 | `config.sh` | Shared configuration sourced by other scripts |
+| `append-issue-global.sh` | Append a canonical issue to the GLOBAL tracker regardless of cwd (issue #244) |
+| `loop-journal.sh` | Per-loop structured error journal — append/list/path/clear (JSONL) (issue #244) |
+| `loop-error-triage.sh` | Classify loop-journal errors global vs project and file canonical `bug` issues (--plan/--apply/--from) (issue #244) |
 | `git-cred-cache.sh` | Per-project git credential cache — single secure entrypoint for `--init`/`--set`/`--get`/`--erase`/`--identity`/`--status` (issue #209) |
 | `sync-jira.sh` | Jira Cloud sync (REST v3): create-card, transition, add-comment, full reconcile — hooks in create/promote/close_issue, non-blocking |
 | `setup-web.sh` | Install/update opencode web systemd service for headless operation |
