@@ -364,6 +364,17 @@ run_develop() {
   log "ocf:develop-full #$local_id exit=$rc"
   if [[ "$rc" -ne 0 ]]; then
     tail -n 15 "$logf" >&2
+    # Structured loop error journal (issue #244): record the failed develop so the
+    # loop-error-reviewer can triage it later. Best-effort, never fatal (BR 1/8).
+    local _self_dir
+    _self_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+    OCF_LOOP_JOURNAL_DIR="$workspace/.opencode/loop-journal" \
+      "$_self_dir/loop-journal.sh" append --loop aibot-develop --id "$local_id" \
+      --phase develop-full --severity high \
+      --command "ocf:develop-full $local_id" --exit-code "$rc" \
+      --location "scripts/aibot-watcher.sh" \
+      --message "aibot develop failed (exit $rc; log: $logf)" \
+      >/dev/null 2>&1 || true
   fi
   return "$rc"
 }
