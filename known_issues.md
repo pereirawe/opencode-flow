@@ -667,7 +667,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 2 (backend, devops)
 - Remote: #191
 - Jira: -
-- PR: -
+- PR: #192
 - Location: scripts/loop-journal.sh, scripts/loop-error-triage.sh, scripts/config.sh, scripts/append-issue-global.sh, scripts/aibot-watcher.sh, agents/development/loop-error-reviewer.md, commands/ocf:discovery.md, commands/ocf:develop.md, commands/ocf:develop-full.md, commands/ocf:triage-errors.md, workflow.md, standards/loop-journal.md, scripts/tests/test_loop_journal.sh, scripts/tests/test_loop_error_triage.sh
 - Description: Como mantenedor do pipeline opencode, quero que cada loop de discovery e de delivery registre seus erros em um journal estruturado e que um agente revisor transforme esses erros em issues canônicas no tracker correto (global do opencode ou do projeto onde o loop rodou), para que falhas de execução virem trabalho rastreado automaticamente, sem depender de leitura manual de logs.
 - Impact: Hoje falhas de loop só aparecem em logs ad-hoc (state/aibot/logs/develop-*.log, saída de comando) e artefatos de preflight/review, e nada as converte em issues. O discovery pode terminar com lint FAIL sem registro e o delivery pode falhar no meio sem rastro rastreável. Esta feature fecha o ciclo execução→registro, reduzindo falhas silenciosas e retrabalho.
