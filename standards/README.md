@@ -15,6 +15,8 @@ Project-wide conventions and patterns shared across all sectors.
 | `resolved-issue.md` | Resolved issue archive format |
 | `test-env.md` | Test environment — version pins, manifest ranges, sync guard, warning contract |
 | `design-pipeline.md` | Design pipeline output conventions, session management, and pipeline stages (build-ui/audit-ui) |
+| `mcp-setup.md` | MCP servers (Gmail/WhatsApp) — config shape, enablement, OAuth, secret hygiene |
+| `mcp-registry.md` | Catalogue of recommended MCP servers |
 
 ## Sector Agents
 

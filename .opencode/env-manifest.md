@@ -22,3 +22,16 @@ test-runner: >=1.0
    (o `bash scripts/test-runner.sh --status` para ver el estado del entorno).
 4. **Reportes** — registrar siempre el campo `Version:` en los reportes de test
    usando la salida de `--status` (o los metadatos del `.result` cacheado).
+
+## MCP servers (Gmail)
+
+`opencode.json` registra `mcp.gmail` (remoto, OAuth, `enabled: false`). Para
+habilitarlo, exporta estas variables (siempre por ambiente, nunca commitear):
+
+- `GMAIL_MCP_CLIENT_ID`
+- `GMAIL_MCP_CLIENT_SECRET`
+
+Autentica con `opencode mcp auth gmail`. Google no soporta Dynamic Client
+Registration, así que el cliente OAuth debe pre-registrarse en Google Cloud.
+WhatsApp queda pendiente de decisión (issue #249). Detalles en
+`standards/mcp-setup.md`.

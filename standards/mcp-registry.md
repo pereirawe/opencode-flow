@@ -2,14 +2,20 @@
 
 Recommended Model Context Protocol (MCP) servers for projects using this OpenCode library.
 
-## MCPs enabled in this project
+## MCPs registered in this project
 
-This project uses only:
+`opencode.json` registers the following MCP servers under the top-level `mcp`
+key. They ship **disabled** (`enabled: false`) so a fresh checkout never fails
+to start; opt in per machine. See `standards/mcp-setup.md`.
 
-| MCP | Purpose |
-|-----|---------|
-| **GitHub** | Issues, PRs, repo operations, releases |
-| **Notion** | Documentation, knowledge base, internal wiki |
+| MCP | Purpose | Default |
+|-----|---------|---------|
+| **Gmail** | Read/send email via the official Google Gmail MCP (remote, OAuth) | disabled |
+
+GitHub and Notion remain recommended (see the tables below) but are **not**
+registered in this project's config. WhatsApp registration is deferred pending a
+provider decision (issue #249 in `known_issues.md`) — no suitable Cloud API
+stdio server exists yet; see `standards/mcp-setup.md`.
 
 ## MCPs for SaaS projects
 
@@ -54,6 +60,8 @@ This project uses only:
 | **HubSpot** | CRM, marketing, support | Mid-market B2B |
 | **Salesforce** | CRM and sales pipeline | Enterprise B2B |
 | **Google Workspace** | Docs, sheets, calendar, email | Team collaboration |
+| **Gmail** | Read/send email (official Google remote MCP) | Registered here (disabled) |
+| **WhatsApp** | Send messages (Cloud API or Baileys) | Pending decision — issue #249 |
 | **Slack** | Team notifications and decisions | Always for async comms |
 | **Discord** | Community, support, alerts | Community-led products |
 | **Teams** | Microsoft-centric collaboration | Microsoft shops |
@@ -83,28 +91,33 @@ For a new SaaS project, start with:
 
 ## Configuration
 
-MCP servers are configured in `opencode.json` under the `mcpServers` key. Example:
+MCP servers are configured in `opencode.json` under the **top-level `mcp` key**
+(schema `https://opencode.ai/config.json`). Do **not** use `mcpServers`. Example
+(local + remote):
 
 ```json
 {
-  "mcpServers": {
+  "mcp": {
     "github": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
-      }
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
+      "environment": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "{env:GITHUB_TOKEN}"
+      },
+      "enabled": false
     },
-    "notion": {
-      "command": "npx",
-      "args": ["-y", "@mcp-notion/server"],
-      "env": {
-        "NOTION_TOKEN": "${NOTION_TOKEN}"
-      }
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "enabled": false
     }
   }
 }
 ```
+
+`{env:VAR}` values are resolved from the environment at load time — never commit
+secrets. See `standards/mcp-setup.md` for Gmail specifics and OAuth (WhatsApp
+registration is pending — issue #249).
 
 ## Jira Cloud sync (issue #48)
 
@@ -148,15 +161,16 @@ backlog queries (agent reads; the pipeline sync always lives in the script):
 
 ```json
 {
-  "mcpServers": {
+  "mcp": {
     "jira": {
-      "command": "npx",
-      "args": ["-y", "@atlassian/mcp-atlassian"],
-      "env": {
-        "JIRA_BASE_URL": "${JIRA_BASE_URL}",
-        "JIRA_EMAIL": "${JIRA_EMAIL}",
-        "JIRA_API_TOKEN": "${JIRA_API_TOKEN}"
-      }
+      "type": "local",
+      "command": ["npx", "-y", "@atlassian/mcp-atlassian"],
+      "environment": {
+        "JIRA_BASE_URL": "{env:JIRA_BASE_URL}",
+        "JIRA_EMAIL": "{env:JIRA_EMAIL}",
+        "JIRA_API_TOKEN": "{env:JIRA_API_TOKEN}"
+      },
+      "enabled": false
     }
   }
 }

@@ -10,3 +10,4 @@ Convenções e padrões de todo o projeto.
 | `pr-template.md` | Template de pull request |
 | `code-review.md` | Diretrizes de revisão de código |
 | `test-env.md` | Ambiente de testes — pins de versão, faixas do manifest, sync guard, contrato de warnings |
+| `mcp-setup.md` | Servidores MCP (Gmail/WhatsApp) — formato do config, habilitação, OAuth, higiene de segredos |
