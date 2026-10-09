@@ -668,7 +668,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 2 (runtime, devops)
 - Remote: #193
 - Jira: -
-- PR: -
+- PR: #194
 - Location: scripts/init.sh, commands/ocf:init.md, Makefile, scripts/tests/test_init.sh
 - Description: O `init.sh` não é seguro para re-execução nem para ambientes não-Linux: re-rodar (ou `make bootstrap`/`make init`) apaga arquivos de propriedade do projeto (`.opencode/resolved_issues.md`, `.opencode/standards/`, `.opencode/README.md`) e sobrescreve customizações (`AGENTS.md`, `workflow.md`, `opencode.json`, `env-manifest.md`, `.gitignore`) e o `locale`; usa `sed -i` GNU-only; e o fluxo LSP é inalcançável de forma não-interativa. Resultado: projetos quebram ao reprovisionar e perdem histórico.
 - Impact: Afeta TODO projeto inicializado por `make bootstrap`/`make init`/`/ocf:init`. A perda do `resolved_issues.md` apaga o arquivo de issues fechadas do projeto; o `standards/` do projeto some; customizações de AGENTS.md/workflow.md são destruídas. macOS/BSD falha na injeção de contexto. O LSP nunca é aplicado via `/ocf:init`.
