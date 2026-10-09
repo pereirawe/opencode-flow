@@ -651,3 +651,38 @@ issues only. See `standards/issues.md` for the full contract.
 - Tests: -
 - Suggested fix: Remove the committer leg of the test-runner/transition allow loop in test_git_cred_cache.sh (keep developer), mirroring #232's removal; or restore the allow in committer.md if the committer agent's duties require direct test-runner access.
 
+
+### 248. Integrar MCPs de Gmail (oficial remoto) e WhatsApp (Cloud API oficial) no opencode.json
+- Status: in-progress
+- Type: feat
+- Severity: medium
+- Priority: high
+
+- Report: model
+- Base branch: main
+- Reviewers: 2 (devops, security)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: opencode.json, standards/mcp-registry.md, standards/mcp-setup.md, standards/README.md, standards/pt/mcp-setup.md, standards/es/mcp-setup.md, standards/pt/README.md, standards/es/README.md, .opencode/env-manifest.md, scripts/tests/test_mcp_config.sh
+- Description: Como mantenedor do opencode-flow, quero os MCPs de Gmail e WhatsApp registrados e documentados no config, para que os agentes possam ler/enviar e-mail e mensagens quando habilitados, sem quebrar o startup quando os binarios/credenciais nao existem.
+- Impact: Hoje o opencode.json nao tem NENHUMA chave 'mcp' e standards/mcp-registry.md documenta a chave errada ('mcpServers'), alem de nao haver setup de Gmail/WhatsApp. Sem isso, qualquer integracao de e-mail/WhatsApp fica ad-hoc e sem padrao de seguranca.
+- Business rules: 1. Registrar os MCPs no opencode.json sob a chave top-level 'mcp' (schema https://opencode.ai/config.json), NAO 'mcpServers': 'gmail' = remote OAuth em https://gmailmcp.googleapis.com/mcp/v1 com enabled:false e 'whatsapp' = local npx -y @fredshred7/whatsapp-mcp-server com environment por env vars e enabled:false.
+2. Padrao opt-in: ambos enabled:false para nunca quebrar o startup sem credenciais; habilitar exige edicao explicita do config.
+3. Nenhum segredo commitado: Gmail usa OAuth (opencode mcp auth gmail); WhatsApp usa WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_BUSINESS_ACCOUNT_ID somente via ambiente.
+4. Corrigir standards/mcp-registry.md para a chave 'mcp' (remover 'mcpServers') e listar Gmail e WhatsApp em 'MCPs enabled in this project'.
+5. Criar standards/mcp-setup.md documentando shape do config, como habilitar, auth OAuth, env vars, higiene de segredos e o trade-off Cloud API (oficial) vs WhatsApp pessoal (bridge/QR).
+6. Traduzir mcp-setup.md para pt e es e indexar em standards/README.md, standards/pt/README.md e standards/es/README.md.
+7. Adicionar as env vars dos MCPs na prosa de .opencode/env-manifest.md SEM alterar o formato da secao Strict.
+8. Criar scripts/tests/test_mcp_config.sh que valida opencode.json parseavel e que mcp.gmail/mcp.whatsapp existem com enabled:false e sem segredos.
+9. Nenhuma mudanca de comportamento do pipeline: os scripts existentes continuam intactos.
+- Acceptance criteria: 1. 'python3 -m json.tool opencode.json' retorna 0 e mcp.gmail/mcp.whatsapp existem com enabled:false.
+2. 'bash scripts/tests/test_mcp_config.sh' passa (exit 0) e reporta os dois MCPs.
+3. standards/mcp-registry.md nao contem mais 'mcpServers' e lista Gmail + WhatsApp.
+4. standards/mcp-setup.md (+ pt/es) criados e indexados; env-manifest.md atualizado sem alterar a secao Strict.
+5. Nenhum token/segredo commitado (grep por padroes de credencial vazio).
+- Tests: 1. Rodar 'bash scripts/tests/test_mcp_config.sh' -> exit 0 e imprime gmail/whatsapp disabled.
+2. Rodar 'python3 -m json.tool opencode.json' -> JSON valido, com chave mcp.
+3. Rodar 'grep -rn mcpServers standards/ scripts/ opencode.json' -> nenhuma ocorrencia.
+4. Rodar 'bash scripts/tests/run_all.sh' -> apenas a falha pre-existente test_git_cred_cache.sh (issue #241).
+- Suggested fix: -

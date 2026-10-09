@@ -6,6 +6,23 @@
         "~/.config/opencode/workflow.md",
         "~/.config/opencode/agents/*/devs/REGISTRY.md"
     ],
+    "mcp": {
+        "gmail": {
+            "type": "remote",
+            "url": "https://gmailmcp.googleapis.com/mcp/v1",
+            "enabled": false
+        },
+        "whatsapp": {
+            "type": "local",
+            "command": ["npx", "-y", "@fredshred7/whatsapp-mcp-server"],
+            "environment": {
+                "WHATSAPP_ACCESS_TOKEN": "{env:WHATSAPP_ACCESS_TOKEN}",
+                "WHATSAPP_PHONE_NUMBER_ID": "{env:WHATSAPP_PHONE_NUMBER_ID}",
+                "WHATSAPP_BUSINESS_ACCOUNT_ID": "{env:WHATSAPP_BUSINESS_ACCOUNT_ID}"
+            },
+            "enabled": false
+        }
+    },
     "command": {
         "init": {
             "template": "Ask the user which locale they want for this project (pt for Portuguese, es for Spanish, or en for English). Then initialize the `.opencode/` project configuration in the current working directory by running the init script with the chosen locale. The script will detect project languages, suggest LSPs, and optionally configure `.vscode/settings.json`. After init completes, verify `.opencode/locale` contains the chosen language. Then review the generated files.",

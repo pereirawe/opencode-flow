@@ -22,3 +22,16 @@ test-runner: >=1.0
    (o `bash scripts/test-runner.sh --status` para ver el estado del entorno).
 4. **Reportes** — registrar siempre el campo `Version:` en los reportes de test
    usando la salida de `--status` (o los metadatos del `.result` cacheado).
+
+## MCP servers (Gmail / WhatsApp)
+
+`opencode.json` registra `mcp.gmail` (remoto, OAuth) y `mcp.whatsapp` (local,
+Cloud API), ambos `enabled: false`. Para habilitarlos, exporta estas variables
+(siempre por ambiente, nunca commitear):
+
+- `WHATSAPP_ACCESS_TOKEN`
+- `WHATSAPP_PHONE_NUMBER_ID`
+- `WHATSAPP_BUSINESS_ACCOUNT_ID`
+
+Gmail usa OAuth: `opencode mcp auth gmail`. Detalles en
+`standards/mcp-setup.md`.
