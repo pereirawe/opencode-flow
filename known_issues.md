@@ -653,7 +653,9 @@ issues only. See `standards/issues.md` for the full contract.
 
 
 ### 247. Documentar os fluxos (init, discovery, delivery, loop error review, aibot) com diagramas Mermaid no README
-- Status: in-progress
+- Status: in-publish
+- In review: 2026-10-09T09:46
+- In publish: 2026-10-09T09:51
 - Type: doc
 - Severity: low
 - Priority: medium
@@ -661,7 +663,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Report: model
 - Base branch: main
 - Reviewers: 1 (runtime)
-- Remote: -
+- Remote: #197
 - Jira: -
 - PR: -
 - Location: README.md, docs/flows.md
