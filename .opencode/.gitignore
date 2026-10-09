@@ -3,3 +3,4 @@ telegram.env
 openwa.env
 test-cache/
 cache/
+loop-journal/

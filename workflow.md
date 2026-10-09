@@ -338,6 +338,30 @@ Two meta-agents orchestrate the pipeline phases:
 Use `ocf:discovery` to start the discovery pipeline and `ocf:develop` /
 `ocf:develop-full` to execute the delivery pipeline.
 
+### Loop Error Review
+
+Every discovery loop and every delivery loop ends with a **loop error review**
+(issue #244): the `development/loop-error-reviewer` agent reads the errors the
+loop recorded in its structured journal and files canonical `bug` issues in the
+tracker where the fix belongs.
+
+- **Journal:** each loop appends error events via `scripts/loop-journal.sh` to
+  `<workspace>/.opencode/loop-journal/loop-<loop>-<id>.jsonl` (schema + routing
+  rubric in `standards/loop-journal.md`).
+- **Triage:** `scripts/loop-error-triage.sh --plan` builds a digest + proposals
+  TSV; the agent judges them (drops noise, fixes scope/severity, merges
+  duplicates) and `--apply` files the bugs. Idempotent (dedup by `Location`).
+- **Routing:** `global` errors (opencode config/tooling — `scripts/`, `agents/`,
+  `commands/`, `skills/`, `standards/`, `workflow.md`, `AGENTS.md`,
+  `opencode.json`, `Makefile`) go to `~/.config/opencode/known_issues.md`;
+  `project` errors go to `<workspace>/.opencode/known_issues.md`.
+- **Both granularities:** once per processed issue/loop and once consolidated per
+  batch (`--loop batch`) before the single final notification.
+- **Non-blocking:** never changes the reviewed issue's status and never fails
+  the loop; best-effort. Manual runs: `/ocf:triage-errors`.
+- The `aibot-watcher` (`@aibot:develop`) also journals failed develops so they
+  are picked up by the next review.
+
 ### Career Sector (resume optimization)
 
 Outside the issue pipeline, the `career` sector provides a personal
@@ -442,6 +466,7 @@ Branches are created from the `Base branch:` field in the issue entry
 - Business rules documented and implemented correctly
 - QA verified after senior review
 - Committer gate passed before MR creation
+- Loop error review executed (discovery/delivery) and actionable errors filed
 - `known_issues.md` reflects current status at every step
 - MR approved and merged
 - Remote issue closed

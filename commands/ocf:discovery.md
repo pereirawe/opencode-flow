@@ -32,8 +32,31 @@ depth (PO + TL). All loops end with `scripts/append-issue.sh` + `issue-lint.sh`.
    --strict`, and reports the created `id`.
 4. **Verify**: re-run `scripts/issue-lint.sh <id>` on the result; if it fails,
    report the gaps (do not auto-fix — discovery already attempted).
-5. **One Telegram notification** with the outcome (id, type, loop, lint status,
-   `known_issues.md` link).
+5. **Loop error review**: `Task(development/loop-error-reviewer)` with
+   `--loop discovery --id <id>`. It runs `scripts/loop-error-triage.sh --plan`
+   over the loop journal, judges the proposals, and (only for actionable errors)
+   files canonical `bug` entries in the global tracker
+   (`~/.config/opencode/known_issues.md`) or the workspace tracker. Best-effort
+   and non-blocking — it never changes the discovered issue's status.
+6. **One Telegram notification** with the outcome (id, type, loop, lint status,
+   `known_issues.md` link, loop-error-review filed/skipped).
+
+### Loop journal (failure producer)
+
+Whenever a phase fails — discovery subagent error, `issue-lint.sh --strict`
+FAIL, or the reviewer itself erroring — append a structured event **before**
+stopping/notifying:
+
+```
+scripts/loop-journal.sh append --loop discovery --id <id> --phase <phase> \
+  --severity high --command '<step or command>' --exit-code <rc> \
+  --location '<file/path>' --message '<short error>'
+```
+
+Add `--scope global` when the root cause is opencode config/tooling and
+`--scope project` when it is the workspace's own code/config; omit `--scope` to
+let the reviewer classify. Best-effort (`|| true`) — never mask the original
+failure. Step 5 then triages this journal.
 
 ### Notes
 

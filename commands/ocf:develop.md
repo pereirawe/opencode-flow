@@ -57,12 +57,32 @@ auto-created via `create_issue.sh` if missing.
 9. **Gate**: `scripts/committer-check.sh <id>` → PASS ⇒ `transition.sh <id>
    in-publish`. FAIL ⇒ STOP + notify.
 10. **Create MR**: `scripts/create-pr.sh <id>` (sets `- PR: #<n>`).
-11. **Report "esperando merge manual"**: do NOT merge/close. Issue stays
+11. **Loop error review (per issue)**: `Task(development/loop-error-reviewer)`
+    with `--loop develop --id <id>` — triages the loop journal and files
+    actionable errors as `bug` in the global or workspace tracker. Non-blocking.
+12. **Report "esperando merge manual"**: do NOT merge/close. Issue stays
     `in-publish`, MR OPEN.
-12. **Return to base**: `git checkout <base>` + `git pull` (base has no change).
-13. **Repeat** for the next issue.
+13. **Return to base**: `git checkout <base>` + `git pull` (base has no change).
+14. **Repeat** for the next issue. After the LAST issue, run one consolidated
+    `Task(development/loop-error-reviewer)` with `--loop batch` before notifying.
 
 Closing/archiving after manual merge: `/ocf:check-pr <id>` (or Close Requester).
+
+### Loop journal (failure producer)
+
+On ANY phase failure (fill gaps, promote, preflight, implement, review, gate
+FAIL, create-pr), append a structured event **before** the STOP/notify:
+
+```
+scripts/loop-journal.sh append --loop develop --id <id> --phase <phase> \
+  --severity high --command '<step or command>' --exit-code <rc> \
+  --location '<file/path>' --message '<short error>'
+```
+
+`--scope global` for opencode config/tooling root causes, `--scope project` for
+the workspace's own code/config, omit to let the reviewer classify. Best-effort
+(`|| true`) — never mask the original failure. Steps 11/14 then triage it (per
+issue + consolidated `--loop batch`).
 
 ### Telegram & Failure
 
