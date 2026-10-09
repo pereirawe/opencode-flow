@@ -41,6 +41,23 @@ depth (PO + TL). All loops end with `scripts/append-issue.sh` + `issue-lint.sh`.
 6. **One Telegram notification** with the outcome (id, type, loop, lint status,
    `known_issues.md` link, loop-error-review filed/skipped).
 
+### Loop journal (failure producer)
+
+Whenever a phase fails — discovery subagent error, `issue-lint.sh --strict`
+FAIL, or the reviewer itself erroring — append a structured event **before**
+stopping/notifying:
+
+```
+scripts/loop-journal.sh append --loop discovery --id <id> --phase <phase> \
+  --severity high --command '<step or command>' --exit-code <rc> \
+  --location '<file/path>' --message '<short error>'
+```
+
+Add `--scope global` when the root cause is opencode config/tooling and
+`--scope project` when it is the workspace's own code/config; omit `--scope` to
+let the reviewer classify. Best-effort (`|| true`) — never mask the original
+failure. Step 5 then triages this journal.
+
 ### Notes
 
 - No PM agent, no remote question — `Remote:` is auto-created at promotion

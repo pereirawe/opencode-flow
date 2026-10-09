@@ -68,6 +68,22 @@ auto-created via `create_issue.sh` if missing.
 
 Closing/archiving after manual merge: `/ocf:check-pr <id>` (or Close Requester).
 
+### Loop journal (failure producer)
+
+On ANY phase failure (fill gaps, promote, preflight, implement, review, gate
+FAIL, create-pr), append a structured event **before** the STOP/notify:
+
+```
+scripts/loop-journal.sh append --loop develop --id <id> --phase <phase> \
+  --severity high --command '<step or command>' --exit-code <rc> \
+  --location '<file/path>' --message '<short error>'
+```
+
+`--scope global` for opencode config/tooling root causes, `--scope project` for
+the workspace's own code/config, omit to let the reviewer classify. Best-effort
+(`|| true`) — never mask the original failure. Steps 11/14 then triage it (per
+issue + consolidated `--loop batch`).
+
 ### Telegram & Failure
 
 One notification after the LAST issue. Any failure → STOP list, one failure
