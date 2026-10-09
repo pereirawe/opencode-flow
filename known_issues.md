@@ -665,7 +665,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 1 (runtime)
 - Remote: #197
 - Jira: -
-- PR: -
+- PR: #198
 - Location: README.md, docs/flows.md
 - Description: Como mantenedor, quero a documentacao dos fluxos existentes consolidada e visual (diagramas Mermaid no README, detalhamento em docs/flows.md) para que novos contribuidores entendam o pipeline de ponta a ponta: init/bootstrap, discovery (com loop error review #244), delivery (com formatter #246), gate do committer, MR, merge/arquivamento e o gatilho remoto aibot-watcher (#39).
 - Impact: Hoje o README tem apenas dois diagramas curtos (Discovery e Delivery) e nao cobre os passos novos (init #245, loop error review #244, formatter #246) nem o fluxo do aibot-watcher; nao ha um documento central de fluxos. Isso dificulta onboarding e a verificacao do pipeline.
