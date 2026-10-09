@@ -21,8 +21,19 @@ else
   PROJECT_ISSUES_DIR="$CONFIG_DIR"
 fi
 
-# Resolved issue archive — prefer project .opencode/ even when issues are global
-if [ -d ".opencode" ]; then
+# Explicit tracker override (loop error-review routing, issue #244): when
+# OCF_ISSUES_FILE points at an existing tracker, target it regardless of CWD.
+# PROJECT_ISSUES_DIR stays as detected so REPO_ROOT (its parent) and the
+# cwd-based preflight/review artifacts keep their current semantics.
+if [ -n "${OCF_ISSUES_FILE:-}" ] && [ -f "${OCF_ISSUES_FILE}" ]; then
+  PROJECT_ISSUES_FILE="$(cd "$(dirname "$OCF_ISSUES_FILE")" && pwd -P)/$(basename "$OCF_ISSUES_FILE")"
+fi
+
+# Resolved issue archive — follows the overridden tracker, otherwise prefer
+# project .opencode/ even when issues are global
+if [ -n "${OCF_ISSUES_FILE:-}" ] && [ -f "${OCF_ISSUES_FILE}" ]; then
+  RESOLVED_FILE="$(dirname "$PROJECT_ISSUES_FILE")/resolved_issues.md"
+elif [ -d ".opencode" ]; then
   RESOLVED_FILE="$(pwd -P)/.opencode/resolved_issues.md"
 else
   RESOLVED_FILE="$PROJECT_ISSUES_DIR/resolved_issues.md"
