@@ -665,7 +665,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 2 (devops, security)
 - Remote: #199
 - Jira: -
-- PR: -
+- PR: #200
 - Location: opencode.json, standards/mcp-registry.md, standards/mcp-setup.md, standards/README.md, standards/pt/mcp-setup.md, standards/es/mcp-setup.md, standards/pt/README.md, standards/es/README.md, .opencode/env-manifest.md, scripts/tests/test_mcp_config.sh
 - Description: Como mantenedor do opencode-flow, quero os MCPs de Gmail e WhatsApp registrados e documentados no config, para que os agentes possam ler/enviar e-mail e mensagens quando habilitados, sem quebrar o startup quando os binarios/credenciais nao existem.
 - Impact: Hoje o opencode.json nao tem NENHUMA chave 'mcp' e standards/mcp-registry.md documenta a chave errada ('mcpServers'), alem de nao haver setup de Gmail/WhatsApp. Sem isso, qualquer integracao de e-mail/WhatsApp fica ad-hoc e sem padrao de seguranca.
