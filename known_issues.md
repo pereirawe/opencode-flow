@@ -653,10 +653,12 @@ issues only. See `standards/issues.md` for the full contract.
 
 ### 245. init.sh: re-run destrói dados do projeto e bootstrap não é portável/idempotente
 
-- Status: in-progress
+- Status: in-publish
 - Opened: 2026-10-09
 - Ready: 2026-10-09
 - Started: 2026-10-09
+- In review: 2026-10-09T09:32
+- In publish: 2026-10-09T09:32
 - Type: bug
 - Severity: high
 - Priority: high
@@ -664,7 +666,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Report: model
 - Base branch: main
 - Reviewers: 2 (runtime, devops)
-- Remote: -
+- Remote: #193
 - Jira: -
 - PR: -
 - Location: scripts/init.sh, commands/ocf:init.md, Makefile, scripts/tests/test_init.sh
