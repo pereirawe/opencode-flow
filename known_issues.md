@@ -651,3 +651,51 @@ issues only. See `standards/issues.md` for the full contract.
 - Tests: -
 - Suggested fix: Remove the committer leg of the test-runner/transition allow loop in test_git_cred_cache.sh (keep developer), mirroring #232's removal; or restore the allow in committer.md if the committer agent's duties require direct test-runner access.
 
+### 245. init.sh: re-run destrói dados do projeto e bootstrap não é portável/idempotente
+
+- Status: in-publish
+- Opened: 2026-10-09
+- Ready: 2026-10-09
+- Started: 2026-10-09
+- In review: 2026-10-09T09:32
+- In publish: 2026-10-09T09:32
+- Type: bug
+- Severity: high
+- Priority: high
+- Flow: lean
+- Report: model
+- Base branch: main
+- Reviewers: 2 (runtime, devops)
+- Remote: #193
+- Jira: -
+- PR: #194
+- Location: scripts/init.sh, commands/ocf:init.md, Makefile, scripts/tests/test_init.sh
+- Description: O `init.sh` não é seguro para re-execução nem para ambientes não-Linux: re-rodar (ou `make bootstrap`/`make init`) apaga arquivos de propriedade do projeto (`.opencode/resolved_issues.md`, `.opencode/standards/`, `.opencode/README.md`) e sobrescreve customizações (`AGENTS.md`, `workflow.md`, `opencode.json`, `env-manifest.md`, `.gitignore`) e o `locale`; usa `sed -i` GNU-only; e o fluxo LSP é inalcançável de forma não-interativa. Resultado: projetos quebram ao reprovisionar e perdem histórico.
+- Impact: Afeta TODO projeto inicializado por `make bootstrap`/`make init`/`/ocf:init`. A perda do `resolved_issues.md` apaga o arquivo de issues fechadas do projeto; o `standards/` do projeto some; customizações de AGENTS.md/workflow.md são destruídas. macOS/BSD falha na injeção de contexto. O LSP nunca é aplicado via `/ocf:init`.
+- Business rules:
+    1. Reexecutar `init.sh` (ou `make bootstrap`/`make init`) NUNCA pode apagar ou sobrescrever arquivos de propriedade do projeto: `.opencode/resolved_issues.md`, `.opencode/known_issues.md`, `.opencode/standards/`, `.opencode/README.md`, `AGENTS.md`, `workflow.md`, `opencode.json`, `env-manifest.md`, `.gitignore`, `locale` e `*.env`.
+    2. A cópia de templates só ocorre quando o destino NÃO existe (`[ -f dst ] || cp`), exceto com `--force` explícito.
+    3. `locale` existente é preservado; se ausente, o default é resolvido nesta ordem: argumento explícito → `.opencode/locale` do projeto-alvo (se já existir) → locale global `~/.config/opencode/locale` → `en`. O `.opencode/locale` do próprio repositório de config (`$CONFIG_DIR`) NÃO entra na cadeia de um projeto-alvo novo (só importa o locale do alvo e a preferência global do usuário).
+    4. O sweep remove apenas artefatos comprovadamente originados de cópias cegas antigas (`node_modules/`, `preflight/`, `reviews/`, `adorable-proposal/`, `package.json`, `package-lock.json`); nunca `standards/`, `README.md` ou `resolved_issues.md`.
+    5. `init.sh` é atômico: valida todos os templates obrigatórios antes de escrever; em falha, não deixa o projeto parcialmente inicializado.
+    6. Portabilidade: sem `sed -i` GNU-only (usar `sed -i.bak` + `rm` ou `perl -i -pe`); usar `mktemp` (honrando `TMPDIR`) em vez de `/tmp/opencode_remotes_$$`; `LC_ALL=C` no `sort`.
+    7. `make init` sem `target=` não deve inicializar o CWD; deve exigir `target=` (igual a `bootstrap`) ou unificar os alvos.
+    8. O fluxo LSP/VS Code é opt-in por flag/env (`INIT_CONFIGURE_LSP=1`), pois `/ocf:init` roda não-interativo e o `read` atual sempre recebe EOF; o locale escolhido é passado explicitamente pelo comando.
+    9. `scripts/tests/test_init.sh` reflete o contrato novo e passa.
+- Acceptance criteria:
+    1. Reexecutar init num projeto com `.opencode/resolved_issues.md` (com conteúdo), `.opencode/standards/` e customizações em AGENTS.md/workflow.md preserva todos.
+    2. Init em diretório novo (não-git e git) cria exatamente o whitelist e injeta branch/remotes.
+    3. `locale` customizado não é sobrescrito por re-run sem `--force`; quando ausente, aplica o locale resolvido.
+    4. `make init` sem `target=` falha com mensagem de uso e não inicializa o CWD.
+    5. `INIT_CONFIGURE_LSP=1` grava `.vscode/settings.json`; sem a flag não grava (execução não-interativa).
+    6. Falha de template obrigatório aborta sem deixar `.opencode/` parcial.
+    7. `bash scripts/tests/test_init.sh` passa.
+- Tests:
+    1. Criar `.opencode/resolved_issues.md` com conteúdo + `.opencode/standards/` + customização em AGENTS.md, reexecutar `init.sh` -> todos os três preservados.
+    2. Reexecutar com `.opencode/locale=pt` existente e sem argumento de locale -> `locale` permanece `pt`.
+    3. `make init` sem `target=` -> exit != 0 com mensagem de uso; CWD inalterado.
+    4. `INIT_CONFIGURE_LSP=1 bash scripts/init.sh <dir> en` num dir com `package.json` -> `.vscode/settings.json` criado.
+    5. Simular template obrigatório ausente -> `init.sh` falha e o target não fica com `.opencode/` parcial.
+    6. `bash -n scripts/init.sh` e `bash scripts/tests/test_init.sh` verdes.
+- Suggested fix: Reescrever `scripts/init.sh` com cópia set-if-absent, sweep enxuto (sem standards/README/resolved_issues), locale resolvido, staging atômico (preflight de templates + `mktemp -d` + move), portabilidade (`perl -i`/`sed -i.bak`, `mktemp`, `LC_ALL=C`) e flag `INIT_CONFIGURE_LSP`; adicionar guard de `target=` no `Makefile` (ou unificar `init`/`bootstrap`); atualizar `commands/ocf:init.md` e `scripts/tests/test_init.sh`. Esforço ~4-6h.
+

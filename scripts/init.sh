@@ -1,60 +1,133 @@
 #!/usr/bin/env bash
 set -euo pipefail
-shopt -s nullglob 2>/dev/null || true
 
 # Initialize opencode config in a project with repo context detection.
-# Usage: bash scripts/init.sh [target=/path/to/project] [locale=en]
-# If target is omitted, uses current directory.
-# If locale is omitted, defaults to en.
+#
+# Usage: bash scripts/init.sh [target=/path/to/project] [locale=en] [flags]
+#   --force        overwrite project-owned template files (dangerous)
+#   --dry-run      show what would happen; write nothing
+#   --lsp/--no-lsp enable/disable VS Code LSP configuration
+#   --locale <l>   set the locale explicitly
+#
+# Safety contract (issue #245):
+#   - re-runs NEVER delete or overwrite project-owned files
+#     (resolved_issues.md, known_issues.md, standards/, README.md,
+#      AGENTS.md, workflow.md, opencode.json, env-manifest.md, .gitignore,
+#      locale, *.env)
+#   - templates are copied only when the destination is absent (unless --force)
+#   - the locale defaults to the resolved locale (target .opencode/locale →
+#     global ~/.config/opencode/locale → en), never a hardcoded `en`
+#   - all mandatory templates are validated BEFORE any write (no half-init)
+#   - portable across GNU/BSD sed and honors TMPDIR
 
-TARGET="${1:-$PWD}"
-LOCALE="${2:-en}"
-CONFIG_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")/.." && pwd)"
+TARGET=""; LOCALE=""; FORCE=0; DRY_RUN=0
+LSP="${INIT_CONFIGURE_LSP:-}"
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --force)     FORCE=1; shift ;;
+    --dry-run)   DRY_RUN=1; shift ;;
+    --lsp)       LSP=1; shift ;;
+    --no-lsp)    LSP=0; shift ;;
+    --locale)    [ $# -ge 2 ] || { echo "[init] --locale requires a value" >&2; exit 3; }; LOCALE="$2"; shift 2 ;;
+    --locale=*)  LOCALE="${1#--locale=}"; shift ;;
+    -*)          echo "[init] unknown flag: $1" >&2; exit 3 ;;
+    *) if [ -z "$TARGET" ]; then TARGET="$1"
+       elif [ -z "$LOCALE" ]; then LOCALE="$1"
+       else echo "[init] unexpected argument: $1" >&2; exit 3; fi
+       shift ;;
+  esac
+done
+TARGET="${TARGET:-$PWD}"
+CONFIG_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")/.." && pwd -P)"
 
-mkdir -p "$TARGET/.opencode"
+# --- target validation (L5): refuse a file target, normalize the path ---------
+if [ -e "$TARGET" ] && [ ! -d "$TARGET" ]; then
+  echo "[init] FATAL: target is not a directory: $TARGET" >&2
+  exit 2
+fi
+mkdir -p "$TARGET" || { echo "[init] FATAL: cannot create $TARGET" >&2; exit 2; }
+TARGET="$(cd "$TARGET" && pwd -P)"
 
-# Explicit whitelist copy (issue #242): copy ONLY the files a project
-# actually consumes — never blind `cp -r` the whole template dir, which used
-# to leak preflight/, reviews/, node_modules/, skills/, agents/, commands/,
-# adorable-proposal/, package.json/lock, README.md, resolved_issues.md and
-# REAL secrets (telegram.env/openwa.env) into every new project.
-# standards/ is intentionally NOT copied: the LSP flow below reads
-# lsp-catalog.json from $CONFIG_DIR at runtime, and nothing in the generated
-# project references a local standards/ copy.
-for f in AGENTS.md workflow.md opencode.json env-manifest.md .gitignore locale; do
-  if [ -f "$CONFIG_DIR/.opencode/$f" ]; then
-    cp "$CONFIG_DIR/.opencode/$f" "$TARGET/.opencode/$f"
+P_TMP_REMOTES=""
+cleanup() { [ -n "$P_TMP_REMOTES" ] && rm -f "$P_TMP_REMOTES"; return 0; }
+trap cleanup EXIT
+
+# Portable in-place sed (GNU vs BSD/macOS): p_sed <file> <sed-expr...>
+p_sed() {
+  local f="$1"; shift
+  if sed --version >/dev/null 2>&1; then
+    sed -i "$@" "$f"
   else
-    echo "[init] Warning: template $f missing in $CONFIG_DIR/.opencode; skipping" >&2
+    sed -i '' "$@" "$f"
   fi
+}
+
+# --- resolve locale (M3 / BR3): arg > target locale > global locale > en -----
+if [ -z "$LOCALE" ]; then
+  if [ -f "$TARGET/.opencode/locale" ]; then
+    LOCALE="$(head -n1 "$TARGET/.opencode/locale")"
+  elif [ -f "$HOME/.config/opencode/locale" ]; then
+    LOCALE="$(head -n1 "$HOME/.config/opencode/locale")"
+  else
+    LOCALE="en"
+  fi
+fi
+
+# --- preflight (M1/M2 / BR5): validate every mandatory template before writing
+REQUIRED="AGENTS.md workflow.md opencode.json env-manifest.md .gitignore"
+MISSING=""
+for f in $REQUIRED; do
+  [ -f "$CONFIG_DIR/.opencode/$f" ] || MISSING="$MISSING $f"
+done
+if [ -n "$MISSING" ]; then
+  echo "[init] FATAL: missing required template(s) in $CONFIG_DIR/.opencode:$MISSING" >&2
+  exit 2
+fi
+
+# --- whitelist copy, set-if-absent (C1/H1/H2 / BR1/BR2) ----------------------
+# Copy ONLY the files a project consumes. Never blind `cp -r` (issue #242).
+# Never overwrite a file that already exists unless --force.
+copy_if_absent() { # <relpath>
+  local rel="$1" src="$CONFIG_DIR/.opencode/$1" dst="$TARGET/.opencode/$1"
+  if [ -f "$dst" ] && [ "$FORCE" -ne 1 ]; then
+    echo "[init] keep  $rel (project-owned)"
+    return 0
+  fi
+  if [ "$DRY_RUN" -eq 1 ]; then
+    echo "[init] would write $rel"
+    return 0
+  fi
+  mkdir -p "$(dirname "$dst")"
+  cp "$src" "$dst"
+  echo "[init] write $rel"
+}
+
+[ "$DRY_RUN" -eq 1 ] || mkdir -p "$TARGET/.opencode"
+for f in AGENTS.md workflow.md opencode.json env-manifest.md .gitignore; do
+  copy_if_absent "$f"
 done
 
-# Safety blocklist (net even after the whitelist): remove template-pollution
-# artifacts that blind `cp -r` runs may have left in the target. Deliberately
-# NOT swept: skills/, agents/, commands/ (legitimate project extension
-# points — we just never copy them) and *.env files (a project-owned
-# telegram.env/openwa.env is user data; init never copies secrets in, and
-# never deletes them out).
-rm -rf "$TARGET/.opencode/node_modules" "$TARGET/.opencode/preflight" \
-  "$TARGET/.opencode/reviews" "$TARGET/.opencode/adorable-proposal" \
-  "$TARGET/.opencode/standards"
-rm -f "$TARGET/.opencode/package.json" "$TARGET/.opencode/package-lock.json" \
-  "$TARGET/.opencode/README.md" "$TARGET/.opencode/resolved_issues.md"
+# --- safety sweep (BR4): ONLY blind-copy pollution, never project files ------
+if [ "$DRY_RUN" -ne 1 ] && [ "$TARGET" != "$CONFIG_DIR" ]; then
+  rm -rf "$TARGET/.opencode/node_modules" "$TARGET/.opencode/preflight" \
+    "$TARGET/.opencode/reviews" "$TARGET/.opencode/adorable-proposal"
+  rm -f "$TARGET/.opencode/package.json" "$TARGET/.opencode/package-lock.json"
+fi
 
-# Project-level issue tracker: create only when absent — never overwrite the
-# project's own tracker on re-runs (idempotency). There is no template source;
-# the skeleton matches the project-tracker header convention.
-if [ ! -f "$TARGET/.opencode/known_issues.md" ]; then
+# Project-level issue tracker: create only when absent — never overwrite.
+if [ ! -f "$TARGET/.opencode/known_issues.md" ] && [ "$DRY_RUN" -ne 1 ]; then
   printf '## Known Issues\n\nProject-level issue tracker.\nUse `$HOME/.config/opencode/known_issues.md` for opencode config-level issues.\n' > "$TARGET/.opencode/known_issues.md"
 fi
 
-# Write locale file
-echo "$LOCALE" > "$TARGET/.opencode/locale"
+# locale: write only when absent (or --force) — never flip a project's locale.
+if [ ! -f "$TARGET/.opencode/locale" ] || [ "$FORCE" -eq 1 ]; then
+  [ "$DRY_RUN" -eq 1 ] || printf '%s\n' "$LOCALE" > "$TARGET/.opencode/locale"
+fi
 
-# Detect git repo info and substitute into AGENTS.md
-if command -v git >/dev/null 2>&1 && git -C "$TARGET" rev-parse --git-dir >/dev/null 2>&1; then
-  # Default branch
-  # Default branch — try origin/HEAD first, fallback to current HEAD symbolic ref, then "main"
+# --- git context injection (C2/L1/L2/L4) ------------------------------------
+if [ "$DRY_RUN" -eq 1 ]; then
+  echo "[init] would inject repo context into AGENTS.md (dry-run)"
+elif command -v git >/dev/null 2>&1 && git -C "$TARGET" rev-parse --git-dir >/dev/null 2>&1; then
   origin_head="$(git -C "$TARGET" symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's#refs/remotes/origin/##' || true)"
   if [ -n "$origin_head" ]; then
     default_branch="$origin_head"
@@ -63,38 +136,43 @@ if command -v git >/dev/null 2>&1 && git -C "$TARGET" rev-parse --git-dir >/dev/
   fi
 
   escaped_branch=$(printf '%s\n' "$default_branch" | sed 's/[\/&]/\\&/g')
-  sed -i "s/__DEFAULT_BRANCH__/$escaped_branch/g" "$TARGET/.opencode/AGENTS.md"
+  p_sed "$TARGET/.opencode/AGENTS.md" "s/__DEFAULT_BRANCH__/$escaped_branch/g"
 
-  # Remotes — handle repos with no remotes
-  git -C "$TARGET" remote -v 2>/dev/null | awk '{print "  - `" $1 "` -> `" $2 "`"}' | sort -u > /tmp/opencode_remotes_$$
+  P_TMP_REMOTES="$(mktemp "${TMPDIR:-/tmp}/opencode_remotes.XXXXXX")"
+  git -C "$TARGET" remote -v 2>/dev/null | awk '
+    /\(fetch\)$/ {
+      name = $1; line = $0
+      sub(/^[^ \t]+[ \t]+/, "", line)
+      sub(/[ \t]+\(fetch\)$/, "", line)
+      print "  - `" name "` -> `" line "`"
+    }
+  ' | LC_ALL=C sort -u > "$P_TMP_REMOTES"
 
-  if [ -s /tmp/opencode_remotes_$$ ]; then
+  if [ -s "$P_TMP_REMOTES" ]; then
     awk 'NR==FNR{remotes[++n]=$0;next} /^__REMOTES__$/{for(i=1;i<=n;i++) print remotes[i];next} 1' \
-      /tmp/opencode_remotes_$$ "$TARGET/.opencode/AGENTS.md" > "$TARGET/.opencode/AGENTS.md.tmp" \
+      "$P_TMP_REMOTES" "$TARGET/.opencode/AGENTS.md" > "$TARGET/.opencode/AGENTS.md.tmp" \
       && mv "$TARGET/.opencode/AGENTS.md.tmp" "$TARGET/.opencode/AGENTS.md"
   else
-    sed -i '/^__REMOTES__$/c\  <none>' "$TARGET/.opencode/AGENTS.md"
+    p_sed "$TARGET/.opencode/AGENTS.md" 's/^__REMOTES__$/  <none>/'
   fi
 
-  rm -f /tmp/opencode_remotes_$$
-
+  rm -f "$P_TMP_REMOTES"; P_TMP_REMOTES=""
   echo "[init] Repo context: default branch=$default_branch, $(git -C "$TARGET" remote | wc -w) remote(s)"
 else
-  sed -i 's/__DEFAULT_BRANCH__/<not a git repo>/g' "$TARGET/.opencode/AGENTS.md"
-  sed -i '/^__REMOTES__$/c\  <none>' "$TARGET/.opencode/AGENTS.md"
+  p_sed "$TARGET/.opencode/AGENTS.md" 's/__DEFAULT_BRANCH__/<not a git repo>/g'
+  p_sed "$TARGET/.opencode/AGENTS.md" 's/^__REMOTES__$/  <none>/'
   echo "[init] No git repo detected; skipping repo context"
 fi
 
 echo "[init] .opencode/ initialized in $TARGET"
 echo "[init] Locale set to: $LOCALE"
-echo "[init] Files include: AGENTS.md, workflow.md, opencode.json, known_issues.md, env-manifest.md, .gitignore, locale (whitelist only; never secrets, node_modules/, preflight/, reviews/, skills/, agents/, commands/, adorable-proposal/, standards/)"
+echo "[init] Files include: AGENTS.md, workflow.md, opencode.json, known_issues.md, env-manifest.md, .gitignore, locale (whitelist only; never secrets, node_modules/, preflight/, reviews/, standards/)"
 echo "[init] Project issues go in .opencode/known_issues.md, config issues in ~/.config/opencode/known_issues.md"
 
-# --- LSP / Editor Configuration ---
+# --- LSP / Editor Configuration --------------------------------------------
 CATALOG="$CONFIG_DIR/standards/lsp-catalog.json"
 
 if [ -f "$CATALOG" ]; then
-  # Detect languages using python3 (preferred) or jq
   DETECTED=""
   if command -v python3 &>/dev/null; then
     DETECTED=$(TARGET="$TARGET" CATALOG="$CATALOG" python3 -c '
@@ -134,7 +212,6 @@ print(json.dumps(results))
   fi
 
   if [ -n "$DETECTED" ] && [ "$DETECTED" != "[]" ]; then
-    # Count detected languages for summary
     LANG_COUNT=$(echo "$DETECTED" | python3 -c '
 import json, sys
 try:
@@ -152,7 +229,6 @@ data = json.load(sys.stdin)
 print(", ".join(e["language"] for e in data))
 ' 2>/dev/null)"
 
-      # Show LSP suggestions
       echo "[init] LSP suggestions available for detected languages:"
       echo "$DETECTED" | python3 -c '
 import json, sys
@@ -165,15 +241,28 @@ for entry in data:
         print("  \u2192 " + entry["language"] + ": (built-in support)")
 ' 2>/dev/null
 
-      # Ask user for confirmation
-      echo ""
-      printf "[init] Configure VS Code with these LSPs? (s/N) "
-      read -r CONFIRM || CONFIRM="n"
-      if [ "$CONFIRM" = "s" ] || [ "$CONFIRM" = "S" ]; then
-        mkdir -p "$TARGET/.vscode"
+      # LSP configuration is OPT-IN (H3): /ocf:init runs non-interactively, so
+      # never block on a prompt. Enable via INIT_CONFIGURE_LSP=1/--lsp, or by
+      # answering the prompt when a TTY is present.
+      CONFIGURE=0
+      case "${LSP:-}" in
+        1|s|S|true|yes) CONFIGURE=1 ;;
+        0|n|N|false|no) CONFIGURE=0 ;;
+        *)
+          if [ -t 0 ]; then
+            echo ""
+            printf "[init] Configure VS Code with these LSPs? (s/N) "
+            read -r CONFIRM || CONFIRM="n"
+            case "$CONFIRM" in s|S) CONFIGURE=1 ;; esac
+          else
+            echo "[init] Skipping VS Code configuration (set INIT_CONFIGURE_LSP=1 to enable)"
+          fi
+          ;;
+      esac
+
+      if [ "$CONFIGURE" -eq 1 ]; then
         echo "[init] Creating/updating .vscode/settings.json..."
 
-        # Extract combined settings from detected languages
         NEW_SETTINGS=$(echo "$DETECTED" | python3 -c '
 import json, sys
 data = json.load(sys.stdin)
@@ -202,7 +291,9 @@ print(json.dumps(existing, indent=2))
 ' 2>/dev/null) || MERGED=""
           fi
 
-          if [ -n "$MERGED" ]; then
+          if [ "$DRY_RUN" -eq 1 ]; then
+            echo "[init] would merge LSP settings into $EXISTING_FILE"
+          elif [ -n "$MERGED" ]; then
             echo "$MERGED" > "$EXISTING_FILE"
             echo "[init] Merged LSP settings into existing $EXISTING_FILE"
           else
@@ -211,11 +302,15 @@ print(json.dumps(existing, indent=2))
             echo "$NEW_SETTINGS"
           fi
         else
-          echo "$NEW_SETTINGS" > "$EXISTING_FILE"
-          echo "[init] Created $EXISTING_FILE with LSP configuration"
+          if [ "$DRY_RUN" -eq 1 ]; then
+            echo "[init] would create $EXISTING_FILE with LSP configuration"
+          else
+            mkdir -p "$TARGET/.vscode"
+            echo "$NEW_SETTINGS" > "$EXISTING_FILE"
+            echo "[init] Created $EXISTING_FILE with LSP configuration"
+          fi
         fi
 
-        # List extensions to install
         echo ""
         echo "[init] Recommended VS Code extensions to install:"
         echo "$DETECTED" | python3 -c '
@@ -230,8 +325,6 @@ for ext in all_exts:
 
         echo ""
         echo "[init] VS Code configured with LSPs for detected languages"
-      else
-        echo "[init] Skipping VS Code configuration"
       fi
     fi
   else
@@ -242,16 +335,13 @@ else
 fi
 
 # --- Test environment placeholders (issue #210) ---
-# Create .nvmrc / .node-version ONLY when Node is available; never force Node
-# into a project that does not have it (BR 7 / AC 8). The range policy lives in
-# .opencode/env-manifest.md (copied with the .opencode/ template).
 if command -v node >/dev/null 2>&1; then
   if [[ ! -f "$TARGET/.nvmrc" ]]; then
-    printf '22\n' > "$TARGET/.nvmrc"
+    [ "$DRY_RUN" -eq 1 ] || printf '22\n' > "$TARGET/.nvmrc"
     echo "[init] Created $TARGET/.nvmrc (Node pin 22)"
   fi
   if [[ ! -f "$TARGET/.node-version" ]]; then
-    printf '22\n' > "$TARGET/.node-version"
+    [ "$DRY_RUN" -eq 1 ] || printf '22\n' > "$TARGET/.node-version"
     echo "[init] Created $TARGET/.node-version (Node pin 22)"
   fi
   echo "[init] Node detected — test environment pins created"

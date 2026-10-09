@@ -59,22 +59,15 @@ update:
 	@echo "[make] update"
 	@bash $(CONFIG_DIR)scripts/update.sh
 
-bootstrap:
-	@if [ -z "$(target)" ]; then echo "Usage: make bootstrap target=/path/to/project [locale=en]"; exit 1; fi
-	@locale="$(locale)"; \
-	if [ -z "$$locale" ]; then \
-	  locale="en"; \
-	fi; \
-	bash $(CONFIG_DIR)scripts/init.sh "$(target)" "$$locale"
+init bootstrap:
+	@if [ -z "$(target)" ]; then echo "Usage: make init target=/path/to/project [locale=en]"; exit 1; fi
+	@bash $(CONFIG_DIR)scripts/init.sh "$(target)" "$(locale)"
 
 commit:
 	@echo "[make] Atomic semantic commit"
 	@echo "Run /ocf:commit in the assistant to create a structured commit"
 	@echo "Format: <type>(<scope>): <description>"
 	@echo "See standards/commits.md for details"
-
-init:
-	@bash $(CONFIG_DIR)scripts/init.sh "$(target)" "$(locale)"
 
 review-external:
 	@echo "[make] review-external"

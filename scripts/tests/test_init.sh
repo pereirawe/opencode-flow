@@ -17,6 +17,12 @@ source "$HERE/lib.sh"
 t_begin "test_init"
 
 INIT="$HERE/../init.sh"
+MD5BIN="$(command -v md5sum || true)"
+hash_tree() { # <dir> — portable directory digest (GNU md5sum or BSD md5)
+  find "$1" -type f | LC_ALL=C sort | while IFS= read -r f; do
+    if [ -n "$MD5BIN" ]; then md5sum "$f"; else md5 -r "$f"; fi
+  done | if [ -n "$MD5BIN" ]; then md5sum; else md5; fi | cut -d' ' -f1
+}
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
@@ -85,10 +91,10 @@ leftover2="$(find "$D2" \( -name node_modules -o -name '*.env' ! -name '*.env.ex
 assert_eq "0" "$leftover2" "git target: find for node_modules|*.env → 0"
 
 # --- 3. Idempotency: second run exit 0 + identical content ---
-sum_before="$(find "$D2/.opencode" -type f | LC_ALL=C sort | xargs md5sum 2>/dev/null | md5sum | cut -d' ' -f1)"
+sum_before="$(hash_tree "$D2/.opencode")"
 bash "$INIT" "$D2" en </dev/null >/dev/null 2>&1
 assert_eq "0" "$?" "second run exits 0"
-sum_after="$(find "$D2/.opencode" -type f | LC_ALL=C sort | xargs md5sum 2>/dev/null | md5sum | cut -d' ' -f1)"
+sum_after="$(hash_tree "$D2/.opencode")"
 assert_eq "$sum_before" "$sum_after" "second run leaves identical content"
 assert_eq "en" "$(cat "$D2/.opencode/locale")" "locale uncorrupted after second run"
 assert_contains "$D2/.opencode/AGENTS.md" "main" "AGENTS.md uncorrupted after second run"
@@ -121,19 +127,127 @@ else
   t_ok "declined LSP prompt creates no .vscode/settings.json"
 fi
 
-# --- 5. Safety sweep: stale blind-copy pollution removed on re-run ---
+# --- 5. Safety sweep: only stale blind-copy pollution removed; project files kept ---
 D5="$TMP/proj-stale"
 mkdir -p "$D5/.opencode"
 mkdir -p "$D5/.opencode/node_modules" "$D5/.opencode/preflight" "$D5/.opencode/reviews" "$D5/.opencode/standards"
-touch "$D5/.opencode/package.json" "$D5/.opencode/README.md" "$D5/.opencode/resolved_issues.md"
+touch "$D5/.opencode/package.json" "$D5/.opencode/README.md"
+printf 'archived\n' > "$D5/.opencode/resolved_issues.md"
 bash "$INIT" "$D5" en </dev/null >/dev/null 2>&1
 assert_eq "0" "$?" "sweep run exits 0"
-for bad in node_modules preflight reviews standards package.json README.md resolved_issues.md; do
+for bad in node_modules preflight reviews package.json; do
   if [ -e "$D5/.opencode/$bad" ]; then
     t_fail "stale pollution swept: $bad (still present)"
   else
     t_ok "stale pollution swept: $bad"
   fi
 done
+for keep in standards README.md resolved_issues.md; do
+  if [ -e "$D5/.opencode/$keep" ]; then
+    t_ok "project-owned preserved: $keep"
+  else
+    t_fail "project-owned preserved: $keep (removed)"
+  fi
+done
+assert_contains "$D5/.opencode/resolved_issues.md" "archived" "resolved_issues.md content preserved"
+
+# --- 6. Locale resolution: existing target locale survives a re-run without arg ---
+D6="$TMP/proj-locale"
+mkdir -p "$D6/.opencode"
+printf 'pt\n' > "$D6/.opencode/locale"
+bash "$INIT" "$D6" </dev/null >/dev/null 2>&1
+assert_eq "0" "$?" "locale-preservation run exits 0"
+assert_eq "pt" "$(cat "$D6/.opencode/locale")" "existing locale preserved without --force"
+
+# --- 7. LSP opt-in: INIT_CONFIGURE_LSP=1 writes .vscode/settings.json ---
+D7="$TMP/proj-lsp-optin"
+mkdir -p "$D7"
+printf '{"name":"demo"}\n' > "$D7/package.json"
+INIT_CONFIGURE_LSP=1 bash "$INIT" "$D7" en </dev/null >/dev/null 2>&1
+assert_eq "0" "$?" "opt-in LSP run exits 0"
+if [ -f "$D7/.vscode/settings.json" ]; then
+  t_ok "INIT_CONFIGURE_LSP=1 writes .vscode/settings.json"
+else
+  t_fail "INIT_CONFIGURE_LSP=1 writes .vscode/settings.json (missing)"
+fi
+
+# --- 8. make init without target is refused (does not touch CWD) ---
+CONFIG_DIR="$(cd "$HERE/../.." && pwd)"
+out8="$(make -C "$CONFIG_DIR" init 2>&1)"
+rc8=$?
+if [ "$rc8" -ne 0 ] && printf '%s' "$out8" | grep -qi "Usage"; then
+  t_ok "make init without target is refused"
+else
+  t_fail "make init without target is refused (rc=$rc8)"
+fi
+
+# --- 9. --dry-run writes nothing ---
+D9="$TMP/proj-dryrun"
+mkdir -p "$D9"
+bash "$INIT" "$D9" en --dry-run </dev/null >/dev/null 2>&1
+assert_eq "0" "$?" "--dry-run exits 0"
+if [ -e "$D9/.opencode" ]; then
+  t_fail "--dry-run writes nothing (.opencode created)"
+else
+  t_ok "--dry-run writes nothing (.opencode not created)"
+fi
+
+# --- 10. Missing mandatory template → FATAL, no partial .opencode (AC6) ---
+CFG10="$TMP/fakecfg"
+mkdir -p "$CFG10/scripts" "$CFG10/.opencode" "$CFG10/standards"
+cp "$HERE/../init.sh" "$CFG10/scripts/init.sh"
+for t in workflow.md opencode.json env-manifest.md .gitignore locale; do
+  cp "$HERE/../../.opencode/$t" "$CFG10/.opencode/$t"
+done
+# AGENTS.md intentionally omitted
+[ -f "$HERE/../../standards/lsp-catalog.json" ] && cp "$HERE/../../standards/lsp-catalog.json" "$CFG10/standards/"
+D10="$TMP/proj-missing"
+mkdir -p "$D10"
+out10="$(bash "$CFG10/scripts/init.sh" "$D10" en </dev/null 2>&1)"
+rc10=$?
+if [ "$rc10" -ne 0 ] && printf '%s' "$out10" | grep -q "FATAL"; then
+  t_ok "missing mandatory template is FATAL"
+else
+  t_fail "missing mandatory template is FATAL (rc=$rc10)"
+fi
+if [ -e "$D10/.opencode" ]; then
+  t_fail "no partial .opencode on preflight failure"
+else
+  t_ok "no partial .opencode on preflight failure"
+fi
+
+# --- 11. --force rewrites an existing project-owned template; default keeps it ---
+D11="$TMP/proj-force"
+mkdir -p "$D11/.opencode"
+printf 'CUSTOM\n' > "$D11/.opencode/workflow.md"
+bash "$INIT" "$D11" en --force </dev/null >/dev/null 2>&1
+assert_eq "0" "$?" "--force run exits 0"
+if grep -q "CUSTOM" "$D11/.opencode/workflow.md"; then
+  t_fail "--force overwrites existing template"
+else
+  t_ok "--force overwrites existing template"
+fi
+D11b="$TMP/proj-noforce"
+mkdir -p "$D11b/.opencode"
+printf 'CUSTOM\n' > "$D11b/.opencode/workflow.md"
+bash "$INIT" "$D11b" en </dev/null >/dev/null 2>&1
+assert_contains "$D11b/.opencode/workflow.md" "CUSTOM" "without --force existing template preserved"
+
+# --- 12. fresh target adopts the global locale ($HOME/.config/opencode/locale) ---
+FH="$TMP/fakehome"
+mkdir -p "$FH/.config/opencode"
+printf 'pt\n' > "$FH/.config/opencode/locale"
+D12="$TMP/proj-globallocale"
+mkdir -p "$D12"
+HOME="$FH" bash "$INIT" "$D12" </dev/null >/dev/null 2>&1
+assert_eq "pt" "$(cat "$D12/.opencode/locale" 2>/dev/null)" \
+  "12 fresh target adopts global locale (no CONFIG_DIR shadow)"
+
+# --- 12b. no target/global locale -> en ---
+D12B="$TMP/proj-nolocale"
+mkdir -p "$D12B"
+HOME="$TMP/nohome" bash "$INIT" "$D12B" </dev/null >/dev/null 2>&1
+assert_eq "en" "$(cat "$D12B/.opencode/locale" 2>/dev/null)" \
+  "12b fresh target without any locale defaults to en"
 
 t_finish
