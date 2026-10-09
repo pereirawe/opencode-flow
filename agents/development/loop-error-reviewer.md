@@ -43,9 +43,12 @@ flag) scans every journal of the run. Journals live under
 ## Steps
 
 1. **Plan (read-only):**
-   `scripts/loop-error-triage.sh --plan --loop <label>` (add
-   `--min-severity <s>` only if the caller asks). With no `--journal` it scans
-   every journal in `.opencode/loop-journal/`. This writes:
+   `scripts/loop-error-triage.sh --plan --loop <label> [--id <n>]` (add
+   `--min-severity <s>` only if the caller asks). `--loop <label>` restricts to
+   that loop's journals (`loop-<label>-*.jsonl`); `--id <n>` further restricts to
+   the single `loop-<label>-<id>.jsonl` for a per-issue pass; with neither it
+   scans every journal in `.opencode/loop-journal/` (the consolidated batch
+   pass). This writes:
    - `.opencode/preflight/loop-errors-<label>.md` — human digest;
    - `.opencode/preflight/loop-errors-<label>.proposals.tsv` — machine plan.
 2. **Read the digest** and judge each proposal — you are the judgment layer,

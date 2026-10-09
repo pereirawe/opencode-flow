@@ -10,7 +10,7 @@ source "$(dirname "$0")/config.sh"
 # issues, in the global opencode tracker or in the target project tracker.
 #
 # Storage:
-#   Default file = <PROJECT_ISSUES_DIR>/loop-journal/loop-<loop>-<id>.jsonl
+#   Default file = <cwd>/.opencode/loop-journal/loop-<loop>-<id>.jsonl
 #   Override the base directory with OCF_LOOP_JOURNAL_DIR.
 #   Override the file entirely with --journal.
 #

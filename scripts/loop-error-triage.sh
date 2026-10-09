@@ -71,7 +71,11 @@ if [ "${#JOURNALS[@]}" -eq 0 ]; then
     # Isolate a single loop when a label/id is given; otherwise scan all journals.
     PAT="*.jsonl"
     if [ -n "$LOOP_ID" ]; then
-      PAT="loop-${LABEL}-${LOOP_ID}.jsonl"
+      if [ "$LABEL" != "batch" ]; then
+        PAT="loop-${LABEL}-${LOOP_ID}.jsonl"
+      else
+        PAT="loop-*-${LOOP_ID}.jsonl"
+      fi
     elif [ "$LABEL" != "batch" ]; then
       PAT="loop-${LABEL}-*.jsonl"
     fi
@@ -278,7 +282,6 @@ while [ "$i" -lt "$NPROP" ]; do
     echo "[loop-error-triage] --max $MAX reached; remaining proposals left unfiled"
     break
   fi
-  COUNT=$((COUNT+1))
 
   # Ensure the target tracker exists before append-issue.sh validates it, and
   # route the write to exactly that target (global OR project) via the override,
@@ -303,7 +306,7 @@ while [ "$i" -lt "$NPROP" ]; do
       --tests "$tests" --status backlog --reviewers "1 (backend)" \
       --report "loop-error-reviewer" >/dev/null; then
     echo "[loop-error-triage] filed ${scope}: $title"
-    FILED=$((FILED+1))
+    FILED=$((FILED+1)); COUNT=$((COUNT+1))
   fi
   i=$((i+1))
 done
