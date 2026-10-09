@@ -653,10 +653,11 @@ issues only. See `standards/issues.md` for the full contract.
 
 ### 244. Loop error review: structured per-loop journal + reviewer agent + global/project issue routing
 
-- Status: in-progress
+- Status: in-review
 - Opened: 2026-10-09
 - Ready: 2026-10-09
 - Started: 2026-10-09
+- In review: 2026-10-09T09:02
 - Type: feat
 - Severity: medium
 - Priority: high
