@@ -121,19 +121,58 @@ else
   t_ok "declined LSP prompt creates no .vscode/settings.json"
 fi
 
-# --- 5. Safety sweep: stale blind-copy pollution removed on re-run ---
+# --- 5. Safety sweep: only stale blind-copy pollution removed; project files kept ---
 D5="$TMP/proj-stale"
 mkdir -p "$D5/.opencode"
 mkdir -p "$D5/.opencode/node_modules" "$D5/.opencode/preflight" "$D5/.opencode/reviews" "$D5/.opencode/standards"
-touch "$D5/.opencode/package.json" "$D5/.opencode/README.md" "$D5/.opencode/resolved_issues.md"
+touch "$D5/.opencode/package.json" "$D5/.opencode/README.md"
+printf 'archived\n' > "$D5/.opencode/resolved_issues.md"
 bash "$INIT" "$D5" en </dev/null >/dev/null 2>&1
 assert_eq "0" "$?" "sweep run exits 0"
-for bad in node_modules preflight reviews standards package.json README.md resolved_issues.md; do
+for bad in node_modules preflight reviews package.json; do
   if [ -e "$D5/.opencode/$bad" ]; then
     t_fail "stale pollution swept: $bad (still present)"
   else
     t_ok "stale pollution swept: $bad"
   fi
 done
+for keep in standards README.md resolved_issues.md; do
+  if [ -e "$D5/.opencode/$keep" ]; then
+    t_ok "project-owned preserved: $keep"
+  else
+    t_fail "project-owned preserved: $keep (removed)"
+  fi
+done
+assert_contains "$D5/.opencode/resolved_issues.md" "archived" "resolved_issues.md content preserved"
+
+# --- 6. Locale resolution: existing target locale survives a re-run without arg ---
+D6="$TMP/proj-locale"
+mkdir -p "$D6/.opencode"
+printf 'pt\n' > "$D6/.opencode/locale"
+bash "$INIT" "$D6" </dev/null >/dev/null 2>&1
+assert_eq "0" "$?" "locale-preservation run exits 0"
+assert_eq "pt" "$(cat "$D6/.opencode/locale")" "existing locale preserved without --force"
+
+# --- 7. LSP opt-in: INIT_CONFIGURE_LSP=1 writes .vscode/settings.json ---
+D7="$TMP/proj-lsp-optin"
+mkdir -p "$D7"
+printf '{"name":"demo"}\n' > "$D7/package.json"
+INIT_CONFIGURE_LSP=1 bash "$INIT" "$D7" en </dev/null >/dev/null 2>&1
+assert_eq "0" "$?" "opt-in LSP run exits 0"
+if [ -f "$D7/.vscode/settings.json" ]; then
+  t_ok "INIT_CONFIGURE_LSP=1 writes .vscode/settings.json"
+else
+  t_fail "INIT_CONFIGURE_LSP=1 writes .vscode/settings.json (missing)"
+fi
+
+# --- 8. make init without target is refused (does not touch CWD) ---
+CONFIG_DIR="$(cd "$HERE/../.." && pwd)"
+out8="$(make -C "$CONFIG_DIR" init 2>&1)"
+rc8=$?
+if [ "$rc8" -ne 0 ] && printf '%s' "$out8" | grep -qi "Usage"; then
+  t_ok "make init without target is refused"
+else
+  t_fail "make init without target is refused (rc=$rc8)"
+fi
 
 t_finish
