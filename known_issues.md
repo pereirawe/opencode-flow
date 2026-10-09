@@ -651,3 +651,26 @@ issues only. See `standards/issues.md` for the full contract.
 - Tests: -
 - Suggested fix: Remove the committer leg of the test-runner/transition allow loop in test_git_cred_cache.sh (keep developer), mirroring #232's removal; or restore the allow in committer.md if the committer agent's duties require direct test-runner access.
 
+
+### 247. Documentar os fluxos (init, discovery, delivery, loop error review, aibot) com diagramas Mermaid no README
+- Status: in-progress
+- Type: doc
+- Severity: low
+- Priority: medium
+
+- Report: model
+- Base branch: main
+- Reviewers: 1 (runtime)
+- Remote: -
+- Jira: -
+- PR: -
+- Location: README.md, docs/flows.md
+- Description: Como mantenedor, quero a documentacao dos fluxos existentes consolidada e visual (diagramas Mermaid no README, detalhamento em docs/flows.md) para que novos contribuidores entendam o pipeline de ponta a ponta: init/bootstrap, discovery (com loop error review #244), delivery (com formatter #246), gate do committer, MR, merge/arquivamento e o gatilho remoto aibot-watcher (#39).
+- Impact: Hoje o README tem apenas dois diagramas curtos (Discovery e Delivery) e nao cobre os passos novos (init #245, loop error review #244, formatter #246) nem o fluxo do aibot-watcher; nao ha um documento central de fluxos. Isso dificulta onboarding e a verificacao do pipeline.
+- Business rules: -
+- Acceptance criteria: 1. README.md passa a exibir diagramas Mermaid para: ciclo de vida end-to-end; discovery (com lint + loop error review); delivery (com formatter/pre-commit + loop error review); loop error review; aibot-watcher; init/bootstrap.
+2. docs/flows.md criado com a descricao textual dos mesmos fluxos e os diagramas.
+3. Diagramas referenciam os scripts reais (promote.sh, preflight.sh, detect-lang.sh, committer-check.sh, create-pr.sh, merge-and-close.sh, format.sh, loop-journal.sh, loop-error-triage.sh, init.sh).
+4. Nenhuma alteracao de comportamento (somente documentacao).
+- Tests: -
+- Suggested fix: -
