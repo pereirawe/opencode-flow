@@ -4,6 +4,38 @@ source "$(dirname "$0")/config.sh"
 
 echo "[pre-commit] Running checks..."
 
+# Run the project's formatter on staged files (issue #246), then re-stage ONLY
+# the files it actually rewrote — and only when they had no pre-existing
+# unstaged edits, so partially staged changes (`git add -p`) are never committed
+# by accident. Missing formatters are skipped gracefully by format.sh.
+FORMATTER="$(dirname "$0")/format.sh"
+if [[ -x "$FORMATTER" ]]; then
+  TOPLEVEL="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+  [[ -n "$TOPLEVEL" ]] || TOPLEVEL="."
+  STAGED_BEFORE=$(git -C "$TOPLEVEL" diff --cached --name-only --diff-filter=ACMR 2>/dev/null || true)
+  UNSTAGED_BEFORE=$(git -C "$TOPLEVEL" diff --name-only 2>/dev/null || true)
+  if "$FORMATTER" --staged; then
+    RESTAGE=()
+    while IFS= read -r f; do
+      [[ -n "$f" ]] || continue
+      printf '%s\n' "$STAGED_BEFORE" | grep -qxF -- "$f" || continue
+      if printf '%s\n' "$UNSTAGED_BEFORE" | grep -qxF -- "$f"; then
+        echo "[pre-commit] WARNING: $f has unstaged changes — not re-staging after format"
+        continue
+      fi
+      RESTAGE+=("$f")
+    done < <(git -C "$TOPLEVEL" diff --name-only 2>/dev/null || true)
+    if [[ "${#RESTAGE[@]}" -gt 0 ]]; then
+      echo "[pre-commit] Re-staging ${#RESTAGE[@]} file(s) rewritten by the formatter"
+      git -C "$TOPLEVEL" add -- "${RESTAGE[@]}"
+    fi
+  else
+    echo "[pre-commit] formatter reported changes needed (continuing)"
+  fi
+else
+  echo "[pre-commit] format.sh not found — skipping formatting"
+fi
+
 # Run tests via the shared test-runner (cache-aware fingerprint): identical
 # code is never re-tested. Exit codes: 0=pass, 1=test failure, 2=cannot run
 # (no runner/no suite) -> skip gracefully, 3=check: no fresh cache.

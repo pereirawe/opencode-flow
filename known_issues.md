@@ -651,3 +651,45 @@ issues only. See `standards/issues.md` for the full contract.
 - Tests: -
 - Suggested fix: Remove the committer leg of the test-runner/transition allow loop in test_git_cred_cache.sh (keep developer), mirroring #232's removal; or restore the allow in committer.md if the committer agent's duties require direct test-runner access.
 
+
+### 246. Rodar o formatador do projeto (Prettier/equivalente) antes do commit e do committer
+
+- Status: in-publish
+- Opened: 2026-10-09
+- Ready: 2026-10-09
+- Started: 2026-10-09
+- In review: 2026-10-09T09:43
+- In publish: 2026-10-09T09:43
+- Type: feat
+- Severity: medium
+- Priority: high
+- Report: model
+- Base branch: main
+- Reviewers: 2 (runtime, devops)
+- Remote: #195
+- Jira: -
+- PR: #196
+- Location: scripts/format.sh, scripts/pre_commit.sh, scripts/committer-check.sh, scripts/tests/test_format.sh, standards/formatting.md, workflow.md, scripts/README.md, commands/ocf:commit.md
+- Description: Como mantenedor do pipeline, quero que o commit e o committer rodem automaticamente o formatador do projeto (Prettier quando houver `.prettierrc`/config, ou o formatador default da stack) para que o código/changelog entrem sempre formatados, sem depender de disciplina manual nem de configuração por projeto.
+- Impact: Hoje NÃO existe nenhuma integração de formatação no caminho de commit (`scripts/pre_commit.sh`) nem no gate (`scripts/committer-check.sh`); o grep do repo não encontra prettier/gofmt/black/shfmt no fluxo de commit. Resultado: formatação inconsistente entre projetos e retrabalho em review.
+- Business rules: 1. Criar `scripts/format.sh` que detecta e executa o formatador do projeto.
+    2. Detecção por stack: config Prettier (`.prettierrc*`, `prettier.config.*`, ou chave `prettier`/`devDependencies.prettier` em `package.json`) → `npx --no-install prettier` (fallback binário `prettier`); Go (`go.mod`/`*.go`) → `gofmt -w`; Python → `ruff format` senão `black`; shell → `shfmt -w`.
+    3. Se o formatador da stack não estiver instalado, `format.sh` NÃO falha: imprime skip e sai 0 (degradação graciosa). Nunca instala dependências.
+    4. Modos: `--staged` (default, formata apenas arquivos alterados/staged), `--all` (todo o repo), `--check` (sem escrever; sai != 0 se houver mudanças necessárias).
+    5. `scripts/pre_commit.sh` executa `format.sh --staged` antes de concluir o commit e re-adiciona (`git add`) os arquivos formatados; ausência de formatador não bloqueia.
+    6. `scripts/committer-check.sh` inclui uma verificação de formatação NÃO-bloqueante (WARN) via `format.sh --check` quando houver formatador; nunca reprova por ausência de formatador.
+    7. Respeita arquivos de ignore do formatador (`.prettierignore`, `.gitignore`) e nunca formata `node_modules/`, `vendor/` ou `.git/`.
+    8. Documentar em `standards/formatting.md`, `workflow.md`, `scripts/README.md` e `commands/ocf:commit.md`.
+    9. Testes em `scripts/tests/test_format.sh` usando shims falsos no `PATH` (não dependem de prettier/gofmt instalados).
+- Acceptance criteria: 1. `format.sh --staged` num repo com `gofmt` disponível formata apenas os `.go` alterados e sai 0.
+    2. `format.sh --check` sai != 0 quando há formatação pendente e 0 quando limpo.
+    3. `format.sh` sem formatador instalado imprime skip e sai 0.
+    4. `pre_commit.sh` roda o formatador e re-adiciona os arquivos formatados.
+    5. `committer-check.sh 246` permanece PASS quando não há formatador (apenas WARN).
+    6. `bash scripts/tests/test_format.sh` verde.
+- Tests: 1. Repo temp com `.go` mal formatado + shim `gofmt` no `PATH` -> `format.sh --staged` altera o arquivo e o resultado fica staged.
+    2. `format.sh --check` com formatação pendente -> exit != 0; após `format.sh --staged` -> exit 0.
+    3. `PATH` sem formatadores -> `format.sh --staged` -> exit 0 com mensagem de skip.
+    4. `pre_commit.sh` com mensagem contendo `Issue: #1` e formatter shim -> arquivo formatado aparece em `git diff --cached`.
+- Suggested fix: Criar `scripts/format.sh` (deteção Prettier/gofmt/ruff/black/shfmt com modos `--staged`/`--all`/`--check` e skip gracioso) e chamá-lo em `scripts/pre_commit.sh` (com `git add` dos arquivos) + WARN em `scripts/committer-check.sh`; documentar em `standards/formatting.md`, `workflow.md`, `scripts/README.md` e `commands/ocf:commit.md`; cobrir com `scripts/tests/test_format.sh`. Esforço ~3-5h.
+

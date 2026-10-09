@@ -9,7 +9,8 @@ Shell helpers for issue lifecycle management.
 | `transition.sh` | Single status-transition entrypoint: update status + stamp per-stage timestamp (in-review/in-qa/in-publish) |
 | `close_issue.sh` | Close remote issue, archive to `resolved_issues.md` |
 | `scan_issues.sh` | Static analysis heuristics |
-| `pre_commit.sh` | Pre-commit checks (tests + commit trailers) |
+| `pre_commit.sh` | Pre-commit checks (formatter on staged files + tests + commit trailers) |
+| `format.sh` | Run the project's formatter (Prettier/gofmt/shfmt/ruff/black) on staged or all files; `--check` mode; graceful skip |
 | `maintain.sh` | Scan known_issues for stale entries and sync status |
 | `update.sh` | Check local version vs remote, apply updates |
 | `backup.sh` | Intelligent timestamped backup excluding junk and preventing recursion |

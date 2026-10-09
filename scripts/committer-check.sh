@@ -126,6 +126,32 @@ if printf '%s' "$REVIEWERS" | grep -qi 'security'; then
   fi
 fi
 
+# Formatting check (issue #246) — non-blocking WARN only. Never fails the gate
+# because a project may legitimately have no formatter installed. Scoped to the
+# issue's branch diff when the base branch is known, else the staged files.
+FORMATTER="$SCRIPTS_DIR/format.sh"
+if [[ -x "$FORMATTER" ]]; then
+  BASE_REF=$(printf '%s\n' "$SECTION" | awk -F': ' '/^- Base branch:/ {print $2; exit}')
+  FMT_RANGE=""
+  if [[ -n "$BASE_REF" && "$BASE_REF" != "-" ]] && git rev-parse --verify --quiet "$BASE_REF" >/dev/null 2>&1; then
+    MB="$(git merge-base "$BASE_REF" HEAD 2>/dev/null || true)"
+    [[ -n "$MB" ]] && FMT_RANGE="${MB}...HEAD"
+  fi
+  if [[ -n "$FMT_RANGE" ]]; then
+    if "$FORMATTER" --diff "$FMT_RANGE" --check >/dev/null 2>&1; then
+      echo "Format: clean (branch diff $BASE_REF...HEAD)"
+    else
+      echo "GATE: WARN — formatting changes pending (run scripts/format.sh --diff $FMT_RANGE)"
+    fi
+  elif "$FORMATTER" --staged --check >/dev/null 2>&1; then
+    echo "Format: clean (or no formatter/staged files)"
+  else
+    echo "GATE: WARN — formatting changes pending (run scripts/format.sh --staged)"
+  fi
+else
+  echo "Format: format.sh not found (skipped)"
+fi
+
 if [[ "$FAIL" -eq 0 ]]; then
   echo "VERDICT: PASS — safe to transition -> in-publish"
   exit 0

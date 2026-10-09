@@ -11,6 +11,7 @@ Project-wide conventions and patterns shared across all sectors.
 | `issues.md` | Issue tracking and lifecycle |
 | `pr-template.md` | Pull request template |
 | `code-review.md` | Code review guidelines |
+| `formatting.md` | Pre-commit formatter (`scripts/format.sh`) — detection, modes, wiring |
 | `locale.md` | Locale system — how to set project language |
 | `resolved-issue.md` | Resolved issue archive format |
 | `test-env.md` | Test environment — version pins, manifest ranges, sync guard, warning contract |

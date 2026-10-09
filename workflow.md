@@ -442,12 +442,16 @@ Branches are created from the `Base branch:` field in the issue entry
 - Business rules documented and implemented correctly
 - QA verified after senior review
 - Committer gate passed before MR creation
+- Formatter run before commit (`scripts/format.sh`; see `standards/formatting.md`)
 - `known_issues.md` reflects current status at every step
 - MR approved and merged
 - Remote issue closed
 
 ### Pre-commit
 
+- Run the project's formatter on staged files via `scripts/format.sh --staged`
+  and re-stage the changes (issue #246; detection/modes in
+  `standards/formatting.md`; missing formatter is non-blocking)
 - Run tests via `scripts/test-runner.sh` (cache-aware fingerprint — identical
   code is never re-tested; delegates environment bootstrap and runner
   detection)
