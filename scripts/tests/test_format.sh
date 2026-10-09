@@ -112,4 +112,95 @@ for f in "$FORMAT" "$PRE_COMMIT"; do
   fi
 done
 
+# --- t07: node_modules is never formatted --------------------------------
+D="$TMP/d7"
+mk_repo "$D"
+mkdir -p "$D/node_modules"
+printf 'package main\nfunc other(){}\n' > "$D/node_modules/x.go"
+git -C "$D" add node_modules/x.go
+( cd "$D" && PATH="$BIN:$PATH" "$BASH_BIN" "$FORMAT" --staged ) >/dev/null 2>&1
+assert_contains "$D/main.go" "FORMATTED" "t07 formats tracked staged file"
+if grep -q FORMATTED "$D/node_modules/x.go"; then
+  t_fail "t07 leaves node_modules untouched"
+else
+  t_ok "t07 leaves node_modules untouched"
+fi
+
+# --- t08: --all formats tracked files ------------------------------------
+D="$TMP/d8"
+mk_repo "$D"
+git -C "$D" commit -qm init
+printf 'package main\nfunc a(){}\n' > "$D/other.go"
+git -C "$D" add other.go
+( cd "$D" && PATH="$BIN:$PATH" "$BASH_BIN" "$FORMAT" --all ) >/dev/null 2>&1
+rc=$?
+assert_eq 0 "$rc" "t08 --all exits 0"
+assert_contains "$D/main.go" "FORMATTED" "t08 --all formats tracked file"
+
+# --- fake prettier shim ---------------------------------------------------
+BIN2="$TMP/bin2"
+mkdir -p "$BIN2"
+cat > "$BIN2/prettier" <<'SHIM'
+#!/usr/bin/env bash
+mode=""; files=()
+for a in "$@"; do
+  case "$a" in
+    --write) mode=w ;;
+    --check) mode=c ;;
+    *) files+=("$a") ;;
+  esac
+done
+if [ "$mode" = "w" ]; then
+  for f in "${files[@]}"; do grep -q 'PRETTIERED' "$f" || printf '\n// PRETTIERED\n' >> "$f"; done
+elif [ "$mode" = "c" ]; then
+  rc=0
+  for f in "${files[@]}"; do grep -q 'PRETTIERED' "$f" || rc=1; done
+  exit $rc
+fi
+SHIM
+chmod +x "$BIN2/prettier"
+
+# --- t09: Prettier only runs when the project configures it --------------
+D="$TMP/d9"
+mkdir -p "$D"; git -C "$D" init -q
+git -C "$D" config user.email test@example.com; git -C "$D" config user.name test
+printf '{}\n' > "$D/.prettierrc"
+printf 'const x = 1\n' > "$D/a.js"
+git -C "$D" add .prettierrc a.js
+( cd "$D" && PATH="$BIN2:$PATH" "$BASH_BIN" "$FORMAT" --staged ) >/dev/null 2>&1
+assert_contains "$D/a.js" "PRETTIERED" "t09 runs prettier when configured"
+
+D="$TMP/d9b"
+mkdir -p "$D"; git -C "$D" init -q
+git -C "$D" config user.email test@example.com; git -C "$D" config user.name test
+printf 'const x = 1\n' > "$D/a.js"
+git -C "$D" add a.js
+( cd "$D" && PATH="$BIN2:$PATH" "$BASH_BIN" "$FORMAT" --staged ) >/dev/null 2>&1
+if grep -q PRETTIERED "$D/a.js"; then
+  t_fail "t09 skips prettier without project config"
+else
+  t_ok "t09 skips prettier without project config"
+fi
+
+# --- t10: --diff formats the files in a git range ------------------------
+D="$TMP/d10"
+mk_repo "$D"
+git -C "$D" commit -qm c1
+printf 'package main\nfunc b(){}\n' > "$D/b.go"
+git -C "$D" add b.go
+git -C "$D" commit -qm c2
+( cd "$D" && PATH="$BIN:$PATH" "$BASH_BIN" "$FORMAT" --diff HEAD~1...HEAD ) >/dev/null 2>&1
+assert_contains "$D/b.go" "FORMATTED" "t10 --diff formats changed files"
+
+# --- t11: partially staged changes are never committed by the formatter --
+D="$TMP/d11"
+mk_repo "$D"
+printf '// unstaged edit\n' >> "$D/main.go"
+( cd "$D" && PATH="$BIN:$PATH" "$BASH_BIN" "$PRE_COMMIT" ) >/dev/null 2>&1
+if git -C "$D" show :main.go 2>/dev/null | grep -q 'unstaged edit'; then
+  t_fail "t11 keeps partially staged changes out of the index"
+else
+  t_ok "t11 keeps partially staged changes out of the index"
+fi
+
 t_finish
