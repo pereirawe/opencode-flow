@@ -63,6 +63,11 @@ assert_eq "0" "$(wc -l < "$OUT" | tr -d ' ')" "t05 clear truncates journal"
 bash "$JOURNAL" append --journal "$J" --severity nope --message x >"$OUT" 2>&1
 assert_eq "3" "$?" "t06 invalid severity exits 3"
 
+# t08 — control chars (ANSI ESC) are stripped so JSONL stays valid
+bash "$JOURNAL" append --journal "$J" --message "$(printf 'ansi \033[31mred\033[0m')" >"$OUT" 2>&1
+bash "$JOURNAL" list --journal "$J" --format jsonl >"$OUT" 2>&1
+if grep -q $'\033' "$OUT"; then t_fail "t08 ANSI ESC leaked into JSONL"; else t_ok "t08 control chars stripped"; fi
+
 # t07 — syntax
 bash -n "$JOURNAL" 2>/dev/null
 assert_eq "0" "$?" "t07 loop-journal.sh bash -n"

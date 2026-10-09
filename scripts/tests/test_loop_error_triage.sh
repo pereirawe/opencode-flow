@@ -63,8 +63,9 @@ assert_contains "$PTSV" "src/app.py:2" "t01d project row present"
 assert_not_contains "$PTSV" "src/low.py:1" "t01e low row filtered (min-severity medium)"
 
 # t02 — explicit scope column drives target
-assert_contains "$PTSV" "global" "t02a scope global recorded"
+assert_contains "$PTSV" "$(printf 'global\thigh')" "t02a global row scope+severity"
 assert_contains "$PTSV" "src/app.py:2" "t02b scope project recorded"
+assert_contains "$PTSV" "$(printf 'project\tmedium')" "t02c project row scope+severity"
 
 # t03 — min-severity
 run_triage --plan --min-severity critical >/dev/null 2>&1
@@ -104,10 +105,39 @@ assert_not_contains "$PROJECT_TRACKER" "override test" "t08b cwd tracker untouch
 ( cd "$PROJ" && OCF_ISSUES_FILE="$GLOBAL_TRACKER" bash "$LINT" 99 ) >/dev/null 2>&1
 assert_eq "0" "$?" "t08c issue-lint honored override (PASS)"
 
+# t10 — classify_scope auto (no explicit --scope)
+REAL="$(cd "$HERE/../.." && pwd -P)"
+J2="$TMP/auto.jsonl"
+bash "$JOURNAL_SH" append --journal "$J2" --loop develop --id 244 --phase review \
+  --severity high --location "$REAL/scripts/some.sh:1" --command "bash scripts/some.sh" \
+  --message "config auto" >/dev/null 2>&1
+bash "$JOURNAL_SH" append --journal "$J2" --loop develop --id 244 --phase review \
+  --severity high --location "src/auto.py:9" --command "pytest" \
+  --message "project auto" >/dev/null 2>&1
+( cd "$PROJ" && bash "$TRIAGE" --apply --journal "$J2" --label auto \
+  --global-tracker "$GLOBAL_TRACKER" --project-tracker "$PROJECT_TRACKER" ) >/dev/null 2>&1
+assert_contains "$GLOBAL_TRACKER" "Location: $REAL/scripts/some.sh:1" "t10a auto config path -> global"
+assert_contains "$PROJECT_TRACKER" "Location: src/auto.py:9" "t10b auto workspace path -> project"
+assert_not_contains "$PROJECT_TRACKER" "some.sh:1" "t10c config path not in project tracker"
+
+# t11 — next_id skips ids already archived in resolved_issues.md
+G2="$TMP/g2"; mkdir -p "$G2"
+printf '# Known issues\n' > "$G2/known_issues.md"
+printf '### 7. archived thing\n' > "$G2/resolved_issues.md"
+J3="$TMP/nextid.jsonl"
+bash "$JOURNAL_SH" append --journal "$J3" --loop develop --id 244 --phase review \
+  --severity high --scope global --location "scripts/nid.sh:1" \
+  --command "x" --message "nid" >/dev/null 2>&1
+( cd "$PROJ" && bash "$TRIAGE" --apply --journal "$J3" \
+  --global-tracker "$G2/known_issues.md" --project-tracker "$PROJECT_TRACKER" --label nid ) >/dev/null 2>&1
+assert_contains "$G2/known_issues.md" "### 8. " "t11 next_id skips archived ids"
+
 # t09 — syntax
 bash -n "$TRIAGE" 2>/dev/null
 assert_eq "0" "$?" "t09a loop-error-triage.sh bash -n"
 bash -n "$HERE/../config.sh" 2>/dev/null
 assert_eq "0" "$?" "t09b config.sh bash -n"
+bash -n "$HERE/../append-issue-global.sh" 2>/dev/null
+assert_eq "0" "$?" "t09c append-issue-global.sh bash -n"
 
 t_finish
