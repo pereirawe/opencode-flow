@@ -65,9 +65,13 @@ flujo automático `opencode mcp auth` informa éxito sin token real y cada
 ### 2. Habilitar y autenticar
 
 1. Define `mcp.gmail.enabled` como `true`.
-2. Ejecuta `opencode mcp auth gmail` y completa el flujo en el navegador. A
-   diferencia del camino de descubrimiento automático roto, el cliente
-   pre-registrado hace que el navegador se abra y el token persista.
+2. Ejecuta `opencode mcp auth gmail`. El pre-registro es **obligatorio**, pero
+   el flujo automático está roto hoy para los endpoints de Google (OpenCode
+   #26195; PR de corrección #53468 aún pendiente): `mcp auth` puede informar
+   "Authentication successful!" sin abrir el navegador ni guardar token, y cada
+   `tools/call` falla después con `Unauthorized`. Mientras no salga la
+   corrección, inyecta el token manualmente en el store como se describe en
+   #26195.
 3. Comprueba el estado: `opencode mcp list`.
 4. Revoca: `opencode mcp logout gmail`.
 

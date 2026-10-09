@@ -64,9 +64,12 @@ every `tools/call` then fails with `Unauthorized` (upstream OpenCode issue
 ### 2. Enable and authenticate
 
 1. Set `mcp.gmail.enabled` to `true`.
-2. Run `opencode mcp auth gmail` and complete the browser flow. Unlike the
-   broken auto-discovery path, the pre-registered client makes the browser open
-   and the token persist.
+2. Run `opencode mcp auth gmail`. Pre-registration is **required**, but the
+   automatic flow is currently broken for Google's endpoints (OpenCode #26195;
+   fix PR #53468 still pending): `mcp auth` may report "Authentication
+   successful!" without opening a browser or storing a token, and every
+   `tools/call` then fails with `Unauthorized`. Until the fix ships, inject the
+   token manually into the store as described in #26195.
 3. Check status: `opencode mcp list`.
 4. Revoke: `opencode mcp logout gmail`.
 

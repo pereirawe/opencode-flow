@@ -684,7 +684,7 @@ issues only. See `standards/issues.md` for the full contract.
 5. Nenhum token/segredo commitado e nenhuma referencia a @fredshred7/whatsapp-mcp-server.
 - Tests: 1. Rodar 'bash scripts/tests/test_mcp_config.sh' -> exit 0.
 2. Rodar 'python3 -m json.tool opencode.json' -> JSON valido, com chave mcp e apenas gmail.
-3. Rodar 'grep -rn "@fredshred7/whatsapp-mcp-server" opencode.json standards/' -> nenhuma ocorrencia (pacote inexistente removido).
+3. Rodar 'grep -rn "@fredshred7/whatsapp-mcp-server" opencode.json standards/mcp-registry.md' -> nenhuma ocorrencia (pacote inexistente fora do config/catalogo; a doc de setup pode cita-lo como candidato removido).
 4. Rodar 'bash scripts/tests/run_all.sh' -> apenas a falha pre-existente test_git_cred_cache.sh (issue #241).
 - Suggested fix: -
 

@@ -65,9 +65,12 @@ criar o cliente OAuth manualmente:
 ### 2. Habilitar e autenticar
 
 1. Defina `mcp.gmail.enabled` como `true`.
-2. Rode `opencode mcp auth gmail` e conclua o fluxo no navegador. Diferente do
-   caminho de descoberta automática quebrado, o cliente pré-registrado faz o
-   navegador abrir e o token persistir.
+2. Rode `opencode mcp auth gmail`. O pré-registro é **obrigatório**, mas o
+   fluxo automático está quebrado hoje para os endpoints do Google (OpenCode
+   #26195; PR de correção #53468 ainda pendente): o `mcp auth` pode reportar
+   "Authentication successful!" sem abrir o navegador nem gravar token, e toda
+   `tools/call` falha depois com `Unauthorized`. Enquanto a correção não sai,
+   injete o token manualmente no store conforme descrito na #26195.
 3. Verifique o status: `opencode mcp list`.
 4. Revogue: `opencode mcp logout gmail`.
 
