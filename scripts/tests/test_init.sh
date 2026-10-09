@@ -233,4 +233,21 @@ printf 'CUSTOM\n' > "$D11b/.opencode/workflow.md"
 bash "$INIT" "$D11b" en </dev/null >/dev/null 2>&1
 assert_contains "$D11b/.opencode/workflow.md" "CUSTOM" "without --force existing template preserved"
 
+# --- 12. fresh target adopts the global locale ($HOME/.config/opencode/locale) ---
+FH="$TMP/fakehome"
+mkdir -p "$FH/.config/opencode"
+printf 'pt\n' > "$FH/.config/opencode/locale"
+D12="$TMP/proj-globallocale"
+mkdir -p "$D12"
+HOME="$FH" bash "$INIT" "$D12" </dev/null >/dev/null 2>&1
+assert_eq "pt" "$(cat "$D12/.opencode/locale" 2>/dev/null)" \
+  "12 fresh target adopts global locale (no CONFIG_DIR shadow)"
+
+# --- 12b. no target/global locale -> en ---
+D12B="$TMP/proj-nolocale"
+mkdir -p "$D12B"
+HOME="$TMP/nohome" bash "$INIT" "$D12B" </dev/null >/dev/null 2>&1
+assert_eq "en" "$(cat "$D12B/.opencode/locale" 2>/dev/null)" \
+  "12b fresh target without any locale defaults to en"
+
 t_finish

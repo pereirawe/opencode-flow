@@ -673,7 +673,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Business rules:
     1. Reexecutar `init.sh` (ou `make bootstrap`/`make init`) NUNCA pode apagar ou sobrescrever arquivos de propriedade do projeto: `.opencode/resolved_issues.md`, `.opencode/known_issues.md`, `.opencode/standards/`, `.opencode/README.md`, `AGENTS.md`, `workflow.md`, `opencode.json`, `env-manifest.md`, `.gitignore`, `locale` e `*.env`.
     2. A cópia de templates só ocorre quando o destino NÃO existe (`[ -f dst ] || cp`), exceto com `--force` explícito.
-    3. `locale` existente é preservado; se ausente, o default é o locale resolvido (projeto `.opencode/locale` → global `~/.config/opencode/locale` → `en`), não um `en` fixo.
+    3. `locale` existente é preservado; se ausente, o default é resolvido nesta ordem: argumento explícito → `.opencode/locale` do projeto-alvo (se já existir) → locale global `~/.config/opencode/locale` → `en`. O `.opencode/locale` do próprio repositório de config (`$CONFIG_DIR`) NÃO entra na cadeia de um projeto-alvo novo (só importa o locale do alvo e a preferência global do usuário).
     4. O sweep remove apenas artefatos comprovadamente originados de cópias cegas antigas (`node_modules/`, `preflight/`, `reviews/`, `adorable-proposal/`, `package.json`, `package-lock.json`); nunca `standards/`, `README.md` ou `resolved_issues.md`.
     5. `init.sh` é atômico: valida todos os templates obrigatórios antes de escrever; em falha, não deixa o projeto parcialmente inicializado.
     6. Portabilidade: sem `sed -i` GNU-only (usar `sed -i.bak` + `rm` ou `perl -i -pe`); usar `mktemp` (honrando `TMPDIR`) em vez de `/tmp/opencode_remotes_$$`; `LC_ALL=C` no `sort`.
