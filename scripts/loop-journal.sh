@@ -42,6 +42,10 @@ LOCATION="-"; COMMAND="-"; EXIT_CODE="-"
 
 while [ $# -gt 0 ]; do
   case "$1" in
+    --journal|--loop|--id|--format|--message|--severity|--phase|--scope|--location|--command|--exit-code)
+      [ $# -ge 2 ] || { echo "loop-journal: missing value for '$1'" >&2; exit 3; } ;;
+  esac
+  case "$1" in
     --journal)   JOURNAL="$2"; shift 2 ;;
     --loop)      LOOP="$2"; shift 2 ;;
     --id)        ID="$2"; shift 2 ;;
@@ -73,7 +77,9 @@ json_escape() {
   s="${s//$'\n'/\\n}"
   s="${s//$'\r'/\\r}"
   s="${s//$'\t'/\\t}"
-  printf '%s' "$s"
+  # Strip any remaining JSON-illegal control chars (U+0000-U+001F), e.g. ANSI
+  # escape sequences captured from command output.
+  printf '%s' "$s" | LC_ALL=C tr -d '\001-\010\013\014\016-\037'
 }
 
 # jget — awk helper (single-quoted JSON object line): read a top-level string value.

@@ -18,21 +18,26 @@ source "$(dirname "$0")/config.sh"
 # canonical `bug` entries (Status backlog) via `scripts/append-issue.sh`.
 #
 # Usage:
-#   loop-error-triage.sh [--journal <file>]... [--loop <name>] [--label <l>]
+#   loop-error-triage.sh [--journal <file>]... [--loop <name>] [--id <n>] [--label <l>]
 #                        [--min-severity low|medium|high|critical]
 #                        [--max <n>] [--plan|--apply] [--from <proposals.tsv>]
 #                        [--global-tracker <file>] [--project-tracker <file>]
 #
 # Exit codes: 0 ok, 3 usage error.
 
-MIN_SEV="medium"; MAX=20; MODE="plan"; FROM=""; LABEL="batch"
+MIN_SEV="medium"; MAX=20; MODE="plan"; FROM=""; LABEL="batch"; LOOP_ID=""
 GLOBAL_OVERRIDE=""; PROJECT_OVERRIDE=""
 declare -a JOURNALS=()
 
 while [ $# -gt 0 ]; do
   case "$1" in
+    --journal|--loop|--id|--label|--min-severity|--max|--from|--global-tracker|--project-tracker)
+      [ $# -ge 2 ] || { echo "loop-error-triage: missing value for '$1'" >&2; exit 3; } ;;
+  esac
+  case "$1" in
     --journal)          JOURNALS+=("$2"); shift 2 ;;
     --loop)             LABEL="$2"; shift 2 ;;
+    --id)               LOOP_ID="$2"; shift 2 ;;
     --label)            LABEL="$2"; shift 2 ;;
     --min-severity)     MIN_SEV="$2"; shift 2 ;;
     --max)              MAX="$2"; shift 2 ;;
@@ -63,7 +68,14 @@ fi
 if [ "${#JOURNALS[@]}" -eq 0 ]; then
   BASE="${OCF_LOOP_JOURNAL_DIR:-$(pwd -P)/.opencode/loop-journal}"
   if [ -d "$BASE" ]; then
-    while IFS= read -r f; do JOURNALS+=("$f"); done < <(ls -1 "$BASE"/*.jsonl 2>/dev/null || true)
+    # Isolate a single loop when a label/id is given; otherwise scan all journals.
+    PAT="*.jsonl"
+    if [ -n "$LOOP_ID" ]; then
+      PAT="loop-${LABEL}-${LOOP_ID}.jsonl"
+    elif [ "$LABEL" != "batch" ]; then
+      PAT="loop-${LABEL}-*.jsonl"
+    fi
+    while IFS= read -r f; do JOURNALS+=("$f"); done < <(ls -1 "$BASE"/$PAT 2>/dev/null || true)
   fi
 fi
 
@@ -96,11 +108,12 @@ entries() {
   for f in "${JOURNALS[@]}"; do
     [ -f "$f" ] || continue
     awk "$AWK_JGET"'
+      function e(x) { return (x == "" ? "__EMPTY__" : x) }
       /^\{/ {
         printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
-          jget($0,"severity"), jget($0,"scope"), jget($0,"location"),
-          jget($0,"command"), jget($0,"exit_code"), jget($0,"loop"),
-          jget($0,"id"), jget($0,"phase"), jget($0,"message")
+          e(jget($0,"severity")), e(jget($0,"scope")), e(jget($0,"location")),
+          e(jget($0,"command")), e(jget($0,"exit_code")), e(jget($0,"loop")),
+          e(jget($0,"id")), e(jget($0,"phase")), e(jget($0,"message"))
       }
     ' "$f"
   done
@@ -112,7 +125,8 @@ classify_scope() { # <location> <command> <message>
   cwd="$(pwd -P)"
   # Absolute path under the opencode config tree => always global.
   case "$hay" in
-    *"$CONFIG_DIR"*) echo global; return ;;
+    *"$CONFIG_DIR/"*) echo global; return ;;
+    "$CONFIG_DIR") echo global; return ;;
   esac
   # Bare config-relative paths are global only while running inside the config
   # repo itself; in a target project, `scripts/...` is project code.
@@ -140,6 +154,12 @@ next_id() { # <tracker-file>
 
 short() { printf '%s' "${1:-}" | tr '\t\n' '  ' | cut -c1-160; }
 
+# de — decode the "__EMPTY__" sentinel emitted by entries() back to an empty
+# string. `read` with IFS=$'\t' collapses truly-empty fields (tab is IFS
+# whitespace), which shifted every column when a journal event had an empty
+# scope/message; the sentinel keeps the field count intact.
+de() { if [ "$1" = "__EMPTY__" ]; then printf ''; else printf '%s' "$1"; fi; }
+
 mkdir -p "$PROJECT_ISSUES_DIR/preflight"
 DIGEST="$PROJECT_ISSUES_DIR/preflight/loop-errors-$LABEL.md"
 PROPOSALS="$PROJECT_ISSUES_DIR/preflight/loop-errors-$LABEL.proposals.tsv"
@@ -148,16 +168,32 @@ declare -A SEEN
 declare -a P_SCOPE P_SEV P_LOC P_CMD P_EC P_LOOP P_ID P_PHASE P_MSG P_TARGET P_DUP
 NPROP=0
 
+# already_filed — block-scoped cross-run dedup: an entry already exists in the
+# target tracker with the same `- Location:` line AND the same command (BR6).
+already_filed() { # <tracker> <location> <command>
+  local f="$1" loc="$2" cmd="$3"
+  [ -f "$f" ] || return 1
+  [ -n "$loc" ] && [ "$loc" != "-" ] || return 1
+  awk -v loc="- Location: $loc" -v cmd="$cmd" '
+    function flush() { if (seen && (cmd == "" || cmdseen)) found = 1 }
+    /^### [0-9]+\./ { flush(); seen = 0; cmdseen = 0; next }
+    { if ($0 == loc) seen = 1; if (cmd != "" && index($0, cmd) > 0) cmdseen = 1 }
+    END { flush(); exit (found ? 0 : 1) }
+  ' "$f"
+}
+
 add_proposal() {
   local sev="$1" scope="$2" loc="$3" cmd="$4" ec="$5" loop="$6" id="$7" phase="$8" msg="$9"
+  local override="${10:-}"
   if [ -z "$scope" ]; then scope="$(classify_scope "$loc" "$cmd" "$msg")"; fi
   local key="$scope|$loc|$cmd"
   [ -n "${SEEN[$key]:-}" ] && return
   SEEN[$key]=1
   local target
-  if [ "$scope" = "global" ]; then target="$GLOBAL_FILE"; else target="$PROJECT_FILE"; fi
+  if [ -n "$override" ]; then target="$override"
+  elif [ "$scope" = "global" ]; then target="$GLOBAL_FILE"; else target="$PROJECT_FILE"; fi
   local dup="no"
-  if [ -n "$loc" ] && [ "$loc" != "-" ] && [ -f "$target" ] && grep -qF -- "- Location: $loc" "$target" 2>/dev/null; then
+  if already_filed "$target" "$loc" "$cmd"; then
     dup="yes"
   fi
   P_SCOPE+=("$scope"); P_SEV+=("$sev"); P_LOC+=("$loc"); P_CMD+=("$cmd")
@@ -171,11 +207,14 @@ if [ -n "$FROM" ]; then
   while IFS=$'\t' read -r c_scope c_sev c_target c_loc c_cmd c_ec c_loop c_id c_phase c_msg; do
     [ -n "${c_scope:-}" ] || continue
     case "$c_scope" in \#*) continue ;; esac
-    add_proposal "$c_sev" "$c_scope" "$c_loc" "$c_cmd" "$c_ec" "$c_loop" "$c_id" "$c_phase" "$c_msg"
+    add_proposal "$c_sev" "$c_scope" "$c_loc" "$c_cmd" "$c_ec" "$c_loop" "$c_id" "$c_phase" "$c_msg" "$c_target"
   done < "$FROM"
 else
   while IFS=$'\t' read -r sev scope loc cmd ec loop id phase msg; do
     [ -n "${sev:-}" ] || continue
+    sev="$(de "$sev")"; scope="$(de "$scope")"; loc="$(de "$loc")"
+    cmd="$(de "$cmd")"; ec="$(de "$ec")"; loop="$(de "$loop")"
+    id="$(de "$id")"; phase="$(de "$phase")"; msg="$(de "$msg")"
     [ "$(sev_num "$sev")" -ge "$MIN_NUM" ] || continue
     add_proposal "$sev" "$scope" "$loc" "$cmd" "$ec" "$loop" "$id" "$phase" "$msg"
   done < <(entries)
@@ -227,11 +266,6 @@ fi
 FILED=0; SKIPPED=0; COUNT=0
 i=0
 while [ "$i" -lt "$NPROP" ]; do
-  if [ "$COUNT" -ge "$MAX" ]; then
-    echo "[loop-error-triage] --max $MAX reached; remaining proposals left unfiled"
-    break
-  fi
-  COUNT=$((COUNT+1))
   scope="${P_SCOPE[$i]}"; sev="${P_SEV[$i]}"; loc="${P_LOC[$i]}"
   cmd="${P_CMD[$i]}"; ec="${P_EC[$i]}"; loop="${P_LOOP[$i]}"; id="${P_ID[$i]}"
   phase="${P_PHASE[$i]}"; msg="${P_MSG[$i]}"; target="${P_TARGET[$i]}"
@@ -240,9 +274,17 @@ while [ "$i" -lt "$NPROP" ]; do
     echo "[loop-error-triage] skip (already filed): $loc"
     SKIPPED=$((SKIPPED+1)); i=$((i+1)); continue
   fi
+  if [ "$COUNT" -ge "$MAX" ]; then
+    echo "[loop-error-triage] --max $MAX reached; remaining proposals left unfiled"
+    break
+  fi
+  COUNT=$((COUNT+1))
 
-  # Ensure project tracker exists before append-issue.sh validates it.
-  if [ "$scope" != "global" ] && [ ! -f "$target" ]; then
+  # Ensure the target tracker exists before append-issue.sh validates it, and
+  # route the write to exactly that target (global OR project) via the override,
+  # so `--project-tracker` and the `<workspace>/known_issues.md` fallback are
+  # honored (not silently re-resolved from cwd).
+  if [ ! -f "$target" ]; then
     mkdir -p "$(dirname "$target")"
     printf '# Known issues\n' > "$target"
   fi
@@ -254,20 +296,14 @@ while [ "$i" -lt "$NPROP" ]; do
   prio="$sev"
   if [ -z "$msg" ]; then title="Loop error: ${loc} (${loop}#${id})"; fi
 
-  if [ "$scope" = "global" ]; then
-    OCF_ISSUES_FILE="$target" "$SCRIPTS_DIR/append-issue.sh" \
+  if OCF_ISSUES_FILE="$target" "$SCRIPTS_DIR/append-issue.sh" \
       --id "$(next_id "$target")" \
       --title "$title" --type bug --severity "$sev" --priority "$prio" \
       --location "$loc" --description "$desc" --impact "$impact" \
       --tests "$tests" --status backlog --reviewers "1 (backend)" \
-      --report "loop-error-reviewer" >/dev/null && { echo "[loop-error-triage] filed GLOBAL: $title"; FILED=$((FILED+1)); }
-  else
-    env -u OCF_ISSUES_FILE "$SCRIPTS_DIR/append-issue.sh" \
-      --id "$(next_id "$target")" \
-      --title "$title" --type bug --severity "$sev" --priority "$prio" \
-      --location "$loc" --description "$desc" --impact "$impact" \
-      --tests "$tests" --status backlog --reviewers "1 (backend)" \
-      --report "loop-error-reviewer" >/dev/null && { echo "[loop-error-triage] filed PROJECT: $title"; FILED=$((FILED+1)); }
+      --report "loop-error-reviewer" >/dev/null; then
+    echo "[loop-error-triage] filed ${scope}: $title"
+    FILED=$((FILED+1))
   fi
   i=$((i+1))
 done
