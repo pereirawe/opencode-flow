@@ -668,7 +668,7 @@ issues only. See `standards/issues.md` for the full contract.
 - Reviewers: 2 (runtime, devops)
 - Remote: #195
 - Jira: -
-- PR: -
+- PR: #196
 - Location: scripts/format.sh, scripts/pre_commit.sh, scripts/committer-check.sh, scripts/tests/test_format.sh, standards/formatting.md, workflow.md, scripts/README.md, commands/ocf:commit.md
 - Description: Como mantenedor do pipeline, quero que o commit e o committer rodem automaticamente o formatador do projeto (Prettier quando houver `.prettierrc`/config, ou o formatador default da stack) para que o código/changelog entrem sempre formatados, sem depender de disciplina manual nem de configuração por projeto.
 - Impact: Hoje NÃO existe nenhuma integração de formatação no caminho de commit (`scripts/pre_commit.sh`) nem no gate (`scripts/committer-check.sh`); o grep do repo não encontra prettier/gofmt/black/shfmt no fluxo de commit. Resultado: formatação inconsistente entre projetos e retrabalho em review.
