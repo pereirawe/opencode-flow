@@ -653,18 +653,19 @@ issues only. See `standards/issues.md` for the full contract.
 
 ### 244. Loop error review: structured per-loop journal + reviewer agent + global/project issue routing
 
-- Status: in-review
+- Status: in-publish
 - Opened: 2026-10-09
 - Ready: 2026-10-09
 - Started: 2026-10-09
 - In review: 2026-10-09T09:02
+- In publish: 2026-10-09T09:17
 - Type: feat
 - Severity: medium
 - Priority: high
 - Report: model
 - Base branch: main
 - Reviewers: 2 (backend, devops)
-- Remote: -
+- Remote: #191
 - Jira: -
 - PR: -
 - Location: scripts/loop-journal.sh, scripts/loop-error-triage.sh, scripts/config.sh, scripts/append-issue-global.sh, scripts/aibot-watcher.sh, agents/development/loop-error-reviewer.md, commands/ocf:discovery.md, commands/ocf:develop.md, commands/ocf:develop-full.md, commands/ocf:triage-errors.md, workflow.md, standards/loop-journal.md, scripts/tests/test_loop_journal.sh, scripts/tests/test_loop_error_triage.sh
