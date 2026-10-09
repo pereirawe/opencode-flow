@@ -691,17 +691,19 @@ issues only. See `standards/issues.md` for the full contract.
 - Suggested fix: -
 
 ### 249. MCP de WhatsApp (pessoal) via @sjawhar/whatsapp-mcp fixado
-- Status: in-progress
+- Status: in-publish
 - Opened: 2026-10-09
 - Ready: 2026-10-09
 - Started: 2026-10-09
+- In review: 2026-10-09T12:22
+- In publish: 2026-10-09T12:22
 - Type: feat
 - Severity: low
 - Priority: medium
 - Report: model
 - Base branch: issue-248-mcp-gmail-whatsapp
 - Reviewers: 2 (devops, security)
-- Remote: -
+- Remote: #201
 - Jira: -
 - PR: -
 - Location: opencode.json, standards/mcp-setup.md, standards/pt/mcp-setup.md, standards/es/mcp-setup.md, standards/mcp-registry.md, .opencode/env-manifest.md, .opencode/.gitignore, scripts/tests/test_mcp_config.sh
