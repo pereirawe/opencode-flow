@@ -1,4 +1,4 @@
-# MCP Setup — Gmail (and WhatsApp pending)
+# MCP Setup — Gmail and WhatsApp
 
 How to enable, authenticate and operate the MCP servers configured in
 `opencode.json`.
@@ -21,16 +21,15 @@ is resolved at load time and never stored in the config file.
 
 ## Registered servers
 
-| Server | Kind | Endpoint | Default |
-|--------|------|----------|---------|
+| Server | Kind | Endpoint / Command | Default |
+|--------|------|--------------------|---------|
 | `gmail` | remote | `https://gmailmcp.googleapis.com/mcp/v1` | disabled |
+| `whatsapp` | local | `npx -y @sjawhar/whatsapp-mcp@2.4.1` | disabled |
 
-The server is registered `enabled: false` on purpose: OpenCode never tries to
+Both servers are registered `enabled: false` on purpose: OpenCode never tries to
 launch a server whose credentials are absent, so startup stays safe on a fresh
-machine. To enable it, flip `enabled` to `true` and authenticate as described
+machine. To enable one, flip `enabled` to `true` and authenticate as described
 below. Only enable what you need — every MCP adds tools to the model context.
-
-WhatsApp is **not registered yet** — see “WhatsApp (pending decision)” below.
 
 ## Gmail (official remote, OAuth 2.0)
 
@@ -80,24 +79,47 @@ config or commit them.
 > Caveat: this server is a Google developer preview and the flow may change.
 > Track upstream issue #26195 before relying on it in automation.
 
-## WhatsApp (pending decision)
+## WhatsApp (local, `@sjawhar/whatsapp-mcp`, unofficial)
 
-No suitable WhatsApp MCP is registered today. The original candidate
-`@fredshred7/whatsapp-mcp-server` **does not exist on npm** (registry returns
-404) and was removed — pointing `npx -y` at a nonexistent name is a
-supply-chain / typosquatting risk.
+`whatsapp` is a **local** stdio server: `npx -y @sjawhar/whatsapp-mcp@2.4.1`
+(version pinned on purpose — never `latest`). It is a hardened fork of
+`karlfoster/whatsapp-mcp-2.0` and connects through **Baileys — the UNOFFICIAL
+WhatsApp Web API**, not the official Meta Cloud API.
 
-The options surveyed, none enabled yet:
+> ⚠️ **Ban risk.** WhatsApp may ban accounts that use unofficial clients. Use a
+> **dedicated burner number** — never your personal number.
 
-| Candidate | Transport | Notes |
-|-----------|-----------|-------|
-| `@sjawhar/whatsapp-mcp` (pin a version) | stdio | WhatsApp Web (Baileys), **not** the official Cloud API; requires QR pairing and a dedicated number; README warns of account-ban risk; hardened fork with SLSA provenance |
-| `@iflow-mcp/mmarqueti-whatsapp-mcp` | WebSocket (port) | Community mirror of the Cloud API server; its mandatory WebSocket transport is incompatible with OpenCode's local stdio MCP |
-| Own Cloud API server | stdio | Wrap the official Meta WhatsApp Cloud API yourself; most work, no third-party dependency |
+### 1. Enable and pair
 
-Decision deferred (issue #249 in `known_issues.md`). When a choice is made,
-register it under `mcp` with `enabled: false` and document the credentials here;
-never commit tokens.
+1. Create the state directory: `mkdir -p .opencode/whatsapp`.
+2. Set `mcp.whatsapp.enabled` to `true`.
+3. Restart OpenCode; on first run the server prints a QR code.
+4. On the phone: **WhatsApp → Settings → Linked Devices → Link a Device**.
+5. Check status: `opencode mcp list`.
+
+### 2. Storage and state
+
+The server writes its state under its working directory, set as
+`.opencode/whatsapp` (`cwd` in `opencode.json`); that directory is gitignored
+via `.opencode/.gitignore`:
+
+| Path (under `.opencode/whatsapp/`) | Contents |
+|------------------------------------|----------|
+| `auth_info/` | WhatsApp credentials — **never commit** |
+| `data/` | SQLite database (messages, chats, contacts) |
+| `store/` | Baileys message store + lock file |
+| `uploads/` | Files allowed for `send_file` |
+| `downloads/` | Downloaded media |
+| `contacts/` | VCF files for contact import |
+
+If you lose `auth_info/`, pair again with the QR code.
+
+### 3. Alternatives
+
+There is no first-party Meta WhatsApp Cloud API MCP that speaks stdio, so the
+official Cloud API would require wrapping it yourself in a stdio server — see
+the notes in `standards/mcp-registry.md`. Prefer that route if you need the
+official API and cannot accept the Baileys ban risk.
 
 ## Security rules
 

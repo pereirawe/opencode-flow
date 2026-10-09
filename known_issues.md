@@ -690,28 +690,35 @@ issues only. See `standards/issues.md` for the full contract.
 4. Rodar 'bash scripts/tests/run_all.sh' -> apenas a falha pre-existente test_git_cred_cache.sh (issue #241).
 - Suggested fix: -
 
-### 249. Adicionar MCP de WhatsApp quando o provedor for decidido (Cloud API própria ou @sjawhar/whatsapp-mcp)
-- Status: backlog
+### 249. MCP de WhatsApp (pessoal) via @sjawhar/whatsapp-mcp fixado
+- Status: in-publish
+- Opened: 2026-10-09
+- Ready: 2026-10-09
+- Started: 2026-10-09
+- In review: 2026-10-09T12:22
+- In publish: 2026-10-09T12:22
 - Type: feat
 - Severity: low
-- Priority: low
-
+- Priority: medium
 - Report: model
-- Base branch: main
-- Reviewers: 1 (devops)
-- Remote: -
+- Base branch: issue-248-mcp-gmail-whatsapp
+- Reviewers: 2 (devops, security)
+- Remote: #201
 - Jira: -
-- PR: -
-- Location: opencode.json, standards/mcp-setup.md, standards/mcp-registry.md, .opencode/env-manifest.md, scripts/tests/test_mcp_config.sh
-- Description: Follow-up da issue #248. Nenhum MCP de WhatsApp foi registrado: o pacote @fredshred7/whatsapp-mcp-server nao existe no npm (404) e o unico MCP real de WhatsApp Cloud API publicado (@iflow-mcp/mmarqueti-whatsapp-mcp) fala WebSocket, incompativel com o MCP stdio local do opencode. O usuario decidira o provedor depois.
-- Impact: Sem isso, agentes nao conseguem enviar/ler WhatsApp; a pendencia fica rastreada para nao se perder.
-- Business rules: 1. Escolher entre: (a) @sjawhar/whatsapp-mcp fixado numa versao (WhatsApp Web/Baileys, exige QR e numero dedicado, risco de ban) ou (b) servidor proprio em stdio sobre a WhatsApp Cloud API oficial.
-2. Registrar sob a chave top-level 'mcp' do opencode.json com enabled:false; nunca apontar npx para pacote inexistente nem usar 'latest'.
-3. Credenciais somente via {env:...}; nenhum segredo commitado.
+- PR: #202
+- Location: opencode.json, standards/mcp-setup.md, standards/pt/mcp-setup.md, standards/es/mcp-setup.md, standards/mcp-registry.md, .opencode/env-manifest.md, .opencode/.gitignore, scripts/tests/test_mcp_config.sh
+- Description: Follow-up da #248. Provedor decidido: registrar o WhatsApp MCP com @sjawhar/whatsapp-mcp (fork endurecido, servidor stdio via npx) fixado na versao 2.4.1, enabled:false. Usa a API nao-oficial WhatsApp Web (Baileys).
+- Impact: Agentes passam a poder ler/enviar WhatsApp mediante habilitacao explicita e QR; fica documentado o risco de ban e a necessidade de numero dedicado.
+- Business rules: 1. Registrar mcp.whatsapp como local: command ["npx","-y","@sjawhar/whatsapp-mcp@2.4.1"], cwd ".opencode/whatsapp", enabled:false; fixar a versao exata, nunca "latest".
+2. E a API nao-oficial WhatsApp Web (Baileys): exige QR no primeiro uso e numero dedicado (risco de ban); o estado (auth_info/, data/, store/, uploads/, downloads/, contacts/) fica sob .opencode/whatsapp e deve ser gitignored.
+3. Nenhum segredo commitado; autenticacao por QR, sem credenciais em env.
 4. Atualizar standards/mcp-setup.md (+ pt/es), mcp-registry.md e .opencode/env-manifest.md; estender scripts/tests/test_mcp_config.sh.
-- Acceptance criteria: 1. mcp.whatsapp registrado com enabled:false e pacote/versao verificavel (resolve no npm ou servidor local proprio).
-2. test_mcp_config.sh cobre a nova entrada sem segredos.
-3. Docs pt/es atualizadas e indexadas.
-- Tests: 1. Rodar 'bash scripts/tests/test_mcp_config.sh' -> exit 0 com a entrada whatsapp.
-2. Rodar 'python3 -m json.tool opencode.json' -> valido, sem segredos literais.
+5. Documentar o risco de ban, o numero dedicado e a alternativa Cloud API oficial.
+- Acceptance criteria: 1. mcp.whatsapp local com "@sjawhar/whatsapp-mcp@2.4.1" (versao fixada) e enabled:false no opencode.json.
+2. .opencode/whatsapp/ ignorado no git e estado fora do versionamento.
+3. test_mcp_config.sh cobre a entrada whatsapp (versao fixada, enabled false) sem segredos.
+4. Docs pt/es atualizadas e indexadas; risco de ban e alternativa documentados.
+- Tests: 1. Rodar 'bash scripts/tests/test_mcp_config.sh' -> exit 0.
+2. Rodar 'python3 -m json.tool opencode.json' -> valido e sem segredos literais.
+3. grep confirma "@sjawhar/whatsapp-mcp@2.4.1" e ausencia de "latest" no opencode.json.
 - Suggested fix: -

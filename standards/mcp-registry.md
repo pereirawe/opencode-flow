@@ -11,11 +11,11 @@ to start; opt in per machine. See `standards/mcp-setup.md`.
 | MCP | Purpose | Default |
 |-----|---------|---------|
 | **Gmail** | Read/send email via the official Google Gmail MCP (remote, OAuth) | disabled |
+| **WhatsApp** | Read/send WhatsApp via `@sjawhar/whatsapp-mcp` (local stdio, unofficial WhatsApp Web/Baileys) | disabled |
 
 GitHub and Notion remain recommended (see the tables below) but are **not**
-registered in this project's config. WhatsApp registration is deferred pending a
-provider decision (issue #249 in `known_issues.md`) — no suitable Cloud API
-stdio server exists yet; see `standards/mcp-setup.md`.
+registered in this project's config. See `standards/mcp-setup.md` for enablement
+and for the WhatsApp ban-risk warning (use a dedicated number).
 
 ## MCPs for SaaS projects
 
@@ -61,7 +61,7 @@ stdio server exists yet; see `standards/mcp-setup.md`.
 | **Salesforce** | CRM and sales pipeline | Enterprise B2B |
 | **Google Workspace** | Docs, sheets, calendar, email | Team collaboration |
 | **Gmail** | Read/send email (official Google remote MCP) | Registered here (disabled) |
-| **WhatsApp** | Send messages (Cloud API or Baileys) | Pending decision — issue #249 |
+| **WhatsApp** | Send/read messages via `@sjawhar/whatsapp-mcp` (Baileys, unofficial WhatsApp Web) | Registered here (disabled) — needs a dedicated number |
 | **Slack** | Team notifications and decisions | Always for async comms |
 | **Discord** | Community, support, alerts | Community-led products |
 | **Teams** | Microsoft-centric collaboration | Microsoft shops |
@@ -116,8 +116,8 @@ MCP servers are configured in `opencode.json` under the **top-level `mcp` key**
 ```
 
 `{env:VAR}` values are resolved from the environment at load time — never commit
-secrets. See `standards/mcp-setup.md` for Gmail specifics and OAuth (WhatsApp
-registration is pending — issue #249).
+secrets. See `standards/mcp-setup.md` for Gmail specifics and OAuth, and for the
+WhatsApp (unofficial WhatsApp Web / Baileys) setup and ban-risk warning.
 
 ## Jira Cloud sync (issue #48)
 

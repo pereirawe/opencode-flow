@@ -1,4 +1,4 @@
-# Configuración de MCP — Gmail (y WhatsApp pendiente)
+# Configuración de MCP — Gmail y WhatsApp
 
 Cómo habilitar, autenticar y operar los servidores MCP configurados en
 `opencode.json`.
@@ -21,17 +21,16 @@ el valor se resuelve al cargar y nunca se guarda en el archivo de configuración
 
 ## Servidores registrados
 
-| Servidor | Tipo | Endpoint | Predeterminado |
-|----------|------|----------|----------------|
+| Servidor | Tipo | Endpoint / Comando | Predeterminado |
+|----------|------|--------------------|----------------|
 | `gmail` | remote | `https://gmailmcp.googleapis.com/mcp/v1` | deshabilitado |
+| `whatsapp` | local | `npx -y @sjawhar/whatsapp-mcp@2.4.1` | deshabilitado |
 
-El servidor se registra con `enabled: false` a propósito: OpenCode nunca intenta
-iniciar un servidor cuyas credenciales faltan, así el arranque sigue seguro en
-una máquina nueva. Para habilitarlo, cambia `enabled` a `true` y autentica como
-se describe abajo. Habilita solo lo que necesites — cada MCP añade herramientas
-al contexto del modelo.
-
-WhatsApp **todavía no está registrado** — ver “WhatsApp (decisión pendiente)”.
+Los dos servidores se registran con `enabled: false` a propósito: OpenCode nunca
+intenta iniciar un servidor cuyas credenciales faltan, así el arranque sigue
+seguro en una máquina nueva. Para habilitar uno, cambia `enabled` a `true` y
+autentica como se describe abajo. Habilita solo lo que necesites — cada MCP
+añade herramientas al contexto del modelo.
 
 ## Gmail (remoto oficial, OAuth 2.0)
 
@@ -82,24 +81,48 @@ la config ni los versiones.
 > Advertencia: este servidor es un developer preview de Google y el flujo puede
 > cambiar. Sigue la issue upstream #26195 antes de depender de él en automatización.
 
-## WhatsApp (decisión pendiente)
+## WhatsApp (local, `@sjawhar/whatsapp-mcp`, no oficial)
 
-Hoy no hay ningún MCP de WhatsApp adecuado registrado. El candidato original
-`@fredshred7/whatsapp-mcp-server` **no existe en npm** (el registry devuelve 404)
-y se eliminó — apuntar `npx -y` a un nombre inexistente es riesgo de cadena de
-suministro / typosquatting.
+`whatsapp` es un servidor **local** stdio: `npx -y @sjawhar/whatsapp-mcp@2.4.1`
+(versión fijada a propósito — nunca `latest`). Es un fork reforzado de
+`karlfoster/whatsapp-mcp-2.0` y se conecta vía **Baileys — la API no oficial de
+WhatsApp Web**, no la Cloud API oficial de Meta.
 
-Las opciones relevadas, ninguna habilitada todavía:
+> ⚠️ **Riesgo de ban.** WhatsApp puede banear cuentas que usan clientes no
+> oficiales. Usa un **número dedicado (burner)** — nunca tu número personal.
 
-| Candidato | Transporte | Notas |
-|-----------|------------|-------|
-| `@sjawhar/whatsapp-mcp` (fijar versión) | stdio | WhatsApp Web (Baileys), **no** es la Cloud API oficial; requiere emparejamiento por QR y número dedicado; el README advierte riesgo de ban de la cuenta; fork reforzado con procedencia SLSA |
-| `@iflow-mcp/mmarqueti-whatsapp-mcp` | WebSocket (puerto) | Espejo comunitario del servidor Cloud API; su transporte WebSocket obligatorio es incompatible con el MCP local stdio de OpenCode |
-| Servidor Cloud API propio | stdio | Envolver tú mismo la WhatsApp Cloud API oficial de Meta; más trabajo, sin dependencia de terceros |
+### 1. Habilitar y emparejar
 
-Decisión aplazada (issue #249 en `known_issues.md`). Cuando haya elección,
-regístralo bajo `mcp` con `enabled: false` y documenta las credenciales aquí;
-nunca versiones tokens.
+1. Crea el directorio de estado: `mkdir -p .opencode/whatsapp`.
+2. Define `mcp.whatsapp.enabled` como `true`.
+3. Reinicia OpenCode; en la primera ejecución el servidor imprime un código QR.
+4. En el teléfono: **WhatsApp → Ajustes → Dispositivos vinculados → Vincular un
+   dispositivo**.
+5. Comprueba el estado: `opencode mcp list`.
+
+### 2. Almacenamiento y estado
+
+El servidor guarda su estado en su directorio de trabajo, definido como
+`.opencode/whatsapp` (`cwd` en `opencode.json`); ese directorio está ignorado por
+git vía `.opencode/.gitignore`:
+
+| Ruta (en `.opencode/whatsapp/`) | Contenido |
+|---------------------------------|-----------|
+| `auth_info/` | Credenciales de WhatsApp — **nunca versionar** |
+| `data/` | Base SQLite (mensajes, chats, contactos) |
+| `store/` | Store de mensajes de Baileys + lock |
+| `uploads/` | Archivos permitidos en `send_file` |
+| `downloads/` | Medios descargados |
+| `contacts/` | Archivos VCF para importar contactos |
+
+Si pierdes `auth_info/`, empareja de nuevo con el código QR.
+
+### 3. Alternativas
+
+No existe un MCP de primera parte de Meta (WhatsApp Cloud API) que hable stdio;
+la Cloud API oficial requeriría que la envuelvas tú mismo en un servidor stdio —
+ver las notas en `standards/mcp-registry.md`. Prefiere esa vía si necesitas la
+API oficial y no puedes aceptar el riesgo de ban de Baileys.
 
 ## Reglas de seguridad
 
