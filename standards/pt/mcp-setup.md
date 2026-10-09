@@ -92,11 +92,12 @@ WhatsApp Web**, e não a Cloud API oficial da Meta.
 
 ### 1. Habilitar e parear
 
-1. Defina `mcp.whatsapp.enabled` como `true`.
-2. Reinicie o OpenCode; na primeira execução o servidor imprime um QR code.
-3. No celular: **WhatsApp → Configurações → Dispositivos conectados → Conectar
+1. Crie o diretório de estado: `mkdir -p .opencode/whatsapp`.
+2. Defina `mcp.whatsapp.enabled` como `true`.
+3. Reinicie o OpenCode; na primeira execução o servidor imprime um QR code.
+4. No celular: **WhatsApp → Configurações → Dispositivos conectados → Conectar
    um dispositivo**.
-4. Verifique o status: `opencode mcp list`.
+5. Verifique o status: `opencode mcp list`.
 
 ### 2. Armazenamento e estado
 

@@ -91,10 +91,11 @@ WhatsApp Web API**, not the official Meta Cloud API.
 
 ### 1. Enable and pair
 
-1. Set `mcp.whatsapp.enabled` to `true`.
-2. Restart OpenCode; on first run the server prints a QR code.
-3. On the phone: **WhatsApp → Settings → Linked Devices → Link a Device**.
-4. Check status: `opencode mcp list`.
+1. Create the state directory: `mkdir -p .opencode/whatsapp`.
+2. Set `mcp.whatsapp.enabled` to `true`.
+3. Restart OpenCode; on first run the server prints a QR code.
+4. On the phone: **WhatsApp → Settings → Linked Devices → Link a Device**.
+5. Check status: `opencode mcp list`.
 
 ### 2. Storage and state
 
