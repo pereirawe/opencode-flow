@@ -46,8 +46,6 @@ Or via Make:
 make -C ~/.config/opencode update
 ```
 
-## Structure
-
 ## Estrutura
 
 | Caminho | Propósito |
@@ -69,6 +67,7 @@ make -C ~/.config/opencode update
 | `scripts/` | Shell helpers (issue lifecycle + setup web) |
 | `standards/` | Padrões de desenvolvimento (branching, commits, PR, issues, code-review) + traduções locale |
 | `.opencode/` | Bootstrap template (copiar para outros projetos) |
+| `docs/` | Documentação de fluxos do pipeline (`docs/flows.md`) |
 
 ### Agentes por Setor
 
@@ -191,9 +190,51 @@ Every change in this repo follows the same lifecycle. See `workflow.md` for the 
 
 ## Pipeline Overview
 
-The pipeline is split into **Discovery** (turn an idea into a tracked, linted
-issue) and **Delivery** (turn an issue into a merged, archived MR). Both are
-token-optimized: mechanical steps are scripts, agents appear only for judgment.
+The pipeline is split into **Init/Bootstrap** (prepare a project), **Discovery**
+(turn an idea into a tracked, linted issue) and **Delivery** (turn an issue into
+a merged, archived MR). All stages are token-optimized: mechanical steps are
+scripts, agents appear only for judgment. The full textual breakdown, with
+diagrams per stage, lives in [`docs/flows.md`](docs/flows.md).
+
+### End-to-end
+
+```mermaid
+flowchart TD
+  subgraph SETUP["Init / Bootstrap"]
+    I1["make init target=... (init.sh)"]
+  end
+  subgraph DISC["Discovery"]
+    D1["/ocf:discovery"] --> D2{"Type + Severity"}
+    D2 --> D3["Loop + append-issue.sh + issue-lint.sh --strict"]
+    D3 --> D4["Loop error review (#244)"]
+  end
+  subgraph DELIV["Delivery"]
+    V1["promote.sh + create_issue.sh"] --> V2["preflight.sh"]
+    V2 --> V3["detect-lang.sh → dev agent"]
+    V3 --> V4["Developer: implementa + testes"]
+    V4 --> V5["Senior reviewers em PARALELO"]
+    V5 -->|issues| V4
+    V5 -->|aprova| V6["committer-check.sh + issue-lint.sh --strict"]
+    V6 --> V7["create-pr.sh (MR)"]
+  end
+  subgraph PUB["Publish"]
+    P1["develop-full: merge-and-close.sh → archive"]
+    P2["develop: MR aberto → /ocf:check-pr"]
+  end
+  I1 --> D1
+  D4 --> V1
+  V7 --> P1
+  V7 --> P2
+```
+
+### Init / Bootstrap
+
+`/ocf:init` (ou `make init target=<path> [locale=xx]`) copia o template
+`.opencode/` **sem sobrescrever** arquivos do projeto, resolve o locale em 4
+níveis (argumento → locale do projeto → global → `en`), injeta o contexto git no
+`AGENTS.md`, faz um sweep reduzido (nunca remove `standards/`, `README.md` ou
+`resolved_issues.md`) e configura LSP **opt-in** (`INIT_CONFIGURE_LSP=1`).
+Template obrigatório ausente aborta com `FATAL` sem escrita parcial.
 
 ### Discovery — loops by Type + Severity
 
@@ -212,11 +253,32 @@ flowchart TD
   D --> G
   E --> G
   F --> G
+  G --> H[Loop error review #244]
 ```
 
 Every loop ends by writing a **canonical** entry (`scripts/append-issue.sh`) and
 validating it (`scripts/issue-lint.sh`) — no free-form PO/PM prose, no separate
 QA-agent pass. PM and remote creation are deferred to promotion.
+
+### Loop Error Review (#244)
+
+Cada loop registra falhas em um journal JSONL
+(`.opencode/loop-journal/loop-<loop>-<id>.jsonl`); o agente
+`development/loop-error-reviewer` usa `scripts/loop-error-triage.sh` para
+classificar e **registrar issues** no tracker **global** (config do opencode) ou
+do **projeto** onde o loop rodou. Manualmente: `/ocf:triage-errors`.
+
+```mermaid
+flowchart TD
+  A["Falha em alguma fase do loop"] --> B["loop-journal.sh append (JSONL)"]
+  B --> C["loop-error-triage.sh --plan"]
+  C --> D{"Agente julga: acionável?"}
+  D -->|"global (config/tooling)"| E["append-issue.sh → known_issues.md global"]
+  D -->|"projeto (workspace)"| F["append-issue.sh → known_issues.md do projeto"]
+  D -->|"ignorar/dup"| G["Descartado"]
+```
+
+Detalhes em [`docs/flows.md`](docs/flows.md) e `standards/loop-journal.md`.
 
 ### Delivery — flattened engine (develop / develop-full)
 
@@ -230,7 +292,8 @@ flowchart LR
   P[promote.sh + create_issue.sh] --> W[preflight.sh: warm inventory]
   W --> L[detect-lang.sh → pick dev agent]
   L --> D[Developer: implement + tests]
-  D --> R[Senior reviewers in PARALLEL]
+  D --> FMT[pre_commit: format.sh --staged #246]
+  FMT --> R[Senior reviewers in PARALLEL]
   R -->|issues| D
   R -->|approve| G[committer-check.sh + issue-lint.sh --strict]
   G -->|PASS| PR[create-pr.sh: MR]
@@ -241,11 +304,47 @@ flowchart LR
 - **`/ocf:develop-full`** runs the full chain including auto-merge + archive.
 - **`/ocf:develop`** stops at MR creation (manual merge); closing is `/ocf:check-pr`.
 
+### Gates — Committer + Formatter (#246)
+
+Before commit/committer the project formatter runs automatically:
+`scripts/format.sh` (Prettier only when configured, plus `gofmt`/`shfmt`/
+`ruff`/`black`), wired into `scripts/pre_commit.sh` (re-stages rewritten files
+with no pre-existing unstaged edits) and a non-blocking WARN in
+`scripts/committer-check.sh`. See `standards/formatting.md`.
+
+### Remote entry point — aibot-watcher (#39)
+
+A systemd timer (`OnCalendar=*:0/2`) reads `@aibot:develop` comments on
+allowlisted repos and runs the equivalent of `/ocf:develop-full`; failed runs
+append to the loop journal so the Loop Error Review can triage them.
+
+### Lifecycle
+
+```mermaid
+stateDiagram-v2
+  [*] --> backlog
+  backlog --> ready
+  ready --> open
+  open --> ip
+  ready --> ip
+  state "in-progress" as ip
+  state "in-review" as ir
+  state "in-qa" as iq
+  state "in-publish" as ipb
+  ip --> ir
+  ir --> ip: correções
+  ir --> iq
+  iq --> ip: correções
+  iq --> ipb
+  ipb --> resolved: MR merged
+  resolved --> [*]
+```
+
 Timestamps are stored with **date + time** (`YYYY-MM-DDTHH:MM`) so lifecycle
 durations in `resolved_issues.md` are precise (hours for sub-day gaps).
 
 The pipeline runs continuously after promotion — no user confirmation needed between steps.
-See `workflow.md` for complete details.
+See `workflow.md` and [`docs/flows.md`](docs/flows.md) for complete details.
 
 ## Web Service
 
