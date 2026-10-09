@@ -17,6 +17,12 @@ source "$HERE/lib.sh"
 t_begin "test_init"
 
 INIT="$HERE/../init.sh"
+MD5BIN="$(command -v md5sum || true)"
+hash_tree() { # <dir> — portable directory digest (GNU md5sum or BSD md5)
+  find "$1" -type f | LC_ALL=C sort | while IFS= read -r f; do
+    if [ -n "$MD5BIN" ]; then md5sum "$f"; else md5 -r "$f"; fi
+  done | if [ -n "$MD5BIN" ]; then md5sum; else md5; fi | cut -d' ' -f1
+}
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
@@ -85,10 +91,10 @@ leftover2="$(find "$D2" \( -name node_modules -o -name '*.env' ! -name '*.env.ex
 assert_eq "0" "$leftover2" "git target: find for node_modules|*.env → 0"
 
 # --- 3. Idempotency: second run exit 0 + identical content ---
-sum_before="$(find "$D2/.opencode" -type f | LC_ALL=C sort | xargs md5sum 2>/dev/null | md5sum | cut -d' ' -f1)"
+sum_before="$(hash_tree "$D2/.opencode")"
 bash "$INIT" "$D2" en </dev/null >/dev/null 2>&1
 assert_eq "0" "$?" "second run exits 0"
-sum_after="$(find "$D2/.opencode" -type f | LC_ALL=C sort | xargs md5sum 2>/dev/null | md5sum | cut -d' ' -f1)"
+sum_after="$(hash_tree "$D2/.opencode")"
 assert_eq "$sum_before" "$sum_after" "second run leaves identical content"
 assert_eq "en" "$(cat "$D2/.opencode/locale")" "locale uncorrupted after second run"
 assert_contains "$D2/.opencode/AGENTS.md" "main" "AGENTS.md uncorrupted after second run"
@@ -174,5 +180,57 @@ if [ "$rc8" -ne 0 ] && printf '%s' "$out8" | grep -qi "Usage"; then
 else
   t_fail "make init without target is refused (rc=$rc8)"
 fi
+
+# --- 9. --dry-run writes nothing ---
+D9="$TMP/proj-dryrun"
+mkdir -p "$D9"
+bash "$INIT" "$D9" en --dry-run </dev/null >/dev/null 2>&1
+assert_eq "0" "$?" "--dry-run exits 0"
+if [ -e "$D9/.opencode" ]; then
+  t_fail "--dry-run writes nothing (.opencode created)"
+else
+  t_ok "--dry-run writes nothing (.opencode not created)"
+fi
+
+# --- 10. Missing mandatory template → FATAL, no partial .opencode (AC6) ---
+CFG10="$TMP/fakecfg"
+mkdir -p "$CFG10/scripts" "$CFG10/.opencode" "$CFG10/standards"
+cp "$HERE/../init.sh" "$CFG10/scripts/init.sh"
+for t in workflow.md opencode.json env-manifest.md .gitignore locale; do
+  cp "$HERE/../../.opencode/$t" "$CFG10/.opencode/$t"
+done
+# AGENTS.md intentionally omitted
+[ -f "$HERE/../../standards/lsp-catalog.json" ] && cp "$HERE/../../standards/lsp-catalog.json" "$CFG10/standards/"
+D10="$TMP/proj-missing"
+mkdir -p "$D10"
+out10="$(bash "$CFG10/scripts/init.sh" "$D10" en </dev/null 2>&1)"
+rc10=$?
+if [ "$rc10" -ne 0 ] && printf '%s' "$out10" | grep -q "FATAL"; then
+  t_ok "missing mandatory template is FATAL"
+else
+  t_fail "missing mandatory template is FATAL (rc=$rc10)"
+fi
+if [ -e "$D10/.opencode" ]; then
+  t_fail "no partial .opencode on preflight failure"
+else
+  t_ok "no partial .opencode on preflight failure"
+fi
+
+# --- 11. --force rewrites an existing project-owned template; default keeps it ---
+D11="$TMP/proj-force"
+mkdir -p "$D11/.opencode"
+printf 'CUSTOM\n' > "$D11/.opencode/workflow.md"
+bash "$INIT" "$D11" en --force </dev/null >/dev/null 2>&1
+assert_eq "0" "$?" "--force run exits 0"
+if grep -q "CUSTOM" "$D11/.opencode/workflow.md"; then
+  t_fail "--force overwrites existing template"
+else
+  t_ok "--force overwrites existing template"
+fi
+D11b="$TMP/proj-noforce"
+mkdir -p "$D11b/.opencode"
+printf 'CUSTOM\n' > "$D11b/.opencode/workflow.md"
+bash "$INIT" "$D11b" en </dev/null >/dev/null 2>&1
+assert_contains "$D11b/.opencode/workflow.md" "CUSTOM" "without --force existing template preserved"
 
 t_finish

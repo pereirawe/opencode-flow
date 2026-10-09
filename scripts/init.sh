@@ -28,7 +28,7 @@ while [ $# -gt 0 ]; do
     --dry-run)   DRY_RUN=1; shift ;;
     --lsp)       LSP=1; shift ;;
     --no-lsp)    LSP=0; shift ;;
-    --locale)    LOCALE="${2:-}"; shift 2 ;;
+    --locale)    [ $# -ge 2 ] || { echo "[init] --locale requires a value" >&2; exit 3; }; LOCALE="$2"; shift 2 ;;
     --locale=*)  LOCALE="${1#--locale=}"; shift ;;
     -*)          echo "[init] unknown flag: $1" >&2; exit 3 ;;
     *) if [ -z "$TARGET" ]; then TARGET="$1"
@@ -66,8 +66,6 @@ p_sed() {
 if [ -z "$LOCALE" ]; then
   if [ -f "$TARGET/.opencode/locale" ]; then
     LOCALE="$(head -n1 "$TARGET/.opencode/locale")"
-  elif [ -f "$CONFIG_DIR/.opencode/locale" ]; then
-    LOCALE="$(head -n1 "$CONFIG_DIR/.opencode/locale")"
   elif [ -f "$HOME/.config/opencode/locale" ]; then
     LOCALE="$(head -n1 "$HOME/.config/opencode/locale")"
   else
@@ -104,13 +102,13 @@ copy_if_absent() { # <relpath>
   echo "[init] write $rel"
 }
 
-mkdir -p "$TARGET/.opencode"
+[ "$DRY_RUN" -eq 1 ] || mkdir -p "$TARGET/.opencode"
 for f in AGENTS.md workflow.md opencode.json env-manifest.md .gitignore; do
   copy_if_absent "$f"
 done
 
 # --- safety sweep (BR4): ONLY blind-copy pollution, never project files ------
-if [ "$DRY_RUN" -ne 1 ]; then
+if [ "$DRY_RUN" -ne 1 ] && [ "$TARGET" != "$CONFIG_DIR" ]; then
   rm -rf "$TARGET/.opencode/node_modules" "$TARGET/.opencode/preflight" \
     "$TARGET/.opencode/reviews" "$TARGET/.opencode/adorable-proposal"
   rm -f "$TARGET/.opencode/package.json" "$TARGET/.opencode/package-lock.json"
@@ -127,7 +125,9 @@ if [ ! -f "$TARGET/.opencode/locale" ] || [ "$FORCE" -eq 1 ]; then
 fi
 
 # --- git context injection (C2/L1/L2/L4) ------------------------------------
-if command -v git >/dev/null 2>&1 && git -C "$TARGET" rev-parse --git-dir >/dev/null 2>&1; then
+if [ "$DRY_RUN" -eq 1 ]; then
+  echo "[init] would inject repo context into AGENTS.md (dry-run)"
+elif command -v git >/dev/null 2>&1 && git -C "$TARGET" rev-parse --git-dir >/dev/null 2>&1; then
   origin_head="$(git -C "$TARGET" symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's#refs/remotes/origin/##' || true)"
   if [ -n "$origin_head" ]; then
     default_branch="$origin_head"
@@ -153,14 +153,14 @@ if command -v git >/dev/null 2>&1 && git -C "$TARGET" rev-parse --git-dir >/dev/
       "$P_TMP_REMOTES" "$TARGET/.opencode/AGENTS.md" > "$TARGET/.opencode/AGENTS.md.tmp" \
       && mv "$TARGET/.opencode/AGENTS.md.tmp" "$TARGET/.opencode/AGENTS.md"
   else
-    p_sed "$TARGET/.opencode/AGENTS.md" '/^__REMOTES__$/c\  <none>'
+    p_sed "$TARGET/.opencode/AGENTS.md" 's/^__REMOTES__$/  <none>/'
   fi
 
   rm -f "$P_TMP_REMOTES"; P_TMP_REMOTES=""
   echo "[init] Repo context: default branch=$default_branch, $(git -C "$TARGET" remote | wc -w) remote(s)"
 else
   p_sed "$TARGET/.opencode/AGENTS.md" 's/__DEFAULT_BRANCH__/<not a git repo>/g'
-  p_sed "$TARGET/.opencode/AGENTS.md" '/^__REMOTES__$/c\  <none>'
+  p_sed "$TARGET/.opencode/AGENTS.md" 's/^__REMOTES__$/  <none>/'
   echo "[init] No git repo detected; skipping repo context"
 fi
 
