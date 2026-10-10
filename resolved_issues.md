@@ -2,6 +2,16 @@
 
 Issues resolved from `known_issues.md`. See `standards/resolved-issue.md` for format.
 
+### 250. Garantir .gitignore portátil para artefatos rotineiros (preflight/reviews/design-outputs) no fluxo de desenvolvimento
+- Resolved: 2026-10-10T13:09
+- Durations: backlog=- waiting=- dev=0h review=- qa=- publish=0h total=13h
+- Severity: medium
+- Type: feat
+- Report: model
+- Reviewers: 2
+- Remote: #203
+- Summary: O .opencode/.gitignore PORTÁTIL — o único .gitignore que scripts/init.sh copia para cada projeto bootstrapado — não ignora os artefatos rotineiros gerados sob .opencode/ (preflight/, reviews/, design-outputs/, spikes transitórios). Como init.sh copia apenas uma whitelist e NUNCA copia o .gitignore raiz do repo de config, projetos derivados ficam descobertos e esses .md acabam commitados, poluindo os repositórios e podendo vazar relatórios internos (inclusive security reports). A issue garante a cobertura no arquivo portátil e adiciona uma trava durável — -
+
 ### 242. init.sh copia .opencode/ inteiro para projetos — preflight/, reviews/, node_modules/ e .env sem critério
 - Resolved: 2026-09-30T14:26
 - Durations: backlog=- waiting=- dev=0h review=- qa=- publish=0h total=14h
