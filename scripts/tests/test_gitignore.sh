@@ -44,7 +44,11 @@ bootstrap() {
   local d="$1"
   mkdir -p "$d"
   git -C "$d" init -b main -q 2>/dev/null || git -C "$d" init -q
-  bash "$INIT" "$d" en </dev/null >/dev/null 2>&1
+  if ! bash "$INIT" "$d" en </dev/null >/dev/null 2>&1; then
+    t_fail "init.sh failed while bootstrapping $d"
+    return 1
+  fi
+  return 0
 }
 
 # ===========================================================================
@@ -92,6 +96,48 @@ for p in .opencode/known_issues.md .opencode/.gitignore .opencode/AGENTS.md; do
     t_ok "not ignored (whitelist): $p"
   fi
 done
+
+# ---------------------------------------------------------------------------
+# t01b — PORTABLE TEMPLATE IN ISOLATION (AC3 + BR4/AC1).
+# The bootstrap above is over-determined for the ignore checks: init.sh writes
+# a root .gitignore managed block carrying the SAME .opencode/... patterns, so
+# a broken portable .opencode/.gitignore would still let every path pass. Here
+# only the shipped .opencode/.gitignore exists (no root block), proving the
+# portable rules do the work on their own — removing them fails this section.
+# ---------------------------------------------------------------------------
+ISO="$TMP/portable-only"
+mkdir -p "$ISO/.opencode"
+cp "$D/.opencode/.gitignore" "$ISO/.opencode/.gitignore"
+git -C "$ISO" init -b main -q 2>/dev/null || git -C "$ISO" init -q
+
+iso_ignored() { git -C "$ISO" check-ignore -q -- "$1"; }
+
+# AC1/BR4: the NEW routine-artifact rules AND the pre-existing rules
+# (secrets/cache/node_modules) must all be effective on the portable file
+# alone. telegram.env/openwa.env/cache/node_modules are ignored ONLY by the
+# portable file, so they double as proof that it is actually loaded.
+for p in \
+  .opencode/preflight/issue-1.md \
+  .opencode/reviews/security-issue-1-x.md \
+  .opencode/design-outputs/s/design_spec.json \
+  .opencode/spikes/scratch.tmp \
+  .opencode/telegram.env \
+  .opencode/openwa.env \
+  .opencode/cache/x \
+  .opencode/node_modules/x
+do
+  if iso_ignored "$p"; then
+    t_ok "portable-only ignored: $p"
+  else
+    t_fail "portable-only ignored: $p (missing in .opencode/.gitignore)"
+  fi
+done
+
+if iso_ignored .opencode/spikes/nota.md; then
+  t_fail "portable-only not ignored: .opencode/spikes/nota.md (md deliverable must stay tracked)"
+else
+  t_ok "portable-only not ignored: .opencode/spikes/nota.md"
+fi
 
 # --- Root .gitignore managed block (BR 10) ---------------------------------
 ROOT_GI="$D/.gitignore"
