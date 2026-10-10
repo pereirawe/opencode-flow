@@ -117,4 +117,18 @@ else
   echo "[pre-commit] WARNING: $PROJECT_ISSUES_FILE was not updated — update it if this change affects the project"
 fi
 
+# Defense-in-depth (issue #250, BR 6): routine development-flow artifacts are
+# generated and must stay ignored — never let them slip into a commit. Ignoring
+# does not remove them from disk (BR 8); this blocks the staging only.
+# Allowed: known_issues.md and the versioned spikes/*.md deliverables.
+ROUTINE_STAGED="$(git diff --cached --name-only 2>/dev/null \
+  | grep -E '^\.opencode/(preflight|reviews|design-outputs)/|^\.opencode/spikes/' \
+  | grep -vE '^\.opencode/spikes/.*\.md$' || true)"
+if [[ -n "$ROUTINE_STAGED" ]]; then
+  echo "[pre-commit] ❌ Artefato rotineiro staged (deve permanecer ignorado — issue #250):"
+  printf '%s\n' "$ROUTINE_STAGED" | sed 's/^/  - /'
+  echo "[pre-commit]   Remova do staging (ex.: git reset HEAD <arquivo>) antes de commitar."
+  exit 1
+fi
+
 echo "[pre-commit] OK"
