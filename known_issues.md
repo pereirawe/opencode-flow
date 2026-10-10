@@ -653,9 +653,11 @@ issues only. See `standards/issues.md` for the full contract.
 
 
 ### 250. Garantir .gitignore portátil para artefatos rotineiros (preflight/reviews/design-outputs) no fluxo de desenvolvimento
-- Status: in-progress
+- Status: in-publish
 - Opened: 2026-10-10
 - Started: 2026-10-10T12:46
+- In review: 2026-10-10T13:02
+- In publish: 2026-10-10T13:08
 - Type: feat
 - Severity: medium
 - Priority: high
