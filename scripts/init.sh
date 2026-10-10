@@ -51,6 +51,28 @@ fi
 # Write locale file
 echo "$LOCALE" > "$TARGET/.opencode/locale"
 
+# Managed .gitignore block (issue #250): guarantee the routine flow artifacts
+# stay ignored in the project's ROOT .gitignore as well (belt-and-suspenders
+# alongside the portable .opencode/.gitignore shipped with the template).
+# Idempotent: never duplicate the block; never touch the project's own rules.
+GITIGNORE_MARK_BEGIN="# >>> opencode-flow managed ignores (issue #250)"
+if [ ! -f "$TARGET/.gitignore" ] || ! grep -qF "$GITIGNORE_MARK_BEGIN" "$TARGET/.gitignore" 2>/dev/null; then
+  if [ -s "$TARGET/.gitignore" ] && [ -n "$(tail -c1 "$TARGET/.gitignore")" ]; then
+    printf '\n' >> "$TARGET/.gitignore"
+  fi
+  cat >> "$TARGET/.gitignore" <<'EOF'
+# >>> opencode-flow managed ignores (issue #250)
+.opencode/preflight/
+.opencode/reviews/
+.opencode/test-cache/
+.opencode/design-outputs/
+.opencode/spikes/*
+!.opencode/spikes/*.md
+# <<< opencode-flow managed ignores (issue #250)
+EOF
+  echo "[init] Ensured managed .gitignore ignores (preflight/, reviews/, test-cache/, design-outputs/, spikes)"
+fi
+
 # Detect git repo info and substitute into AGENTS.md
 if command -v git >/dev/null 2>&1 && git -C "$TARGET" rev-parse --git-dir >/dev/null 2>&1; then
   # Default branch

@@ -3,3 +3,11 @@ telegram.env
 openwa.env
 test-cache/
 cache/
+
+# Runtime/generated artifacts (routine flow — never versioned)
+preflight/
+reviews/
+design-outputs/
+# Spikes keep their versioned markdown deliverables; only transient scratch files are ignored
+spikes/*
+!spikes/*.md
