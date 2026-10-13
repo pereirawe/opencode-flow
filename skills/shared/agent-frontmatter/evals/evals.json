@@ -1,0 +1,23 @@
+{
+  "skill_name": "agent-frontmatter",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Review `.claude/agents/release-helper.md` for Claude Code. Check the YAML frontmatter and prompt for actual load problems, risky permissions, and contradictions. Do not edit it; give me evidence and the smallest fixes.",
+      "expected_output": "A review-only report using current Claude Code rules; it identifies confirmed findings with file/line evidence and fixes, distinguishes recommendations from defects, and does not modify the profile.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Create a project-level GitHub Copilot cloud agent that only plans database migrations and cannot edit files. Check whether there is an agent-creation specialist available, use it if there is, then validate the resulting profile against Copilot's current format.",
+      "expected_output": "The agent discovers and uses an available suitable creator when possible, otherwise creates the cloud-agent profile directly; it chooses the correct location/format, narrows tools, and independently reports actual validation and official sources.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "We have `.opencode/agents/reviewer.md` and `.github/agents/reviewer.agent.md` in a repo. Batch-audit both for their own hosts, especially permission/tool defaults and whether the body promises capabilities the metadata does not grant. Leave the files untouched.",
+      "expected_output": "A read-only, per-file audit that detects the two distinct host schemas, checks each host's permission/tool defaults independently, cites findings, and gives a concise cross-file summary without applying one platform's rules to the other.",
+      "files": []
+    }
+  ]
+}
